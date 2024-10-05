@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ title }}</title>
+    <!-- 引入必要的 CSS 和 JS 文件 -->
+    {{ chart.resources }}
+    <style>
+        .chart-container {
+            max-width: 100%;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="chart-container">
+        {{ chart | safe }}
+    </div>
+</body>
+</html>
