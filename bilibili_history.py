@@ -4,6 +4,8 @@ import json
 import time
 from datetime import datetime
 
+# 切换到正确的工作目录
+os.chdir('/www/wwwroot/python')
 print(f"当前工作目录: {os.getcwd()}")
 
 # 读取本地cookie文件
@@ -122,6 +124,7 @@ def fetch_and_compare_history(headers, params, local_history, cursor_history):
     print("正在从B站API获取历史记录...")
     url = 'https://api.bilibili.com/x/web-interface/history/cursor'
     all_data = []
+    # 使用 oid 作为唯一标识
     local_oids = {entry['history']['oid'] for entry in local_history}
     duplicate_count = 0
     stop_threshold = 30
@@ -151,14 +154,16 @@ def fetch_and_compare_history(headers, params, local_history, cursor_history):
                     print(f"标题: {entry['title']}, 观看时间: {datetime.fromtimestamp(entry['view_at'])}")
 
                 for entry in data['data']['list']:
+                    all_data.append(entry)  # 无论是否重复，都添加到 all_data
+
                     if entry['history']['oid'] in local_oids:
                         duplicate_count += 1
                         if duplicate_count >= stop_threshold:
-                            print(f"连续{stop_threshold}条记录已存在，停止请求。")
+                            print(f"连续{stop_threshold}条重复记录已检测到，停止请求。")
                             return all_data
                     else:
-                        all_data.append(entry)
-                        duplicate_count = 0
+                        local_oids.add(entry['history']['oid'])  # 添加新 oid 到 local_oids
+                        duplicate_count = 0  # 重置重复计数
 
                 # 更新请求的游标参数
                 if 'cursor' in data['data']:
@@ -176,7 +181,7 @@ def fetch_and_compare_history(headers, params, local_history, cursor_history):
                 else:
                     print("未能获取游标信息，停止请求。")
                     break
-                # 暂停1秒在请求
+                # 暂停1秒再请求
                 time.sleep(1)
             else:
                 print("没有更多的数据或数据结构错误。")
