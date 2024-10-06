@@ -3,18 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <title>{{ title }}</title>
-    <!-- 引入必要的 CSS 和 JS 文件 -->
-    {{ chart.resources }}
+    <!-- 引入 pyecharts 的 JS 依赖 -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
     <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
         .chart-container {
-            max-width: 100%;
-            margin: 0 auto;
         }
     </style>
 </head>
 <body>
-    <div class="chart-container">
-        {{ chart | safe }}
-    </div>
+    <h1>{{ title }}</h1>
+    {% for chart in charts %}
+        <div class="chart-container">
+            <h2>{{ chart.year }} 年</h2>
+            <div>
+                {{ chart.chart_html | safe }}
+            </div>
+        </div>
+    {% endfor %}
 </body>
 </html>

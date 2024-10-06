@@ -1,4 +1,4 @@
-# 获取哔哩哔哩历史记录并生成日历图
+# 获取哔哩哔哩历史记录并生成热力图
 
 该项目旨在处理、分析和可视化哔哩哔哩用户的历史数据。这些工具包括数据清洗、数据库导入、历史分析以及通过邮件通知进行自动化日志记录。以下部分详细解释了每个模块的用途和使用方法。
 
@@ -49,7 +49,7 @@ params = {
 
 ## 简单的数据分析
 - `analyze_bilibili_history.py`  
-  简单的分析获取到的哔哩哔哩历史数据，运行后保存的`daily_count.json`文件（统计每日观看的视频数量）用于后续生成日历图，数据分析输出内容如下：
+  简单的分析获取到的哔哩哔哩历史数据，运行后保存的`daily_count_2024.json`文件（统计每日观看的视频数量）用于后续生成热力图，数据分析输出内容如下：
   ```text
   2024-09-28: 看了 87 个视频，最早是 00:01:22，最晚是 19:50:56
   2024-09-29: 看了 116 个视频，最早是 00:56:13，最晚是 22:06:07
@@ -62,25 +62,39 @@ params = {
   2024-08: 30 个视频
   2024-09: 1108 个视频
   2024-10: 223 个视频
-  每天观看数量已保存到 daily_count.json
+  每天观看数量已保存到 daily_count\daily_count_2024.json
   ```
 
-## 生成日历图
+## 生成热力图
 - `heatmap_visualizer.py`  
 将`output_dir`设置为你的输出路径，如果后续要在部署到服务器在线访问，就设置为你服务器网站目录
   ```python
   class HeatmapVisualizer:
-      def __init__(self, data_file='daily_count.json', template_file='template.html', output_dir='/xxx/xxx/xxx'):
-          self.data_file = data_file
-          self.template_file = template_file
-          self.output_dir = output_dir  # 添加输出目录
-          self.daily_count = self.load_data()
-          self.date_range = self.generate_date_range()
+          def __init__(self, template_file='template.html', output_dir='./', base_folder='daily_count'):
+        """
+        初始化 HeatmapVisualizer。
+
+        :param template_file: Jinja2 模板文件名
+        :param output_dir: 输出目录
+        :param base_folder: 存放 JSON 数据的基础文件夹
+        """
+        self.template_file = template_file
+        self.output_dir = output_dir
+        self.base_folder = base_folder
+        self.charts = []  # 存储所有生成的图表 HTML
+        self.data = {}  # 存储每个年份的数据
+
+        # 确保输出目录存在
+        if not os.path.exists(self.output_dir):
+            os.makedirs(self.output_dir)
+
+        # 自动检测可用的年份
+        self.years = self.detect_years()
   ```
-  使用`analyze_bilibili_history.py`生成的`daily_count.json`来生成日历图，效果如下：
+  使用`analyze_bilibili_history.py`生成的`daily_count_2024.json`来生成热力图，效果如下：
 <img src="\heatmap.png"/>
 - `template.html`
-日历图的模板文件，用来定义样式
+热力图的模板文件，用来定义样式
 
 ## 清理数据
 - `clean_data.py`  
@@ -93,10 +107,10 @@ params = {
 
 ## 导入到MySQL数据库
 - `import_database.py`  
-  该模块负责将清洗和处理后的数据导入数据库，可以用于存储数据以便后续分析或进行多用户数据处理。
+  该模块负责将清洗和处理后的数据导入数据库，可以用于存储数据以便后续分析或进行多用户数据处理，程序会自动识别所处年份，如果有此年份的表，如`bilibili_history_{年份}`则自动导入，没有则根据昨年的表结构自动新建
 - 建表语句，如果你要导入清理后的数据，那么你需要删除你不需要的字段，以及代码里不需要的字段
   ```mysql
-  CREATE TABLE bilibili_history (
+  CREATE TABLE bilibili_history_2024 (
     id BIGINT PRIMARY KEY COMMENT'主键，使用雪花算法等库生成的唯一ID',
     title VARCHAR(255) NOT NULL COMMENT'条目标题，字符串，最大255字符',
     long_title VARCHAR(255) COMMENT'条目副标题（有时为空），最大255字符',
@@ -162,12 +176,12 @@ params = {
   解释器路径/3.12.3/bin/pip3 install requests
   # 想要导入数据到数据库则要安装，与 MySQL 数据库进行交互
   解释器路径/3.12.3/bin/python3.12 -m pip install pymysql
-  # 想要生成日历图则要安装，用于生成图表的 Python 库，用来生成日历图
+  # 想要生成热力图则要安装，用于生成图表的 Python 库，用来生成热力图
   解释器路径/3.12.3/bin/python3.12 -m pip install pyecharts
-  # 想要生成日历图则要安装，用于 Web 开发中生成 HTML
+  # 想要生成热力图则要安装，用于 Web 开发中生成 HTML
   解释器路径/3.12.3/bin/python3.12 -m pip install jinja2
   ```
-- 下面开始部署自动化脚本，我导入的的是未清理过字段的原始数据，所以没有部署`clean_data.py`文件，首先点击左侧边栏的计划任务，点击添加任务，选择自己要执行的时间和频率，然后输入以下脚本内容，脚本里可以带注释：
+- 下面开始部署自动化脚本，我导入的的是未清理过字段的原始数据，所以没有部署`clean_data.py`文件，首先点击左侧边栏的计划任务，点击添加任务，选择自己要执行的时间和频率，然后输入以下脚本内容，脚本里可以带注释，路径可以自定义：
   ```shell
   #!/bin/bash
   

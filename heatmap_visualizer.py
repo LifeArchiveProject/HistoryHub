@@ -1,5 +1,7 @@
 import calendar
 import json
+import os
+import re
 from datetime import datetime, timedelta
 
 from jinja2 import Environment, FileSystemLoader
@@ -12,23 +14,85 @@ calendar.setfirstweekday(calendar.MONDAY)
 
 
 class HeatmapVisualizer:
-    def __init__(self, data_file='daily_count.json', template_file='template.html', output_dir='/www/wwwroot/java/buy_customers/dist'):
-        self.data_file = data_file
+    def __init__(self, template_file='template.html', output_dir='./', base_folder='daily_count'):
+        """
+        初始化 HeatmapVisualizer。
+
+        :param template_file: Jinja2 模板文件名
+        :param output_dir: 输出目录
+        :param base_folder: 存放 JSON 数据的基础文件夹
+        """
         self.template_file = template_file
-        self.output_dir = output_dir  # 添加输出目录
-        self.daily_count = self.load_data()
-        self.date_range = self.generate_date_range()
+        self.output_dir = output_dir
+        self.base_folder = base_folder
+        self.charts = []  # 存储所有生成的图表 HTML
+        self.data = {}  # 存储每个年份的数据
 
-    # 加载 JSON 数据
-    def load_data(self):
-        with open(self.data_file, 'r', encoding='utf-8') as f:
-            daily_count = json.load(f)
-        return daily_count
+        # 确保输出目录存在
+        if not os.path.exists(self.output_dir):
+            os.makedirs(self.output_dir)
 
-    # 生成一个包含所有日期的范围
-    def generate_date_range(self):
+        # 自动检测可用的年份
+        self.years = self.detect_years()
+
+    def detect_years(self):
+        """
+        扫描 base_folder 文件夹，检测所有符合 daily_count_XXXX.json 格式的文件，并提取年份。
+
+        :return: 排序后的年份列表
+        """
+        pattern = re.compile(r'daily_count_(\d{4})\.json$')
+        years = []
+        if not os.path.exists(self.base_folder):
+            print(f"文件夹 {self.base_folder} 不存在。")
+            return years
+
+        for filename in os.listdir(self.base_folder):
+            match = pattern.match(filename)
+            if match:
+                year = int(match.group(1))
+                years.append(year)
+
+        years = sorted(years)  # 按年份排序
+        if not years:
+            print(f"在文件夹 {self.base_folder} 中未找到符合格式的 JSON 文件。")
+        else:
+            print(f"检测到年份: {years}")
+        return years
+
+    def load_data(self, year):
+        """
+        加载指定年份的 JSON 数据。
+
+        :param year: 年份
+        :return: 数据字典
+        """
+        data_file = os.path.join(self.base_folder, f'daily_count_{year}.json')
+        try:
+            with open(data_file, 'r', encoding='utf-8') as f:
+                daily_count = json.load(f)
+            return daily_count
+        except FileNotFoundError:
+            print(f"文件 {data_file} 不存在，请检查文件路径。")
+            return {}
+
+    def generate_date_range(self, daily_count):
+        """
+        生成指定年份的日期范围。
+
+        :param daily_count: 每日计数数据
+        :return: 日期列表
+        """
+        if not daily_count:
+            return []
+
         # 获取数据中的所有日期
-        all_dates = [datetime.strptime(date, '%Y-%m-%d') for date in self.daily_count.keys()]
+        try:
+            all_dates = [datetime.strptime(date, '%Y-%m-%d') for date in daily_count.keys()]
+        except ValueError as e:
+            print(f"日期格式错误: {e}")
+            return []
+
         min_date, max_date = min(all_dates), max(all_dates)
 
         # 确保数据只包含一个年份
@@ -42,34 +106,50 @@ class HeatmapVisualizer:
         date_range = [datetime(year, 1, 1) + timedelta(days=i) for i in range(num_days)]
         return date_range
 
-    # 准备数据用于 Calendar 图表
-    def prepare_data_for_calendar(self):
-        # 将数据转换为 [日期字符串, 数值] 的形式
+    def prepare_data_for_calendar(self, date_range, daily_count):
+        """
+        准备日历图表的数据。
+
+        :param date_range: 日期范围
+        :param daily_count: 每日计数数据
+        :return: 数据列表
+        """
         data = [
-            [date, self.daily_count.get(date, 0)]
-            for date in [d.strftime('%Y-%m-%d') for d in self.date_range]
+            [date.strftime('%Y-%m-%d'), daily_count.get(date.strftime('%Y-%m-%d'), 0)]
+            for date in date_range
         ]
         return data
 
-    # 绘制 Calendar 热力图
-    def plot_calendar_heatmap(self):
-        data = self.prepare_data_for_calendar()
-        year = self.date_range[0].year
+    def create_calendar_chart(self, year, daily_count):
+        """
+        创建单个年份的日历热力图。
+
+        :param year: 年份
+        :param daily_count: 每日计数数据
+        :return: 图表的 HTML 片段
+        """
+        date_range = self.generate_date_range(daily_count)
+        if not date_range:
+            print(f"年份 {year} 的日期范围生成失败。")
+            return ""
+
+        data = self.prepare_data_for_calendar(date_range, daily_count)
 
         # 设置日历的范围
         calendar_range = [f"{year}-01-01", f"{year}-12-31"]
 
         # 定义颜色分段
         pieces = [
-            {"min": 1, "max": 10, "color": "#c6e48b"},
-            {"min": 11, "max": 50, "color": "#7bc96f"},
-            {"min": 51, "max": 100, "color": "#239a3b"},
-            {"min": 101, "max": 99999, "color": "#196127"}
+            {"min": 1, "max": 10, "color": "#FFECF1"},
+            {"min": 11, "max": 50, "color": "#FFB3CA"},
+            {"min": 51, "max": 100, "color": "#FF8CB0"},
+            {"min": 101, "max": 200, "color": "#FF6699"},
+            {"min": 201, "max": 9999, "color": "#E84B85"},
         ]
 
         # 创建日历热力图
-        calendar = (
-            Calendar(init_opts=opts.InitOpts(width="1000px", height="250px"))
+        calendar_chart = (
+            Calendar(init_opts=opts.InitOpts(width="1000px", height="200px"))
             .add(
                 series_name="观看数量",
                 yaxis_data=data,
@@ -84,7 +164,8 @@ class HeatmapVisualizer:
                     cell_size=[15, 15],  # 设置每个格子的大小
                     itemstyle_opts=opts.ItemStyleOpts(
                         border_width=0.5,
-                        border_color="#ccc"
+                        border_color="#ccc",  # 边框颜色
+                        color="#ffffff",  # 方格背景颜色
                     ),
                     splitline_opts=opts.SplitLineOpts(is_show=False)  # 隐藏月份之间的分割线
                 ),
@@ -97,6 +178,9 @@ class HeatmapVisualizer:
                     is_piecewise=True,
                     pieces=pieces,
                     pos_top="top",
+                    textstyle_opts=opts.TextStyleOpts(  # 修改标签颜色
+                        color="#FF6699",  # 标签文字颜色
+                    ),
                 ),
                 tooltip_opts=opts.TooltipOpts(
                     is_show=True,
@@ -114,24 +198,57 @@ class HeatmapVisualizer:
         )
 
         # 渲染图表为 HTML 片段
-        chart_html = calendar.render_embed()
+        chart_html = calendar_chart.render_embed()
+        return chart_html
+
+    def plot_calendar_heatmaps(self):
+        """
+        为所有检测到的年份生成日历热力图，并将其整合到一个 HTML 文件中。
+        """
+        for year in self.years:
+            daily_count = self.load_data(year)
+            if not daily_count:
+                print(f"跳过年份 {year}，因为没有找到相关数据或数据为空。")
+                continue
+            self.data[year] = daily_count
+            try:
+                chart_html = self.create_calendar_chart(year, daily_count)
+                if chart_html:
+                    self.charts.append({
+                        'year': year,
+                        'chart_html': chart_html
+                    })
+            except ValueError as e:
+                print(f"处理年份 {year} 时出错: {e}")
+                continue
+
+        if not self.charts:
+            print("没有可生成的热力图。")
+            return
 
         # 使用 Jinja2 渲染完整的 HTML 文件
         env = Environment(loader=FileSystemLoader('.'))
-        template = env.get_template(self.template_file)
+        try:
+            template = env.get_template(self.template_file)
+        except Exception as e:
+            print(f"加载模板文件 {self.template_file} 时出错: {e}")
+            return
+
         rendered_html = template.render(
-            title="bilibili每日视频观看热力图",
-            chart=chart_html
+            title="Bilibili 每年每日视频观看热力图",
+            charts=self.charts
         )
 
         # 将生成的 HTML 保存到指定的输出目录
-        output_file = f"{self.output_dir}/heatmap.html"
-        with open(output_file, 'w', encoding='utf-8') as f:
-            f.write(rendered_html)
-
-        print(f"热力图已保存为 {output_file}")
+        output_file = os.path.join(self.output_dir, "heatmap_comparison.html")
+        try:
+            with open(output_file, 'w', encoding='utf-8') as f:
+                f.write(rendered_html)
+            print(f"热力图已保存为 {output_file}")
+        except Exception as e:
+            print(f"保存 HTML 文件时出错: {e}")
 
 
 if __name__ == "__main__":
-    visualizer = HeatmapVisualizer()
-    visualizer.plot_calendar_heatmap()
+    visualizer = HeatmapVisualizer()  # 自动检测年份
+    visualizer.plot_calendar_heatmaps()

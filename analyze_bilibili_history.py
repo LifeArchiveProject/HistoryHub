@@ -32,7 +32,12 @@ def load_all_history_files(base_folder='history_by_date'):
 
 
 # 保存每天的观看数量到 JSON 文件
-def save_daily_count_to_json(daily_count, output_file='daily_count.json'):
+def save_daily_count_to_json(daily_count, year, output_folder='daily_count'):
+    # 检查并创建输出文件夹
+    if not os.path.exists(output_folder):
+        os.makedirs(output_folder)
+
+    output_file = os.path.join(output_folder, f'daily_count_{year}.json')
     with open(output_file, 'w', encoding='utf-8') as f:
         json.dump(daily_count, f, ensure_ascii=False, indent=4)
     print(f"每天观看数量已保存到 {output_file}")
@@ -47,6 +52,9 @@ def main():
         print("没有找到历史记录数据。")
         return
 
+    # 获取当前年份
+    current_year = datetime.now().year
+
     # 将数据按天分组
     daily_data = defaultdict(list)
     monthly_count = defaultdict(int)
@@ -55,6 +63,9 @@ def main():
     for entry in history_data:
         # 将 view_at 转换为日期
         view_time = datetime.fromtimestamp(entry['view_at'])
+        if view_time.year != current_year:
+            continue  # 只处理当前年份的数据
+
         date_str = view_time.strftime('%Y-%m-%d')  # 按天分组
         month_str = view_time.strftime('%Y-%m')  # 按月计数
         daily_data[date_str].append(view_time)
@@ -74,7 +85,7 @@ def main():
         print(f"{month}: {count} 个视频")
 
     # 保存每天的观看数量到 JSON 文件
-    save_daily_count_to_json(daily_count)
+    save_daily_count_to_json(daily_count, current_year)
 
 
 if __name__ == '__main__':
