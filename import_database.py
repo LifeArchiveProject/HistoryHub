@@ -1,7 +1,47 @@
 import pymysql
 import json
 import os
+import time
+import threading
 from datetime import datetime
+
+# 雪花算法生成器类
+class SnowflakeIDGenerator:
+    def __init__(self, machine_id=1, datacenter_id=1):
+        self.lock = threading.Lock()
+        self.machine_id = machine_id & 0x3FF  # 10 位
+        self.datacenter_id = datacenter_id & 0x3FF  # 10 位
+        self.sequence = 0
+        self.last_timestamp = -1
+        self.epoch = 1609459200000  # 2021-01-01 00:00:00 UTC 以毫秒为单位
+
+    def _current_millis(self):
+        return int(time.time() * 1000)
+
+    def get_id(self):
+        with self.lock:
+            timestamp = self._current_millis()
+
+            if timestamp < self.last_timestamp:
+                raise Exception("时钟向后移动。拒绝生成 id。")
+
+            if timestamp == self.last_timestamp:
+                self.sequence = (self.sequence + 1) & 0xFFF  # 12 bits
+                if self.sequence == 0:
+                    # 等待下一毫秒
+                    while timestamp <= self.last_timestamp:
+                        timestamp = self._current_millis()
+            else:
+                self.sequence = 0
+
+            self.last_timestamp = timestamp
+
+            # 生成64位ID
+            id = ((timestamp - self.epoch) << 22) | (self.datacenter_id << 12) | self.sequence
+            return id
+
+# 初始化雪花ID生成器
+id_generator = SnowflakeIDGenerator(machine_id=1, datacenter_id=1)
 
 # 获取当前年份和上一年份
 def get_years():
@@ -44,20 +84,6 @@ def create_new_year_table(connection, new_table, reference_table):
         connection.rollback()
         print(f"创建新表时发生错误: {e}")
 
-# 获取现有的 oid 集合
-def get_existing_oids(connection, table_name, oids):
-    if not oids:
-        return set()
-    query = f"SELECT oid FROM {table_name} WHERE oid IN ({','.join(['%s'] * len(oids))})"
-    try:
-        with connection.cursor() as cursor:
-            cursor.execute(query, oids)
-            result = cursor.fetchall()
-        return {row['oid'] for row in result}
-    except Exception as e:
-        print(f"查询现有 oid 时发生错误: {e}")
-        return set()
-
 # 批量插入数据到 MySQL，支持事务回滚
 def batch_insert_data(connection, table_name, insert_sql, data_chunk):
     try:
@@ -71,7 +97,6 @@ def batch_insert_data(connection, table_name, insert_sql, data_chunk):
         print(f"插入数据时发生错误: {e}")
         return 0
 
-# 从 JSON 文件中读取数据并批量插入到 MySQL
 def import_data_from_json(connection, table_name, insert_sql, file_path, batch_size=1000):
     with open(file_path, 'r', encoding='utf-8') as f:
         data = json.load(f)
@@ -79,13 +104,10 @@ def import_data_from_json(connection, table_name, insert_sql, file_path, batch_s
     total_inserted = 0
 
     try:
-        all_oids = [item['history']['oid'] for item in data]
-        existing_oids = get_existing_oids(connection, table_name, all_oids)
-
-        # 筛选出未在数据库中的新数据
+        # 构建要插入的数据列表，并生成唯一的id
         new_data = [
             {
-                "id": item['history']['oid'],
+                "id": id_generator.get_id(),  # 生成唯一ID
                 "title": item['title'],
                 "long_title": item.get('long_title', ''),
                 "cover": item.get('cover', ''),
@@ -117,7 +139,7 @@ def import_data_from_json(connection, table_name, insert_sql, file_path, batch_s
                 "tag_name": item.get('tag_name', ''),
                 "live_status": item.get('live_status', 0)
             }
-            for item in data if item['history']['oid'] not in existing_oids
+            for item in data
         ]
 
         # 分批插入数据
@@ -188,48 +210,20 @@ def import_all_history_files(data_folder='history_by_date', log_file='last_impor
                 %(videos)s, %(author_name)s, %(author_face)s, %(author_mid)s, %(view_at)s, 
                 %(progress)s, %(badge)s, %(show_title)s, %(duration)s, %(current)s, %(total)s, 
                 %(new_desc)s, %(is_finish)s, %(is_fav)s, %(kid)s, %(tag_name)s, %(live_status)s
-            )
-            ON DUPLICATE KEY UPDATE 
-                title = VALUES(title),
-                long_title = VALUES(long_title),
-                cover = VALUES(cover),
-                covers = VALUES(covers),
-                uri = VALUES(uri),
-                epid = VALUES(epid),
-                page = VALUES(page),
-                cid = VALUES(cid),
-                part = VALUES(part),
-                business = VALUES(business),
-                dt = VALUES(dt),
-                videos = VALUES(videos),
-                author_name = VALUES(author_name),
-                author_face = VALUES(author_face),
-                author_mid = VALUES(author_mid),
-                view_at = VALUES(view_at),
-                progress = VALUES(progress),
-                badge = VALUES(badge),
-                show_title = VALUES(show_title),
-                duration = VALUES(duration),
-                current = VALUES(current),
-                total = VALUES(total),
-                new_desc = VALUES(new_desc),
-                is_finish = VALUES(is_finish),
-                is_fav = VALUES(is_fav),
-                tag_name = VALUES(tag_name),
-                live_status = VALUES(live_status);
+            );
         """
 
         # 读取上次导入的文件日期和文件名
         last_imported_date, last_imported_file = get_last_imported_file(log_file)
 
         # 遍历按日期分割的文件夹
-        for year in os.listdir(data_folder):
+        for year in sorted(os.listdir(data_folder)):
             year_path = os.path.join(data_folder, year)
             if os.path.isdir(year_path) and year.isdigit():
-                for month in os.listdir(year_path):
+                for month in sorted(os.listdir(year_path)):
                     month_path = os.path.join(year_path, month)
                     if os.path.isdir(month_path) and month.isdigit():
-                        for day_file in os.listdir(month_path):
+                        for day_file in sorted(os.listdir(month_path)):
                             if day_file.endswith('.json'):
                                 day_path = os.path.join(month_path, day_file)
 
@@ -276,7 +270,7 @@ def import_all_history_files(data_folder='history_by_date', log_file='last_impor
 # 主函数
 if __name__ == '__main__':
     # 设置数据文件夹，可以选择导入清理前的文件夹 'history_by_date' 或清理后的文件夹 'cleaned_history_by_date'
-    data_folder = 'cleaned_history_by_date'  # 或 'history_by_date'
+    data_folder = 'history_by_date'  # 或 'cleaned_history_by_date'
 
     # 调用导入函数，导入所有文件
     import_all_history_files(data_folder)
