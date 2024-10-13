@@ -32,11 +32,10 @@ params = {
 ## 获取历史记录
 
 - `bilibili_history.py`  
-  输入自己的哔哩哔哩Cookie来处理和获取历史数据，使用的API来自[bilibili-API-collect](https://github.com/SocialSisterYi/bilibili-API-collect)
+  输入自己的哔哩哔哩Cookie来处理和获取历史数据，使用的API来自[bilibili-API-collect](https://github.com/SocialSisterYi/bilibili-API-collect)  
 
-  ```text
-  在当前目录下新建名为 cookie.txt 的文件，在里面输入自己的Cookie即可被程序读取
-  ```
+  在当前目录下新建名为 cookie.txt 的文件，在里面输入自己的Cookie即可被程序读取，由于Web 端的 Cookie 会随着一些敏感接口的访问逐渐 ***失效*** ，所以需要把 localStorage 的 `ac_time_value` 字段删除才不会刷新，具体见[Web端Cookie刷新](https://socialsisteryi.github.io/bilibili-API-collect/docs/login/cookie_refresh.html)
+
   第一次运行会直接获取所有历史记录，并生成年月文件夹，后续同步时，当请求的数据观看时间比本地最新的历史记录天数小两天时停止请求，比如当前最新的是7号，那么一旦请求到5号就停止，并同步未同步的数据，文件夹结构如下：
   ```text
   ├───history_by_date
