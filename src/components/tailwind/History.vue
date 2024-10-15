@@ -1,7 +1,7 @@
 <template>
   <div class="mt-2 mx-auto max-w-7xl sm:px-2 lg:px-8">
     <!-- 搜索框 -->
-    <div class="fixed top-0 left-0 right-0 bg-white z-50 p-1.5">
+    <div class="fixed top-0 left-0 right-0 bg-white z-50 px-1.5">
       <div class="relative mx-auto max-w-4xl p-1">
         <!-- 输入框，设置默认背景和悬停背景颜色 -->
         <input
@@ -19,9 +19,20 @@
           搜索
         </button>
       </div>
+
+      <div class="max-w-4xl mx-auto">
+        <div class="lm:text-sm text-gray-700 text-lg">
+          <div class="flex justify-between px-1.5" @click="show = true">
+            <p>选择历史记录的日期区间</p>
+            <span class="text-[#FF6699]">{{ date }}</span>
+          </div>
+          <van-calendar :show-confirm="false" title="选择日期区间" color="#FF6699" switch-mode="year-month" v-model:show="show" type="range" @confirm="onConfirm"/>
+        </div>
+      </div>
     </div>
 
-    <div class="pt-16 lm:pt-14">
+
+    <div class="pt-20 lm:pt-14">
       <VideoRecord
           v-for="record in records"
           :key="record.id"
@@ -58,7 +69,7 @@
 
 <script setup>
 import {ref, onMounted} from 'vue';
-import {getBiliHistory2024} from "../../api/api.js";
+import {getHistoryByDay} from "../../api/api.js"; // 确保导入正确的 API 函数
 import {useRouter} from 'vue-router';
 import VideoRecord from "./VideoRecord.vue";
 
@@ -66,14 +77,58 @@ import VideoRecord from "./VideoRecord.vue";
 const records = ref([]);
 const page = ref(1);
 const size = ref(30); // 每页数据
-const sortOrder = ref(0); // 0表示降序，1表示升序
 const totalPages = ref(0);
 const jumpPage = ref(''); // 跳转页码输入框的值
 
-// 数据获取函数
-const fetchBiliHistory2024 = async () => {
+const date = ref('');
+const dateRange = ref('');
+const show = ref(false);
+
+const currentYear = new Date().getFullYear();
+
+// 辅助函数：格式化日期为 'MM/DD'（不含年份）
+const formatDate = (date) => `${date.getMonth() + 1}/${date.getDate()}`;
+
+// 辅助函数：格式化日期为 'YYYY/MM/DD'（含年份）
+const formatDateWithYear = (date) => `${date.getFullYear()}/${date.getMonth() + 1}/${date.getDate()}`;
+
+// 辅助函数：格式化日期为 'yyyyMMdd' 用于 API
+const formatDateForAPI = (date) => {
+  const year = date.getFullYear();
+  const month = (`0${date.getMonth() + 1}`).slice(-2);
+  const day = (`0${date.getDate()}`).slice(-2);
+  return `${year}${month}${day}`;
+};
+
+const onConfirm = (values) => {
+  const [start, end] = values;
+  show.value = false;
+
+  const startYear = start.getFullYear();
+  const endYear = end.getFullYear();
+
+  // 判断日期区间是否在当前年份内
+  if (startYear === currentYear && endYear === currentYear) {
+    date.value = `${formatDate(start)} - ${formatDate(end)}`;
+  } else {
+    // 显示年份
+    date.value = `${formatDateWithYear(start)} - ${formatDateWithYear(end)}`;
+  }
+
+  // 设置 dateRange 为 'yyyyMMdd-yyyyMMdd' 格式
+  dateRange.value = `${formatDateForAPI(start)}-${formatDateForAPI(end)}`;
+
+  // 重置页码为1
+  page.value = 1;
+
+  // 重新获取数据
+  fetchHistoryByDateRange();
+};
+
+// 数据获取函数：基于日期区间
+const fetchHistoryByDateRange = async () => {
   try {
-    const response = await getBiliHistory2024(page.value, size.value, sortOrder.value);
+    const response = await getHistoryByDay(page.value, size.value, dateRange.value);
     records.value = response.data.data.records;
     totalPages.value = response.data.data.pages;
   } catch (error) {
@@ -86,7 +141,7 @@ const jumpToPage = () => {
   const targetPage = parseInt(jumpPage.value);
   if (!isNaN(targetPage) && targetPage >= 1 && targetPage <= totalPages.value) {
     page.value = targetPage;
-    fetchBiliHistory2024(); // 重新获取数据
+    fetchHistoryByDateRange(); // 重新获取数据
   } else {
     alert(`请输入有效的页码（1-${totalPages.value}）`);
   }
@@ -96,20 +151,23 @@ const jumpToPage = () => {
 const nextPage = () => {
   if (page.value < totalPages.value) {
     page.value++;
-    fetchBiliHistory2024();
+    fetchHistoryByDateRange();
   }
 };
 
 const prevPage = () => {
   if (page.value > 1) {
     page.value--;
-    fetchBiliHistory2024();
+    fetchHistoryByDateRange();
   }
 };
 
 // 组件挂载时获取数据
 onMounted(() => {
-  fetchBiliHistory2024();
+  // 默认日期范围为当前年份的起始到当前日期
+  const today = new Date();
+  const startOfYear = new Date(currentYear, 0, 1);
+  onConfirm([startOfYear, today]);
 });
 
 // 路由对象
@@ -124,7 +182,7 @@ const onSearch = () => {
     // 构造新的 URL 地址
     const newUrl = router.resolve({
       name: 'Search',
-      params: { keyword: searchQuery.value.trim() }
+      params: {keyword: searchQuery.value.trim()}
     }).href;
 
     // 在新标签页打开搜索结果
@@ -133,7 +191,6 @@ const onSearch = () => {
     alert('请输入有效的搜索关键词');
   }
 };
-
 </script>
 
 <style scoped>
