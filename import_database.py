@@ -5,6 +5,194 @@ import time
 import threading
 from datetime import datetime
 
+# 重复的 tag_name 集合，需要映射为 '待定'
+duplicated_tags = {
+    '资讯',
+    '综合'
+}
+
+# 唯一的 tag_name 到 main_category 的映射
+unique_tag_to_main = {
+    # 动画
+    '动画': '动画',
+    'MAD·AMV': '动画',
+    'MMD·3D': '动画',
+    '短片·手书': '动画',
+    '配音': '动画',
+    '手办·模玩': '动画',
+    '特摄': '动画',
+    '动漫杂谈': '动画',
+
+    # 番剧
+    '番剧': '番剧',
+    '官方延伸': '番剧',
+    '完结动画': '番剧',
+    '连载动画': '番剧',
+
+    # 国创
+    '国创': '国创',
+    '国产动画': '国创',
+    '国产原创相关': '国创',
+    '布袋戏': '国创',
+    '动态漫·广播剧': '国创',
+
+    # 音乐
+    '音乐': '音乐',
+    '原创音乐': '音乐',
+    '翻唱': '音乐',
+    'VOCALOID·UTAU': '音乐',
+    '演奏': '音乐',
+    'MV': '音乐',
+    '音乐现场': '音乐',
+    '音乐综合': '音乐',
+    '乐评盘点': '音乐',
+    '音乐教学': '音乐',
+
+    # 舞蹈
+    '舞蹈': '舞蹈',
+    '宅舞': '舞蹈',
+    '舞蹈综合': '舞蹈',
+    '舞蹈教程': '舞蹈',
+    '街舞': '舞蹈',
+    '明星舞蹈': '舞蹈',
+    '国风舞蹈': '舞蹈',
+    '手势·网红舞': '舞蹈',
+
+    # 游戏
+    '游戏': '游戏',
+    '单机游戏': '游戏',
+    '电子竞技': '游戏',
+    '手机游戏': '游戏',
+    '网络游戏': '游戏',
+    '桌游棋牌': '游戏',
+    'GMV': '游戏',
+    '音游': '游戏',
+    'Mugen': '游戏',
+
+    # 知识
+    '知识': '知识',
+    '科学科普': '知识',
+    '社科·法律·心理': '知识',
+    '人文历史': '知识',
+    '财经商业': '知识',
+    '校园学习': '知识',
+    '职业职场': '知识',
+    '设计·创意': '知识',
+    '野生技术协会': '知识',
+
+    # 科技
+    '科技': '科技',
+    '数码': '科技',
+    '软件应用': '科技',
+    '计算机技术': '科技',
+    '科工机械': '科技',
+    '极客DIY': '科技',
+
+    # 运动
+    '运动': '运动',
+    '篮球': '运动',
+    '足球': '运动',
+    '健身': '运动',
+    '竞技体育': '运动',
+    '运动文化': '运动',
+    '运动综合': '运动',
+
+    # 汽车
+    '汽车': '汽车',
+    '汽车知识科普': '汽车',
+    '赛车': '汽车',
+    '改装玩车': '汽车',
+    '新能源车': '汽车',
+    '房车': '汽车',
+    '摩托车': '汽车',
+    '购车攻略': '汽车',
+    '汽车生活': '汽车',
+
+    # 生活
+    '生活': '生活',
+    '搞笑': '生活',
+    '出行': '生活',
+    '三农': '生活',
+    '家居房产': '生活',
+    '手工': '生活',
+    '绘画': '生活',
+    '日常': '生活',
+    '亲子': '生活',
+
+    # 美食
+    '美食': '美食',
+    '美食制作': '美食',
+    '美食侦探': '美食',
+    '美食测评': '美食',
+    '田园美食': '美食',
+    '美食记录': '美食',
+
+    # 动物圈
+    '动物圈': '动物圈',
+    '喵星人': '动物圈',
+    '汪星人': '动物圈',
+    '动物二创': '动物圈',
+    '野生动物': '动物圈',
+    '小宠异宠': '动物圈',
+    '动物综合': '动物圈',
+
+    # 鬼畜
+    '鬼畜': '鬼畜',
+    '鬼畜调教': '鬼畜',
+    '音MAD': '鬼畜',
+    '人力VOCALOID': '鬼畜',
+    '鬼畜剧场': '鬼畜',
+    '教程演示': '鬼畜',
+
+    # 时尚
+    '时尚': '时尚',
+    '美妆护肤': '时尚',
+    '仿妆cos': '时尚',
+    '穿搭': '时尚',
+    '时尚潮流': '时尚',
+
+    # 资讯 (唯一部分)
+    '热点': '资讯',
+    '环球': '资讯',
+    '社会': '资讯',
+    'multiple': '资讯',  # '综合' 已经在 duplicated_tags 中
+
+    # 娱乐
+    '娱乐': '娱乐',
+    '综艺': '娱乐',
+    '娱乐杂谈': '娱乐',
+    '粉丝创作': '娱乐',
+    '明星综合': '娱乐',
+
+    # 影视
+    '影视': '影视',
+    '影视杂谈': '影视',
+    '影视剪辑': '影视',
+    '小剧场': '影视',
+    '预告·资讯': '影视',
+    '短片': '影视',
+
+    # 纪录片
+    '纪录片': '纪录片',
+    '人文·历史': '纪录片',
+    '科学·探索·自然': '纪录片',
+    '军事': '纪录片',
+    '社会·美食·旅行': '纪录片',
+
+    # 电影
+    '电影': '电影',
+    '华语电影': '电影',
+    '欧美电影': '电影',
+    '日本电影': '电影',
+    '其他国家': '电影',
+
+    # 电视剧
+    '电视剧': '电视剧',
+    '国产剧': '电视剧',
+    '海外剧': '电视剧',
+}
+
+
 # 雪花算法生成器类
 class SnowflakeIDGenerator:
     def __init__(self, machine_id=1, datacenter_id=1):
@@ -105,42 +293,58 @@ def import_data_from_json(connection, table_name, insert_sql, file_path, batch_s
 
     try:
         # 构建要插入的数据列表，并生成唯一的id
-        new_data = [
-            {
+        new_data = []
+        for item in data:
+            main_category = None
+            history = item.get('history', {})
+            business = history.get('business', '')
+
+            # 始终获取 tag_name，即使 business 不是 'archive'
+            tag_name = item.get('tag_name', '').strip()
+
+            if business == 'archive':
+                if tag_name in unique_tag_to_main:
+                    main_category = unique_tag_to_main[tag_name]
+                elif tag_name in duplicated_tags:
+                    main_category = '待定'
+                else:
+                    main_category = '待定'
+            # 如果 business 不为 'archive'，main_category 保持为 None
+
+            new_data.append({
                 "id": id_generator.get_id(),  # 生成唯一ID
-                "title": item['title'],
+                "title": item.get('title', ''),
                 "long_title": item.get('long_title', ''),
                 "cover": item.get('cover', ''),
                 "covers": json.dumps(item.get('covers', [])),
                 "uri": item.get('uri', ''),
-                "oid": item['history']['oid'],
-                "epid": item['history'].get('epid', ''),
-                "bvid": item['history'].get('bvid', ''),
-                "page": item['history'].get('page', 1),
-                "cid": item['history'].get('cid', ''),
-                "part": item['history'].get('part', ''),
-                "business": item['history'].get('business', ''),
-                "dt": item['history'].get('dt', ''),
+                "oid": history.get('oid', 0),
+                "epid": history.get('epid', 0),
+                "bvid": history.get('bvid', ''),
+                "page": history.get('page', 1),
+                "cid": history.get('cid', 0),
+                "part": history.get('part', ''),
+                "business": business,
+                "dt": history.get('dt', 0),
                 "videos": item.get('videos', 1),
                 "author_name": item.get('author_name', ''),
                 "author_face": item.get('author_face', ''),
-                "author_mid": item.get('author_mid', ''),
+                "author_mid": item.get('author_mid', 0),
                 "view_at": item.get('view_at', 0),
                 "progress": item.get('progress', 0),
                 "badge": item.get('badge', ''),
                 "show_title": item.get('show_title', ''),
                 "duration": item.get('duration', 0),
-                "current": item.get('current', 0),
+                "current": item.get('current', ''),
                 "total": item.get('total', 0),
                 "new_desc": item.get('new_desc', ''),
                 "is_finish": item.get('is_finish', 0),
                 "is_fav": item.get('is_fav', 0),
-                "kid": item.get('kid', ''),
-                "tag_name": item.get('tag_name', ''),
-                "live_status": item.get('live_status', 0)
-            }
-            for item in data
-        ]
+                "kid": item.get('kid', 0),
+                "tag_name": tag_name,  # 确保 tag_name 被赋值
+                "live_status": item.get('live_status', 0),
+                "main_category": main_category  # 设置主分区
+            })
 
         # 分批插入数据
         for i in range(0, len(new_data), batch_size):
@@ -203,14 +407,15 @@ def import_all_history_files(data_folder='history_by_date', log_file='last_impor
                 id, title, long_title, cover, covers, uri, oid, epid, bvid, page, cid, part, 
                 business, dt, videos, author_name, author_face, author_mid, view_at, progress, 
                 badge, show_title, duration, current, total, new_desc, is_finish, is_fav, kid, 
-                tag_name, live_status
+                tag_name, live_status, main_category
             ) VALUES (
                 %(id)s, %(title)s, %(long_title)s, %(cover)s, %(covers)s, %(uri)s, %(oid)s, 
                 %(epid)s, %(bvid)s, %(page)s, %(cid)s, %(part)s, %(business)s, %(dt)s, 
                 %(videos)s, %(author_name)s, %(author_face)s, %(author_mid)s, %(view_at)s, 
                 %(progress)s, %(badge)s, %(show_title)s, %(duration)s, %(current)s, %(total)s, 
-                %(new_desc)s, %(is_finish)s, %(is_fav)s, %(kid)s, %(tag_name)s, %(live_status)s
-            );
+                %(new_desc)s, %(is_finish)s, %(is_fav)s, %(kid)s, %(tag_name)s, %(live_status)s, 
+                %(main_category)s
+            )
         """
 
         # 读取上次导入的文件日期和文件名
