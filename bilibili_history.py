@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 # os.chdir('/www/wwwroot/python')
 print(f"当前工作目录: {os.getcwd()}")
 
+
 # 读取本地cookie文件
 def load_cookie(file_path='cookie.txt'):
     if os.path.exists(file_path):
@@ -16,6 +17,7 @@ def load_cookie(file_path='cookie.txt'):
     else:
         print(f"Cookie文件{file_path}不存在，无法继续执行。")
         exit(1)
+
 
 # 设置请求头，包括从文件读取的Cookie
 cookie = load_cookie()
@@ -33,14 +35,14 @@ params = {
     'business': '',  # 可选参数，默认为空表示获取所有类型
 }
 
+
 # 查找本地最新的日期文件并加载数据
 def find_latest_local_history(base_folder='history_by_date'):
     print("正在查找本地最新的历史记录...")
     if not os.path.exists(base_folder):
         print("本地历史记录文件夹不存在，将从头开始同步。")
-        return set(), None
+        return None  # 不再返回 local_oids 集合
 
-    local_oids = set()
     latest_date = None
 
     try:
@@ -60,21 +62,20 @@ def find_latest_local_history(base_folder='history_by_date'):
                     if day.endswith('.json')
                 ], default=None)
                 if latest_day:
-                    latest_file = os.path.join(base_folder, str(latest_year), f"{latest_month:02}", f"{latest_day:02}.json")
+                    latest_file = os.path.join(base_folder, str(latest_year), f"{latest_month:02}",
+                                               f"{latest_day:02}.json")
                     print(f"找到最新历史记录文件: {latest_file}")
                     with open(latest_file, 'r', encoding='utf-8') as f:
                         data = json.load(f)
-                        for entry in data:
-                            local_oids.add(entry['history']['oid'])
                         # 获取最新日期
                         latest_date = datetime.fromtimestamp(data[-1]['view_at']).date()
     except ValueError:
         print("历史记录目录格式不正确，可能尚未创建任何文件。")
 
-    print(f"本地已有{len(local_oids)}条记录。")
     if latest_date:
         print(f"本地最新的观看日期: {latest_date}")
-    return local_oids, latest_date
+    return latest_date
+
 
 # 保存更新后的历史记录
 def save_history(history_data, base_folder='history_by_date'):
@@ -107,22 +108,23 @@ def save_history(history_data, base_folder='history_by_date'):
         else:
             daily_data = []
 
-        # 检查当前条目是否已存在
+            # 检查当前条目是否已存在
         if entry['history']['oid'] not in existing_oids:
             daily_data.append(entry)
             existing_oids.add(entry['history']['oid'])
             print(f"添加新记录: {entry['title']} ({entry['history']['oid']})")
             saved_count += 1  # 每次成功保存都增加计数
-        else:
-            print(f"记录已存在，跳过: {entry['title']} ({entry['history']['oid']})")
+        # else:
+        # print(f"记录已存在，跳过: {entry['title']} ({entry['history']['oid']})")
 
         # 将数据保存回文件
         with open(file_path, 'w', encoding='utf-8') as f:
             json.dump(daily_data, f, ensure_ascii=False, indent=4)
     print(f"历史记录保存完成，共保存了{saved_count}条新记录。")  # 输出总共保存的条数
 
+
 # 获取新历史记录并与本地记录对比
-def fetch_and_compare_history(headers, params, local_oids, latest_date):
+def fetch_and_compare_history(headers, params, latest_date):
     print("正在从B站API获取历史记录...")
     url = 'https://api.bilibili.com/x/web-interface/history/cursor'
     all_new_data = []
@@ -172,9 +174,8 @@ def fetch_and_compare_history(headers, params, local_oids, latest_date):
                     view_at = entry['view_at']
 
                     if view_at > cutoff_timestamp:
-                        if oid not in local_oids:
-                            new_entries.append(entry)
-                            local_oids.add(oid)  # 更新本地oid集合
+                        # 不再检查全局的 local_oids
+                        new_entries.append(entry)
                     else:
                         # 当view_at <= cutoff_timestamp时，不再收集新数据
                         should_stop = True
@@ -206,12 +207,31 @@ def fetch_and_compare_history(headers, params, local_oids, latest_date):
             print(f"请求失败，状态码: {response.status_code}, 原因: {response.text}")
             break
 
-    return all_new_data
+    # 过滤掉已经在当天存在的记录
+    filtered_new_data = []
+    for entry in all_new_data:
+        entry_date = datetime.fromtimestamp(entry['view_at']).date()
+        # 构造文件路径
+        file_path = os.path.join('history_by_date', entry_date.strftime('%Y'), entry_date.strftime('%m'),
+                                 f"{entry_date.strftime('%d')}.json")
+        existing_oids = set()
+        if os.path.exists(file_path):
+            try:
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    daily_data = json.load(f)
+                    existing_oids = {item['history']['oid'] for item in daily_data}
+            except json.JSONDecodeError:
+                print(f"警告: 无法解析文件 {file_path}，将重新创建。")
+        if entry['history']['oid'] not in existing_oids:
+            filtered_new_data.append(entry)
+
+    return filtered_new_data
+
 
 # 主逻辑
-local_oids, latest_date = find_latest_local_history()  # 读取本地最新日期的历史记录并获取oid集合和最新日期
+latest_date = find_latest_local_history()  # 读取本地最新日期的历史记录并获取最新日期
 
-new_history = fetch_and_compare_history(headers, params, local_oids, latest_date)  # 获取新历史记录
+new_history = fetch_and_compare_history(headers, params, latest_date)  # 获取新历史记录
 
 if new_history:
     save_history(new_history)  # 将数据按日期切分并保存
