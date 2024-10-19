@@ -68,15 +68,21 @@
               <span>{{ formatDuration(record.duration) }}</span>
             </div>
             <div class="absolute bottom-0 left-0 w-full h-0.5 bg-black">
-              <div class="h-full bg-[#FF6699]" :style="{ width: getProgressWidth(record.progress, record.duration) }"></div>
+              <div class="h-full bg-[#FF6699]"
+                   :style="{ width: getProgressWidth(record.progress, record.duration) }"></div>
             </div>
           </div>
         </div>
 
         <!-- 右侧内容区域 -->
-        <div class="ml-2 space-y-2 flex-1 flex flex-col justify-between lm:text-sm lg:font-semibold">
-          <div class="lg:flex justify-between items-center mb-2">
+        <div class="ml-2 flex-1 flex flex-col justify-between lm:text-sm lg:font-semibold">
+          <div class="lg:flex justify-between items-center">
             <div class="text-gray-900 lm:text-sm lg:font-semibold line-clamp-2">{{ record.title }}</div>
+          </div>
+          <div>
+            <span class="inline-flex items-center rounded-md bg-[#f1f2f3] px-2 py-1 text-xs text-[#71767d]">
+              {{ record.tagName }}
+            </span>
           </div>
 
           <div class="flex justify-between items-end lm:text-xs text-sm text-[#99a2aa]">
@@ -158,7 +164,7 @@ const getProgressWidth = (progress, duration) => {
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 1;
   overflow: hidden;
   text-overflow: ellipsis;
 }

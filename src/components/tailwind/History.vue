@@ -3,34 +3,45 @@
     <!-- 搜索框 -->
     <div class="fixed top-0 left-0 right-0 bg-white z-50 px-1.5">
       <div class="relative mx-auto max-w-4xl p-1">
-        <!-- 输入框，设置默认背景和悬停背景颜色 -->
+        <!-- 输入框 -->
         <input
             v-model="searchQuery"
             @keyup.enter="onSearch"
-            type="text"
+            type="search"
             placeholder="视频标题/oid"
-            class="w-full p-3 pr-14 rounded-lg border border-gray-300 bg-[#edf2fa] hover:bg-[#e1e6ed] focus:outline-none focus:ring-1 focus:ring-[#00A1D6] text-gray-900 lm:text-xs lg:text-lg"
+            class="w-full p-2 rounded-lg border border-gray-300 bg-[#edf2fa] hover:bg-[#e1e6ed] focus:outline-none focus:ring-1 focus:ring-[#00A1D6] text-gray-900 lm:text-xs lg:text-lg"
         />
-        <!-- 搜索按钮 -->
-        <button
-            @click="onSearch"
-            class="lm:text-xs absolute top-1/2 right-2 transform -translate-y-1/2 bg-[#00A1D6] text-white rounded-lg transition-all duration-300 hover:bg-[#008ec1] p-2"
-        >
-          搜索
-        </button>
       </div>
 
-      <div class="max-w-4xl mx-auto">
-        <div class="lm:text-sm text-gray-700 text-lg">
-          <div class="flex justify-between px-1.5" @click="show = true">
-            <p>选择历史记录的日期区间</p>
-            <span class="text-[#FF6699]">{{ date }}</span>
+      <div class="max-w-4xl mx-auto px-1.5">
+        <div class="flex justify-between lm:text-sm text-gray-700 text-lg">
+          <div class="space-x-1" @click="show = true">
+            <span>日期区间:</span>
+            <span class="text-[#FF6699] text-xs">{{ date }}</span>
           </div>
-          <van-calendar :show-confirm="false" title="选择日期区间" color="#FF6699" switch-mode="year-month" v-model:show="show" type="range" @confirm="onConfirm"/>
+
+          <!-- 总计视频数量显示 -->
+          <div class="space-x-1">
+            <span>总视频数:</span>
+            <span class="text-[#FF6699] text-xs">{{ total }}</span>
+          </div>
+
+          <van-calendar :show-confirm="false" title="选择日期区间" switch-mode="year-month"
+                        v-model:show="show" :style="{ height: '65%' }" type="range" @confirm="onConfirm"/>
+
+          <div class="space-x-1" @click="showBottom = !showBottom">
+            <span>视频分区:</span>
+            <span class="text-[#FF6699] text-xs">{{ displayCategory || '全部分区' }}</span>
+          </div>
+
+          <!-- 通过 v-model 传递 showBottom 给子组件，并接收子分区选择 -->
+          <VideoCategories
+              v-model:showBottom="showBottom"
+              @selectSubCategory="onSubCategorySelected"
+          />
         </div>
       </div>
     </div>
-
 
     <div class="pt-20 lm:pt-14">
       <VideoRecord
@@ -43,7 +54,6 @@
     <!-- 修改分页按钮容器的最大宽度 -->
     <div class="mx-auto max-w-4xl mt-8 mb-5 lm:text-xs">
       <div class="flex justify-between space-x-4 lm:m-5">
-        <!-- 上一页按钮 -->
         <button @click="prevPage" :disabled="page === 1"
                 class="bg-[#00A1D6] text-white p-1 rounded-md disabled:opacity-50 disabled:cursor-not-allowed">上一页
         </button>
@@ -55,10 +65,8 @@
           <button @click="jumpToPage" class="bg-[#00A1D6] h-7 text-white px-1 rounded-md">跳转</button>
         </div>
 
-        <!-- 页码显示 -->
         <p class="text-gray-700 pt-1.5">第 {{ page }} 页 / 共 {{ totalPages }} 页</p>
 
-        <!-- 下一页按钮 -->
         <button @click="nextPage" :disabled="page === totalPages"
                 class="bg-[#00A1D6] text-white p-1 rounded-md disabled:opacity-50 disabled:cursor-not-allowed">下一页
         </button>
@@ -68,23 +76,78 @@
 </template>
 
 <script setup>
-import {ref, onMounted} from 'vue';
-import {getHistoryByDay} from "../../api/api.js"; // 确保导入正确的 API 函数
+import {ref, onMounted, computed} from 'vue';
+import {getBiliHistory2024, getVideoCategories} from "../../api/api.js"; // 确保导入正确的 API 函数
 import {useRouter} from 'vue-router';
 import VideoRecord from "./VideoRecord.vue";
+import VideoCategories from "./VideoCategories.vue";
 
 // 状态变量
 const records = ref([]);
 const page = ref(1);
 const size = ref(30); // 每页数据
 const totalPages = ref(0);
+const total = ref(0); // 视频总数
 const jumpPage = ref(''); // 跳转页码输入框的值
+const sortOrder = ref(0);
 
 const date = ref('');
 const dateRange = ref('');
 const show = ref(false);
 
 const currentYear = new Date().getFullYear();
+
+const showBottom = ref(false); // 控制子组件显示的状态
+const tagName = ref(''); // 选中的子分区
+const mainCategory = ref(''); // 选中的主分区
+
+// 计算属性用于显示当前选中的分类
+const displayCategory = computed(() => {
+  return mainCategory.value || tagName.value || '全部分区';
+});
+
+// 主分区列表
+const mainCategories = ref([]);
+
+// 获取主分区列表
+const fetchMainCategories = async () => {
+  try {
+    const response = await getVideoCategories();
+    // 假设返回的数据格式为 [{ mainCategory: '动画', subCategory: '动画' }, ...]
+    // 提取主分区名称
+    mainCategories.value = Array.from(new Set(response.data.data.map(cat => cat.mainCategory)));
+  } catch (error) {
+    console.error("Error fetching main categories:", error);
+  }
+};
+
+// 接收子组件传递的子分区并立即获取数据
+const onSubCategorySelected = ({name, type}) => {
+  // 检查选中的名称是否在主分区列表中
+  const isMainName = mainCategories.value.includes(name);
+
+  if (type === 'main' || (type === 'sub' && isMainName)) {
+    // 将其视为主分区
+    if (mainCategory.value === name) {
+      mainCategory.value = ''; // 取消选中
+    } else {
+      mainCategory.value = name; // 选择新的主分区
+    }
+    tagName.value = ''; // 确保 tagName 为空
+  } else if (type === 'sub') {
+    // 将其视为子分区
+    if (tagName.value === name) {
+      tagName.value = ''; // 取消选中
+    } else {
+      tagName.value = name; // 选择新的子分区
+    }
+    mainCategory.value = ''; // 确保 mainCategory 为空
+  }
+
+  // 重置页码并重新获取数据
+  page.value = 1;
+  fetchHistoryByDateRange();
+};
 
 // 辅助函数：格式化日期为 'MM/DD'（不含年份）
 const formatDate = (date) => `${date.getMonth() + 1}/${date.getDate()}`;
@@ -100,6 +163,7 @@ const formatDateForAPI = (date) => {
   return `${year}${month}${day}`;
 };
 
+// 处理日期区间确认
 const onConfirm = (values) => {
   const [start, end] = values;
   show.value = false;
@@ -111,7 +175,6 @@ const onConfirm = (values) => {
   if (startYear === currentYear && endYear === currentYear) {
     date.value = `${formatDate(start)} - ${formatDate(end)}`;
   } else {
-    // 显示年份
     date.value = `${formatDateWithYear(start)} - ${formatDateWithYear(end)}`;
   }
 
@@ -125,10 +188,18 @@ const onConfirm = (values) => {
   fetchHistoryByDateRange();
 };
 
-// 数据获取函数：基于日期区间
+// 数据获取函数：基于日期区间和分类
 const fetchHistoryByDateRange = async () => {
   try {
-    const response = await getHistoryByDay(page.value, size.value, dateRange.value);
+    const response = await getBiliHistory2024(
+        page.value,
+        size.value,
+        sortOrder.value,
+        tagName.value,
+        mainCategory.value, // 传递 mainCategory
+        dateRange.value
+    );
+    total.value = response.data.data.total;
     records.value = response.data.data.records;
     totalPages.value = response.data.data.pages;
   } catch (error) {
@@ -164,6 +235,9 @@ const prevPage = () => {
 
 // 组件挂载时获取数据
 onMounted(() => {
+  // 获取主分区列表
+  fetchMainCategories();
+
   // 默认日期范围为当前年份的起始到当前日期
   const today = new Date();
   const startOfYear = new Date(currentYear, 0, 1);

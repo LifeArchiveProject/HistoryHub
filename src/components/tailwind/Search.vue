@@ -7,17 +7,10 @@
         <input
             v-model="searchQuery"
             @keyup.enter="onSearch"
-            type="text"
+            type="search"
             placeholder="视频标题/oid"
-            class="w-full p-3 pr-14 rounded-lg border border-gray-300 bg-[#edf2fa] hover:bg-[#e1e6ed] focus:outline-none focus:ring-1 focus:ring-[#00A1D6] text-gray-900 lm:text-xs lg:text-lg"
+            class="w-full p-3 rounded-lg border border-gray-300 bg-[#edf2fa] hover:bg-[#e1e6ed] focus:outline-none focus:ring-1 focus:ring-[#00A1D6] text-gray-900 lm:text-xs lg:text-lg"
         />
-        <!-- 搜索按钮 -->
-        <button
-            @click="onSearch"
-            class="lm:text-xs absolute top-1/2 right-2 transform -translate-y-1/2 bg-[#00A1D6] text-white rounded-lg transition-all duration-300 hover:bg-[#008ec1] p-2"
-        >
-          搜索
-        </button>
       </div>
 
       <!-- 显示总条数，和输入框左端对齐 -->
