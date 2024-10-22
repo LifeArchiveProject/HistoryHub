@@ -1,12 +1,16 @@
 {
   "name": "bilibilihistoryfrontend",
-  "private": true,
   "version": "0.0.0",
+  "description": "您的应用描述",
+  "author": "您的名字或组织",
+  "main": "electron/main.cjs",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "electron:dev": "cross-env NODE_ENV=development concurrently \"vite\" \"wait-on http://localhost:5173 && electron .\"",
+    "electron:build": "cross-env NODE_ENV=production vite build && electron-builder"
   },
   "dependencies": {
     "@headlessui/vue": "^1.7.23",
@@ -15,6 +19,7 @@
     "@vant/touch-emulator": "^1.4.0",
     "axios": "^1.7.7",
     "crypto-js": "^4.2.0",
+    "electron-log": "^5.2.0",
     "jsencrypt": "^3.3.2",
     "vant": "^4.9.8",
     "vue": "^3.5.11",
@@ -23,9 +28,56 @@
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.1.4",
     "autoprefixer": "^10.4.20",
+    "concurrently": "^8.0.1",
+    "cross-env": "^7.0.3",
+    "electron": "^33.0.1",
+    "electron-builder": "^25.1.8",
     "postcss": "^8.4.47",
     "tailwindcss": "^3.4.13",
     "vite": "^5.4.8",
-    "vite-plugin-vue-inspector": "^5.2.0"
+    "vite-plugin-vue-inspector": "^5.2.0",
+    "wait-on": "^7.0.1"
+  },
+  "build": {
+    "appId": "com.yourcompany.bilibilihistoryfrontend",
+    "productName": "BiliBili History Frontend",
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "package.json"
+    ],
+    "directories": {
+      "buildResources": "public"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "./public/logo.ico"
+    },
+    "mac": {
+      "target": "dmg",
+      "icon": "assets/logo.icns"
+    },
+    "linux": {
+      "target": "AppImage",
+      "icon": "assets/logo.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "BiliBili History",
+      "installerIcon": "./public/logo.ico",
+      "uninstallerIcon": "./public/logo.ico",
+      "installerHeaderIcon": "./public/logo.ico",
+      "include": "installer.nsh"
+    }
   }
 }

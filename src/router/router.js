@@ -1,19 +1,1 @@
-import Main from "../components/tailwind/page/Main.vue";
-import Search from "../components/tailwind/page/Search.vue";
-
-
-const routes = [
-    {
-        path: '/',
-        name: 'Home',
-        component: Main // 使用 component 而非 components
-    },
-    {
-        path: '/search/:keyword',
-        name: 'Search',
-        component: Search,
-        props: {search: true}
-    },
-];
-
-export default routes;
+import {createRouter, createWebHistory, createWebHashHistory} from 'vue-router';import Main from "../components/tailwind/page/Main.vue";import Search from "../components/tailwind/page/Search.vue";const routes = [    {        path: '/',        name: 'Home',        component: Main    },    {        path: '/search/:keyword',        name: 'Search',        component: Search,        props: {search: true}    },];const isElectron = () => {    // 检查是否在Electron环境中    return navigator.userAgent.toLowerCase().indexOf(' electron/') > -1;};const router = createRouter({    history: isElectron() ? createWebHashHistory() : createWebHistory(),    routes,});export default router;
