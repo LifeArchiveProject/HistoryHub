@@ -3,7 +3,6 @@ import os
 from datetime import datetime
 from collections import defaultdict
 
-
 # 读取分割的日期文件夹中的所有数据
 def load_all_history_files(base_folder='history_by_date'):
     all_data = []
@@ -22,7 +21,6 @@ def load_all_history_files(base_folder='history_by_date'):
                     for day_file in os.listdir(month_path):
                         if day_file.endswith('.json'):
                             day_path = os.path.join(month_path, day_file)
-                            print(f"正在加载文件: {day_path}")
                             with open(day_path, 'r', encoding='utf-8') as f:
                                 daily_data = json.load(f)
                                 all_data.extend(daily_data)
@@ -33,7 +31,6 @@ def load_all_history_files(base_folder='history_by_date'):
 
 # 保存每天的观看数量到 JSON 文件
 def save_daily_count_to_json(daily_count, year, output_folder='daily_count'):
-    # 检查并创建输出文件夹
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
 
@@ -43,41 +40,63 @@ def save_daily_count_to_json(daily_count, year, output_folder='daily_count'):
     print(f"每天观看数量已保存到 {output_file}")
 
 
+# 统计每天和每月的视频观看数量
+def calculate_video_counts(history_data):
+    current_year = datetime.now().year
+    daily_count = defaultdict(int)
+    monthly_count = defaultdict(int)
+
+    for entry in history_data:
+        view_time = datetime.fromtimestamp(entry['view_at'])
+        if view_time.year != current_year:
+            continue
+
+        date_str = view_time.strftime('%Y-%m-%d')
+        month_str = view_time.strftime('%Y-%m')
+        daily_count[date_str] += 1
+        monthly_count[month_str] += 1
+
+    return daily_count, monthly_count
+
+
+# 单独获取每日观看数量
+def get_daily_counts():
+    history_data = load_all_history_files()
+    if not history_data:
+        return {"error": "没有找到历史记录数据。"}
+
+    daily_count, _ = calculate_video_counts(history_data)
+    return daily_count
+
+
+# 单独获取每月观看数量
+def get_monthly_counts():
+    history_data = load_all_history_files()
+    if not history_data:
+        return {"error": "没有找到历史记录数据。"}
+
+    _, monthly_count = calculate_video_counts(history_data)
+    return monthly_count
+
+
+# 手动更新观看计数
+def update_counts():
+    history_data = load_all_history_files()
+    if not history_data:
+        return "没有找到历史记录数据。"
+
+    return "视频观看计数已更新。"
+
+
 # 主函数
 def main():
-    # 加载所有历史记录数据
     history_data = load_all_history_files()
 
     if not history_data:
         print("没有找到历史记录数据。")
         return
 
-    # 获取当前年份
-    current_year = datetime.now().year
-
-    # 将数据按天分组
-    daily_data = defaultdict(list)
-    monthly_count = defaultdict(int)
-    daily_count = defaultdict(int)  # 记录每天的视频观看数量
-
-    for entry in history_data:
-        # 将 view_at 转换为日期
-        view_time = datetime.fromtimestamp(entry['view_at'])
-        if view_time.year != current_year:
-            continue  # 只处理当前年份的数据
-
-        date_str = view_time.strftime('%Y-%m-%d')  # 按天分组
-        month_str = view_time.strftime('%Y-%m')  # 按月计数
-        daily_data[date_str].append(view_time)
-        monthly_count[month_str] += 1
-        daily_count[date_str] += 1  # 增加每天的观看数量
-
-    # 统计每天的视频数量，最早和最晚的观看时间
-    for date, times in daily_data.items():
-        times.sort()
-        first_view = times[0].strftime('%H:%M:%S')
-        last_view = times[-1].strftime('%H:%M:%S')
-        print(f"{date}: 看了 {len(times)} 个视频，最早是 {first_view}，最晚是 {last_view}")
+    daily_count, monthly_count = calculate_video_counts(history_data)
 
     # 输出每月的视频观看统计
     print("\n每月观看视频数量：")
@@ -85,8 +104,20 @@ def main():
         print(f"{month}: {count} 个视频")
 
     # 保存每天的观看数量到 JSON 文件
+    current_year = datetime.now().year
     save_daily_count_to_json(daily_count, current_year)
 
 
+# 供外部接口调用的函数
+def get_daily_and_monthly_counts():
+    history_data = load_all_history_files()
+    if not history_data:
+        return {"error": "没有找到历史记录数据。"}
+
+    daily_count, monthly_count = calculate_video_counts(history_data)
+    return {"daily_count": daily_count, "monthly_count": monthly_count}
+
+
+# 如果该脚本直接运行，则调用 main()
 if __name__ == '__main__':
     main()
