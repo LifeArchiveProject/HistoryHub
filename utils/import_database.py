@@ -4,193 +4,25 @@ import os
 import time
 import threading
 from datetime import datetime
+from sql_statements import (
+    SHOW_DATABASES,
+    CREATE_DATABASE,
+    SHOW_TABLES,
+    CREATE_TABLE_DEFAULT,
+    CREATE_TABLE_LIKE,
+    SELECT_DATABASE,
+    INSERT_DATA
+)
 
-# 重复的 tag_name 集合，需要映射为 '待定'
-duplicated_tags = {
-    '资讯',
-    '综合'
-}
 
-# 唯一的 tag_name 到 main_category 的映射
-unique_tag_to_main = {
-    # 动画
-    '动画': '动画',
-    'MAD·AMV': '动画',
-    'MMD·3D': '动画',
-    '短片·手书': '动画',
-    '配音': '动画',
-    '手办·模玩': '动画',
-    '特摄': '动画',
-    '动漫杂谈': '动画',
+# 加载分类映射
+def load_categories(file_path='../config/categories.json'):
+    with open(file_path, 'r', encoding='utf-8') as f:
+        categories = json.load(f)
+    return categories['duplicated_tags'], categories['unique_tag_to_main']
 
-    # 番剧
-    '番剧': '番剧',
-    '官方延伸': '番剧',
-    '完结动画': '番剧',
-    '连载动画': '番剧',
 
-    # 国创
-    '国创': '国创',
-    '国产动画': '国创',
-    '国产原创相关': '国创',
-    '布袋戏': '国创',
-    '动态漫·广播剧': '国创',
-
-    # 音乐
-    '音乐': '音乐',
-    '原创音乐': '音乐',
-    '翻唱': '音乐',
-    'VOCALOID·UTAU': '音乐',
-    '演奏': '音乐',
-    'MV': '音乐',
-    '音乐现场': '音乐',
-    '音乐综合': '音乐',
-    '乐评盘点': '音乐',
-    '音乐教学': '音乐',
-
-    # 舞蹈
-    '舞蹈': '舞蹈',
-    '宅舞': '舞蹈',
-    '舞蹈综合': '舞蹈',
-    '舞蹈教程': '舞蹈',
-    '街舞': '舞蹈',
-    '明星舞蹈': '舞蹈',
-    '国风舞蹈': '舞蹈',
-    '手势·网红舞': '舞蹈',
-
-    # 游戏
-    '游戏': '游戏',
-    '单机游戏': '游戏',
-    '电子竞技': '游戏',
-    '手机游戏': '游戏',
-    '网络游戏': '游戏',
-    '桌游棋牌': '游戏',
-    'GMV': '游戏',
-    '音游': '游戏',
-    'Mugen': '游戏',
-
-    # 知识
-    '知识': '知识',
-    '科学科普': '知识',
-    '社科·法律·心理': '知识',
-    '人文历史': '知识',
-    '财经商业': '知识',
-    '校园学习': '知识',
-    '职业职场': '知识',
-    '设计·创意': '知识',
-    '野生技术协会': '知识',
-
-    # 科技
-    '科技': '科技',
-    '数码': '科技',
-    '软件应用': '科技',
-    '计算机技术': '科技',
-    '科工机械': '科技',
-    '极客DIY': '科技',
-
-    # 运动
-    '运动': '运动',
-    '篮球': '运动',
-    '足球': '运动',
-    '健身': '运动',
-    '竞技体育': '运动',
-    '运动文化': '运动',
-    '运动综合': '运动',
-
-    # 汽车
-    '汽车': '汽车',
-    '汽车知识科普': '汽车',
-    '赛车': '汽车',
-    '改装玩车': '汽车',
-    '新能源车': '汽车',
-    '房车': '汽车',
-    '摩托车': '汽车',
-    '购车攻略': '汽车',
-    '汽车生活': '汽车',
-
-    # 生活
-    '生活': '生活',
-    '搞笑': '生活',
-    '出行': '生活',
-    '三农': '生活',
-    '家居房产': '生活',
-    '手工': '生活',
-    '绘画': '生活',
-    '日常': '生活',
-    '亲子': '生活',
-
-    # 美食
-    '美食': '美食',
-    '美食制作': '美食',
-    '美食侦探': '美食',
-    '美食测评': '美食',
-    '田园美食': '美食',
-    '美食记录': '美食',
-
-    # 动物圈
-    '动物圈': '动物圈',
-    '喵星人': '动物圈',
-    '汪星人': '动物圈',
-    '动物二创': '动物圈',
-    '野生动物': '动物圈',
-    '小宠异宠': '动物圈',
-    '动物综合': '动物圈',
-
-    # 鬼畜
-    '鬼畜': '鬼畜',
-    '鬼畜调教': '鬼畜',
-    '音MAD': '鬼畜',
-    '人力VOCALOID': '鬼畜',
-    '鬼畜剧场': '鬼畜',
-    '教程演示': '鬼畜',
-
-    # 时尚
-    '时尚': '时尚',
-    '美妆护肤': '时尚',
-    '仿妆cos': '时尚',
-    '穿搭': '时尚',
-    '时尚潮流': '时尚',
-
-    # 资讯 (唯一部分)
-    '热点': '资讯',
-    '环球': '资讯',
-    '社会': '资讯',
-    'multiple': '资讯',  # '综合' 已经在 duplicated_tags 中
-
-    # 娱乐
-    '娱乐': '娱乐',
-    '综艺': '娱乐',
-    '娱乐杂谈': '娱乐',
-    '粉丝创作': '娱乐',
-    '明星综合': '娱乐',
-
-    # 影视
-    '影视': '影视',
-    '影视杂谈': '影视',
-    '影视剪辑': '影视',
-    '小剧场': '影视',
-    '预告·资讯': '影视',
-    '短片': '影视',
-
-    # 纪录片
-    '纪录片': '纪录片',
-    '人文·历史': '纪录片',
-    '科学·探索·自然': '纪录片',
-    '军事': '纪录片',
-    '社会·美食·旅行': '纪录片',
-
-    # 电影
-    '电影': '电影',
-    '华语电影': '电影',
-    '欧美电影': '电影',
-    '日本电影': '电影',
-    '其他国家': '电影',
-
-    # 电视剧
-    '电视剧': '电视剧',
-    '国产剧': '电视剧',
-    '海外剧': '电视剧',
-}
+duplicated_tags, unique_tag_to_main = load_categories()
 
 
 # 雪花算法生成器类
@@ -228,8 +60,10 @@ class SnowflakeIDGenerator:
             id = ((timestamp - self.epoch) << 22) | (self.datacenter_id << 12) | self.sequence
             return id
 
+
 # 初始化雪花ID生成器
 id_generator = SnowflakeIDGenerator(machine_id=1, datacenter_id=1)
+
 
 # 获取当前年份和上一年份
 def get_years():
@@ -237,64 +71,119 @@ def get_years():
     previous_year = current_year - 1
     return current_year, previous_year
 
-# 连接到 MySQL 数据库
+
+# 连接到 MySQL 数据库，并在必要时创建数据库
 def connect_to_db():
-    return pymysql.connect(
-        host='localhost',# 本地则不需要修改，如果是远程的改为你的远程ip
-        port=3306,  # 指定 MySQL 端口，默认是3306
-        user='',  # 替换为你的 MySQL 用户名
-        password='',  # 替换为你的 MySQL 密码
-        db='',  # 替换为你的数据库名
-        charset='utf8mb4',
-        cursorclass=pymysql.cursors.DictCursor
-    )
+    try:
+        # 首先连接到 MySQL，不指定数据库
+        connection = pymysql.connect(
+            host=os.getenv('DB_HOST', 'localhost'),
+            port=int(os.getenv('DB_PORT', 3306)),
+            user=os.getenv('DB_USER', 'root'),
+            password=os.getenv('DB_PASSWORD', '123456789'),
+            charset='utf8mb4',
+            cursorclass=pymysql.cursors.DictCursor,
+            autocommit=True
+        )
+        with connection.cursor() as cursor:
+            # 列出所有数据库
+            cursor.execute("SHOW DATABASES;")
+            databases = cursor.fetchall()
+
+            # 检查数据库是否存在
+            db_name = os.getenv('DB_NAME', 'bilibilihistory')
+            print(f"使用的数据库名称是: {db_name}")
+            cursor.execute(SHOW_DATABASES, (db_name,))
+            result = cursor.fetchone()
+            if not result:
+                # 创建数据库
+                cursor.execute(CREATE_DATABASE.format(db_name=db_name))
+                print(f"数据库 '{db_name}' 已创建。")
+            else:
+                print(f"数据库 '{db_name}' 已存在。")
+        connection.close()
+
+        # 重新连接到刚创建或已存在的数据库
+        connection = pymysql.connect(
+            host=os.getenv('DB_HOST', 'localhost'),
+            port=int(os.getenv('DB_PORT', 3306)),
+            user=os.getenv('DB_USER', 'root'),
+            password=os.getenv('DB_PASSWORD', '123456789'),
+            db=db_name,
+            charset='utf8mb4',
+            cursorclass=pymysql.cursors.DictCursor
+        )
+
+        # 再次列出当前连接的数据库
+        with connection.cursor() as cursor:
+            cursor.execute(SELECT_DATABASE)
+            current_db = cursor.fetchone()['current_db']
+            print(f"当前连接的数据库是: {current_db}")
+
+        return connection
+    except Exception as e:
+        print(f"连接到数据库时发生错误: {e}")
+        raise
+
 
 # 创建新年份的表，如果不存在
 def create_new_year_table(connection, new_table, reference_table):
     try:
         with connection.cursor() as cursor:
             # 检查新表是否存在
-            cursor.execute("""
-                SELECT COUNT(*)
-                FROM information_schema.tables 
-                WHERE table_schema = %s 
-                AND table_name = %s
-            """, (connection.db.decode(), new_table))
+            cursor.execute(SHOW_TABLES, (connection.db, new_table))
             if cursor.fetchone()['COUNT(*)'] == 0:
-                # 创建新表，基于参考表的结构
-                create_table_sql = f"CREATE TABLE {new_table} LIKE {reference_table};"
+                # 检查参考表是否存在
+                cursor.execute(SHOW_TABLES, (connection.db, reference_table))
+                if cursor.fetchone()['COUNT(*)'] == 0:
+                    # 如果参考表不存在，使用默认的 CREATE TABLE 语句
+                    create_table_sql = CREATE_TABLE_DEFAULT.format(table=new_table)
+                else:
+                    # 如果参考表存在，复制参考表的结构
+                    create_table_sql = CREATE_TABLE_LIKE.format(new_table=new_table, reference_table=reference_table)
                 cursor.execute(create_table_sql)
                 connection.commit()
-                print(f"已创建新表: {new_table}，基于表: {reference_table}")
+                base_structure = "默认结构" if "CREATE TABLE" in create_table_sql else reference_table
+                print(f"已创建新表: {new_table}，基于表: {base_structure}")
             else:
                 print(f"表 {new_table} 已存在，无需创建。")
     except Exception as e:
         connection.rollback()
         print(f"创建新表时发生错误: {e}")
+        raise
+
 
 # 批量插入数据到 MySQL，支持事务回滚
-def batch_insert_data(connection, table_name, insert_sql, data_chunk):
+def batch_insert_data(connection, insert_sql, data_chunk):
     try:
         with connection.cursor() as cursor:
             cursor.executemany(insert_sql, data_chunk)
         connection.commit()
-        print(f"成功插入或更新 {len(data_chunk)} 条数据到 {table_name}。")
         return len(data_chunk)
     except Exception as e:
         connection.rollback()
-        print(f"插入数据时发生错误: {e}")
+        print(f"    插入数据时发生错误: {e}")
         return 0
 
-def import_data_from_json(connection, table_name, insert_sql, file_path, batch_size=1000):
+
+# 从 JSON 文件导入数据
+def import_data_from_json(connection, insert_sql, file_path, batch_size=1000):
     with open(file_path, 'r', encoding='utf-8') as f:
-        data = json.load(f)
+        try:
+            data = json.load(f)
+        except json.JSONDecodeError as e:
+            print(f"JSON 解码错误在文件 {file_path}: {e}")
+            return 0
+        except Exception as e:
+            print(f"读取文件 {file_path} 时发生错误: {e}")
+            return 0
 
     total_inserted = 0
 
     try:
         # 构建要插入的数据列表，并生成唯一的id
         new_data = []
-        for item in data:
+        for index, item in enumerate(data, start=1):
             main_category = None
             history = item.get('history', {})
             business = history.get('business', '')
@@ -311,7 +200,7 @@ def import_data_from_json(connection, table_name, insert_sql, file_path, batch_s
                     main_category = '待定'
             # 如果 business 不为 'archive'，main_category 保持为 None
 
-            new_data.append({
+            record = {
                 "id": id_generator.get_id(),  # 生成唯一ID
                 "title": item.get('title', ''),
                 "long_title": item.get('long_title', ''),
@@ -344,20 +233,21 @@ def import_data_from_json(connection, table_name, insert_sql, file_path, batch_s
                 "tag_name": tag_name,  # 确保 tag_name 被赋值
                 "live_status": item.get('live_status', 0),
                 "main_category": main_category  # 设置主分区
-            })
+            }
+            new_data.append(record)
 
         # 分批插入数据
         for i in range(0, len(new_data), batch_size):
             batch_chunk = new_data[i:i + batch_size]
-            inserted_count = batch_insert_data(connection, table_name, insert_sql, batch_chunk)
+            inserted_count = batch_insert_data(connection, insert_sql, batch_chunk)
             total_inserted += inserted_count
 
-        print(f"文件 {file_path} 插入或更新了 {total_inserted} 条数据。")
         return total_inserted
 
     except Exception as e:
         print(f"处理数据时发生错误: {e}")
         return 0
+
 
 # 读取标记文件，返回上次导入的日期和文件名
 def get_last_imported_file(file_path='last_import_log.json'):
@@ -371,6 +261,7 @@ def get_last_imported_file(file_path='last_import_log.json'):
             print("标记文件格式错误，无法解析。")
             return None, None
 
+
 # 更新标记文件，记录本次导入的日期和文件名
 def update_last_imported_file(last_imported_date, last_imported_file, file_path='last_import_log.json'):
     data = {
@@ -379,6 +270,7 @@ def update_last_imported_file(last_imported_date, last_imported_file, file_path=
     }
     with open(file_path, 'w', encoding='utf-8') as f:
         json.dump(data, f, ensure_ascii=False, indent=4)
+
 
 # 遍历所有按日期分割的文件并导入数据
 def import_all_history_files(data_folder='history_by_date', log_file='last_import_log.json'):
@@ -402,24 +294,11 @@ def import_all_history_files(data_folder='history_by_date', log_file='last_impor
         create_new_year_table(connection, new_table, reference_table)
 
         # 定义动态的 INSERT SQL 语句
-        insert_sql = f"""
-            INSERT INTO {new_table} (
-                id, title, long_title, cover, covers, uri, oid, epid, bvid, page, cid, part, 
-                business, dt, videos, author_name, author_face, author_mid, view_at, progress, 
-                badge, show_title, duration, current, total, new_desc, is_finish, is_fav, kid, 
-                tag_name, live_status, main_category
-            ) VALUES (
-                %(id)s, %(title)s, %(long_title)s, %(cover)s, %(covers)s, %(uri)s, %(oid)s, 
-                %(epid)s, %(bvid)s, %(page)s, %(cid)s, %(part)s, %(business)s, %(dt)s, 
-                %(videos)s, %(author_name)s, %(author_face)s, %(author_mid)s, %(view_at)s, 
-                %(progress)s, %(badge)s, %(show_title)s, %(duration)s, %(current)s, %(total)s, 
-                %(new_desc)s, %(is_finish)s, %(is_fav)s, %(kid)s, %(tag_name)s, %(live_status)s, 
-                %(main_category)s
-            )
-        """
+        insert_sql = INSERT_DATA.format(table=new_table)
 
         # 读取上次导入的文件日期和文件名
         last_imported_date, last_imported_file = get_last_imported_file(log_file)
+        print(f"上次导入的日期: {last_imported_date}, 文件: {last_imported_file}")
 
         # 遍历按日期分割的文件夹
         for year in sorted(os.listdir(data_folder)):
@@ -443,15 +322,14 @@ def import_all_history_files(data_folder='history_by_date', log_file='last_impor
                                 # 如果当前文件日期和上次相同，继续检查文件名顺序
                                 if last_imported_date:
                                     if file_date < last_imported_date:
-                                        print(f"跳过已处理的文件: {day_path}")
+                                        print(f"跳过文件 {day_path}，日期 {file_date} 在上次导入日期之前。")
                                         continue
                                     elif file_date == last_imported_date and day_file <= last_imported_file:
-                                        print(f"跳过已处理的文件: {day_path}")
+                                        print(f"跳过文件 {day_path}，文件名 {day_file} 在上次导入文件之前或相同。")
                                         continue
 
                                 # 开始导入文件
-                                print(f"正在导入文件: {day_path}")
-                                inserted_count = import_data_from_json(connection, new_table, insert_sql, day_path)
+                                inserted_count = import_data_from_json(connection, insert_sql, day_path)
                                 total_inserted += inserted_count
                                 file_insert_counts[day_path] = inserted_count
 
@@ -472,10 +350,17 @@ def import_all_history_files(data_folder='history_by_date', log_file='last_impor
     finally:
         connection.close()
 
-# 主函数
+
+# 供外部调用的接口
+def import_history(data_folder='history_by_date', log_file='last_import_log.json'):
+    import_all_history_files(data_folder, log_file)
+    return f"数据导入完成，总共插入或更新了。"
+
+
+# 如果该脚本直接运行，则调用 import_all_history_files()
 if __name__ == '__main__':
     # 设置数据文件夹，可以选择导入清理前的文件夹 'history_by_date' 或清理后的文件夹 'cleaned_history_by_date'
-    data_folder = 'history_by_date'  # 或 'cleaned_history_by_date'
+    data_folder = '../history_by_date'  # 或 'cleaned_history_by_date'
 
     # 调用导入函数，导入所有文件
     import_all_history_files(data_folder)
