@@ -3,48 +3,48 @@ import logging
 import os
 import time
 from datetime import datetime, timedelta
-
 import requests
+from scripts.utils import load_config, get_base_path
+
+config = load_config()
 
 # 配置日志记录
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # 读取本地cookie文件
-def load_cookie(file_path='cookie.txt'):
-    if os.path.exists(file_path):
-        with open(file_path, 'r', encoding='utf-8') as f:
-            return f.read().strip()  # 去除首尾空白字符
-    else:
-        raise FileNotFoundError(f"Cookie文件{file_path}不存在，无法继续执行。")
+def load_cookie():
+    return config['cookie']
 
 # 查找本地最新的日期文件并加载数据
-def find_latest_local_history(base_folder='history_by_date'):
+def find_latest_local_history():
+    base_path = get_base_path()
+    full_base_folder = os.path.join(base_path, config['input_folder'])
     logger.info("正在查找本地最新的历史记录...")
-    if not os.path.exists(base_folder):
+    if not os.path.exists(full_base_folder):
         logger.info("本地历史记录文件夹不存在，将从头开始同步。")
-        return None  # 不再返回 local_oids 集合
+        return None
 
     latest_date = None
 
     try:
         # 获取最新的年份
-        latest_year = max([int(year) for year in os.listdir(base_folder) if year.isdigit()], default=None)
+        latest_year = max([int(year) for year in os.listdir(full_base_folder) if year.isdigit()], default=None)
         if latest_year:
             # 获取最新的月份
             latest_month = max(
-                [int(month) for month in os.listdir(os.path.join(base_folder, str(latest_year))) if month.isdigit()],
+                [int(month) for month in os.listdir(os.path.join(full_base_folder, str(latest_year))) if month.isdigit()],
                 default=None
             )
             if latest_month:
                 # 获取最新的日期
                 latest_day = max([
                     int(day.split('.')[0]) for day in
-                    os.listdir(os.path.join(base_folder, str(latest_year), f"{latest_month:02}"))
+                    os.listdir(os.path.join(full_base_folder, str(latest_year), f"{latest_month:02}"))
                     if day.endswith('.json')
                 ], default=None)
                 if latest_day:
-                    latest_file = os.path.join(base_folder, str(latest_year), f"{latest_month:02}", f"{latest_day:02}.json")
+                    latest_file = os.path.join(full_base_folder, str(latest_year), f"{latest_month:02}", f"{latest_day:02}.json")
                     logger.info(f"找到最新历史记录文件: {latest_file}")
                     with open(latest_file, 'r', encoding='utf-8') as f:
                         data = json.load(f)
@@ -58,7 +58,9 @@ def find_latest_local_history(base_folder='history_by_date'):
     return latest_date
 
 # 保存更新后的历史记录
-def save_history(history_data, base_folder='history_by_date'):
+def save_history(history_data):
+    base_path = get_base_path()
+    full_base_folder = os.path.join(base_path, config['input_folder'])
     logger.info(f"开始保存{len(history_data)}条新历史记录...")
     saved_count = 0  # 添加一个计数器
     for entry in history_data:
@@ -69,7 +71,7 @@ def save_history(history_data, base_folder='history_by_date'):
         day = dt_object.strftime('%d')
 
         # 创建文件夹路径 年/月/日
-        folder_path = os.path.join(base_folder, year, month)
+        folder_path = os.path.join(full_base_folder, year, month)
         os.makedirs(folder_path, exist_ok=True)
 
         # 文件名为当天的日期
@@ -209,25 +211,21 @@ def fetch_and_compare_history(headers, params, latest_date):
 
     if error_message:
         return {"status": "error", "message": error_message}
-
-    return {"new_history": filtered_new_data}
+    else:
+        return {"status": "success", "new_history": filtered_new_data}
 
 # 主逻辑函数
-def fetch_new_history(cookie=None, cookie_file='cookie.txt', base_folder='history_by_date'):
+def fetch_new_history(cookie=None):
     try:
         if cookie:
-            # 使用传入的cookie
-            sessdata = cookie.strip()
-            if not sessdata:
-                raise ValueError("提供的cookie为空。")
-            logger.info("使用提供的cookie进行API请求。")
+            sessdata = cookie
+            logger.info("使用传入的cookie进行API请求。")
         else:
-            # 从文件加载Cookie
-            sessdata = load_cookie(cookie_file)
-            logger.info("使用本地文件加载的cookie进行API请求。")
-    except (FileNotFoundError, ValueError) as e:
-        logger.error(e)
-        return {"status": "error", "message": str(e)}
+            sessdata = load_cookie()
+            logger.info("使用配置文件中的cookie进行API请求。")
+    except Exception as e:
+        logger.error(f"获取cookie时发生错误: {e}")
+        return {"status": "error", "message": f"获取cookie失败: {str(e)}"}
 
     headers = {
         'Cookie': f"SESSDATA={sessdata}",
@@ -244,7 +242,7 @@ def fetch_new_history(cookie=None, cookie_file='cookie.txt', base_folder='histor
     }
 
     # 查找本地最新的历史记录
-    latest_date = find_latest_local_history(base_folder)
+    latest_date = find_latest_local_history()
 
     # 获取新历史记录
     result = fetch_and_compare_history(headers, params, latest_date)
@@ -252,28 +250,18 @@ def fetch_new_history(cookie=None, cookie_file='cookie.txt', base_folder='histor
     if result["status"] == "error":
         return result  # 直接返回错误信息
 
-    new_history = result["new_history"]
+    new_history = result.get("new_history", [])
 
     if new_history:
         # 保存新历史记录
-        save_history(new_history, base_folder)
+        save_history(new_history)
         return {"status": "success", "message": f"共获取到{len(new_history)}条新记录。"}
     else:
         return {"status": "success", "message": "没有新记录可更新。"}
 
 # 允许脚本独立运行
 if __name__ == '__main__':
-    import argparse
-
-    parser = argparse.ArgumentParser(description="Fetch and update Bilibili history.")
-    parser.add_argument('--cookie', type=str, help="用户的 SESSDATA cookie")
-    parser.add_argument('--cookie_file', type=str, default='cookie.txt', help="本地cookie文件路径")
-    parser.add_argument('--base_folder', type=str, default='history_by_date', help="历史记录的基础文件夹路径")
-
-    args = parser.parse_args()
-
-    result = fetch_new_history(cookie=args.cookie, cookie_file=args.cookie_file, base_folder=args.base_folder)
-
+    result = fetch_new_history()
     if result["status"] == "success":
         print(result["message"])
     else:

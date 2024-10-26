@@ -4,7 +4,8 @@ import os
 import time
 import threading
 from datetime import datetime
-from sql_statements import (
+from scripts.utils import load_config, get_base_path
+from scripts.sql_statements_mysql import (
     SHOW_DATABASES,
     CREATE_DATABASE,
     SHOW_TABLES,
@@ -14,16 +15,17 @@ from sql_statements import (
     INSERT_DATA
 )
 
+config = load_config()
 
 # 加载分类映射
-def load_categories(file_path='../config/categories.json'):
-    with open(file_path, 'r', encoding='utf-8') as f:
+def load_categories():
+    base_path = get_base_path()
+    categories_path = os.path.join(base_path, 'config', config['categories_file'])
+    with open(categories_path, 'r', encoding='utf-8') as f:
         categories = json.load(f)
     return categories['duplicated_tags'], categories['unique_tag_to_main']
 
-
 duplicated_tags, unique_tag_to_main = load_categories()
-
 
 # 雪花算法生成器类
 class SnowflakeIDGenerator:
@@ -60,17 +62,14 @@ class SnowflakeIDGenerator:
             id = ((timestamp - self.epoch) << 22) | (self.datacenter_id << 12) | self.sequence
             return id
 
-
 # 初始化雪花ID生成器
 id_generator = SnowflakeIDGenerator(machine_id=1, datacenter_id=1)
-
 
 # 获取当前年份和上一年份
 def get_years():
     current_year = datetime.now().year
     previous_year = current_year - 1
     return current_year, previous_year
-
 
 # 连接到 MySQL 数据库，并在必要时创建数据库
 def connect_to_db():
@@ -125,7 +124,6 @@ def connect_to_db():
         print(f"连接到数据库时发生错误: {e}")
         raise
 
-
 # 创建新年份的表，如果不存在
 def create_new_year_table(connection, new_table, reference_table):
     try:
@@ -152,7 +150,6 @@ def create_new_year_table(connection, new_table, reference_table):
         print(f"创建新表时发生错误: {e}")
         raise
 
-
 # 批量插入数据到 MySQL，支持事务回滚
 def batch_insert_data(connection, insert_sql, data_chunk):
     try:
@@ -164,7 +161,6 @@ def batch_insert_data(connection, insert_sql, data_chunk):
         connection.rollback()
         print(f"    插入数据时发生错误: {e}")
         return 0
-
 
 # 从 JSON 文件导入数据
 def import_data_from_json(connection, insert_sql, file_path, batch_size=1000):
@@ -248,7 +244,6 @@ def import_data_from_json(connection, insert_sql, file_path, batch_size=1000):
         print(f"处理数据时发生错误: {e}")
         return 0
 
-
 # 读取标记文件，返回上次导入的日期和文件名
 def get_last_imported_file(file_path='last_import_log.json'):
     if not os.path.exists(file_path):
@@ -261,7 +256,6 @@ def get_last_imported_file(file_path='last_import_log.json'):
             print("标记文件格式错误，无法解析。")
             return None, None
 
-
 # 更新标记文件，记录本次导入的日期和文件名
 def update_last_imported_file(last_imported_date, last_imported_file, file_path='last_import_log.json'):
     data = {
@@ -271,9 +265,12 @@ def update_last_imported_file(last_imported_date, last_imported_file, file_path=
     with open(file_path, 'w', encoding='utf-8') as f:
         json.dump(data, f, ensure_ascii=False, indent=4)
 
-
 # 遍历所有按日期分割的文件并导入数据
-def import_all_history_files(data_folder='history_by_date', log_file='last_import_log.json'):
+def import_all_history_files():
+    base_path = get_base_path()
+    data_folder = os.path.join(base_path, config['input_folder'])
+    log_file = os.path.join(base_path, config['log_file'])
+
     total_inserted = 0
     file_insert_counts = {}
 
@@ -281,7 +278,7 @@ def import_all_history_files(data_folder='history_by_date', log_file='last_impor
 
     if not os.path.exists(data_folder):
         print(f"本地文件夹 '{data_folder}' 不存在，无法加载数据。")
-        return
+        return {"status": "error", "message": f"本地文件夹 '{data_folder}' 不存在，无法加载数据。"}
 
     # 获取当前年份和上一年份
     current_year, previous_year = get_years()
@@ -312,7 +309,6 @@ def import_all_history_files(data_folder='history_by_date', log_file='last_impor
                                 day_path = os.path.join(month_path, day_file)
 
                                 # 获取当前文件的日期
-                                # 假设文件名格式为 "DD.json" 或包含日期信息
                                 day = ''.join(filter(str.isdigit, day_file))[:2]  # 提取前两位数字作为日
                                 if len(day) != 2:
                                     print(f"无法解析文件名中的日期: {day_file}，跳过文件。")
@@ -350,17 +346,16 @@ def import_all_history_files(data_folder='history_by_date', log_file='last_impor
     finally:
         connection.close()
 
+    return {"status": "success", "message": f"所有文件均已导入数据库，总共插入或更新了 {total_inserted} 条数据。"}
 
 # 供外部调用的接口
-def import_history(data_folder='history_by_date', log_file='last_import_log.json'):
-    import_all_history_files(data_folder, log_file)
-    return f"数据导入完成，总共插入或更新了。"
-
+def import_history():
+    return import_all_history_files()
 
 # 如果该脚本直接运行，则调用 import_all_history_files()
 if __name__ == '__main__':
-    # 设置数据文件夹，可以选择导入清理前的文件夹 'history_by_date' 或清理后的文件夹 'cleaned_history_by_date'
-    data_folder = '../history_by_date'  # 或 'cleaned_history_by_date'
-
-    # 调用导入函数，导入所有文件
-    import_all_history_files(data_folder)
+    result = import_all_history_files()
+    if result["status"] == "success":
+        print(result["message"])
+    else:
+        print(f"错误: {result['message']}")

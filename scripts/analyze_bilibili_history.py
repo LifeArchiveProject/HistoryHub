@@ -2,18 +2,23 @@ import json
 import os
 from datetime import datetime
 from collections import defaultdict
+from scripts.utils import load_config, get_base_path
+
+config = load_config()
 
 # 读取分割的日期文件夹中的所有数据
-def load_all_history_files(base_folder='history_by_date'):
+def load_all_history_files():
+    base_path = get_base_path()
+    full_base_folder = os.path.join(base_path, config['input_folder'])
     all_data = []
     print("正在遍历历史记录文件夹...")
 
-    if not os.path.exists(base_folder):
+    if not os.path.exists(full_base_folder):
         print("本地历史记录文件夹不存在，无法加载数据。")
         return []
 
-    for year in os.listdir(base_folder):
-        year_path = os.path.join(base_folder, year)
+    for year in os.listdir(full_base_folder):
+        year_path = os.path.join(full_base_folder, year)
         if os.path.isdir(year_path) and year.isdigit():
             for month in os.listdir(year_path):
                 month_path = os.path.join(year_path, month)
@@ -30,11 +35,13 @@ def load_all_history_files(base_folder='history_by_date'):
 
 
 # 保存每天的观看数量到 JSON 文件
-def save_daily_count_to_json(daily_count, year, output_folder='daily_count'):
-    if not os.path.exists(output_folder):
-        os.makedirs(output_folder)
+def save_daily_count_to_json(daily_count, year):
+    base_path = get_base_path()
+    full_output_folder = os.path.join(base_path, 'daily_count')
+    if not os.path.exists(full_output_folder):
+        os.makedirs(full_output_folder)
 
-    output_file = os.path.join(output_folder, f'daily_count_{year}.json')
+    output_file = os.path.join(full_output_folder, f'daily_count_{year}.json')
     with open(output_file, 'w', encoding='utf-8') as f:
         json.dump(daily_count, f, ensure_ascii=False, indent=4)
     print(f"每天观看数量已保存到 {output_file}")
@@ -75,7 +82,7 @@ def get_monthly_counts():
     if not history_data:
         return {"error": "没有找到历史记录数据。"}
 
-    _, monthly_count = calculate_video_counts(history_data)
+    _,monthly_count = calculate_video_counts(history_data)
     return monthly_count
 
 
