@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+pydantic
+requests
+pymysql
+sqlite3
+pandas
+openpyxl
+pyyaml
+jinja2
