@@ -1,5 +1,5 @@
 # B站用户的cookie，用于API认证
-cookie: "buvid3=6518F8EE-42EA-F47C-47A9-02A9E97E046610889infoc; b_nut=1727443910; _uuid=710936284-15DE-F58D-566E-7B8B844643CD11717infoc; enable_web_push=DISABLE; home_feed_column=5; browser_resolution=1536-695; buvid4=B062179B-DC0C-CC71-A3BA-2FF8FBA21E7B12503-024092713-Mzn9RP65Ce6HesgnYvviUw%3D%3D; DedeUserID=394106164; DedeUserID__ckMd5=92445c57c94bfafe; CURRENT_FNVAL=4048; rpdid=|(u)YlmuJJuu0J'u~k~RRR|m~; header_theme_version=CLOSE; hit-dyn-v2=1; PVID=1; LIVE_BUVID=AUTO5217276817448599; fingerprint=cc0a9c8af6c3442f4c1434fe7750a30a; buvid_fp_plain=undefined; bili_ticket=eyJhbGciOiJIUzI1NiIsImtpZCI6InMwMyIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MjgyMTQ5MzcsImlhdCI6MTcyNzk1NTY3NywicGx0IjotMX0.3Md00w3WSimWFtkuvoZHQ1CMtALhuwqATR8qS7JNOlo; bili_ticket_expires=1728214877; SESSDATA=61bc2c03%2C1743682744%2C2f44a%2Aa2CjBIswNninTWDEneBm2Xton17T2qQAGEgySHmDkj3Vjptx1gHE4ohjTilGCSTF-OcTQSVlFIOHIxYU9lakJGTGhUVk12YlZkcWEyQ1J2WDA5UjZ2MlJyVUdkOHBVWWpJM2ZLOHllQzBoLS1yeW1Pb1dKbWZDM09RS2NUMHh2QlFlSURQWjhHTDVRIIEC; bili_jct=f5b7608b53a8a421132591da1683b020; sid=7gi49u76; buvid_fp=3ab24f854e12596e14479a913f8658cb; b_lsid=B3F104D3E_1925D7D124A; bsource=search_google; bp_t_offset_394106164=984857140851113989; bmg_af_switch=1; bmg_src_def_domain=i0.hdslb.com"
+cookie: "你的cookie"
 
 # 原始历史记录数据的输入文件夹
 input_folder: "history_by_date"
