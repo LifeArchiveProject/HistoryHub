@@ -1,13 +1,13 @@
 import json
 import os
-from scripts.utils import load_config, get_base_path
+from scripts.utils import load_config, get_base_path, get_output_path
 
 config = load_config()
 
 def clean_history_data():
     base_path = get_base_path()
     full_input_folder = os.path.join(base_path, config['input_folder'])
-    full_output_folder = os.path.join(base_path, config['output_folder'])
+    full_output_folder = get_output_path('cleaned_history_by_date')
 
     if not os.path.exists(full_input_folder):
         print(f"输入文件夹 '{full_input_folder}' 不存在。")

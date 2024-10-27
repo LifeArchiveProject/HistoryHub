@@ -2,7 +2,7 @@ import json
 import os
 from datetime import datetime
 from collections import defaultdict
-from scripts.utils import load_config, get_base_path
+from scripts.utils import load_config, get_base_path, get_output_path
 
 config = load_config()
 
@@ -36,12 +36,7 @@ def load_all_history_files():
 
 # 保存每天的观看数量到 JSON 文件
 def save_daily_count_to_json(daily_count, year):
-    base_path = get_base_path()
-    full_output_folder = os.path.join(base_path, 'daily_count')
-    if not os.path.exists(full_output_folder):
-        os.makedirs(full_output_folder)
-
-    output_file = os.path.join(full_output_folder, f'daily_count_{year}.json')
+    output_file = get_output_path(f'daily_count_{year}.json')
     with open(output_file, 'w', encoding='utf-8') as f:
         json.dump(daily_count, f, ensure_ascii=False, indent=4)
     print(f"每天观看数量已保存到 {output_file}")

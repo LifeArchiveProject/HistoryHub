@@ -5,8 +5,8 @@ import time
 import threading
 from datetime import datetime
 import logging
-from scripts.utils import load_config, get_base_path
-from scripts.sql_statements_sqlite import INSERT_DATA, CREATE_TABLE_DEFAULT, CREATE_INDEXES
+from scripts.utils import load_config, get_base_path, get_output_path
+from config.sql_statements_sqlite import INSERT_DATA, CREATE_TABLE_DEFAULT, CREATE_INDEXES
 
 config = load_config()
 
@@ -190,7 +190,7 @@ def import_data_from_json(conn, table_name, file_path, batch_size=1000):
 def import_all_history_files():
     base_path = get_base_path()
     full_data_folder = os.path.join(base_path, config['input_folder'])
-    full_db_file = os.path.join(base_path, config['db_file'])
+    full_db_file = get_output_path(config['db_file'])
 
     total_inserted = 0
     file_insert_counts = {}

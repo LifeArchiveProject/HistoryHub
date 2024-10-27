@@ -5,16 +5,22 @@ cookie: "你的cookie"
 input_folder: "history_by_date"
 
 # 清理后的历史记录数据的输出文件夹
-output_folder: "cleaned_history_by_date"
+output_folder: "output"
 
 # SQLite数据库文件名
 db_file: "bilibili_history.db"
 
-# 导入日志文件名，用于记录上次导入mysql的位置
+# 导入日志文件名，用于记录上次导入的位置
 log_file: "last_import_log.json"
 
 # 分类配置文件名
 categories_file: "categories.json"
+
+# 每日观看数量统计文件夹
+daily_count_folder: "daily_count"
+
+# 热力图模板文件名
+heatmap_template: "template.html"
 
 # 清理数据时需要移除的字段列表
 fields_to_remove:
@@ -26,3 +32,14 @@ fields_to_remove:
   - new_desc      # 新描述
   - is_finish     # 是否完成
   - live_status   # 直播状态
+
+# 邮件配置
+email:
+  sender: "xxxxxxxxxx@qq.com"
+  receiver: "xxxxxxxxxx@qq.com"
+  smtp_server: "smtp.qq.com"
+  smtp_port: 465
+  password: "xxxxxxxxxxxxxxxx"
+
+# 日志文件夹
+log_folder: "/www/wwwroot/python/logs"

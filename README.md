@@ -1,256 +1,90 @@
-# 获取哔哩哔哩历史记录并生成热力图
+# Bilibili 历史记录分析器
 
-该项目旨在处理、分析和可视化哔哩哔哩用户的历史数据。这些工具包括数据清洗、数据库导入、历史分析以及通过邮件通知进行自动化日志记录。以下部分详细解释了每个模块的用途和使用方法。
+该项目旨在处理、分析和可视化哔哩哔哩（Bilibili）用户的观看历史数据。它提供了一系列工具，包括数据获取、清洗、数据库导入、历史分析以及通过 API 进行访问的功能。
 
-最终效果如下：
-<img src="heatmap.png"/>
+## 项目结构
 
-## 项目起因
-由于想找以前的一个历史视频时发现只有前面10几天记录的视频数量是准确的，往前推半个月发现每天记录的视频只有4，5个甚至只有1个，于是有了此项目
-
-## 风险
-API设置了每隔1秒请求一次，目前我已经自动化运行几天了，由于是每天晚上0点请求且一天只运行1次，所以还没有任何风险，还是不放心的可以调整下面内容来自定义暂停频率和个性化请求：
-```python
-# 暂停1秒在请求
-time.sleep(1)
-
-headers = {
-    'Cookie': "SESSDATA=" + cookie,
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.121 Safari/537.36',
-    'Referer': 'https://www.bilibili.com',
-}
-
-# 初始化参数
-params = {
-    'ps': 30,  # 每页数量，默认为 20，最大 30
-    'max': '',  # 初始为空
-    'view_at': '',  # 初始为空
-    'business': '',  # 可选参数，默认为空表示获取所有类型
-}
+```
+./
+├─ config/
+│   ├─ config.yaml
+│   └─ categories.json
+├─ routers/
+│   ├─ analysis.py
+│   ├─ clean_data.py
+│   ├─ export.py
+│   ├─ fetch_bili_history.py
+│   ├─ import_data_mysql.py
+│   └─ import_data_sqlite.py
+├─ scripts/
+│   ├─ analyze_bilibili_history.py
+│   ├─ bilibili_history.py
+│   ├─ clean_data.py
+│   ├─ export_to_excel.py
+│   ├─ import_database.py
+│   ├─ import_sqlite.py
+│   ├─ sql_statements_mysql.py
+│   └─ utils.py
+├─ main.py
+└─ README.md
 ```
 
-## 获取历史记录
+## 主要功能
 
-- `bilibili_history.py`  
-  输入自己的哔哩哔哩Cookie来处理和获取历史数据，使用的API来自[bilibili-API-collect](https://github.com/SocialSisterYi/bilibili-API-collect)  
+1. **数据获取**：从 Bilibili API 获取用户的观看历史数据。
+2. **数据清洗**：清理和格式化原始数据。
+3. **数据库导入**：支持将数据导入到 MySQL 或 SQLite 数据库。
+4. **数据分析**：分析用户的观看习惯，包括每日和每月的观看统计。
+5. **数据导出**：将分析结果导出为 Excel 文件。
+6. **API 接口**：提供 RESTful API 以访问各种功能。
 
-  在当前目录下新建名为 cookie.txt 的文件，在里面输入自己的Cookie即可被程序读取，由于Web 端的 Cookie 会随着一些敏感接口的访问逐渐 ***失效*** ，所以需要把 localStorage 的 `ac_time_value` 字段删除才不会刷新，具体见[Web端Cookie刷新](https://socialsisteryi.github.io/bilibili-API-collect/docs/login/cookie_refresh.html)
+## 配置
 
-  第一次运行会直接获取所有历史记录，并生成年月文件夹，后续同步时，当请求的数据观看时间比本地最新的历史记录天数小两天时停止请求，比如当前最新的是7号，那么一旦请求到5号就停止，并同步未同步的数据，文件夹结构如下：
-  ```text
-  ├───history_by_date
-  │   └───2024
-  │       ├───07
-  │       ├───08
-  │       ├───09
-  │       └───10
-  ```
+项目使用 `config/config.yaml` 文件进行配置。主要配置项包括：
 
-## 简单的数据分析
-- `analyze_bilibili_history.py`  
-  简单的分析获取到的哔哩哔哩历史数据，运行后保存的`daily_count_2024.json`文件（统计每日观看的视频数量）用于后续生成热力图，数据分析输出内容如下：
-  ```text
-  2024-09-28: 看了 87 个视频，最早是 00:01:22，最晚是 19:50:56
-  2024-09-29: 看了 116 个视频，最早是 00:56:13，最晚是 22:06:07
-  2024-09-30: 看了 101 个视频，最早是 01:05:14，最晚是 23:35:24
-  2024-10-01: 看了 150 个视频，最早是 00:44:03，最晚是 23:57:07
-  2024-10-02: 看了 73 个视频，最早是 00:08:38，最晚是 22:19:31
-  
-  每月观看视频数量：
-  2024-07: 21 个视频
-  2024-08: 30 个视频
-  2024-09: 1108 个视频
-  2024-10: 223 个视频
-  每天观看数量已保存到 daily_count\daily_count_2024.json
-  ```
+- `cookie`：Bilibili 用户的 cookie，用于 API 认证。
+- `input_folder`：原始历史记录数据的输入文件夹。
+- `output_folder`：清理后的历史记录数据的输出文件夹。
+- `db_file`：SQLite 数据库文件名。
+- `log_file`：导入日志文件名。
+- `categories_file`：分类配置文件名。
+- `fields_to_remove`：清理数据时需要移除的字段列表。
 
-## 生成热力图
-- `heatmap_visualizer.py`  
-将`output_dir`设置为你的输出路径，如果后续要在部署到服务器在线访问，就设置为你服务器网站目录
-  ```python
-  class HeatmapVisualizer:
-          def __init__(self, template_file='template.html', output_dir='./', base_folder='daily_count'):
-        """
-        初始化 HeatmapVisualizer。
+## 使用方法
 
-        :param template_file: Jinja2 模板文件名
-        :param output_dir: 输出目录
-        :param base_folder: 存放 JSON 数据的基础文件夹
-        """
-        self.template_file = template_file
-        self.output_dir = output_dir
-        self.base_folder = base_folder
-        self.charts = []  # 存储所有生成的图表 HTML
-        self.data = {}  # 存储每个年份的数据
+1. 克隆仓库并安装依赖：
+   ```
+   git clone <repository-url>
+   cd <repository-name>
+   pip install -r requirements.txt
+   ```
 
-        # 确保输出目录存在
-        if not os.path.exists(self.output_dir):
-            os.makedirs(self.output_dir)
+2. 配置 `config/config.yaml` 文件，确保填入正确的 Bilibili cookie。
 
-        # 自动检测可用的年份
-        self.years = self.detect_years()
-  ```
-  使用`analyze_bilibili_history.py`生成的`daily_count_2024.json`来生成热力图，效果如下：
-<img src="\heatmap.png"/>
-- `template.html`
-热力图的模板文件，用来定义样式
+3. 运行主程序：
+   ```
+   python main.py
+   ```
 
-## 清理数据
-- `clean_data.py`  
-  如果你要存入数据库，并且只想存入有意义的字段数据，具体字段意思见[bilibili-API-collect的历史记录API文档](https://socialsisteryi.github.io/bilibili-API-collect/docs/history_toview/history.html)那么此脚本就是用来删除不想要的字段
-  ```python
-  # 想要删减的字段
-    fields_to_remove = ['long_title', 'uri', 'badge', 'current', 'total', 'new_desc', 'is_finish', 'live_status']
-  ```
-  删除后的数据存放格式和原来的一样，只不过文件夹前面多了个cleaned
+4. 访问 API 接口（默认地址为 `http://127.0.0.1:8000`）：
+   - `/fetch/fetch_history`：获取历史记录
+   - `/clean/clean_data`：清理数据
+   - `/importMysql/import_data_mysql`：导入数据到 MySQL
+   - `/importSqlite/import_data_sqlite`：导入数据到 SQLite
+   - `/analysis/daily_counts`：获取每日观看计数
+   - `/analysis/monthly_counts`：获取每月观看计数
+   - `/export/export_history`：导出数据到 Excel
 
-## 导入到MySQL数据库
-- `import_database.py`  
-  该模块负责将清洗和处理后的数据导入数据库，可以用于存储数据以便后续分析或进行多用户数据处理，程序会自动识别所处年份，如果有此年份的表，如`bilibili_history_{年份}`则自动导入，没有则根据昨年的表结构自动新建
-- 建表语句，如果你要导入清理后的数据，那么你需要删除你不需要的字段，以及代码里不需要的字段
-  ```mysql
-  CREATE TABLE bilibili_history_2024 (
-    id BIGINT PRIMARY KEY COMMENT'主键，使用雪花算法等库生成的唯一ID',
-    title VARCHAR(255) NOT NULL COMMENT'条目标题，字符串，最大255字符',
-    long_title VARCHAR(255) COMMENT'条目副标题（有时为空），最大255字符',
-    cover VARCHAR(255) COMMENT'条目封面图url，用于专栏以外的条目',
-    covers JSON COMMENT'条目封面图组，有效时array无效时null，仅用于专栏',
-    uri VARCHAR(255) COMMENT'重定向url仅用于剧集和直播',
-    oid BIGINT NOT NULL COMMENT '目标id稿件视频&剧集（当business=archive或business=pgc时）：稿件avid直播（当business=live时）：直播间id文章（当business=article时）：文章cvid文集（当business=article-list时）：文集rlid',
-    epid BIGINT DEFAULT 0 COMMENT'剧集epid	仅用于剧集',
-    bvid VARCHAR(50) NOT NULL COMMENT'稿件bvid	仅用于稿件视频',
-    page INT DEFAULT 1 COMMENT'观看到的视频分P数	仅用于稿件视频',
-    cid BIGINT COMMENT'观看到的对象id	稿件视频&剧集（当business=archive或business=pgc时）：视频cid文集（当business=article-list时）：文章cvid',
-    part VARCHAR(255) COMMENT'观看到的视频分 P 标题	仅用于稿件视频',
-    business VARCHAR(50) COMMENT'视频业务类型（如archive代表普通视频），最大50字符',
-    dt INT NOT NULL COMMENT'记录查看的平台代码	1 3 5 7 手机端，2 web端，4 6 pad端，33TV端，0其他',
-    videos INT DEFAULT 1 COMMENT'视频分 P 数目	仅用于稿件视频，整数型，默认为1',
-    author_name VARCHAR(100) NOT NULL COMMENT 'UP 主昵称',
-    author_face VARCHAR(255) COMMENT'UP 主头像 url',
-    author_mid BIGINT NOT NULL COMMENT'UP 主 mid',
-    view_at BIGINT NOT NULL COMMENT'查看时间	时间戳',
-    progress INT DEFAULT 0 COMMENT'视频观看进度，单位为秒，用于稿件视频或剧集',
-    badge VARCHAR(50) COMMENT'角标文案	稿件视频 / 剧集 / 笔记',
-    show_title VARCHAR(255) COMMENT'分 P 标题	用于稿件视频或剧集',
-    duration INT NOT NULL COMMENT'视频总时长	用于稿件视频或剧集',
-    current VARCHAR(255) COMMENT'未知字段',
-    total INT DEFAULT 0 COMMENT'总计分集数	仅用于剧集',
-    new_desc VARCHAR(255) COMMENT'最新一话 / 最新一 P 标识	用于稿件视频或剧集',
-    is_finish TINYINT(1) DEFAULT 0 COMMENT'是否观看完，布尔值，0为否，1为是',
-    is_fav TINYINT(1) DEFAULT 0 COMMENT'是否收藏，布尔值，0为否，1为是',
-    kid BIGINT COMMENT'条目目标 id',
-    tag_name VARCHAR(100) COMMENT'子分区名	用于稿件视频和直播',
-    live_status TINYINT(1) DEFAULT 0 COMMENT'直播状态	仅用于直播0未开播1已开播',
-    INDEX (author_mid) COMMENT'建立作者MID的索引，用于快速查询',
-    INDEX (view_at) COMMENT'建立观看时间的索引',
-    main_category VARCHAR(100) COMMENT '主分区名称'
-  );
-  ```
-  ```python
-  # 连接到 MySQL 数据库
-  def connect_to_db():
-      return pymysql.connect(
-          host='localhost',# 本地则不需要修改，如果是远程的改为你的远程ip
-          port=3306,  # 指定 MySQL 端口，默认是3306
-          user='',  # 替换为你的 MySQL 用户名
-          password='',  # 替换为你的 MySQL 密码
-          db='',  # 替换为你的数据库名
-          charset='utf8mb4',
-          cursorclass=pymysql.cursors.DictCursor
-      )
-  
-  # 主函数
-  if __name__ == '__main__':
-      # 设置数据文件夹，可以选择导入清理前的文件夹 'history_by_date' 或清理后的文件夹 'cleaned_history_by_date'
-      data_folder = 'cleaned_history_by_date'  # 或 'history_by_date'
-  
-      # 调用导入函数，导入所有文件
-      import_all_history_files(data_folder)
-  ```
+## 注意事项
 
-## 部署到linux服务器实现自动化同步
-- 我用的是宝塔面板进行的可视化操作，首先将需要的py文件导入到文件夹，然后点击左侧边栏选择`网站`，进入后选择顶部`Python项目`然后安装解释器版本，我安装的是`3.12.3`
-- 安装后需要在安装以下包才可以正常运行：
-  ```shell
-  # 必装，用于 API 发送请求
-  解释器路径/3.12.3/bin/pip3 install requests
-  # 想要导入数据到数据库则要安装，与 MySQL 数据库进行交互
-  解释器路径/3.12.3/bin/python3.12 -m pip install pymysql
-  # 想要生成热力图则要安装，用于生成图表的 Python 库，用来生成热力图
-  解释器路径/3.12.3/bin/python3.12 -m pip install pyecharts
-  # 想要生成热力图则要安装，用于 Web 开发中生成 HTML
-  解释器路径/3.12.3/bin/python3.12 -m pip install jinja2
-  ```
-- 下面开始部署自动化脚本，我导入的的是未清理过字段的原始数据，所以没有部署`clean_data.py`文件，首先点击左侧边栏的计划任务，点击添加任务，选择自己要执行的时间和频率，然后输入以下脚本内容，脚本里可以带注释，路径可以自定义：
-  ```shell
-  #!/bin/bash
-  
-  # 创建日志文件夹，格式为 /www/wwwroot/python/logs/年/月
-  mkdir -p /www/wwwroot/python/logs/$(date +%Y/%m)
-  
-  # 进入项目目录
-  cd /www/wwwroot/python
-  
-  # 写入运行时间到当天的日志文件
-  echo -e "\n========== 运行时间: $(date '+%Y-%m-%d %H:%M:%S') ==========" >> /www/wwwroot/python/logs/$(date +%Y/%m)/$(date +%d).log
-  
-  # 运行 bilibili_history.py 并将输出追加到日志文件
-  /www/server/pyporject_evn/versions/3.12.3/bin/python3.12 bilibili_history.py >> /www/wwwroot/python/logs/$(date +%Y/%m)/$(date +%d).log 2>&1
-  
-  # 如果 bilibili_history.py 成功运行，运行 import_database.py
-  if [ $? -eq 0 ]; then
-      /www/server/pyporject_evn/versions/3.12.3/bin/python3.12 import_database.py >> /www/wwwroot/python/logs/$(date +%Y/%m)/$(date +%d).log 2>&1
-  else
-      echo "bilibili_history.py 执行失败，跳过 import_database.py" >> /www/wwwroot/python/logs/$(date +%Y/%m)/$(date +%d).log
-      exit 1  # 如果 bilibili_history.py 失败，则退出脚本
-  fi
-  
-  # 如果 import_database.py 成功运行，运行 analyze_bilibili_history.py
-  if [ $? -eq 0 ]; then
-      /www/server/pyporject_evn/versions/3.12.3/bin/python3.12 analyze_bilibili_history.py >> /www/wwwroot/python/logs/$(date +%Y/%m)/$(date +%d).log 2>&1
-  else
-      echo "import_database.py 执行失败，跳过 analyze_bilibili_history.py" >> /www/wwwroot/python/logs/$(date +%Y/%m)/$(date +%d).log
-      exit 1  # 如果 import_database.py 失败，则退出脚本
-  fi
-  
-  # 如果 analyze_bilibili_history.py 成功运行，运行 heatmap_visualizer.py
-  if [ $? -eq 0 ]; then
-      /www/server/pyporject_evn/versions/3.12.3/bin/python3.12 heatmap_visualizer.py >> /www/wwwroot/python/logs/$(date +%Y/%m)/$(date +%d).log 2>&1
-  else
-      echo "analyze_bilibili_history.py 执行失败，跳过 heatmap_visualizer.py" >> /www/wwwroot/python/logs/$(date +%Y/%m)/$(date +%d).log
-      exit 1  # 如果 analyze_bilibili_history.py 失败，则退出脚本
-  fi
-  
-  # 如果 heatmap_visualizer.py 成功运行，运行 send_log_email.py
-  if [ $? -eq 0 ]; then
-      /www/server/pyporject_evn/versions/3.12.3/bin/python3.12 send_log_email.py >> /www/wwwroot/python/logs/$(date +%Y/%m)/$(date +%d).log 2>&1
-  else
-      echo "heatmap_visualizer.py 执行失败，跳过 send_log_email.py" >> /www/wwwroot/python/logs/$(date +%Y/%m)/$(date +%d).log
-      exit 1  # 如果 heatmap_visualizer.py 失败，则退出脚本
-  fi
-  
-  ```
+- 确保在使用前正确配置 `config.yaml` 文件。
+- 首次运行时，程序会获取所有可用的历史记录。后续运行只会同步新的记录。
+- API 请求频率限制为每秒一次，以避免对 Bilibili 服务器造成过大压力。
 
-## 发送日志邮件到邮箱
-- `send_log_email.py`  
-  该脚本实现日志记录和错误处理。它可以通过电子邮件发送日志报告或错误信息，方便监控数据分析或导入任务的状态。
+## 贡献
 
-  ```python
-  # 邮件配置信息
-  sender_email = 'xxxxxxxxxx@qq.com'  # 发件人QQ邮箱
-  receiver_email = 'xxxxxxxxxx@qq.com'  # 收件人邮箱
-  smtp_server = 'smtp.qq.com'  # QQ邮箱的SMTP服务器地址
-  smtp_port = 465  # SMTP SSL端口号
-  smtp_password = 'xxxxxxxxxxxxxxxx'  # 发件人邮箱的授权码
-  
-  # 获取日志文件路径
-  def get_latest_log():
-      log_dir = '/xxxx/xxxx/xxxx/xxxx' # 日志路径
-      today = date.today()  # 使用 datetime 的 date 获取当前日期
-      year_month_dir = os.path.join(log_dir, f"{today.year}/{today.month:02d}")  # 当前年和月的目录
-      log_file = os.path.join(year_month_dir, f"{today.day:02d}.log")  # 当前日志文件
-      if os.path.exists(log_file):
-          return log_file
-      else:
-          return None
-  ```
+欢迎提交 issues 和 pull requests 来改进这个项目。
+
+## 许可证
+
+[MIT License](LICENSE)

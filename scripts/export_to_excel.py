@@ -1,12 +1,14 @@
-import sqlite3
-import pandas as pd
 import json
-from datetime import datetime
-import traceback
-from openpyxl.utils import get_column_letter
-import os
 import logging
-from scripts.utils import load_config, get_base_path
+import os
+import sqlite3
+import traceback
+from datetime import datetime
+
+import pandas as pd
+from openpyxl.utils import get_column_letter
+
+from scripts.utils import load_config, get_output_path
 
 config = load_config()
 
@@ -105,10 +107,9 @@ def export_to_excel(db_file, excel_file):
             conn.close()
 
 def export_bilibili_history():
-    base_path = get_base_path()
-    full_db_file = os.path.join(base_path, config['db_file'])
+    full_db_file = get_output_path(config['db_file'])
     current_year = get_current_year()
-    excel_file = os.path.join(base_path, f'bilibili_history_{current_year}.xlsx')
+    excel_file = get_output_path(f'bilibili_history_{current_year}.xlsx')
     return export_to_excel(full_db_file, excel_file)
 
 # 允许脚本独立运行

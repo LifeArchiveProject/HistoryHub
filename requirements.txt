@@ -1,9 +1,10 @@
 fastapi
 uvicorn
 pydantic
-requests
 pymysql
-pandas
-openpyxl
 pyyaml
 jinja2
+pyecharts
+openpyxl
+pandas
+requests

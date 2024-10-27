@@ -1,5 +1,4 @@
 from fastapi import APIRouter, HTTPException, BackgroundTasks
-
 from scripts.import_database import import_history
 
 router = APIRouter()

@@ -15,7 +15,7 @@ CREATE_TABLE_DEFAULT = """
         covers JSON COMMENT '条目封面图组，有效时array无效时null，仅用于专栏',
         uri VARCHAR(255) COMMENT '重定向url仅用于剧集和直播',
         oid BIGINT NOT NULL COMMENT '目标id稿件视频&剧集（当business=archive或business=pgc时）：稿件avid直播（当business=live时）：直播间id文章（当business=article时）：文章cvid文集（当business=article-list时）：文集rlid',
-        epid BIGINT DEFAULT 0 COMMENT '���集epid 仅用于剧集',
+        epid BIGINT DEFAULT 0 COMMENT '剧集epid 仅用于剧集',
         bvid VARCHAR(50) NOT NULL COMMENT '稿件bvid 仅用于稿件视频',
         page INT DEFAULT 1 COMMENT '观看到的视频分P数 仅用于稿件视频',
         cid BIGINT COMMENT '观看到的对象id 稿件视频&剧集（当business=archive或business=pgc时）：视频cid文集（当business=article-list时）：文章cvid',

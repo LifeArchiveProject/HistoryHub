@@ -9,30 +9,23 @@ from pyecharts import options as opts
 from pyecharts.charts import Calendar
 from pyecharts.commons.utils import JsCode
 
+from scripts.utils import load_config, get_base_path, get_output_path
+
 # 设置周的起始日为星期一
 calendar.setfirstweekday(calendar.MONDAY)
 
+config = load_config()
 
 class HeatmapVisualizer:
-    def __init__(self, template_file='template.html', output_dir='./', base_folder='daily_count'):
-        """
-        初始化 HeatmapVisualizer。
-
-        :param template_file: Jinja2 模板文件名
-        :param output_dir: 输出目录
-        :param base_folder: 存放 JSON 数据的基础文件夹
-        """
-        self.template_file = template_file
-        self.output_dir = output_dir
-        self.base_folder = base_folder
-        self.charts = []  # 存储所有生成的图表 HTML
-        self.data = {}  # 存储每个年份的数据
-
-        # 确保输出目录存在
+    def __init__(self, template_file='template.html', output_dir=None, base_folder=None):
+        base_path = get_base_path()
+        self.template_file = os.path.join(base_path, 'config', template_file)
+        self.output_dir = output_dir or get_output_path('')
+        self.base_folder = base_folder or get_output_path('')
+        self.charts = []
+        self.data = {}
         if not os.path.exists(self.output_dir):
             os.makedirs(self.output_dir)
-
-        # 自动检测可用的年份
         self.years = self.detect_years()
 
     def detect_years(self):
@@ -76,58 +69,7 @@ class HeatmapVisualizer:
             print(f"文件 {data_file} 不存在，请检查文件路径。")
             return {}
 
-    def generate_date_range(self, daily_count):
-        """
-        生成指定年份的日期范围。
-
-        :param daily_count: 每日计数数据
-        :return: 日期列表
-        """
-        if not daily_count:
-            return []
-
-        # 获取数据中的所有日期
-        try:
-            all_dates = [datetime.strptime(date, '%Y-%m-%d') for date in daily_count.keys()]
-        except ValueError as e:
-            print(f"日期格式错误: {e}")
-            return []
-
-        min_date, max_date = min(all_dates), max(all_dates)
-
-        # 确保数据只包含一个年份
-        if min_date.year != max_date.year:
-            raise ValueError("数据中包含多个年份，请确保数据只包含一个年份。")
-
-        year = min_date.year
-
-        # 生成从1月1日到12月31日的日期范围
-        num_days = (datetime(year, 12, 31) - datetime(year, 1, 1)).days + 1
-        date_range = [datetime(year, 1, 1) + timedelta(days=i) for i in range(num_days)]
-        return date_range
-
-    def prepare_data_for_calendar(self, date_range, daily_count):
-        """
-        准备日历图表的数据。
-
-        :param date_range: 日期范围
-        :param daily_count: 每日计数数据
-        :return: 数据列表
-        """
-        data = [
-            [date.strftime('%Y-%m-%d'), daily_count.get(date.strftime('%Y-%m-%d'), 0)]
-            for date in date_range
-        ]
-        return data
-
     def create_calendar_chart(self, year, daily_count):
-        """
-        创建单个年份的日历热力图。
-
-        :param year: 年份
-        :param daily_count: 每日计数数据
-        :return: 图表的 HTML 片段
-        """
         date_range = self.generate_date_range(daily_count)
         if not date_range:
             print(f"年份 {year} 的日期范围生成失败。")
@@ -135,10 +77,8 @@ class HeatmapVisualizer:
 
         data = self.prepare_data_for_calendar(date_range, daily_count)
 
-        # 设置日历的范围
         calendar_range = [f"{year}-01-01", f"{year}-12-31"]
 
-        # 定义颜色分段
         pieces = [
             {"min": 1, "max": 10, "color": "#FFECF1"},
             {"min": 11, "max": 50, "color": "#FFB3CA"},
@@ -147,7 +87,6 @@ class HeatmapVisualizer:
             {"min": 201, "max": 9999, "color": "#E84B85"},
         ]
 
-        # 创建日历热力图
         calendar_chart = (
             Calendar(init_opts=opts.InitOpts(width="1000px", height="200px"))
             .add(
@@ -155,19 +94,15 @@ class HeatmapVisualizer:
                 yaxis_data=data,
                 calendar_opts=opts.CalendarOpts(
                     range_=calendar_range,
-                    daylabel_opts=opts.CalendarDayLabelOpts(
-                        name_map="cn",  # 显示中文的星期名称
-                    ),
-                    monthlabel_opts=opts.CalendarMonthLabelOpts(
-                        name_map="cn",  # 显示中文的月份名称
-                    ),
-                    cell_size=[15, 15],  # 设置每个格子的大小
+                    daylabel_opts=opts.CalendarDayLabelOpts(name_map="cn"),
+                    monthlabel_opts=opts.CalendarMonthLabelOpts(name_map="cn"),
+                    cell_size=[15, 15],
                     itemstyle_opts=opts.ItemStyleOpts(
                         border_width=0.5,
-                        border_color="#ccc",  # 边框颜色
-                        color="#ffffff",  # 方格背景颜色
+                        border_color="#ccc",
+                        color="#ffffff",
                     ),
-                    splitline_opts=opts.SplitLineOpts(is_show=False)  # 隐藏月份之间的分割线
+                    splitline_opts=opts.SplitLineOpts(is_show=False)
                 ),
             )
             .set_global_opts(
@@ -178,9 +113,7 @@ class HeatmapVisualizer:
                     is_piecewise=True,
                     pieces=pieces,
                     pos_top="top",
-                    textstyle_opts=opts.TextStyleOpts(  # 修改标签颜色
-                        color="#FF6699",  # 标签文字颜色
-                    ),
+                    textstyle_opts=opts.TextStyleOpts(color="#FF6699"),
                 ),
                 tooltip_opts=opts.TooltipOpts(
                     is_show=True,
@@ -197,14 +130,34 @@ class HeatmapVisualizer:
             )
         )
 
-        # 渲染图表为 HTML 片段
-        chart_html = calendar_chart.render_embed()
-        return chart_html
+        return calendar_chart.render_embed()
+
+    def generate_date_range(self, daily_count):
+        if not daily_count:
+            return []
+
+        try:
+            all_dates = [datetime.strptime(date, '%Y-%m-%d') for date in daily_count.keys()]
+        except ValueError as e:
+            print(f"日期格式错误: {e}")
+            return []
+
+        min_date, max_date = min(all_dates), max(all_dates)
+
+        if min_date.year != max_date.year:
+            raise ValueError("数据中包含多个年份，请确保数据只包含一个年份。")
+
+        year = min_date.year
+        num_days = (datetime(year, 12, 31) - datetime(year, 1, 1)).days + 1
+        return [datetime(year, 1, 1) + timedelta(days=i) for i in range(num_days)]
+
+    def prepare_data_for_calendar(self, date_range, daily_count):
+        return [
+            [date.strftime('%Y-%m-%d'), daily_count.get(date.strftime('%Y-%m-%d'), 0)]
+            for date in date_range
+        ]
 
     def plot_calendar_heatmaps(self):
-        """
-        为所有检测到的年份生成日历热力图，并将其整合到一个 HTML 文件中。
-        """
         for year in self.years:
             daily_count = self.load_data(year)
             if not daily_count:
@@ -224,31 +177,36 @@ class HeatmapVisualizer:
 
         if not self.charts:
             print("没有可生成的热力图。")
-            return
+            return {"status": "error", "message": "没有可生成的热力图。"}
 
-        # 使用 Jinja2 渲染完整的 HTML 文件
-        env = Environment(loader=FileSystemLoader('.'))
+        env = Environment(loader=FileSystemLoader(os.path.dirname(self.template_file)))
         try:
-            template = env.get_template(self.template_file)
+            template = env.get_template(os.path.basename(self.template_file))
         except Exception as e:
-            print(f"加载模板文件 {self.template_file} 时出错: {e}")
-            return
+            error_message = f"加载模板文件 {self.template_file} 时出错: {e}"
+            print(error_message)
+            return {"status": "error", "message": error_message}
 
         rendered_html = template.render(
             title="Bilibili 每年每日视频观看热力图",
             charts=self.charts
         )
 
-        # 将生成的 HTML 保存到指定的输出目录
         output_file = os.path.join(self.output_dir, "heatmap_comparison.html")
         try:
             with open(output_file, 'w', encoding='utf-8') as f:
                 f.write(rendered_html)
-            print(f"热力图已保存为 {output_file}")
+            success_message = f"热力图已保存为 {output_file}"
+            return {"status": "success", "message": success_message}
         except Exception as e:
-            print(f"保存 HTML 文件时出错: {e}")
+            error_message = f"保存 HTML 文件时出错: {e}"
+            print(error_message)
+            return {"status": "error", "message": error_message}
 
+def generate_heatmap():
+    visualizer = HeatmapVisualizer()
+    return visualizer.plot_calendar_heatmaps()
 
 if __name__ == "__main__":
-    visualizer = HeatmapVisualizer()  # 自动检测年份
-    visualizer.plot_calendar_heatmaps()
+    result = generate_heatmap()
+    print(result["message"])

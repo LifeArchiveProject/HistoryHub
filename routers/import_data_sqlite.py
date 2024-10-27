@@ -1,8 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel, Field
-from typing import Optional
-import os
-
+from pydantic import BaseModel
 from scripts.import_sqlite import import_all_history_files
 
 router = APIRouter()

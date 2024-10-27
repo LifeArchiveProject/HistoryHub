@@ -1,11 +1,13 @@
 from fastapi import FastAPI
 from routers import (
     analysis,
+    clean_data,
     export,
     fetch_bili_history,
-    import_data_sqlite,
     import_data_mysql,
-    clean_data
+    import_data_sqlite,
+    heatmap,
+    send_log
 )
 import os
 import sys
@@ -28,6 +30,8 @@ app.include_router(export.router, prefix="/export", tags=["Export"])
 app.include_router(import_data_mysql.router, prefix="/importMysql", tags=["Import"])
 app.include_router(import_data_sqlite.router, prefix="/importSqlite", tags=["Import"])
 app.include_router(clean_data.router, prefix="/clean", tags=["Clean"])
+app.include_router(heatmap.router, prefix="/heatmap", tags=["Heatmap"])
+app.include_router(send_log.router, prefix="/log", tags=["Log"])
 
 # 入口点，启动应用
 if __name__ == "__main__":

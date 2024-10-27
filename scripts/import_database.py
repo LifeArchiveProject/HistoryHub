@@ -4,22 +4,15 @@ import os
 import time
 import threading
 from datetime import datetime
-from scripts.utils import load_config, get_base_path
-from scripts.sql_statements_mysql import (
-    SHOW_DATABASES,
-    CREATE_DATABASE,
-    SHOW_TABLES,
-    CREATE_TABLE_DEFAULT,
-    CREATE_TABLE_LIKE,
-    SELECT_DATABASE,
-    INSERT_DATA
-)
+
+from config.sql_statements_mysql import *
+from scripts.utils import load_config, get_base_path, get_output_path
 
 config = load_config()
+base_path = get_base_path()
 
 # 加载分类映射
 def load_categories():
-    base_path = get_base_path()
     categories_path = os.path.join(base_path, 'config', config['categories_file'])
     with open(categories_path, 'r', encoding='utf-8') as f:
         categories = json.load(f)
@@ -50,7 +43,7 @@ class SnowflakeIDGenerator:
             if timestamp == self.last_timestamp:
                 self.sequence = (self.sequence + 1) & 0xFFF  # 12 bits
                 if self.sequence == 0:
-                    # 等待下一毫秒
+                    # 等待下一秒
                     while timestamp <= self.last_timestamp:
                         timestamp = self._current_millis()
             else:
@@ -245,7 +238,8 @@ def import_data_from_json(connection, insert_sql, file_path, batch_size=1000):
         return 0
 
 # 读取标记文件，返回上次导入的日期和文件名
-def get_last_imported_file(file_path='last_import_log.json'):
+def get_last_imported_file():
+    file_path = get_output_path(config['log_file'])
     if not os.path.exists(file_path):
         return None, None
     with open(file_path, 'r', encoding='utf-8') as f:
@@ -257,7 +251,8 @@ def get_last_imported_file(file_path='last_import_log.json'):
             return None, None
 
 # 更新标记文件，记录本次导入的日期和文件名
-def update_last_imported_file(last_imported_date, last_imported_file, file_path='last_import_log.json'):
+def update_last_imported_file(last_imported_date, last_imported_file):
+    file_path = get_output_path(config['log_file'])
     data = {
         'last_imported_date': last_imported_date,
         'last_imported_file': last_imported_file
@@ -267,7 +262,6 @@ def update_last_imported_file(last_imported_date, last_imported_file, file_path=
 
 # 遍历所有按日期分割的文件并导入数据
 def import_all_history_files():
-    base_path = get_base_path()
     data_folder = os.path.join(base_path, config['input_folder'])
     log_file = os.path.join(base_path, config['log_file'])
 
@@ -294,7 +288,7 @@ def import_all_history_files():
         insert_sql = INSERT_DATA.format(table=new_table)
 
         # 读取上次导入的文件日期和文件名
-        last_imported_date, last_imported_file = get_last_imported_file(log_file)
+        last_imported_date, last_imported_file = get_last_imported_file()
         print(f"上次导入的日期: {last_imported_date}, 文件: {last_imported_file}")
 
         # 遍历按日期分割的文件夹
@@ -330,7 +324,7 @@ def import_all_history_files():
                                 file_insert_counts[day_path] = inserted_count
 
                                 # 更新标记文件
-                                update_last_imported_file(file_date, day_file, log_file)
+                                update_last_imported_file(file_date, day_file)
 
         # 输出每个文件的插入条数
         print("\n每个文件的插入记录：")
