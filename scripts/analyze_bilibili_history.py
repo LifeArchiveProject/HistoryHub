@@ -33,14 +33,14 @@ def load_all_history_files():
     print(f"共加载 {len(all_data)} 条记录。")
     return all_data
 
-
 # 保存每天的观看数量到 JSON 文件
 def save_daily_count_to_json(daily_count, year):
     output_file = get_output_path(f'daily_count_{year}.json')
+    os.makedirs(os.path.dirname(output_file), exist_ok=True)  # 确保输出目录存在
     with open(output_file, 'w', encoding='utf-8') as f:
         json.dump(daily_count, f, ensure_ascii=False, indent=4)
     print(f"每天观看数量已保存到 {output_file}")
-
+    return output_file
 
 # 统计每天和每月的视频观看数量
 def calculate_video_counts(history_data):
@@ -60,7 +60,6 @@ def calculate_video_counts(history_data):
 
     return daily_count, monthly_count
 
-
 # 单独获取每日观看数量
 def get_daily_counts():
     history_data = load_all_history_files()
@@ -68,8 +67,17 @@ def get_daily_counts():
         return {"error": "没有找到历史记录数据。"}
 
     daily_count, _ = calculate_video_counts(history_data)
+    
+    # 保存数据到JSON文件
+    current_year = datetime.now().year
+    try:
+        output_file = save_daily_count_to_json(daily_count, current_year)
+        print(f"数据已保存到: {output_file}")
+    except Exception as e:
+        print(f"保存JSON文件时出错: {e}")
+        return {"error": f"保存JSON文件时出错: {e}"}
+    
     return daily_count
-
 
 # 单独获取每月观看数量
 def get_monthly_counts():
@@ -77,9 +85,8 @@ def get_monthly_counts():
     if not history_data:
         return {"error": "没有找到历史记录数据。"}
 
-    _,monthly_count = calculate_video_counts(history_data)
+    _, monthly_count = calculate_video_counts(history_data)
     return monthly_count
-
 
 # 手动更新观看计数
 def update_counts():
@@ -87,8 +94,13 @@ def update_counts():
     if not history_data:
         return "没有找到历史记录数据。"
 
-    return "视频观看计数已更新。"
-
+    daily_count, _ = calculate_video_counts(history_data)
+    current_year = datetime.now().year
+    try:
+        output_file = save_daily_count_to_json(daily_count, current_year)
+        return f"视频观看计数已更新并保存到 {output_file}"
+    except Exception as e:
+        return f"更新计数时出错: {e}"
 
 # 主函数
 def main():
@@ -109,7 +121,6 @@ def main():
     current_year = datetime.now().year
     save_daily_count_to_json(daily_count, current_year)
 
-
 # 供外部接口调用的函数
 def get_daily_and_monthly_counts():
     history_data = load_all_history_files()
@@ -117,8 +128,17 @@ def get_daily_and_monthly_counts():
         return {"error": "没有找到历史记录数据。"}
 
     daily_count, monthly_count = calculate_video_counts(history_data)
+    
+    # 保存数据到JSON文件
+    current_year = datetime.now().year
+    try:
+        output_file = save_daily_count_to_json(daily_count, current_year)
+        print(f"数据已保存到: {output_file}")
+    except Exception as e:
+        print(f"保存JSON文件时出错: {e}")
+        return {"error": f"保存JSON文件时出错: {e}"}
+    
     return {"daily_count": daily_count, "monthly_count": monthly_count}
-
 
 # 如果该脚本直接运行，则调用 main()
 if __name__ == '__main__':

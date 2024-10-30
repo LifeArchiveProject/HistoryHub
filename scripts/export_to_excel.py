@@ -16,11 +16,6 @@ config = load_config()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-IS_SCRIPT_RUN = True
-
-def get_base_path():
-    return os.path.dirname(os.path.dirname(os.path.abspath(__file__))) if IS_SCRIPT_RUN else os.getcwd()
-
 def create_connection(db_file):
     """创建一个到SQLite数据库的连接"""
     if not os.path.exists(db_file):
@@ -50,10 +45,15 @@ def safe_json_loads(value):
         logger.error(f"处理JSON时发生未知错误: {e}, 值为: {value}")
         return []
 
-def export_to_excel(db_file, excel_file):
-    conn = create_connection(db_file)
+def export_bilibili_history():
+    """导出B站历史记录到Excel文件"""
+    full_db_file = get_output_path(config['db_file'])
+    current_year = get_current_year()
+    excel_file = get_output_path(f'bilibili_history_{current_year}.xlsx')
+
+    conn = create_connection(full_db_file)
     if conn is None:
-        return {"status": "error", "message": f"无法连接到数据库 {db_file}。数据库文件可能不存在。"}
+        return {"status": "error", "message": f"无法连接到数据库 {full_db_file}。数据库文件可能不存在。"}
 
     try:
         current_year = get_current_year()
@@ -106,13 +106,7 @@ def export_to_excel(db_file, excel_file):
         if conn:
             conn.close()
 
-def export_bilibili_history():
-    full_db_file = get_output_path(config['db_file'])
-    current_year = get_current_year()
-    excel_file = get_output_path(f'bilibili_history_{current_year}.xlsx')
-    return export_to_excel(full_db_file, excel_file)
-
-# 允许脚本独立运行
+# 如果该脚本直接运行，则调用导出函数
 if __name__ == '__main__':
     result = export_bilibili_history()
     if result["status"] == "success":
