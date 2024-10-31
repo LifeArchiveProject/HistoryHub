@@ -2,10 +2,17 @@
 
 block_cipher = None
 
+import os
+yutto_exe = os.path.join(os.getcwd(), '.venv', 'Scripts', 'yutto.exe')
+if not os.path.exists(yutto_exe):
+    raise FileNotFoundError(f"找不到 yutto.exe: {yutto_exe}")
+
 a = Analysis(
     ['app_launcher.py'],
     pathex=[],
-    binaries=[],
+    binaries=[
+        (yutto_exe, '.'),
+    ],
     datas=[
         ('config', 'config'),
         ('scripts', 'scripts'),
@@ -13,6 +20,7 @@ a = Analysis(
         ('main.py', '.'),
         ('.venv/Lib/site-packages/pyecharts/datasets', 'pyecharts/datasets'),
         ('.venv/Lib/site-packages/pyecharts/render/templates', 'pyecharts/render/templates'),
+        ('.venv/Lib/site-packages/yutto', 'yutto'),
     ],
     hiddenimports=[
         'fastapi',
@@ -37,6 +45,18 @@ a = Analysis(
         'email.mime.multipart',
         'email.header',
         'pyecharts.render.templates',
+        'yutto',
+        'yutto.cli',
+        'yutto.utils',
+        'yutto.__main__',
+        'aiofiles',
+        'biliass',
+        'dict2xml',
+        'httpx',
+        'h2',
+        'hpack',
+        'hyperframe',
+        'socksio',
     ],
     hookspath=[],
     hooksconfig={},

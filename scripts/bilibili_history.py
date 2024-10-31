@@ -215,49 +215,56 @@ def fetch_and_compare_history(headers, params, latest_date):
         return {"status": "success", "new_history": filtered_new_data}
 
 # 主逻辑函数
-def fetch_new_history(cookie=None):
+def fetch_new_history(sessdata=None):
+    """
+    抓取新的历史记录数据。
+
+    Args:
+        sessdata (str, optional): 用户的SESSDATA。如果不提供，将使用配置文件中的SESSDATA。
+
+    Returns:
+        dict: 包含状态和消息的字典
+    """
     try:
-        if cookie:
-            sessdata = cookie
-            logger.info("使用传入的cookie进行API请求。")
+        # 使用传入的SESSDATA或配置文件中的SESSDATA
+        current_sessdata = sessdata or config.get('SESSDATA')
+        if not current_sessdata:
+            return {"status": "error", "message": "未提供SESSDATA"}
+
+        # 设置请求头
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+            'Cookie': f'SESSDATA={current_sessdata}'
+        }
+
+        # 初始化请求参数
+        params = {
+            'ps': 30,  # 每页数量，默认为 20，最大 30
+            'max': '',  # 初始为空
+            'view_at': '',  # 初始为空
+            'business': '',  # 可选参数，默认为空表示获取所有类型
+        }
+
+        # 查找本地最新的历史记录
+        latest_date = find_latest_local_history()
+
+        # 获取新历史记录
+        result = fetch_and_compare_history(headers, params, latest_date)
+
+        if result["status"] == "error":
+            return result  # 直接返回错误信息
+
+        new_history = result.get("new_history", [])
+
+        if new_history:
+            # 保存新历史记录
+            save_history(new_history)
+            return {"status": "success", "message": f"共获取到{len(new_history)}条新记录。"}
         else:
-            sessdata = load_cookie()
-            logger.info("使用配置文件中的cookie进行API请求。")
+            return {"status": "success", "message": "没有新记录可更新。"}
     except Exception as e:
-        logger.error(f"获取cookie时发生错误: {e}")
-        return {"status": "error", "message": f"获取cookie失败: {str(e)}"}
-
-    headers = {
-        'Cookie': f"SESSDATA={sessdata}",
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.121 Safari/537.36',
-        'Referer': 'https://www.bilibili.com',
-    }
-
-    # 初始化请求参数
-    params = {
-        'ps': 30,  # 每页数量，默认为 20，最大 30
-        'max': '',  # 初始为空
-        'view_at': '',  # 初始为空
-        'business': '',  # 可选参数，默认为空表示获取所有类型
-    }
-
-    # 查找本地最新的历史记录
-    latest_date = find_latest_local_history()
-
-    # 获取新历史记录
-    result = fetch_and_compare_history(headers, params, latest_date)
-
-    if result["status"] == "error":
-        return result  # 直接返回错误信息
-
-    new_history = result.get("new_history", [])
-
-    if new_history:
-        # 保存新历史记录
-        save_history(new_history)
-        return {"status": "success", "message": f"共获取到{len(new_history)}条新记录。"}
-    else:
-        return {"status": "success", "message": "没有新记录可更新。"}
+        logger.error(f"获取历史记录时发生错误: {e}")
+        return {"status": "error", "message": f"获取历史记录失败: {str(e)}"}
 
 # 允许脚本独立运行
 if __name__ == '__main__':

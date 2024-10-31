@@ -1,3 +1,5 @@
+# B站用户的SESSDATA，用于API认证
+SESSDATA: "你的SESSDATA"
 # B站用户的cookie，用于API认证
 cookie: "你的cookie"
 
@@ -43,3 +45,29 @@ email:
 
 # 日志文件夹
 log_folder: "/www/wwwroot/python/logs"
+
+# yutto 下载器配置
+yutto:
+  basic:
+    # 设置下载目录
+    dir: "./output/download_video"
+    # 设置临时文件目录
+    tmp_dir: "./output/tmp_video"
+    # 设置大会员严格校验
+    vip_strict: false
+    # 设置登录严格校验
+    login_strict: true
+  
+  resource:
+    # 不下载字幕
+    require_subtitle: false
+  
+  danmaku:
+    # 设置弹幕字体大小
+    font_size: 30
+    # 设置弹幕屏蔽关键词
+    block_keyword_patterns: []
+  
+  batch:
+    # 下载额外剧集
+    with_section: true

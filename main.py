@@ -7,7 +7,8 @@ from routers import (
     import_data_mysql,
     import_data_sqlite,
     heatmap,
-    send_log
+    send_log,
+    download
 )
 import os
 import sys
@@ -32,6 +33,7 @@ app.include_router(import_data_sqlite.router, prefix="/importSqlite", tags=["Imp
 app.include_router(clean_data.router, prefix="/clean", tags=["Clean"])
 app.include_router(heatmap.router, prefix="/heatmap", tags=["Heatmap"])
 app.include_router(send_log.router, prefix="/log", tags=["Log"])
+app.include_router(download.router, prefix="/download", tags=["Download"])
 
 # 入口点，启动应用
 if __name__ == "__main__":
