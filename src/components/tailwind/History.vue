@@ -51,24 +51,49 @@
       />
     </div>
 
-    <!-- 修改分页按钮容器的最大宽度 -->
+    <!-- 修改分页按钮容器 -->
     <div class="mx-auto max-w-4xl mt-8 mb-5 lm:text-xs">
-      <div class="flex justify-between space-x-4 lm:m-5">
-        <button @click="prevPage" :disabled="page === 1"
-                class="bg-[#00A1D6] text-white p-1 rounded-md disabled:opacity-50 disabled:cursor-not-allowed">上一页
+      <div class="flex justify-between space-x-4 lm:m-2">
+        <button 
+            @click="navigateToPage(page - 1)" 
+            :disabled="page === 1"
+            class="bg-[#00A1D6] text-white rounded-md disabled:opacity-50 disabled:cursor-not-allowed
+                   lm:text-xs lm:px-2 lm:py-0.5
+                   px-3 py-1">
+          上一页
         </button>
 
-        <!-- 跳转框 -->
-        <div class="flex items-center space-x-2 h-8">
-          <input type="number" v-model="jumpPage" min="1" :max="totalPages"
-                 class="h-7 border border-gray-300 rounded-lg p-1 w-20" placeholder="页码"/>
-          <button @click="jumpToPage" class="bg-[#00A1D6] h-7 text-white px-1 rounded-md">跳转</button>
+        <!-- 修改页码显示和跳转输入框的组合 -->
+        <div class="text-gray-700 flex items-center lm:text-xs">
+          <span>第</span>
+          <div class="relative inline-block mx-1">
+            <input
+                ref="pageInput"
+                type="number"
+                v-model="currentPageInput"
+                @keyup.enter="handleJumpPage"
+                @blur="handleJumpPage"
+                @focus="handleFocus"
+                min="1"
+                :max="totalPages"
+                class="w-16 text-center border border-gray-300 rounded px-1 
+                       focus:outline-none focus:ring-1 focus:ring-[#00A1D6] focus:border-[#00A1D6]
+                       hover:border-[#00A1D6] transition-colors cursor-pointer
+                       [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none
+                       lm:w-12 lm:h-6 lm:text-xs
+                       h-8"
+            />
+          </div>
+          <span>页 / 共 {{ totalPages }} 页</span>
         </div>
 
-        <p class="text-gray-700 pt-1.5">第 {{ page }} 页 / 共 {{ totalPages }} 页</p>
-
-        <button @click="nextPage" :disabled="page === totalPages"
-                class="bg-[#00A1D6] text-white p-1 rounded-md disabled:opacity-50 disabled:cursor-not-allowed">下一页
+        <button 
+            @click="navigateToPage(page + 1)" 
+            :disabled="page === totalPages"
+            class="bg-[#00A1D6] text-white rounded-md disabled:opacity-50 disabled:cursor-not-allowed
+                   lm:text-xs lm:px-2 lm:py-0.5
+                   px-3 py-1">
+          下一页
         </button>
       </div>
     </div>
@@ -76,9 +101,9 @@
 </template>
 
 <script setup>
-import {ref, onMounted, computed} from 'vue';
+import {ref, onMounted, watch, computed, nextTick} from 'vue';
 import {getBiliHistory2024, getVideoCategories} from "../../api/api.js"; // 确保导入正确的 API 函数
-import {useRouter} from 'vue-router';
+import {useRouter, useRoute} from 'vue-router';
 import VideoRecord from "./VideoRecord.vue";
 import VideoCategories from "./VideoCategories.vue";
 
@@ -246,6 +271,7 @@ onMounted(() => {
 
 // 路由对象
 const router = useRouter();
+const route = useRoute();
 
 // 搜索框绑定的搜索关键词
 const searchQuery = ref('');
@@ -263,6 +289,50 @@ const onSearch = () => {
     window.open(newUrl, '_blank');
   } else {
     alert('请输入有效的搜索关键词');
+  }
+};
+
+// 监听路由参数变化
+watch(() => route.params.pageNumber, (newPage) => {
+  page.value = parseInt(newPage);
+  fetchHistoryByDateRange();
+}, { immediate: true });
+
+// 页面跳转方法
+const navigateToPage = (newPage) => {
+  if (newPage >= 1 && newPage <= totalPages.value) {
+    router.push(`/page/${newPage}`);
+  }
+};
+
+// 用于输入框显示的当前页码
+const currentPageInput = ref('1');
+
+// 监听路由页码变化，更新输入框的值
+watch(() => route.params.pageNumber, (newPage) => {
+  currentPageInput.value = newPage;
+}, { immediate: true });
+
+// 监听 page 变化，更新输入框的值
+watch(() => page.value, (newPage) => {
+  currentPageInput.value = newPage.toString();
+});
+
+// 处理输入框获得焦点
+const handleFocus = (event) => {
+  event.target.select(); // 全选当前内容
+};
+
+// 修改处理跳转的方法
+const handleJumpPage = () => {
+  const targetPage = parseInt(currentPageInput.value);
+  if (!isNaN(targetPage) && targetPage >= 1 && targetPage <= totalPages.value) {
+    if (targetPage !== page.value) { // 只在页码实际改变时才跳转
+      navigateToPage(targetPage);
+    }
+  } else {
+    // 如果输入无效，恢复为当前页码
+    currentPageInput.value = page.value.toString();
   }
 };
 </script>

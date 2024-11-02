@@ -1,8 +1,8 @@
 {
   "name": "bilibilihistoryfrontend",
-  "version": "0.0.0",
-  "description": "您的应用描述",
-  "author": "您的名字或组织",
+  "version": "1.0.0",
+  "description": "获取Bili历史记录应用",
+  "author": "46",
   "main": "electron/main.cjs",
   "type": "module",
   "scripts": {

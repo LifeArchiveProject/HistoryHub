@@ -1,6 +1,8 @@
 <template>
   <!-- 每条记录的容器，添加边框和圆角 -->
-  <div class="border-b border-gray-200 mx-auto max-w-2xl space-y-8 sm:px-4 lg:max-w-4xl lg:px-0">
+  <div class="border-b border-gray-200 mx-auto max-w-2xl space-y-8 sm:px-4 lg:max-w-4xl lg:px-0 cursor-pointer transition-all duration-200 ease-in-out
+              hover:bg-[#f5f5f5] hover:shadow-md hover:scale-[1.01] hover:border-[#FF6699]"
+       @click="handleContentClick">
     <!-- 内层容器，加入 padding 以确保内容有足够的内边距 -->
     <div class="p-2">
       <!-- 当类型为文章或文集时，图片铺满整行，标题在上方 -->
@@ -21,9 +23,15 @@
         <!-- 文章类型：作者信息、观看设备、时间放在封面图片下方 -->
         <div class="flex justify-between items-center mt-2 lm:text-xs text-sm text-[#99a2aa]">
           <!-- 左侧：仅当类型不是剧集或课程时，显示作者头像和名字 -->
-          <div v-if="record.business !== 'cheese' && record.business !== 'pgc'" class="flex items-center space-x-2">
-            <img :src="record.authorFace" alt="author" class="w-4 h-4 lg:w-8 lg:h-8 rounded-full"/>
-            <p>{{ record.authorName }}</p>
+          <div v-if="record.business !== 'cheese' && record.business !== 'pgc'" class="flex items-center space-x-2" @click.stop>
+            <img :src="record.authorFace" alt="author" class="w-4 h-4 lg:w-8 lg:h-8 rounded-full cursor-pointer transition-transform hover:scale-110" 
+                 @click="handleAuthorClick"
+                 :title="`访问 ${record.authorName} 的个人空间`"/>
+            <p class="cursor-pointer hover:text-[#FF6699] transition-colors" 
+               @click="handleAuthorClick"
+               :title="`访问 ${record.authorName} 的个人空间`">
+              {{ record.authorName }}
+            </p>
           </div>
 
           <!-- 右侧：设备和时间信息 -->
@@ -86,10 +94,18 @@
           </div>
 
           <div class="flex justify-between items-end lm:text-xs text-sm text-[#99a2aa]">
-            <div class="flex items-center space-x-2">
-              <img v-if="record.business !== 'cheese' && record.business !== 'pgc'" :src="record.authorFace"
-                   alt="author" class="w-5 h-5 lg:w-8 lg:h-8 rounded-full"/>
-              <p>{{ record.authorName }}</p>
+            <div class="flex items-center space-x-2" @click.stop>
+              <img v-if="record.business !== 'cheese' && record.business !== 'pgc'" 
+                   :src="record.authorFace"
+                   alt="author" 
+                   class="w-5 h-5 lg:w-8 lg:h-8 rounded-full cursor-pointer transition-transform hover:scale-110"
+                   @click="handleAuthorClick"
+                   :title="`访问 ${record.authorName} 的个人空间`"/>
+              <p class="cursor-pointer hover:text-[#FF6699] transition-colors"
+                 @click="handleAuthorClick"
+                 :title="`访问 ${record.authorName} 的个人空间`">
+                {{ record.authorName }}
+              </p>
             </div>
 
             <div class="flex items-center space-x-2">
@@ -112,9 +128,50 @@
 </template>
 
 <script setup>
-defineProps({
-  record: Object // 父组件传入的 record 数据
+import { defineProps } from 'vue';
+
+const props = defineProps({
+  record: Object
 });
+
+// 处理内容点击事件
+const handleContentClick = () => {
+  let url = '';
+
+  switch (props.record.business) {
+    case 'archive':
+      url = `https://www.bilibili.com/video/${props.record.bvid}`;
+      break;
+    case 'article':
+      url = `https://www.bilibili.com/read/cv${props.record.oid}`;
+      break;
+    case 'article-list':
+      url = `https://www.bilibili.com/read/readlist/rl${props.record.oid}`;
+      break;
+    case 'live':
+      url = `https://live.bilibili.com/${props.record.oid}`;
+      break;
+    case 'pgc':
+      url = props.record.uri || `https://www.bilibili.com/bangumi/play/ep${props.record.epid}`;
+      break;
+    case 'cheese':
+      url = props.record.uri || `https://www.bilibili.com/cheese/play/ep${props.record.epid}`;
+      break;
+    default:
+      console.warn('未知的业务类型:', props.record.business);
+      return;
+  }
+
+  if (url) {
+    window.open(url, '_blank');
+  }
+};
+
+// 处理UP主点击事件
+const handleAuthorClick = () => {
+  const url = `https://space.bilibili.com/${props.record.authorMid}`;
+  window.open(url, '_blank');
+};
 
 // 复用函数，比如格式化时间、获取业务类型等
 const formatTimestamp = (timestamp) => {
@@ -167,5 +224,14 @@ const getProgressWidth = (progress, duration) => {
   -webkit-line-clamp: 1;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* 可以添加一些额外的悬停效果样式 */
+.hover\:scale-110:hover {
+  transform: scale(1.1);
+}
+
+.hover\:text-\[\#FF6699\]:hover {
+  color: #FF6699;
 }
 </style>
