@@ -51,69 +51,34 @@
       />
     </div>
 
-    <!-- 修改分页按钮容器 -->
-    <div class="mx-auto max-w-4xl mt-8 mb-5 lm:text-xs">
-      <div class="flex justify-between space-x-4 lm:m-2">
-        <button 
-            @click="navigateToPage(page - 1)" 
-            :disabled="page === 1"
-            class="bg-[#00A1D6] text-white rounded-md disabled:opacity-50 disabled:cursor-not-allowed
-                   lm:text-xs lm:px-2 lm:py-0.5
-                   px-3 py-1">
-          上一页
-        </button>
-
-        <!-- 修改页码显示和跳转输入框的组合 -->
-        <div class="text-gray-700 flex items-center lm:text-xs">
-          <span>第</span>
-          <div class="relative inline-block mx-1">
-            <input
-                ref="pageInput"
-                type="number"
-                v-model="currentPageInput"
-                @keyup.enter="handleJumpPage"
-                @blur="handleJumpPage"
-                @focus="handleFocus"
-                min="1"
-                :max="totalPages"
-                class="w-16 text-center border border-gray-300 rounded px-1 
-                       focus:outline-none focus:ring-1 focus:ring-[#00A1D6] focus:border-[#00A1D6]
-                       hover:border-[#00A1D6] transition-colors cursor-pointer
-                       [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none
-                       lm:w-12 lm:h-6 lm:text-xs
-                       h-8"
-            />
-          </div>
-          <span>页 / 共 {{ totalPages }} 页</span>
-        </div>
-
-        <button 
-            @click="navigateToPage(page + 1)" 
-            :disabled="page === totalPages"
-            class="bg-[#00A1D6] text-white rounded-md disabled:opacity-50 disabled:cursor-not-allowed
-                   lm:text-xs lm:px-2 lm:py-0.5
-                   px-3 py-1">
-          下一页
-        </button>
-      </div>
+    <!-- 将固定定位的分页组件改为正常流式布局 -->
+    <div class="mx-auto max-w-4xl mt-8 mb-5">
+      <Pagination
+          :current-page="page"
+          :total-pages="totalPages"
+          :use-routing="true"
+      />
     </div>
   </div>
 </template>
 
 <script setup>
-import {ref, onMounted, watch, computed, nextTick} from 'vue';
-import {getBiliHistory2024, getVideoCategories} from "../../api/api.js"; // 确保导入正确的 API 函数
+import {ref, onMounted, watch, computed} from 'vue';
+import {getBiliHistory2024, getMainCategories} from "../../api/api.js"; // 确保导入正确的 API 函数
 import {useRouter, useRoute} from 'vue-router';
 import VideoRecord from "./VideoRecord.vue";
 import VideoCategories from "./VideoCategories.vue";
+import Pagination from "./page/Pagination.vue";
 
-// 状态变量
+// 将 currentPageInput 的声明移到最前面
+const currentPageInput = ref('1');
+
+// 其他状态变量
 const records = ref([]);
 const page = ref(1);
-const size = ref(30); // 每页数据
+const size = ref(30);
 const totalPages = ref(0);
-const total = ref(0); // 视频总数
-const jumpPage = ref(''); // 跳转页码输入框的值
+const total = ref(0);
 const sortOrder = ref(0);
 
 const date = ref('');
@@ -137,10 +102,12 @@ const mainCategories = ref([]);
 // 获取主分区列表
 const fetchMainCategories = async () => {
   try {
-    const response = await getVideoCategories();
-    // 假设返回的数据格式为 [{ mainCategory: '动画', subCategory: '动画' }, ...]
-    // 提取主分区名称
-    mainCategories.value = Array.from(new Set(response.data.data.map(cat => cat.mainCategory)));
+    // 使用新的主分类接口
+    const response = await getMainCategories();
+    if (response.data.status === 'success') {
+      // 提取主分区名称
+      mainCategories.value = response.data.data.map(cat => cat.name);
+    }
   } catch (error) {
     console.error("Error fetching main categories:", error);
   }
@@ -183,8 +150,8 @@ const formatDateWithYear = (date) => `${date.getFullYear()}/${date.getMonth() + 
 // 辅助函数：格式化日期为 'yyyyMMdd' 用于 API
 const formatDateForAPI = (date) => {
   const year = date.getFullYear();
-  const month = (`0${date.getMonth() + 1}`).slice(-2);
-  const day = (`0${date.getDate()}`).slice(-2);
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
   return `${year}${month}${day}`;
 };
 
@@ -196,65 +163,50 @@ const onConfirm = (values) => {
   const startYear = start.getFullYear();
   const endYear = end.getFullYear();
 
-  // 判断日期区间是否在当前年份内
   if (startYear === currentYear && endYear === currentYear) {
     date.value = `${formatDate(start)} - ${formatDate(end)}`;
   } else {
     date.value = `${formatDateWithYear(start)} - ${formatDateWithYear(end)}`;
   }
 
-  // 设置 dateRange 为 'yyyyMMdd-yyyyMMdd' 格式
   dateRange.value = `${formatDateForAPI(start)}-${formatDateForAPI(end)}`;
 
-  // 重置页码为1
-  page.value = 1;
+  console.log('日期范围:', dateRange.value);
 
-  // 重新获取数据
-  fetchHistoryByDateRange();
+  if (page.value !== 1) {
+    router.push('/');
+  } else {
+    fetchHistoryByDateRange();
+  }
 };
 
 // 数据获取函数：基于日期区间和分类
 const fetchHistoryByDateRange = async () => {
   try {
+    records.value = [];
     const response = await getBiliHistory2024(
         page.value,
         size.value,
         sortOrder.value,
         tagName.value,
-        mainCategory.value, // 传递 mainCategory
+        mainCategory.value,
         dateRange.value
     );
-    total.value = response.data.data.total;
-    records.value = response.data.data.records;
-    totalPages.value = response.data.data.pages;
+
+    if (response.data && response.data.data) {
+        total.value = response.data.data.total;
+        records.value = response.data.data.records;
+        totalPages.value = Math.ceil(response.data.data.total / size.value);
+
+        if (response.data.data.current !== page.value) {
+            page.value = response.data.data.current;
+        }
+    }
   } catch (error) {
-    console.error('数据获取失败: ', error);
-  }
-};
-
-// 跳转到指定页码的函数
-const jumpToPage = () => {
-  const targetPage = parseInt(jumpPage.value);
-  if (!isNaN(targetPage) && targetPage >= 1 && targetPage <= totalPages.value) {
-    page.value = targetPage;
-    fetchHistoryByDateRange(); // 重新获取数据
-  } else {
-    alert(`请输入有效的页码（1-${totalPages.value}）`);
-  }
-};
-
-// 翻页功能
-const nextPage = () => {
-  if (page.value < totalPages.value) {
-    page.value++;
-    fetchHistoryByDateRange();
-  }
-};
-
-const prevPage = () => {
-  if (page.value > 1) {
-    page.value--;
-    fetchHistoryByDateRange();
+    console.error('数据获取失败:', error);
+    records.value = [];
+    total.value = 0;
+    totalPages.value = 0;
   }
 };
 
@@ -292,49 +244,29 @@ const onSearch = () => {
   }
 };
 
-// 监听路由参数变化
-watch(() => route.params.pageNumber, (newPage) => {
-  page.value = parseInt(newPage);
-  fetchHistoryByDateRange();
-}, { immediate: true });
+// 修改路由参数监听部分
+watch(
+    [() => route.params.pageNumber, () => route.path],
+    ([newPage, path], [oldPage, oldPath]) => {
+        if (newPage === oldPage && path === oldPath) return;
 
-// 页面跳转方法
-const navigateToPage = (newPage) => {
-  if (newPage >= 1 && newPage <= totalPages.value) {
-    router.push(`/page/${newPage}`);
-  }
-};
-
-// 用于输入框显示的当前页码
-const currentPageInput = ref('1');
-
-// 监听路由页码变化，更新输入框的值
-watch(() => route.params.pageNumber, (newPage) => {
-  currentPageInput.value = newPage;
-}, { immediate: true });
-
-// 监听 page 变化，更新输入框的值
-watch(() => page.value, (newPage) => {
-  currentPageInput.value = newPage.toString();
-});
-
-// 处理输入框获得焦点
-const handleFocus = (event) => {
-  event.target.select(); // 全选当前内容
-};
-
-// 修改处理跳转的方法
-const handleJumpPage = () => {
-  const targetPage = parseInt(currentPageInput.value);
-  if (!isNaN(targetPage) && targetPage >= 1 && targetPage <= totalPages.value) {
-    if (targetPage !== page.value) { // 只在页码实际改变时才跳转
-      navigateToPage(targetPage);
-    }
-  } else {
-    // 如果输入无效，恢复为当前页码
-    currentPageInput.value = page.value.toString();
-  }
-};
+        if (path === '/') {
+            if (page.value !== 1) {
+                page.value = 1;
+                currentPageInput.value = '1';
+                fetchHistoryByDateRange();
+            }
+        } else if (newPage) {
+            const pageNum = parseInt(newPage);
+            if (page.value !== pageNum) {
+                page.value = pageNum;
+                currentPageInput.value = newPage;
+                fetchHistoryByDateRange();
+            }
+        }
+    },
+    { immediate: true }
+);
 </script>
 
 <style scoped>

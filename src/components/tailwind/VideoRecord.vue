@@ -24,13 +24,13 @@
         <div class="flex justify-between items-center mt-2 lm:text-xs text-sm text-[#99a2aa]">
           <!-- 左侧：仅当类型不是剧集或课程时，显示作者头像和名字 -->
           <div v-if="record.business !== 'cheese' && record.business !== 'pgc'" class="flex items-center space-x-2" @click.stop>
-            <img :src="record.authorFace" alt="author" class="w-4 h-4 lg:w-8 lg:h-8 rounded-full cursor-pointer transition-transform hover:scale-110" 
+            <img :src="record.author_face" alt="author" class="w-4 h-4 lg:w-8 lg:h-8 rounded-full cursor-pointer transition-transform hover:scale-110" 
                  @click="handleAuthorClick"
-                 :title="`访问 ${record.authorName} 的个人空间`"/>
+                 :title="`访问 ${record.author_name} 的个人空间`"/>
             <p class="cursor-pointer hover:text-[#FF6699] transition-colors" 
                @click="handleAuthorClick"
-               :title="`访问 ${record.authorName} 的个人空间`">
-              {{ record.authorName }}
+               :title="`访问 ${record.author_name} 的个人空间`">
+              {{ record.author_name }}
             </p>
           </div>
 
@@ -48,7 +48,7 @@
             <p v-else>未知设备</p>
 
             <!-- 显示时间 -->
-            <span>{{ formatTimestamp(record.viewAt) }}</span>
+            <span>{{ formatTimestamp(record.view_at) }}</span>
           </div>
         </div>
       </div>
@@ -63,7 +63,7 @@
               <img :src="cover" class="h-full w-full object-cover" alt=""/>
             </div>
           </div>
-          <!-- 右上角的类型角标，稿件不显示角标 -->
+          <!-- 右上的类型角标，稿件显示角标 -->
           <div v-if="record.business !== 'archive'"
                class="absolute top-1 right-1 bg-[#FF6699] text-white text-[10px] font-semibold rounded px-1 py-0.5">
             {{ getBusinessType(record.business) }}
@@ -89,22 +89,22 @@
           </div>
           <div>
             <span class="inline-flex items-center rounded-md bg-[#f1f2f3] px-2 py-1 text-xs text-[#71767d]">
-              {{ record.tagName }}
+              {{ record.tag_name }}
             </span>
           </div>
 
           <div class="flex justify-between items-end lm:text-xs text-sm text-[#99a2aa]">
             <div class="flex items-center space-x-2" @click.stop>
               <img v-if="record.business !== 'cheese' && record.business !== 'pgc'" 
-                   :src="record.authorFace"
+                   :src="record.author_face"
                    alt="author" 
                    class="w-5 h-5 lg:w-8 lg:h-8 rounded-full cursor-pointer transition-transform hover:scale-110"
                    @click="handleAuthorClick"
-                   :title="`访问 ${record.authorName} 的个人空间`"/>
+                   :title="`访问 ${record.author_name} 的个人空间`"/>
               <p class="cursor-pointer hover:text-[#FF6699] transition-colors"
                  @click="handleAuthorClick"
-                 :title="`访问 ${record.authorName} 的个人空间`">
-                {{ record.authorName }}
+                 :title="`访问 ${record.author_name} 的个人空间`">
+                {{ record.author_name }}
               </p>
             </div>
 
@@ -118,7 +118,7 @@
               <p v-else>未知设备</p>
 
               <!-- 显示时间 -->
-              <span>{{ formatTimestamp(record.viewAt) }}</span>
+              <span>{{ formatTimestamp(record.view_at) }}</span>
             </div>
           </div>
         </div>
@@ -169,26 +169,45 @@ const handleContentClick = () => {
 
 // 处理UP主点击事件
 const handleAuthorClick = () => {
-  const url = `https://space.bilibili.com/${props.record.authorMid}`;
+  const url = `https://space.bilibili.com/${props.record.author_mid}`;
   window.open(url, '_blank');
 };
 
-// 复用函数，比如格式化时间、获取业务类型等
+// 修改时间戳显示相关的代码
 const formatTimestamp = (timestamp) => {
-  const date = new Date(timestamp * 1000);
-  const now = new Date();
-  const isToday = now.toDateString() === date.toDateString();
-  const isYesterday = new Date(now.setDate(now.getDate() - 1)).toDateString() === date.toDateString();
-  const timeString = date.toLocaleTimeString('zh-CN', {hour: '2-digit', minute: '2-digit'});
+  // 检查 timestamp 是否有效
+  if (!timestamp) {
+    console.warn('Invalid timestamp:', timestamp);
+    return '时间未知';
+  }
 
-  if (isToday) {
-    return timeString;
-  } else if (isYesterday) {
-    return `昨天 ${timeString}`;
-  } else if (now.getFullYear() === date.getFullYear()) {
-    return `${date.getMonth() + 1}-${date.getDate()} ${timeString}`;
-  } else {
-    return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()} ${timeString}`;
+  try {
+    // 将秒级时间戳转换为毫秒级
+    const date = new Date(timestamp * 1000);
+    const now = new Date();
+    
+    // 检查日期是否有效
+    if (isNaN(date.getTime())) {
+      console.warn('Invalid date from timestamp:', timestamp);
+      return '时间未知';
+    }
+
+    const isToday = now.toDateString() === date.toDateString();
+    const isYesterday = new Date(now.setDate(now.getDate() - 1)).toDateString() === date.toDateString();
+    const timeString = date.toLocaleTimeString('zh-CN', {hour: '2-digit', minute: '2-digit'});
+
+    if (isToday) {
+      return timeString;
+    } else if (isYesterday) {
+      return `昨天 ${timeString}`;
+    } else if (now.getFullYear() === date.getFullYear()) {
+      return `${date.getMonth() + 1}-${date.getDate()} ${timeString}`;
+    } else {
+      return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()} ${timeString}`;
+    }
+  } catch (error) {
+    console.error('Error formatting timestamp:', error);
+    return '时间未知';
   }
 };
 
@@ -212,7 +231,8 @@ const getBusinessType = (business) => {
 };
 
 const getProgressWidth = (progress, duration) => {
-  if (progress === -1 || duration === 0) return '100%';
+  if (progress === -1) return '100%';
+  if (duration === 0) return '0%';
   return `${(progress / duration) * 100}%`;
 };
 </script>

@@ -72,9 +72,20 @@ const transformDataToItems = (data) => {
 const fetchCategories = async () => {
   try {
     const response = await getVideoCategories();
-    items.value = transformDataToItems(response.data.data); // 更新items为转换后的数据
+    if (response.data.status === 'success') {
+      // 转换数据结构以适应组件
+      items.value = response.data.data.map(category => ({
+        text: category.name,
+        type: 'main',
+        children: category.sub_categories.map(sub => ({
+          text: sub.name,
+          id: sub.tid,
+          type: 'sub'
+        }))
+      }));
+    }
   } catch (error) {
-    console.error("Error fetching video categories:", error);
+    console.error("Error fetching categories:", error);
   }
 };
 

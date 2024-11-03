@@ -32,36 +32,12 @@
     </div>
 
     <!-- 分页功能 -->
-    <div class="mx-auto max-w-4xl mt-8 mb-5 lm:text-xs">
-      <div class="flex justify-between space-x-4 lm:m-5">
-        <!-- 上一页按钮 -->
-        <button
-            @click="prevPage"
-            :disabled="page === 1"
-            class="bg-[#00A1D6] text-white p-1 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          上一页
-        </button>
-
-        <!-- 跳转页码 -->
-        <div class="flex items-center space-x-2">
-          <input type="number" v-model="jumpPage" min="1" :max="totalPages" class="border border-gray-300 rounded-lg p-1 w-20" placeholder="页码" />
-          <button @click="jumpToPage" class="bg-[#00A1D6] text-white p-1 rounded-md">跳转</button>
-        </div>
-
-        <!-- 页码显示 -->
-        <p class="text-gray-700 pt-1.5">第 {{ page }} 页 / 共 {{ totalPages }} 页</p>
-
-        <!-- 下一页按钮 -->
-        <button
-            @click="nextPage"
-            :disabled="page === totalPages"
-            class="bg-[#00A1D6] text-white p-1 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          下一页
-        </button>
-      </div>
-    </div>
+    <Pagination
+        v-model:current-page="page"
+        :total-pages="totalPages"
+        :use-routing="false"
+        @update:current-page="handlePageChange"
+    />
   </div>
 </template>
 
@@ -70,6 +46,7 @@ import { ref, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { searchBiliHistory2024 } from "../../api/api.js";
 import VideoRecord from "./VideoRecord.vue";
+import Pagination from "./page/Pagination.vue";
 
 // 获取路由参数
 const route = useRoute();
@@ -82,61 +59,52 @@ const page = ref(1);
 const size = ref(30);
 const sortOrder = ref(0);
 const totalPages = ref(0);
-const totalResults = ref(0); // 保存总条数
-const jumpPage = ref('');
+const totalResults = ref(0);
+const searchQuery = ref('');
+
+// 处理页码变化
+const handlePageChange = async (newPage) => {
+  if (newPage !== page.value) {  // 只在页码实际改变时才请求
+    page.value = newPage;
+    await fetchSearchResults();
+  }
+};
 
 // 获取搜索数据的函数
 const fetchSearchResults = async () => {
   try {
-    const response = await searchBiliHistory2024(page.value, size.value, sortOrder.value, keyword.value);
+    const response = await searchBiliHistory2024(
+        page.value,
+        size.value,
+        keyword.value,  // 修改参数顺序，确保搜索关键词正确传递
+        sortOrder.value
+    );
+    
+    // 更新数据前先清空当前记录
+    records.value = [];
+    // 设置新的记录
     records.value = response.data.data.records;
-    totalPages.value = response.data.data.pages;
-    totalResults.value = response.data.data.total; // 保存总条数
+    totalResults.value = response.data.data.total;
+    totalPages.value = Math.ceil(response.data.data.total / size.value);
   } catch (error) {
     console.error('数据获取失败: ', error);
   }
 };
 
-// 翻页功能
-const nextPage = () => {
-  if (page.value < totalPages.value) {
-    page.value++;
-    fetchSearchResults();
-  }
-};
-
-const prevPage = () => {
-  if (page.value > 1) {
-    page.value--;
-    fetchSearchResults();
-  }
-};
-
-// 跳转到指定页码的函数
-const jumpToPage = () => {
-  const targetPage = parseInt(jumpPage.value);
-  if (!isNaN(targetPage) && targetPage >= 1 && targetPage <= totalPages.value) {
-    page.value = targetPage;
-    fetchSearchResults();
-  } else {
-    alert(`请输入有效的页码（1-${totalPages.value}）`);
-  }
-};
-
-// 监听 keyword 变化，重新获取搜索数据
+// 监听 keyword 变化时的处理
 watch(() => route.params.keyword, (newKeyword) => {
-  keyword.value = newKeyword;
-  page.value = 1; // 重置到第一页
-  fetchSearchResults();
+  if (newKeyword !== keyword.value) {  // 只在关键词实际改变时才重置
+    keyword.value = newKeyword;
+    page.value = 1; // 重置到第一页
+    records.value = []; // 清空当前记录
+    fetchSearchResults();
+  }
 });
 
 // 组件挂载时获取数据
 onMounted(() => {
   fetchSearchResults();
 });
-
-// 搜索框绑定的搜索关键词
-const searchQuery = ref('');
 
 // 跳转到搜索页面的逻辑
 const onSearch = () => {

@@ -1,16 +1,16 @@
 import {createRouter, createWebHistory, createWebHashHistory} from 'vue-router';
-import Main from "../components/tailwind/page/Main.vue";
 import Search from "../components/tailwind/page/Search.vue";
 import History from "../components/tailwind/History.vue";
 
 const routes = [
     {
         path: '/',
-        redirect: '/page/1'
+        name: 'History',
+        component: History
     },
     {
         path: '/page/:pageNumber',
-        name: 'History',
+        name: 'HistoryPage',
         component: History,
         props: true
     },

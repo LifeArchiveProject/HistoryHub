@@ -2,6 +2,7 @@
 export default {
   content: [
     './src/components/tailwind/*.vue',
+    './src/components/tailwind/**/*.vue',
     './src/App.vue',
     // 其他文件...
   ],
