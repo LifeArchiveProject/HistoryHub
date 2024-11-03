@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from routers import (
     analysis,
     clean_data,
@@ -8,7 +9,9 @@ from routers import (
     import_data_sqlite,
     heatmap,
     send_log,
-    download
+    download,
+    history,
+    categories
 )
 import os
 import sys
@@ -24,6 +27,15 @@ app = FastAPI(
     version="1.0.0",
 )
 
+# 添加 CORS 中间件
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],  # 允许的源列表
+    allow_credentials=True,  # 允许携带凭证
+    allow_methods=["*"],    # 允许的HTTP方法
+    allow_headers=["*"],    # 允许的HTTP头
+)
+
 # 注册路由
 app.include_router(analysis.router, prefix="/analysis", tags=["Analysis"])
 app.include_router(fetch_bili_history.router, prefix="/fetch", tags=["Fetch"])
@@ -34,6 +46,8 @@ app.include_router(clean_data.router, prefix="/clean", tags=["Clean"])
 app.include_router(heatmap.router, prefix="/heatmap", tags=["Heatmap"])
 app.include_router(send_log.router, prefix="/log", tags=["Log"])
 app.include_router(download.router, prefix="/download", tags=["Download"])
+app.include_router(history.router, prefix="/BiliHistory2024", tags=["History"])
+app.include_router(categories.router, prefix="/BiliHistory2024", tags=["Categories"])
 
 # 入口点，启动应用
 if __name__ == "__main__":
