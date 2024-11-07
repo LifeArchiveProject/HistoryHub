@@ -1,0 +1,149 @@
+# Bilibili History 任务调度配置说明
+# ================================
+
+# 字段说明：
+# base_url: API服务的基础URL
+# tasks: 任务配置列表
+#   - name: 任务名称（用于显示和日志）
+#   - endpoint: API端点路径（必须以/开头）
+#   - method: HTTP请求方法（GET/POST）
+#   - params: API参数（可选）
+#   - schedule: 调度设置
+#     - type: 调度类型
+#       * daily: 每天固定时间执行
+#       * chain: 在依赖任务完成后立即执行
+#       * once: 一次性执行
+#     - time: 执行时间（仅daily类型需要，格式：HH:MM）
+#     - delay: 延迟时间（仅once类型需要，格式：秒）
+#   - requires: 依赖任务列表（在指定任务完成后才能执行）
+
+# 示例说明：
+# 1. 每天固定时间执行的任务：
+#   task_name:
+#     name: 示例任务
+#     endpoint: /api/endpoint
+#     method: GET
+#     schedule:
+#       type: daily
+#       time: "08:00"
+#
+# 2. 链式执行的任务：
+#   task_name:
+#     name: 示例任务
+#     endpoint: /api/endpoint
+#     method: POST
+#     params:
+#       key: value
+#     schedule:
+#       type: chain
+#     requires:
+#       - previous_task
+#
+# 3. 带参数的POST任务：
+#   task_name:
+#     name: 示例任务
+#     endpoint: /api/endpoint
+#     method: POST
+#     params:
+#       input_file: "path/to/file"
+#       options:
+#         key1: value1
+#         key2: value2
+
+base_url: http://localhost:8899
+
+# 任务配置
+tasks:
+  # 1. 获取B站历史记录 - 改为每天0点执行
+  fetch_history:
+    name: 获取B站历史记录
+    endpoint: "/fetch/bili-history"
+    method: "GET"
+    params: {
+      "output_dir": "history_by_date"
+    }
+    schedule:
+      type: "daily"    # 改为每日执行
+      time: "00:00"    # 设置为0点执行
+    requires: []
+
+  # 2. 导入数据库 - 保持链式执行不变
+  import_data:
+    name: 导入数据到数据库
+    endpoint: "/importSqlite/import_data_sqlite"
+    method: "POST"
+    params: {
+      "db_path": "database/bilibili_history.db",
+      "data_dir": "history_by_date"
+    }
+    schedule:
+      type: "chain"
+    requires:
+      - fetch_history
+
+  # 3. 数据分析
+  analyze_data:
+    name: 分析历史数据
+    endpoint: "/analysis/analyze"
+    method: "POST"
+    params: {
+      "output_dir": "output/analysis",
+      "db_path": "output/database/bilibili_history.db"
+    }
+    schedule:
+      type: "chain"
+    requires:
+      - import_data
+
+  # 4. 生成热力图
+  generate_heatmap:
+    name: 生成观看热力图
+    endpoint: "/heatmap/generate_heatmap"
+    method: "POST"
+    params: {
+      "output_dir": "output/heatmap",
+      "data_path": "output/analysis/data.json"
+    }
+    schedule:
+      type: "chain"
+    requires:
+      - analyze_data
+
+  # 5. 发送日报邮件
+  send_daily_report:
+    name: 发送每日报告
+    endpoint: "/log/send-email"
+    method: "POST"
+    params:
+      subject: "B站历史记录日报 - {current_time}"
+      content: null
+      mode: "simple"
+    schedule:
+      type: "chain"
+    requires:
+      - generate_heatmap
+
+# 调度器配置
+scheduler:
+  log_level: INFO
+  retry:
+    max_attempts: 3
+    delay: 60
+
+# 变量说明：
+# {current_time} - 当前时间，格式：YYYY-MM-DD HH:MM:SS
+# {log_content} - 任务执行日志内容
+# 
+# 目录结构：
+# output/
+# ├── logs/            - 日志文件
+# ├── history/         - 历史记录文件
+# ├── database/        - 数据库文件
+# ├── analysis/        - 分析结果
+# ├── heatmap/         - 热力图
+# └── reports/         - 报告文件
+
+# 错误处理
+error_handling:
+  stop_on_failure: true
+  notify_on_failure: true

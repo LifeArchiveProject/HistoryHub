@@ -37,11 +37,11 @@ fields_to_remove:
 
 # 邮件配置
 email:
-  sender: "xxxxxxxxxx@qq.com"
-  receiver: "xxxxxxxxxx@qq.com"
-  smtp_server: "smtp.qq.com"
-  smtp_port: 465
-  password: "xxxxxxxxxxxxxxxx"
+  smtp_server: smtp.qq.com
+  smtp_port: 587
+  sender: "xxxx@qq.com"
+  password: "xxxx"  # QQ邮箱授权码
+  receiver: "xxxx@qq.com"
 
 # 日志文件夹
 log_folder: "/www/wwwroot/python/logs"
@@ -71,3 +71,8 @@ yutto:
   batch:
     # 下载额外剧集
     with_section: true
+
+# 服务器配置
+server:
+  host: "localhost"
+  port: 8899  # 设置你想要的端口号

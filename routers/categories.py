@@ -1,7 +1,7 @@
-from fastapi import APIRouter
 import sqlite3
-from scripts.utils import get_output_path, load_config
+from fastapi import APIRouter
 from scripts.init_categories import init_categories
+from scripts.utils import get_output_path, load_config
 
 router = APIRouter()
 

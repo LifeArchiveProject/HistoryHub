@@ -1,8 +1,10 @@
-from fastapi import APIRouter, Query
-from typing import Optional
+import json
 import sqlite3
 from datetime import datetime
-import json
+from typing import Optional
+
+from fastapi import APIRouter, Query
+
 from scripts.utils import get_output_path, load_config
 
 router = APIRouter()

@@ -1,6 +1,6 @@
-import subprocess
 import os
 import shutil
+import subprocess
 
 def build():
     """执行打包过程"""

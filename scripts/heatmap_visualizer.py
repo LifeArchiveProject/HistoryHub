@@ -9,7 +9,7 @@ from pyecharts import options as opts
 from pyecharts.charts import Calendar
 from pyecharts.commons.utils import JsCode
 
-from scripts.utils import load_config, get_base_path, get_output_path
+from scripts.utils import load_config, get_output_path, get_config_path
 
 # 设置周的起始日为星期一
 calendar.setfirstweekday(calendar.MONDAY)
@@ -18,12 +18,23 @@ config = load_config()
 
 class HeatmapVisualizer:
     def __init__(self, template_file='template.html', output_dir=None, base_folder=None):
-        base_path = get_base_path()
-        self.template_file = os.path.join(base_path, 'config', template_file)
+        # 使用 get_config_path 获取模板文件路径
+        self.template_file = get_config_path('template.html')
         self.output_dir = output_dir or get_output_path('')
         self.base_folder = base_folder or get_output_path('')
         self.charts = []
         self.data = {}
+        
+        # 打印路径信息
+        print("\n=== 热力图路径信息 ===")
+        print(f"模板文件路径: {self.template_file}")
+        print(f"输出目录: {self.output_dir}")
+        print(f"基础文件夹: {self.base_folder}")
+        print(f"模板文件存在: {os.path.exists(self.template_file)}")
+        if os.path.exists(os.path.dirname(self.template_file)):
+            print(f"模板目录内容: {os.listdir(os.path.dirname(self.template_file))}")
+        print("=====================\n")
+        
         if not os.path.exists(self.output_dir):
             os.makedirs(self.output_dir)
         self.years = self.detect_years()
@@ -31,8 +42,6 @@ class HeatmapVisualizer:
     def detect_years(self):
         """
         扫描 base_folder 文件夹，检测所有符合 daily_count_XXXX.json 格式的文件，并提取年份。
-
-        :return: 排序后的年份列表
         """
         pattern = re.compile(r'daily_count_(\d{4})\.json$')
         years = []
@@ -54,12 +63,7 @@ class HeatmapVisualizer:
         return years
 
     def load_data(self, year):
-        """
-        加载指定年份的 JSON 数据。
-
-        :param year: 年份
-        :return: 数据字典
-        """
+        """加载指定年份的 JSON 数据"""
         data_file = os.path.join(self.base_folder, f'daily_count_{year}.json')
         try:
             with open(data_file, 'r', encoding='utf-8') as f:
@@ -69,7 +73,55 @@ class HeatmapVisualizer:
             print(f"文件 {data_file} 不存在，请检查文件路径。")
             return {}
 
+    def plot_calendar_heatmaps(self):
+        """生成热力图"""
+        for year in self.years:
+            daily_count = self.load_data(year)
+            if not daily_count:
+                print(f"跳过年份 {year}，因为没有找到相关数据或数据为空。")
+                continue
+            self.data[year] = daily_count
+            try:
+                chart_html = self.create_calendar_chart(year, daily_count)
+                if chart_html:
+                    self.charts.append({
+                        'year': year,
+                        'chart_html': chart_html
+                    })
+            except ValueError as e:
+                print(f"处理年份 {year} 时出错: {e}")
+                continue
+
+        if not self.charts:
+            print("没有可生成的热力图。")
+            return {"status": "error", "message": "没有可生成的热力图。"}
+
+        env = Environment(loader=FileSystemLoader(os.path.dirname(self.template_file)))
+        try:
+            template = env.get_template(os.path.basename(self.template_file))
+        except Exception as e:
+            error_message = f"加载模板文件 {self.template_file} 时出错: {str(e)}"
+            print(error_message)
+            return {"status": "error", "message": error_message}
+
+        rendered_html = template.render(
+            title="Bilibili 每年每日视频观看热力图",
+            charts=self.charts
+        )
+
+        output_file = os.path.join(self.output_dir, "heatmap_comparison.html")
+        try:
+            with open(output_file, 'w', encoding='utf-8') as f:
+                f.write(rendered_html)
+            success_message = f"热力图已保存为 {output_file}"
+            return {"status": "success", "message": success_message}
+        except Exception as e:
+            error_message = f"保存 HTML 文件时出错: {e}"
+            print(error_message)
+            return {"status": "error", "message": error_message}
+
     def create_calendar_chart(self, year, daily_count):
+        """创建日历热力图"""
         date_range = self.generate_date_range(daily_count)
         if not date_range:
             print(f"年份 {year} 的日期范围生成失败。")
@@ -133,6 +185,7 @@ class HeatmapVisualizer:
         return calendar_chart.render_embed()
 
     def generate_date_range(self, daily_count):
+        """生成日期范围"""
         if not daily_count:
             return []
 
@@ -152,56 +205,11 @@ class HeatmapVisualizer:
         return [datetime(year, 1, 1) + timedelta(days=i) for i in range(num_days)]
 
     def prepare_data_for_calendar(self, date_range, daily_count):
+        """准备日历数据"""
         return [
             [date.strftime('%Y-%m-%d'), daily_count.get(date.strftime('%Y-%m-%d'), 0)]
             for date in date_range
         ]
-
-    def plot_calendar_heatmaps(self):
-        for year in self.years:
-            daily_count = self.load_data(year)
-            if not daily_count:
-                print(f"跳过年份 {year}，因为没有找到相关数据或数据为空。")
-                continue
-            self.data[year] = daily_count
-            try:
-                chart_html = self.create_calendar_chart(year, daily_count)
-                if chart_html:
-                    self.charts.append({
-                        'year': year,
-                        'chart_html': chart_html
-                    })
-            except ValueError as e:
-                print(f"处理年份 {year} 时出错: {e}")
-                continue
-
-        if not self.charts:
-            print("没有可生成的热力图。")
-            return {"status": "error", "message": "没有可生成的热力图。"}
-
-        env = Environment(loader=FileSystemLoader(os.path.dirname(self.template_file)))
-        try:
-            template = env.get_template(os.path.basename(self.template_file))
-        except Exception as e:
-            error_message = f"加载模板文件 {self.template_file} 时出错: {e}"
-            print(error_message)
-            return {"status": "error", "message": error_message}
-
-        rendered_html = template.render(
-            title="Bilibili 每年每日视频观看热力图",
-            charts=self.charts
-        )
-
-        output_file = os.path.join(self.output_dir, "heatmap_comparison.html")
-        try:
-            with open(output_file, 'w', encoding='utf-8') as f:
-                f.write(rendered_html)
-            success_message = f"热力图已保存为 {output_file}"
-            return {"status": "success", "message": success_message}
-        except Exception as e:
-            error_message = f"保存 HTML 文件时出错: {e}"
-            print(error_message)
-            return {"status": "error", "message": error_message}
 
 def generate_heatmap():
     visualizer = HeatmapVisualizer()

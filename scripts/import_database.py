@@ -4,6 +4,7 @@ import os
 import time
 import threading
 from datetime import datetime
+import sys
 
 from config.sql_statements_mysql import *
 from scripts.utils import load_config, get_base_path, get_output_path
@@ -13,10 +14,47 @@ base_path = get_base_path()
 
 # 加载分类映射
 def load_categories():
-    categories_path = os.path.join(base_path, 'config', config['categories_file'])
-    with open(categories_path, 'r', encoding='utf-8') as f:
-        categories = json.load(f)
-    return categories['duplicated_tags'], categories['unique_tag_to_main']
+    """从 categories.json 文件中加载分类信息"""
+    try:
+        # 获取基础路径
+        if getattr(sys, 'frozen', False):
+            # 如果是打包后的exe运行，配置文件在_internal目录中
+            base_path = os.path.dirname(sys.executable)
+            categories_path = os.path.join(base_path, '_internal', 'config', 'categories.json')
+        else:
+            # 如果是直接运行python脚本
+            base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            categories_path = os.path.join(base_path, 'config', 'categories.json')
+
+        print(f"\n=== 分类配置信息 ===")
+        print(f"基础路径: {base_path}")
+        print(f"配置文件路径: {categories_path}")
+        print(f"配置文件存在: {os.path.exists(categories_path)}")
+        
+        # 如果配置文件不存在，尝试其他可能的位置
+        if not os.path.exists(categories_path):
+            alternative_paths = [
+                os.path.join(base_path, 'config', 'categories.json'),
+                os.path.join(os.getcwd(), 'config', 'categories.json'),
+                os.path.join(base_path, '_internal', 'config', 'categories.json'),
+            ]
+            print("\n尝试其他可能的配置文件位置:")
+            for alt_path in alternative_paths:
+                print(f"检查: {alt_path} - {'存在' if os.path.exists(alt_path) else '不存在'}")
+                if os.path.exists(alt_path):
+                    categories_path = alt_path
+                    break
+        
+        if not os.path.exists(categories_path):
+            raise FileNotFoundError(f"找不到分类配置文件: {categories_path}")
+
+        with open(categories_path, 'r', encoding='utf-8') as f:
+            categories = json.load(f)
+            print(f"成功加载分类配置")
+            return categories['duplicated_tags'], categories['unique_tag_to_main']
+    except Exception as e:
+        print(f"加载分类配置时发生错误: {e}")
+        raise
 
 duplicated_tags, unique_tag_to_main = load_categories()
 
@@ -262,17 +300,18 @@ def update_last_imported_file(last_imported_date, last_imported_file):
 
 # 遍历所有按日期分割的文件并导入数据
 def import_all_history_files():
-    data_folder = os.path.join(base_path, config['input_folder'])
+    base_path = get_base_path()
+    full_data_folder = os.path.join(base_path, 'output/history_by_date')  # 修改为新的路径
     log_file = os.path.join(base_path, config['log_file'])
 
     total_inserted = 0
     file_insert_counts = {}
 
-    print(f"开始遍历并导入文件夹 '{data_folder}' 中的数据...")
+    print(f"开始遍历并导入文件夹 '{full_data_folder}' 中的数据...")
 
-    if not os.path.exists(data_folder):
-        print(f"本地文件夹 '{data_folder}' 不存在，无法加载数据。")
-        return {"status": "error", "message": f"本地文件夹 '{data_folder}' 不存在，无法加载数据。"}
+    if not os.path.exists(full_data_folder):
+        print(f"本地文件夹 '{full_data_folder}' 不存在，无法加载数据。")
+        return {"status": "error", "message": f"本地文件夹 '{full_data_folder}' 不存在，无法加载数据。"}
 
     # 获取当前年份和上一年份
     current_year, previous_year = get_years()
@@ -292,8 +331,8 @@ def import_all_history_files():
         print(f"上次导入的日期: {last_imported_date}, 文件: {last_imported_file}")
 
         # 遍历按日期分割的文件夹
-        for year in sorted(os.listdir(data_folder)):
-            year_path = os.path.join(data_folder, year)
+        for year in sorted(os.listdir(full_data_folder)):
+            year_path = os.path.join(full_data_folder, year)
             if os.path.isdir(year_path) and year.isdigit():
                 for month in sorted(os.listdir(year_path)):
                     month_path = os.path.join(year_path, month)

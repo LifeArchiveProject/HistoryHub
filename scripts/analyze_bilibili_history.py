@@ -1,37 +1,48 @@
 import json
 import os
-from datetime import datetime
 from collections import defaultdict
-from scripts.utils import load_config, get_base_path, get_output_path
+from datetime import datetime
+
+from scripts.utils import load_config, get_output_path
 
 config = load_config()
 
 # 读取分割的日期文件夹中的所有数据
 def load_all_history_files():
-    base_path = get_base_path()
-    full_base_folder = os.path.join(base_path, config['input_folder'])
-    all_data = []
-    print("正在遍历历史记录文件夹...")
-
+    """读取分割的日期文件夹中的所有数据"""
+    # 使用 get_output_path 函数获取历史记录文件夹路径
+    full_base_folder = get_output_path('history_by_date')
+    
+    print("\n=== 历史记录文件夹检查 ===")
+    print(f"历史记录文件夹路径: {full_base_folder}")
+    print(f"路径存在: {os.path.exists(full_base_folder)}")
+    
     if not os.path.exists(full_base_folder):
-        print("本地历史记录文件夹不存在，无法加载数据。")
+        print("未找到历史记录文件夹")
         return []
+    
+    print(f"\n使用历史记录文件夹: {full_base_folder}")
+    all_data = []
 
-    for year in os.listdir(full_base_folder):
-        year_path = os.path.join(full_base_folder, year)
-        if os.path.isdir(year_path) and year.isdigit():
-            for month in os.listdir(year_path):
-                month_path = os.path.join(year_path, month)
-                if os.path.isdir(month_path) and month.isdigit():
-                    for day_file in os.listdir(month_path):
-                        if day_file.endswith('.json'):
-                            day_path = os.path.join(month_path, day_file)
-                            with open(day_path, 'r', encoding='utf-8') as f:
-                                daily_data = json.load(f)
-                                all_data.extend(daily_data)
+    try:
+        for year in os.listdir(full_base_folder):
+            year_path = os.path.join(full_base_folder, year)
+            if os.path.isdir(year_path) and year.isdigit():
+                for month in os.listdir(year_path):
+                    month_path = os.path.join(year_path, month)
+                    if os.path.isdir(month_path) and month.isdigit():
+                        for day_file in os.listdir(month_path):
+                            if day_file.endswith('.json'):
+                                day_path = os.path.join(month_path, day_file)
+                                with open(day_path, 'r', encoding='utf-8') as f:
+                                    daily_data = json.load(f)
+                                    all_data.extend(daily_data)
 
-    print(f"共加载 {len(all_data)} 条记录。")
-    return all_data
+        print(f"共加载 {len(all_data)} 条记录。")
+        return all_data
+    except Exception as e:
+        print(f"加载历史记录时发生错误: {e}")
+        return []
 
 # 保存每天的观看数量到 JSON 文件
 def save_daily_count_to_json(daily_count, year):
@@ -68,7 +79,7 @@ def get_daily_counts():
 
     daily_count, _ = calculate_video_counts(history_data)
     
-    # 保存数据到JSON文件
+    # 保存数到JSON文件
     current_year = datetime.now().year
     try:
         output_file = save_daily_count_to_json(daily_count, current_year)
@@ -123,11 +134,21 @@ def main():
 
 # 供外部接口调用的函数
 def get_daily_and_monthly_counts():
+    """获取每日和每月的观看数量统计"""
+    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    print(f"========== 运行时间: {current_time} ==========")
+    print(f"当前工作目录: {os.getcwd()}")
+    
     history_data = load_all_history_files()
     if not history_data:
         return {"error": "没有找到历史记录数据。"}
 
     daily_count, monthly_count = calculate_video_counts(history_data)
+    
+    # 输出每月的视频观看统计
+    print("\n每月观看视频数量：")
+    for month, count in sorted(monthly_count.items()):
+        print(f"{month}: {count} 个视频")
     
     # 保存数据到JSON文件
     current_year = datetime.now().year

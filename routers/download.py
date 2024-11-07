@@ -1,8 +1,8 @@
-from fastapi import APIRouter, HTTPException
+import os
 import subprocess
 import sys
-import os
 from typing import Optional
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 from scripts.utils import load_config
 
