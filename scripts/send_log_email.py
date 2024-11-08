@@ -1,6 +1,6 @@
 import os
 import smtplib
-from datetime import datetime
+from datetime import datetime, timedelta
 from email.header import Header
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -69,6 +69,30 @@ async def send_email(subject: str, content: Optional[str] = None, to_email: Opti
     except Exception as e:
         error_msg = f"邮件发送失败: {str(e)}"
         return {"status": "error", "message": error_msg}
+
+def get_today_logs():
+    """获取今日日志"""
+    current_date = datetime.now().strftime("%Y/%m/%d")
+    yesterday = (datetime.now() - timedelta(days=1)).strftime("%Y/%m/%d")
+    
+    logs = []
+    
+    # 检查昨天的日志（如果在0点前后）
+    yesterday_log = f'output/logs/{yesterday}.log'
+    if os.path.exists(yesterday_log):
+        with open(yesterday_log, 'r', encoding='utf-8') as f:
+            content = f.read()
+            # 只获取最后一天的日志
+            logs.extend([line for line in content.splitlines() 
+                        if line.startswith(datetime.now().strftime("%Y-%m-%d"))])
+    
+    # 检查今天的日志
+    today_log = f'output/logs/{current_date}.log'
+    if os.path.exists(today_log):
+        with open(today_log, 'r', encoding='utf-8') as f:
+            logs.extend(f.read().splitlines())
+    
+    return logs
 
 # 测试代码
 if __name__ == '__main__':

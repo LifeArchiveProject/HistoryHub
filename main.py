@@ -28,27 +28,53 @@ from scripts.utils import load_config
 # 配置根日志记录器
 def setup_logging():
     """设置日志系统"""
+    class DailyRotatingHandler(logging.FileHandler):
+        def __init__(self, base_path):
+            self.base_path = base_path
+            self.current_date = None
+            # 先获取初始日志文件路径
+            current_date = datetime.now().strftime("%Y/%m/%d")
+            log_dir = f'output/logs/{current_date.rsplit("/", 1)[0]}'
+            os.makedirs(log_dir, exist_ok=True)
+            self.log_file = f'output/logs/{current_date}.log'
+            
+            # 先调用父类的初始化
+            super().__init__(self.log_file, mode='a', encoding='utf-8', errors='replace')
+            self.current_date = current_date
+        
+        def update_file(self):
+            """更新日志文件路径"""
+            current_date = datetime.now().strftime("%Y/%m/%d")
+            if current_date != self.current_date:
+                self.current_date = current_date
+                log_dir = f'output/logs/{current_date.rsplit("/", 1)[0]}'
+                os.makedirs(log_dir, exist_ok=True)
+                self.log_file = f'output/logs/{current_date}.log'
+                
+                # 关闭旧的文件流
+                self.close()
+                
+                # 更新文件路径并打开新的文件流
+                self.baseFilename = self.log_file
+                self._open()
+        
+        def emit(self, record):
+            """发送日志记录"""
+            self.update_file()
+            super().emit(record)
+    
     # 创建日志格式化器
     formatter = logging.Formatter('%(message)s')
     
-    # 确保日志目录存在
-    current_date = datetime.now().strftime("%Y/%m/%d")
-    log_dir = f'output/logs/{current_date.rsplit("/", 1)[0]}'
-    os.makedirs(log_dir, exist_ok=True)
-    
-    # 创建文件处理器
-    log_file = f'output/logs/{current_date}.log'
-    file_handler = logging.FileHandler(log_file, mode='a', encoding='utf-8', errors='replace')
+    # 使用新的处理器
+    file_handler = DailyRotatingHandler('output/logs')
     file_handler.setFormatter(formatter)
     file_handler.setLevel(logging.INFO)
     
     # 配置根日志记录器
     root_logger = logging.getLogger()
     root_logger.setLevel(logging.INFO)
-    
-    # 清除现有的处理器
     root_logger.handlers.clear()
-    
     root_logger.addHandler(file_handler)
 
     # 重定向 print 输出到日志
@@ -117,7 +143,7 @@ def setup_logging():
     # 创建新的 PrintToLogger 实例,传入原始 stdout
     sys.stdout = PrintToLogger(root_logger, original_stdout)
 
-    return log_file
+    return file_handler.baseFilename
 
 # 在应用启动时调用
 setup_logging()
@@ -136,7 +162,7 @@ async def lifespan(app: FastAPI):
     await asyncio.sleep(2)  # 给应用一些启动时间
     
     # 启动调度器
-    asyncio.create_task(scheduler_manager.run_scheduler())
+    await asyncio.create_task(scheduler_manager.run_scheduler())
     
     yield  # 应用运行中
     
