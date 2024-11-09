@@ -1,34 +1,30 @@
-import {createRouter, createWebHistory, createWebHashHistory} from 'vue-router';
-import Search from "../components/tailwind/page/Search.vue";
-import History from "../components/tailwind/History.vue";
+import { createRouter, createWebHashHistory, createWebHistory } from 'vue-router';
+import History from '../components/tailwind/History.vue';
+import Search from '../components/tailwind/Search.vue';
 
 const routes = [
     {
         path: '/',
-        name: 'History',
         component: History
     },
     {
         path: '/page/:pageNumber',
-        name: 'HistoryPage',
-        component: History,
-        props: true
+        component: History
     },
     {
         path: '/search/:keyword',
         name: 'Search',
-        component: Search,
-        props: true
-    },
+        component: Search
+    }
 ];
 
-const isElectron = () => {
-    return navigator.userAgent.toLowerCase().indexOf(' electron/') > -1;
+// 创建路由实例的工厂函数
+export const createMyRouter = (mode = 'hash') => {
+    return createRouter({
+        history: mode === 'hash' ? createWebHashHistory() : createWebHistory(),
+        routes
+    });
 };
 
-const router = createRouter({
-    history: isElectron() ? createWebHashHistory() : createWebHistory(),
-    routes,
-});
-
-export default router;
+// 默认导出 hash 模式的路由（用于 Electron）
+export default createMyRouter('hash');

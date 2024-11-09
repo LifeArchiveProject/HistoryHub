@@ -2,18 +2,21 @@ import {defineConfig} from 'vite'
 import vue from '@vitejs/plugin-vue'
 import Inspector from "vite-plugin-vue-inspector"
 
+// 获取环境变量
+const isElectron = process.env.ELECTRON === 'true';
+
 // https://vitejs.dev/config/
 export default defineConfig({
     plugins: [
         Inspector({
             launchEditor: 'webstorm',
-            toggleComboKey: 'alt-x' // 设置快捷键为 alt加x
+            toggleComboKey: 'alt-x'
         }),
         vue(),
     ],
-    base: './', // 设置为相对路径，确保在 Electron 中正确加载静态资源
+    base: isElectron ? './' : '/', // Electron 使用相对路径，Web 使用绝对路径
     build: {
-        emptyOutDir: true, // 每次打包清空 dist 目录
+        emptyOutDir: true,
     },
     server: {
         host: '0.0.0.0',
