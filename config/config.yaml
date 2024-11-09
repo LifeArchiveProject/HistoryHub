@@ -76,3 +76,34 @@ yutto:
 server:
   host: "localhost"
   port: 8899  # 设置你想要的端口号
+
+# 热力图配置
+heatmap:
+  # 热力图输出目录
+  output_dir: ""
+  # 热力图模板文件
+  template_file: "template.html"
+  # 热力图标题
+  title: "Bilibili 每年每日视频观看热力图"
+  # 图表尺寸配置
+  chart:
+    width: "1000px"
+    height: "200px"
+  # 热力图颜色配置
+  colors:
+    pieces:
+      - min: 1
+        max: 10
+        color: "#FFECF1"
+      - min: 11
+        max: 50
+        color: "#FFB3CA"
+      - min: 51
+        max: 100
+        color: "#FF8CB0"
+      - min: 101
+        max: 200
+        color: "#FF6699"
+      - min: 201
+        max: 9999
+        color: "#E84B85"

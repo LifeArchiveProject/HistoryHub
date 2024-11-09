@@ -154,24 +154,41 @@ scheduler_manager = None
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """应用生命周期管理"""
-    # 启动时执行
     global scheduler_manager
-    scheduler_manager = SchedulerManager.get_instance(app)
     
-    # 等待应用完全启动
-    await asyncio.sleep(2)  # 给应用一些启动时间
+    print("正在启动应用...")
     
-    # 启动调度器
-    await asyncio.create_task(scheduler_manager.run_scheduler())
-    
-    yield  # 应用运行中
-    
-    # 关闭时执行
-    if scheduler_manager:
-        scheduler_manager.stop_scheduler()
-
-    # 恢复原始的 stdout
-    sys.stdout = sys.stdout.stdout
+    try:
+        # 初始化调度器
+        scheduler_manager = SchedulerManager.get_instance(app)
+        
+        # 创建异步任务运行调度器
+        scheduler_task = asyncio.create_task(scheduler_manager.run_scheduler())
+        
+        print("应用启动完成")
+        
+        yield
+        
+        # 关闭时
+        print("正在关闭应用...")
+        if scheduler_manager:
+            scheduler_manager.stop_scheduler()
+            # 取消调度器任务
+            scheduler_task.cancel()
+            try:
+                await scheduler_task
+            except asyncio.CancelledError:
+                pass
+        
+        # 恢复原始的 stdout
+        if hasattr(sys.stdout, 'stdout'):
+            sys.stdout = sys.stdout.stdout
+            
+        print("应用已关闭")
+        
+    except Exception as e:
+        print(f"应用启动/关闭过程中出错: {e}")
+        raise
 
 # 创建 FastAPI 应用实例
 app = FastAPI(
@@ -181,13 +198,23 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+# 添加启动状态端点
+@app.get("/health")
+async def health_check():
+    """健康检查端点"""
+    return {
+        "status": "running",
+        "timestamp": datetime.now().isoformat(),
+        "scheduler_status": "running" if scheduler_manager and scheduler_manager.is_running else "stopped"
+    }
+
 # 添加 CORS 中间件
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=["*"],  # 允许所有来源
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["*"],  # 允许所有方法
+    allow_headers=["*"],  # 允许所有头部
 )
 
 # 注册路由
@@ -212,7 +239,9 @@ if __name__ == "__main__":
     server_config = config.get('server', {})
     
     uvicorn.run(
-        "main:app", 
+        "main:app",
         host=server_config.get('host', "127.0.0.1"),
-        port=server_config.get('port', 8000),  # 如果没有配置则使用8000作为默认值
+        port=server_config.get('port', 8000),
+        log_level="info",
+        reload=False  # 禁用热重载以避免多个调度器实例
     )

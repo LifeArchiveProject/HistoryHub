@@ -17,11 +17,29 @@ calendar.setfirstweekday(calendar.MONDAY)
 config = load_config()
 
 class HeatmapVisualizer:
-    def __init__(self, template_file='template.html', output_dir=None, base_folder=None):
-        # 使用 get_config_path 获取模板文件路径
-        self.template_file = get_config_path('template.html')
-        self.output_dir = output_dir or get_output_path('')
-        self.base_folder = base_folder or get_output_path('')
+    def __init__(self):
+        # 从配置文件加载配置
+        self.config = load_config()
+        self.heatmap_config = self.config.get('heatmap', {})
+        
+        # 使用配置文件中的路径
+        self.template_file = get_config_path(self.heatmap_config.get('template_file', 'template.html'))
+        self.output_dir = get_output_path(self.heatmap_config.get('output_dir', 'heatmap'))
+        self.base_folder = get_output_path('')
+        
+        # 从配置中获取图表尺寸
+        self.chart_width = self.heatmap_config.get('chart', {}).get('width', '1000px')
+        self.chart_height = self.heatmap_config.get('chart', {}).get('height', '200px')
+        
+        # 从配置中获取颜色配置
+        self.color_pieces = self.heatmap_config.get('colors', {}).get('pieces', [
+            {"min": 1, "max": 10, "color": "#FFECF1"},
+            {"min": 11, "max": 50, "color": "#FFB3CA"},
+            {"min": 51, "max": 100, "color": "#FF8CB0"},
+            {"min": 101, "max": 200, "color": "#FF6699"},
+            {"min": 201, "max": 9999, "color": "#E84B85"},
+        ])
+        
         self.charts = []
         self.data = {}
         
@@ -105,7 +123,7 @@ class HeatmapVisualizer:
             return {"status": "error", "message": error_message}
 
         rendered_html = template.render(
-            title="Bilibili 每年每日视频观看热力图",
+            title=self.heatmap_config.get('title', "Bilibili 每年每日视频观看热力图"),
             charts=self.charts
         )
 
@@ -131,16 +149,8 @@ class HeatmapVisualizer:
 
         calendar_range = [f"{year}-01-01", f"{year}-12-31"]
 
-        pieces = [
-            {"min": 1, "max": 10, "color": "#FFECF1"},
-            {"min": 11, "max": 50, "color": "#FFB3CA"},
-            {"min": 51, "max": 100, "color": "#FF8CB0"},
-            {"min": 101, "max": 200, "color": "#FF6699"},
-            {"min": 201, "max": 9999, "color": "#E84B85"},
-        ]
-
         calendar_chart = (
-            Calendar(init_opts=opts.InitOpts(width="1000px", height="200px"))
+            Calendar(init_opts=opts.InitOpts(width=self.chart_width, height=self.chart_height))
             .add(
                 series_name="观看数量",
                 yaxis_data=data,
@@ -163,7 +173,7 @@ class HeatmapVisualizer:
                     min_=1,
                     orient="horizontal",
                     is_piecewise=True,
-                    pieces=pieces,
+                    pieces=self.color_pieces,
                     pos_top="top",
                     textstyle_opts=opts.TextStyleOpts(color="#FF6699"),
                 ),
