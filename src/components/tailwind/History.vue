@@ -173,11 +173,8 @@ const onConfirm = (values) => {
 
   console.log('日期范围:', dateRange.value);
 
-  if (page.value !== 1) {
-    router.push('/');
-  } else {
-    fetchHistoryByDateRange();
-  }
+  // 直接获取数据，保持当前路由
+  fetchHistoryByDateRange();
 };
 
 // 数据获取函数：基于日期区间和分类
@@ -215,9 +212,18 @@ onMounted(() => {
   // 获取主分区列表
   fetchMainCategories();
 
+  // 初始化 page.value 为路由参数或默认值 1
+  page.value = parseInt(route.params.pageNumber) || 1;
+
   // 默认日期范围为当前年份的起始到当前日期
   const today = new Date();
   const startOfYear = new Date(currentYear, 0, 1);
+
+  // 根据当前 page.value 设置路由
+  if (page.value !== 1) {
+      router.push(`/page/${page.value}`);
+  }
+
   onConfirm([startOfYear, today]);
 });
 

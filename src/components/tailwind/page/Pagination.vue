@@ -1,8 +1,8 @@
 <template>
   <div class="mx-auto max-w-4xl mt-8 mb-5 lm:text-xs">
     <div class="flex justify-between space-x-4 lm:mx-5">
-      <button 
-          @click="handlePageChange(currentPage - 1)" 
+      <button
+          @click="handlePageChange(currentPage - 1)"
           :disabled="currentPage === 1"
           class="bg-[#00A1D6] text-white rounded-md disabled:opacity-50 disabled:cursor-not-allowed
                  lm:text-xs lm:px-1 lm:py-2
@@ -22,7 +22,7 @@
               @focus="handleFocus"
               min="1"
               :max="totalPages"
-              class="w-16 text-center border border-gray-300 rounded px-1 
+              class="w-16 text-center border border-gray-300 rounded px-1
                      focus:outline-none focus:ring-1 focus:ring-[#00A1D6] focus:border-[#00A1D6]
                      hover:border-[#00A1D6] transition-colors cursor-pointer
                      [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none
@@ -33,8 +33,8 @@
         <span>页 / 共 {{ totalPages }} 页</span>
       </div>
 
-      <button 
-          @click="handlePageChange(currentPage + 1)" 
+      <button
+          @click="handlePageChange(currentPage + 1)"
           :disabled="currentPage === totalPages"
           class="bg-[#00A1D6] text-white rounded-md disabled:opacity-50 disabled:cursor-not-allowed
                  lm:text-xs lm:px-1 lm:py-2
@@ -47,7 +47,7 @@
 
 <script setup>
 import { ref, watch } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 
 const props = defineProps({
   currentPage: {
@@ -67,6 +67,8 @@ const props = defineProps({
 
 const emit = defineEmits(['update:currentPage']);
 const router = useRouter();
+const route = useRoute();
+
 const currentPageInput = ref(props.currentPage.toString());
 
 // 监听 props 变化更新输入框
@@ -78,14 +80,23 @@ watch(() => props.currentPage, (newPage) => {
 const handlePageChange = (newPage) => {
   if (newPage >= 1 && newPage <= props.totalPages) {
     if (props.useRouting) {
-      // 使用路由导航（首页）
-      if (newPage === 1) {
-        router.push('/');
+      // 检查当前是否在搜索页面
+      if (route.name && (route.name === 'Search' || route.name === 'SearchPage')) {
+        // 搜索页面的路由导航
+        if (newPage === 1) {
+          router.push(`/search/${route.params.keyword}`);
+        } else {
+          router.push(`/search/${route.params.keyword}/page/${newPage}`);
+        }
       } else {
-        router.push(`/page/${newPage}`);
+        // 首页的路由导航
+        if (newPage === 1) {
+          router.push('/');
+        } else {
+          router.push(`/page/${newPage}`);
+        }
       }
     } else {
-      // 直接触发事件（搜索页）
       emit('update:currentPage', newPage);
     }
   }
