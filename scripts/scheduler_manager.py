@@ -227,3 +227,28 @@ class SchedulerManager:
     def stop_scheduler(self):
         """停止调度器"""
         self.is_running = False
+
+async def send_error_notification(error_message):
+    """发送错误通知邮件"""
+    config = load_config()
+    email_config = config.get('email', {})
+    
+    subject = "Bilibili历史记录分析任务执行出错"
+    body = f"""
+    执行时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+    错误信息: {error_message}
+    """
+    
+    try:
+        await send_email(
+            email_config.get('smtp_server'),
+            email_config.get('smtp_port'),
+            email_config.get('sender'),
+            email_config.get('password'),
+            email_config.get('receiver'),
+            subject,
+            body
+        )
+    except Exception as e:
+        print(f"发送错误通知邮件失败: {e}")
+        logging.error(f"发送错误通知邮件失败: {e}", exc_info=True)

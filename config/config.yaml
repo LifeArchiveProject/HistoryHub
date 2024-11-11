@@ -1,5 +1,5 @@
 # B站用户的SESSDATA，用于API认证
-SESSDATA: "你的SESSDATA"
+SESSDATA: "0ebb80ec%2C1745512853%2Cfa583%2Aa2CjDzB7QBbPN1peiSLsupGThfkAXk8e0XJ-C6uoET1Dlh7OL9z-Tm6tftHi_jUCGfbDISVm9yOGN1NUJodjd1WnVGTTh6cXJFQXJGWm5fejhRRDdSV0hIYTdrMjJmS0VicGFaT09aTjgxbVBMUl9pSHd2dmJlR2JwaFI0MjdhdzZTdDV4cmdtbmdnIIEC"
 # B站用户的cookie，用于API认证
 cookie: "你的cookie"
 
@@ -107,3 +107,9 @@ heatmap:
       - min: 201
         max: 9999
         color: "#E84B85"
+
+# 在配置文件中添加任务超时设置
+scheduler:
+  task_timeout: 600  # 任务超时时间（秒）
+  retry_delay: 300   # 重试延迟时间（秒）
+  max_retries: 3     # 最大重试次数
