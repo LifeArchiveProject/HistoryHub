@@ -22,8 +22,8 @@
       </div>
     </div>
 
-    <!-- 使用 VideoRecord 组件展示每个记录 -->
-    <div class="lm:pt-20 pt-[105px]"> <!-- 增加顶部填充，避免被固定元素遮盖 -->
+    <!-- 使用 key 来强制组件重新渲染 -->
+    <div :key="page" class="pt-[100px] lm:pt-20"> <!-- 增加顶部填充，确保内容不被固定元素遮挡 -->
       <VideoRecord
           v-for="record in records"
           :key="record.id"
@@ -32,19 +32,21 @@
     </div>
 
     <!-- 分页功能 -->
-    <Pagination
-        v-model:current-page="page"
-        :total-pages="totalPages"
-        :use-routing="true"
-        @update:current-page="handlePageChange"
-    />
+    <div class="mt-8 mb-5">
+      <Pagination
+          v-model:current-page="page"
+          :total-pages="totalPages"
+          :use-routing="true"
+          @update:current-page="handlePageChange"
+      />
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import { searchBiliHistory2024 } from "../../api/api.js";
+import {onMounted, ref, watch} from 'vue';
+import {useRoute, useRouter} from 'vue-router';
+import {searchBiliHistory2024} from "../../api/api.js";
 import VideoRecord from "./VideoRecord.vue";
 import Pagination from "./page/Pagination.vue";
 
@@ -66,11 +68,13 @@ const searchQuery = ref('');
 const handlePageChange = async (newPage) => {
   if (newPage !== page.value) {
     page.value = newPage;
+    // 清空当前记录，避免显示旧数据
+    records.value = [];
     // 更新路由
     if (newPage === 1) {
-      router.push(`/search/${keyword.value}`);
+      await router.push(`/search/${keyword.value}`);
     } else {
-      router.push(`/search/${keyword.value}/page/${newPage}`);
+      await router.push(`/search/${keyword.value}/page/${newPage}`);
     }
     await fetchSearchResults();
   }
@@ -79,6 +83,9 @@ const handlePageChange = async (newPage) => {
 // 获取搜索数据的函数
 const fetchSearchResults = async () => {
   try {
+    // 清空当前记录
+    records.value = [];
+
     const response = await searchBiliHistory2024(
         page.value,
         size.value,
@@ -86,30 +93,35 @@ const fetchSearchResults = async () => {
         sortOrder.value
     );
 
-    // 更新数据前先清空当前记录
-    records.value = [];
-    // 设置新的记录
-    records.value = response.data.data.records;
-    totalResults.value = response.data.data.total;
-    totalPages.value = Math.ceil(response.data.data.total / size.value);
+    if (response.data && response.data.data) {
+      records.value = response.data.data.records;
+      totalResults.value = response.data.data.total;
+      totalPages.value = Math.ceil(response.data.data.total / size.value);
+    }
   } catch (error) {
     console.error('搜索数据获取失败: ', error);
+    records.value = [];
+    totalResults.value = 0;
+    totalPages.value = 0;
   }
 };
 
-// 监听 keyword 变化时的处理
+// 监听 keyword 变化
 watch(() => route.params.keyword, (newKeyword) => {
-  if (newKeyword !== keyword.value) {  // 只在关键词实际改变时才重置
+  if (newKeyword !== keyword.value) {
     keyword.value = newKeyword;
-    page.value = 1; // 重置到第一页
+    page.value = 1;
     records.value = []; // 清空当前记录
     fetchSearchResults();
   }
 });
 
-// 添加对 page 的监听
-watch(() => page.value, async (newPage, oldPage) => {
-  if (newPage !== oldPage) {
+// 监听页码变化
+watch(() => route.params.pageNumber, async (newPage) => {
+  const pageNum = parseInt(newPage) || 1;
+  if (pageNum !== page.value) {
+    page.value = pageNum;
+    records.value = []; // 清空当前记录
     await fetchSearchResults();
   }
 });
@@ -117,34 +129,9 @@ watch(() => page.value, async (newPage, oldPage) => {
 // 组件挂载时获取数据
 onMounted(async () => {
   // 从路由参数获取页码
-  const pageFromRoute = parseInt(route.params.pageNumber) || 1;
-  page.value = pageFromRoute;
-
+  page.value = parseInt(route.params.pageNumber) || 1;
   await fetchSearchResults();
 });
-
-// 监听路由变化
-watch(
-    [() => route.params.pageNumber, () => route.params.keyword],
-    async ([newPage, newKeyword], [oldPage, oldKeyword]) => {
-
-      // 处理关键词变化
-      if (newKeyword !== oldKeyword) {
-        keyword.value = newKeyword;
-        page.value = 1;
-        await fetchSearchResults();
-        return;
-      }
-
-      // 处理页码变化
-      const pageNum = parseInt(newPage) || 1;
-      if (pageNum !== page.value) {
-        page.value = pageNum;
-        await fetchSearchResults();
-      }
-    },
-    { immediate: true }
-);
 
 // 跳转到搜索页面的逻辑
 const onSearch = () => {
