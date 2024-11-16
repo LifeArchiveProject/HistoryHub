@@ -10,7 +10,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "electron:dev": "cross-env NODE_ENV=development concurrently \"vite\" \"wait-on http://localhost:5173 && electron .\"",
-    "electron:build": "cross-env NODE_ENV=production vite build && electron-builder"
+    "electron:build": "cross-env NODE_ENV=production vite build && electron-builder",
+    "format": "prettier --write \"**/*.*\" --ignore-unknown"
   },
   "dependencies": {
     "@headlessui/vue": "^1.7.23",
@@ -26,6 +27,7 @@
     "vue-router": "^4.4.5"
   },
   "devDependencies": {
+    "@types/node": "^20.17.6",
     "@vitejs/plugin-vue": "^5.1.4",
     "autoprefixer": "^10.4.20",
     "concurrently": "^8.0.1",

@@ -209,17 +209,17 @@ const fetchHistoryByDateRange = async () => {
 
 // 组件挂载时获取数据
 onMounted(() => {
-  // 获取主分区列表
   fetchMainCategories()
 
-  // 初始化 page.value 为路由参数或默认值 1
-  page.value = parseInt(route.params.pageNumber) || 1
+  // 确保路由参数是单个字符串并进行类型转换
+  const pageParam = Array.isArray(route.params.pageNumber) 
+    ? route.params.pageNumber[0] 
+    : route.params.pageNumber
+  page.value = parseInt(pageParam) || 1
 
-  // 默认日期范围为当前年份的起始到当前日期
   const today = new Date()
   const startOfYear = new Date(currentYear, 0, 1)
 
-  // 根据当前 page.value 设置路由
   if (page.value !== 1) {
     router.push(`/page/${page.value}`)
   }
@@ -263,10 +263,12 @@ watch(
         fetchHistoryByDateRange()
       }
     } else if (newPage) {
-      const pageNum = parseInt(newPage)
+      // 确保 newPage 是单个字符串
+      const pageStr = Array.isArray(newPage) ? newPage[0] : newPage
+      const pageNum = parseInt(pageStr)
       if (page.value !== pageNum) {
         page.value = pageNum
-        currentPageInput.value = newPage
+        currentPageInput.value = pageStr // 使用转换后的字符串
         fetchHistoryByDateRange()
       }
     }
