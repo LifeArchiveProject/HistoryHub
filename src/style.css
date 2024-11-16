@@ -2,5 +2,5 @@
 @tailwind components;
 @tailwind utilities;
 :root:root {
-    --van-primary-color: #FF6699; /* 修改Vant主颜色 */
+  --van-primary-color: #ff6699; /* 修改Vant主颜色 */
 }

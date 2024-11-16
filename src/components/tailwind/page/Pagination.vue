@@ -1,44 +1,37 @@
 <template>
-  <div class="mx-auto max-w-4xl mt-8 mb-5 lm:text-xs">
+  <div class="mx-auto mb-5 mt-8 max-w-4xl lm:text-xs">
     <div class="flex justify-between space-x-4 lm:mx-5">
       <button
-          @click="handlePageChange(currentPage - 1)"
-          :disabled="currentPage === 1"
-          class="bg-[#00A1D6] text-white rounded-md disabled:opacity-50 disabled:cursor-not-allowed
-                 lm:text-xs lm:px-1 lm:py-2
-                 px-1 py-2">
+        @click="handlePageChange(currentPage - 1)"
+        :disabled="currentPage === 1"
+        class="rounded-md bg-[#00A1D6] px-1 py-2 text-white disabled:cursor-not-allowed disabled:opacity-50 lm:px-1 lm:py-2 lm:text-xs"
+      >
         上一页
       </button>
 
-      <div class="text-gray-700 flex items-center lm:text-xs">
+      <div class="flex items-center text-gray-700 lm:text-xs">
         <span>第</span>
-        <div class="relative inline-block mx-1">
+        <div class="relative mx-1 inline-block">
           <input
-              ref="pageInput"
-              type="number"
-              v-model="currentPageInput"
-              @keyup.enter="handleJumpPage"
-              @blur="handleJumpPage"
-              @focus="handleFocus"
-              min="1"
-              :max="totalPages"
-              class="w-16 text-center border border-gray-300 rounded px-1
-                     focus:outline-none focus:ring-1 focus:ring-[#00A1D6] focus:border-[#00A1D6]
-                     hover:border-[#00A1D6] transition-colors cursor-pointer
-                     [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none
-                     lm:w-12 lm:h-6 lm:text-xs
-                     h-8"
+            ref="pageInput"
+            type="number"
+            v-model="currentPageInput"
+            @keyup.enter="handleJumpPage"
+            @blur="handleJumpPage"
+            @focus="handleFocus"
+            min="1"
+            :max="totalPages"
+            class="h-8 w-16 cursor-pointer rounded border border-gray-300 px-1 text-center transition-colors [appearance:textfield] hover:border-[#00A1D6] focus:border-[#00A1D6] focus:outline-none focus:ring-1 focus:ring-[#00A1D6] lm:h-6 lm:w-12 lm:text-xs [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
           />
         </div>
         <span>页 / 共 {{ totalPages }} 页</span>
       </div>
 
       <button
-          @click="handlePageChange(currentPage + 1)"
-          :disabled="currentPage === totalPages"
-          class="bg-[#00A1D6] text-white rounded-md disabled:opacity-50 disabled:cursor-not-allowed
-                 lm:text-xs lm:px-1 lm:py-2
-                 px-1 py-2">
+        @click="handlePageChange(currentPage + 1)"
+        :disabled="currentPage === totalPages"
+        class="rounded-md bg-[#00A1D6] px-1 py-2 text-white disabled:cursor-not-allowed disabled:opacity-50 lm:px-1 lm:py-2 lm:text-xs"
+      >
         下一页
       </button>
     </div>
@@ -46,35 +39,38 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue';
-import { useRouter, useRoute } from 'vue-router';
+import { ref, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 
 const props = defineProps({
   currentPage: {
     type: Number,
-    required: true
+    required: true,
   },
   totalPages: {
     type: Number,
-    required: true
+    required: true,
   },
   // 是否使用路由导航（首页使用，搜索页不使用）
   useRouting: {
     type: Boolean,
-    default: false
-  }
-});
+    default: false,
+  },
+})
 
-const emit = defineEmits(['update:currentPage']);
-const router = useRouter();
-const route = useRoute();
+const emit = defineEmits(['update:currentPage'])
+const router = useRouter()
+const route = useRoute()
 
-const currentPageInput = ref(props.currentPage.toString());
+const currentPageInput = ref(props.currentPage.toString())
 
 // 监听 props 变化更新输入框
-watch(() => props.currentPage, (newPage) => {
-  currentPageInput.value = newPage.toString();
-});
+watch(
+  () => props.currentPage,
+  (newPage) => {
+    currentPageInput.value = newPage.toString()
+  }
+)
 
 // 处理页码变化
 const handlePageChange = (newPage) => {
@@ -84,40 +80,40 @@ const handlePageChange = (newPage) => {
       if (route.name && (route.name === 'Search' || route.name === 'SearchPage')) {
         // 搜索页面的路由导航
         if (newPage === 1) {
-          router.push(`/search/${route.params.keyword}`);
+          router.push(`/search/${route.params.keyword}`)
         } else {
-          router.push(`/search/${route.params.keyword}/page/${newPage}`);
+          router.push(`/search/${route.params.keyword}/page/${newPage}`)
         }
       } else {
         // 首页的路由导航
         if (newPage === 1) {
-          router.push('/');
+          router.push('/')
         } else {
-          router.push(`/page/${newPage}`);
+          router.push(`/page/${newPage}`)
         }
       }
     } else {
-      emit('update:currentPage', newPage);
+      emit('update:currentPage', newPage)
     }
   }
-};
+}
 
 // 处理输入框获得焦点
 const handleFocus = (event) => {
-  event.target.select();
-};
+  event.target.select()
+}
 
 // 处理跳转
 const handleJumpPage = () => {
-  const targetPage = parseInt(currentPageInput.value);
+  const targetPage = parseInt(currentPageInput.value)
   if (!isNaN(targetPage) && targetPage >= 1 && targetPage <= props.totalPages) {
     if (targetPage !== props.currentPage) {
-      handlePageChange(targetPage);
+      handlePageChange(targetPage)
     }
   } else {
-    currentPageInput.value = props.currentPage.toString();
+    currentPageInput.value = props.currentPage.toString()
   }
-};
+}
 </script>
 
 <style scoped>

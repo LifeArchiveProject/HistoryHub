@@ -3,5 +3,5 @@
 </template>
 
 <script setup>
-import Search from "../Search.vue";
+import Search from '../Search.vue'
 </script>
