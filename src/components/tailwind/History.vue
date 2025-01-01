@@ -85,6 +85,7 @@ const dateRange = ref('')
 const show = ref(false)
 
 const currentYear = new Date().getFullYear()
+const selectedYear = ref(currentYear)
 
 const showBottom = ref(false) // 控制子组件显示的状态
 const tagName = ref('') // 选中的子分区
@@ -163,6 +164,9 @@ const onConfirm = (values) => {
   const startYear = start.getFullYear()
   const endYear = end.getFullYear()
 
+  // 设置选中的年份为开始日期的年份
+  selectedYear.value = startYear
+
   if (startYear === currentYear && endYear === currentYear) {
     date.value = `${formatDate(start)} - ${formatDate(end)}`
   } else {
@@ -171,9 +175,8 @@ const onConfirm = (values) => {
 
   dateRange.value = `${formatDateForAPI(start)}-${formatDateForAPI(end)}`
 
-  console.log('日期范围:', dateRange.value)
-
-  // 直接获取数据，保持当前路由
+  // 重置页码并获取数据
+  page.value = 1
   fetchHistoryByDateRange()
 }
 
@@ -187,7 +190,8 @@ const fetchHistoryByDateRange = async () => {
       sortOrder.value,
       tagName.value,
       mainCategory.value,
-      dateRange.value
+      dateRange.value,
+      selectedYear.value
     )
 
     if (response.data && response.data.data) {
