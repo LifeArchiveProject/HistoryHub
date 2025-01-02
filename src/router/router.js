@@ -1,6 +1,6 @@
 import { createRouter, createWebHashHistory, createWebHistory } from 'vue-router'
-import History from '../components/tailwind/History.vue'
-import Search from '../components/tailwind/Search.vue'
+import History from '../components/tailwind/page/History.vue'
+import Search from '../components/tailwind/page/Search.vue'
 
 const routes = [
   {
