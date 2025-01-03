@@ -1,28 +1,32 @@
 <template>
   <div class="relative mx-auto max-w-4xl p-1">
     <!-- 搜索区域容器 -->
-    <div class="flex items-center space-x-2">
-      <!-- 年份选择器 -->
-      <div class="relative inline-block">
+    <div class="relative">
+      <!-- 搜索框容器 -->
+      <div class="flex w-full items-center rounded-lg border border-gray-300 bg-[#edf2fa] hover:bg-[#e1e6ed] focus-within:border-[#FF6699]">
+        <!-- 年份选择器 -->
         <select
           v-model="selectedYear"
           @change="handleYearChange"
-          class="appearance-none rounded-lg border border-gray-300 bg-[#edf2fa] px-2 py-2 pr-8 text-[#FF6699] hover:bg-[#e1e6ed] focus:outline-none lm:text-xs lg:text-lg"
+          class="w-18 appearance-none border-none bg-transparent pl-2 text-[#FF6699] focus:outline-none focus:ring-0 lm:text-xs lg:text-lg"
         >
           <option v-for="year in availableYears" :key="year" :value="year">
             {{ year }}年
           </option>
         </select>
-      </div>
 
-      <!-- 输入框 -->
-      <input
-        v-model="searchQuery"
-        @keyup.enter="handleSearch"
-        type="search"
-        placeholder="视频标题/oid"
-        class="w-full rounded-lg border border-gray-300 bg-[#edf2fa] p-2 text-gray-900 hover:bg-[#e1e6ed] focus:outline-none lm:text-xs lg:text-lg"
-      />
+        <!-- 分隔线 -->
+        <div class="h-6 w-px bg-gray-300"></div>
+
+        <!-- 输入框 -->
+        <input
+          v-model="searchQuery"
+          @keyup.enter="handleSearch"
+          type="search"
+          placeholder="视频标题/oid"
+          class="w-full border-none bg-transparent p-2 text-gray-900 focus:outline-none focus:ring-0 lm:text-xs lg:text-lg"
+        />
+      </div>
     </div>
   </div>
 </template>
@@ -114,16 +118,47 @@ onMounted(async () => {
 </script>
 
 <style>
-/* 覆盖输入框和选择器的 focus 样式 */
-select:focus {
-  outline: none !important;
-  box-shadow: none !important;
-  border-color: #e5e7eb !important;
+/* 移除搜索框的默认样式 */
+input[type="search"]::-webkit-search-decoration,
+input[type="search"]::-webkit-search-cancel-button,
+input[type="search"]::-webkit-search-results-button,
+input[type="search"]::-webkit-search-results-decoration {
+  display: none;
 }
 
-input:focus {
+/* 移除选择器的默认箭头和focus样式 */
+select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23FF6699' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 0.25rem center;
+  background-size: 1em;
+  padding-right: 1.5rem !important;
+}
+
+select:focus {
+  box-shadow: none !important;
+  outline: none !important;
+  -webkit-appearance: none !important;
+}
+
+select:focus-visible {
   outline: none !important;
   box-shadow: none !important;
-  border-color: #FF6699 !important;
+}
+
+/* 移除输入框的默认focus样式 */
+input:focus {
+  box-shadow: none !important;
+  outline: none !important;
+  -webkit-appearance: none !important;
+}
+
+/* 移除输入框的默认focus-visible样式 */
+input:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
 }
 </style>
