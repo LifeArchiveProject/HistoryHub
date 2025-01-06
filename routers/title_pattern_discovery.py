@@ -24,11 +24,28 @@ class PatternCache:
             
         self.cache_duration = timedelta(hours=24)  # 缓存有效期为24小时
         
-        # 确保缓存目录存在
+        # 确保缓存目录存在并设置正确的权限
         try:
             print(f"尝试创建缓存目录: {self.cache_dir}")
-            os.makedirs(self.cache_dir, exist_ok=True)
-            print(f"缓存目录已创建/确认: {self.cache_dir}")
+            
+            # 如果目录不存在，创建它
+            if not os.path.exists(self.cache_dir):
+                os.makedirs(self.cache_dir, mode=0o755, exist_ok=True)
+                print(f"缓存目录已创建: {self.cache_dir}")
+            
+            # 确保目录权限正确
+            os.chmod(self.cache_dir, 0o755)
+            print(f"缓存目录权限已设置为755")
+            
+            # 获取当前用户和组
+            import pwd
+            import grp
+            current_user = os.getlogin() if hasattr(os, 'getlogin') else pwd.getpwuid(os.getuid()).pw_name
+            current_group = grp.getgrgid(os.getgid()).gr_name if hasattr(grp, 'getgrgid') else None
+            
+            print(f"当前用户: {current_user}")
+            if current_group:
+                print(f"当前用户组: {current_group}")
             
             # 检查目录权限
             mode = oct(os.stat(self.cache_dir).st_mode)[-3:]
@@ -43,6 +60,8 @@ class PatternCache:
                 print("缓存目录写入权限验证成功")
             except Exception as e:
                 print(f"缓存目录写入权限验证失败: {str(e)}")
+                print(f"错误类型: {type(e).__name__}")
+                print(f"错误详情: {str(e)}")
                 
         except Exception as e:
             print(f"创建缓存目录时出错: {str(e)}")
@@ -50,7 +69,7 @@ class PatternCache:
             print(f"错误详情: {str(e)}")
             # 如果是权限问题，打印更多信息
             if isinstance(e, PermissionError):
-                print(f"当前用户: {os.getlogin()}")
+                print(f"当前用户: {os.getlogin() if hasattr(os, 'getlogin') else 'unknown'}")
                 print(f"当前工作目录: {os.getcwd()}")
                 print(f"目录是否存在: {os.path.exists(self.cache_dir)}")
                 if os.path.exists(self.cache_dir):
