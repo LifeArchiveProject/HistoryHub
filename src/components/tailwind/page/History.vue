@@ -1,23 +1,23 @@
 <template>
-  <div class="mx-auto mt-2 max-w-7xl sm:px-2 lg:px-8">
-    <!-- 固定在顶部的搜索栏 -->
-    <div class="fixed left-0 right-0 top-0 z-50 bg-white px-1.5">
-      <SearchBar />
-    </div>
+  <div>
+    <!-- 导航栏 -->
+    <Navbar />
 
     <!-- 主要内容区域 -->
-    <div class="pt-11">
-      <HistoryContent
-        :selected-year="selectedYear"
-        :page="page"
-        @update:total-pages="totalPages = $event"
-        @update:total="total = $event"
-      />
-    </div>
+    <div class="mx-auto max-w-7xl sm:px-2 lg:px-8">
+      <div class="pt-20">
+        <HistoryContent
+          :selected-year="selectedYear"
+          :page="page"
+          @update:total-pages="totalPages = $event"
+          @update:total="total = $event"
+        />
+      </div>
 
-    <!-- 分页组件 -->
-    <div class="mx-auto mb-5 mt-8 max-w-4xl">
-      <Pagination :current-page="page" :total-pages="totalPages" :use-routing="true" />
+      <!-- 分页组件 -->
+      <div class="mx-auto mb-5 mt-8 max-w-4xl">
+        <Pagination :current-page="page" :total-pages="totalPages" :use-routing="true" />
+      </div>
     </div>
   </div>
 </template>
@@ -25,7 +25,7 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import SearchBar from '../SearchBar.vue'
+import Navbar from '../Navbar.vue'
 import HistoryContent from '../HistoryContent.vue'
 import Pagination from '../Pagination.vue'
 

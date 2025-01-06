@@ -8,7 +8,7 @@
         <select
           v-model="selectedYear"
           @change="handleYearChange"
-          class="w-18 appearance-none border-none bg-transparent pl-2 text-[#FF6699] focus:outline-none focus:ring-0 lm:text-xs lg:text-lg"
+          class="w-18 lg:w-32 appearance-none border-none bg-transparent pl-2 text-[#FF6699] focus:outline-none focus:ring-0 lm:text-xs lg:text-lg"
         >
           <option v-for="year in availableYears" :key="year" :value="year">
             {{ year }}年
