@@ -1,10 +1,16 @@
 from typing import Optional
+import logging
 
 from fastapi import APIRouter
 from pydantic import BaseModel, Field
 
-from scripts.bilibili_history import fetch_history
+from scripts.bilibili_history import fetch_history, find_latest_local_history, fetch_and_compare_history, save_history, \
+    load_cookie
+from scripts.import_sqlite import import_all_history_files
 from scripts.utils import load_config
+
+# 配置日志记录
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -16,9 +22,10 @@ class FetchHistoryRequest(BaseModel):
 
 
 # 定义响应模型
-class FetchHistoryResponse(BaseModel):
+class ResponseModel(BaseModel):
     status: str
     message: str
+    data: Optional[list] = None
 
 
 def get_headers():
@@ -45,3 +52,42 @@ async def get_bili_history(output_dir: Optional[str] = "output/history"):
             "status": "error",
             "message": f"获取历史记录失败: {str(e)}"
         }
+
+
+@router.get("/bili-history-realtime", response_model=ResponseModel)
+async def get_bili_history_realtime():
+    """实时获取B站历史记录"""
+    try:
+        # 获取最新的本地历史记录时间戳
+        latest_history = find_latest_local_history()
+        if not latest_history:
+            return {"status": "error", "message": "未找到本地历史记录"}
+
+        # 获取cookie
+        cookie = load_cookie()
+        if not cookie:
+            return {"status": "error", "message": "未找到有效的cookie"}
+
+        # 获取新的历史记录
+        new_records = fetch_and_compare_history(cookie, latest_history)
+        if not new_records:
+            return {"status": "success", "message": "没有新的历史记录"}
+
+        # 保存新记录
+        save_history(new_records)
+        logger.info("成功保存新记录到本地文件")
+
+        # 更新SQLite数据库
+        logger.info("=== 开始更新SQLite数据库 ===")
+        result = import_all_history_files()
+        
+        if result["status"] == "success":
+            message = f"实时更新成功，获取到 {len(new_records)} 条新记录，成功导入 {result['inserted_count']} 条记录到SQLite数据库"
+            return {"status": "success", "message": message, "data": new_records}
+        else:
+            return {"status": "error", "message": f"更新SQLite数据库失败: {result['message']}"}
+
+    except Exception as e:
+        error_msg = f"实时更新失败: {str(e)}"
+        logger.error(error_msg)
+        return {"status": "error", "message": error_msg}

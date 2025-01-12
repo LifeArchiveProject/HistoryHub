@@ -10,7 +10,21 @@ config = load_config()
 
 def load_cookie():
     """从配置文件读取 SESSDATA"""
-    return config.get('SESSDATA', '')
+    print("\n=== 读取 Cookie 配置 ===")
+    print(f"配置内容: {config}")
+    sessdata = config.get('SESSDATA', '')
+    if not sessdata:
+        print("警告: 配置文件中未找到 SESSDATA")
+        return ''
+    
+    # 移除可能存在的引号
+    sessdata = sessdata.strip('"')
+    if not sessdata:
+        print("警告: SESSDATA 为空")
+        return ''
+        
+    print(f"获取到的 SESSDATA: {sessdata}")
+    return sessdata
 
 def find_latest_local_history(base_folder='history_by_date'):
     """查找本地最新的历史记录"""
@@ -106,10 +120,44 @@ def save_history(history_data, base_folder='history_by_date'):
     logging.info(f"历史记录保存完成，共保存了{saved_count}条新记录。")
     return {"status": "success", "message": f"历史记录获取成功", "data": history_data}
 
-def fetch_and_compare_history(headers, params, latest_date):
+def fetch_and_compare_history(cookie, latest_date):
     """获取并比较历史记录"""
-    print("正在从B站API获取历史记录...")
+    print("\n=== API 请求信息 ===")
+    print(f"使用的 Cookie: {cookie}")
+    
     url = 'https://api.bilibili.com/x/web-interface/history/cursor'
+    
+    # 添加更多必要的 cookie 字段
+    headers = {
+        'Cookie': f"SESSDATA={cookie}; buvid3=random_string; b_nut=1234567890; buvid4=random_string",
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+        'Referer': 'https://www.bilibili.com',
+        'Origin': 'https://www.bilibili.com',
+        'Accept': 'application/json, text/plain, */*',
+        'Connection': 'keep-alive'
+    }
+    print(f"请求头: {headers}")
+    
+    params = {
+        'ps': 30,
+        'max': '',
+        'view_at': '',
+        'business': '',
+    }
+    
+    # 测试 API 连接
+    response = requests.get(url, headers=headers, params=params)
+    print(f"\n=== API 响应信息 ===")
+    print(f"状态码: {response.status_code}")
+    try:
+        response_data = response.json()
+        print(f"响应内容: {response_data}")
+        if response_data.get('code') == -101:
+            print("Cookie 已失效，请更新 SESSDATA")
+            return []
+    except:
+        print(f"响应内容: {response.text}")
+    
     all_new_data = []
     page_count = 0
 
@@ -195,21 +243,8 @@ async def fetch_history(output_dir: str = "history_by_date") -> dict:
         if not cookie:
             return {"status": "error", "message": "未找到SESSDATA配置"}
 
-        headers = {
-            'Cookie': f"SESSDATA={cookie}",
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-            'Referer': 'https://www.bilibili.com'
-        }
-
-        params = {
-            'ps': 30,
-            'max': '',
-            'view_at': '',
-            'business': '',
-        }
-
         latest_date = find_latest_local_history(output_dir)  # 传入相对路径
-        new_history = fetch_and_compare_history(headers, params, latest_date)
+        new_history = fetch_and_compare_history(cookie, latest_date)
 
         if new_history:
             return save_history(new_history, output_dir)  # 传入相对路径

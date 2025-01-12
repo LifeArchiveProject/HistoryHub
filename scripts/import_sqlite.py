@@ -169,9 +169,26 @@ def batch_insert_data(conn, table_name, data_batch):
         conn.rollback()
         return 0
 
+def get_last_import_time():
+    """获取上次导入时间"""
+    try:
+        last_import_file = os.path.join(get_output_path(), 'last_import.json')
+        if os.path.exists(last_import_file):
+            with open(last_import_file, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                return data.get('last_import_time', 0)
+        return 0
+    except Exception as e:
+        logger.error(f"读取上次导入时间失败: {e}")
+        return 0
+
 def import_data_from_json(conn, table_name, file_path, batch_size=1000):
     """从JSON文件导入数据"""
     try:
+        # 获取上次导入时间
+        last_import_time = get_last_import_time()
+        logger.info(f"上次导入时间: {datetime.fromtimestamp(last_import_time)}")
+        
         # 尝试不同的编码方式读取
         data = None
         for encoding in ['utf-8', 'gbk', 'utf-8-sig']:
@@ -183,19 +200,27 @@ def import_data_from_json(conn, table_name, file_path, batch_size=1000):
                 continue
         
         if data is None:
-            print(f"无法读取文件 {file_path}：所有编码尝试都失败")
+            logger.error(f"无法读取文件 {file_path}：所有编码尝试都失败")
             return 0
             
         total_inserted = 0
         # 按年份分组数据
         data_by_year = {}
+        has_new_records = False
 
+        # 遍历所有记录，检查每条记录的时间
         for item in data:
-            # 根据view_at确定年份
+            # 获取观看时间
             view_at = item.get('view_at', 0)
             if view_at == 0:
                 continue
+            
+            # 只处理比上次导入时间更新的记录
+            if view_at <= last_import_time:
+                logger.debug(f"跳过旧记录: {item.get('title')} - {datetime.fromtimestamp(view_at)}")
+                continue
                 
+            has_new_records = True
             year = datetime.fromtimestamp(view_at).year
             if year not in data_by_year:
                 data_by_year[year] = []
@@ -248,27 +273,28 @@ def import_data_from_json(conn, table_name, file_path, batch_size=1000):
                 main_category
             )
             data_by_year[year].append(record)
+            logger.info(f"找到新记录: {item.get('title')} - {datetime.fromtimestamp(view_at)}")
 
-        # 为每个年份创建表并插入数据
-        for year, year_data in data_by_year.items():
-            year_table_name = f"bilibili_history_{year}"
-            
-            # 确保表存在
-            if not table_exists(conn, year_table_name):
-                create_table(conn, year_table_name)
-                print(f"创建表: {year_table_name}")
-            
-            # 分批插入数据
-            for i in range(0, len(year_data), batch_size):
-                batch_chunk = year_data[i:i + batch_size]
-                inserted_count = batch_insert_data(conn, year_table_name, batch_chunk)
-                total_inserted += inserted_count
-                print(f"向表 {year_table_name} 插入了 {inserted_count} 条记录")
+        if not has_new_records:
+            logger.info(f"文件 {file_path} 中没有新记录需要导入")
+            return 0
 
-        return total_inserted
+        # 批量插入数据
+        for year, records in data_by_year.items():
+            table = f"{table_name}_{year}"
+            if not table_exists(conn, table):
+                create_table(conn, table)
+            
+            for i in range(0, len(records), batch_size):
+                batch = records[i:i + batch_size]
+                inserted = batch_insert_data(conn, table, batch)
+                total_inserted += inserted
+                logger.info(f"已导入 {inserted} 条记录到表 {table}")
         
+        return total_inserted
+            
     except Exception as e:
-        print(f"处理文件 {file_path} 时发生错误: {e}")
+        logger.error(f"导入文件 {file_path} 时发生错误: {e}")
         return 0
 
 def save_last_import_record(file_path, timestamp):
@@ -295,88 +321,106 @@ def get_last_import_record():
 def import_all_history_files():
     """导入所有历史记录文件"""
     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print(f"========== 运行时间: {current_time} ==========")
-    print(f"当前工作目录: {os.getcwd()}")
+    logger.info(f"========== 运行时间: {current_time} ==========")
+    logger.info(f"当前工作目录: {os.getcwd()}")
     
     # 使用 get_output_path 获取路径
     full_data_folder = get_output_path('history_by_date')
     full_db_file = get_output_path(config['db_file'])
 
-    print(f"\n=== 路径信息 ===")
-    print(f"数据文件夹: {full_data_folder}")
-    print(f"数据库文件: {full_db_file}")
+    logger.info(f"\n=== 路径信息 ===")
+    logger.info(f"数据文件夹: {full_data_folder}")
+    logger.info(f"数据库文件: {full_db_file}")
     
     if not os.path.exists(full_data_folder):
         message = f"本地文件夹 '{full_data_folder}' 不存在，无法加载数据。"
-        print(message)
+        logger.error(message)
         return {"status": "error", "message": message}
 
     # 获取最后导入记录
     last_record = get_last_import_record()
     if last_record:
-        print(f"上次导入记录:")
-        print(f"- 文件: {last_record['last_import_file']}")
-        print(f"- 时间: {last_record['last_import_time']}")
-        print(f"- 日期: {last_record['last_import_date']}")
+        logger.info(f"上次导入记录:")
+        logger.info(f"- 文件: {last_record['last_import_file']}")
+        logger.info(f"- 时间: {last_record['last_import_time']}")
+        logger.info(f"- 日期: {last_record['last_import_date']}")
 
-    total_inserted = 0
+
     file_insert_counts = {}
 
-    print(f"开始遍历并导入文件夹 '{full_data_folder}' 中的数据...")
+    logger.info(f"开始遍历并导入文件夹 '{full_data_folder}' 中的数据...")
 
     conn = create_connection(full_db_file)
     if conn is None:
         message = f"无法连接到数据库 {full_db_file}。"
-        print(message)
+        logger.error(message)
         return {"status": "error", "message": message}
 
     try:
         # 遍历文件并导入
         total_files = 0
         total_records = 0
-        for year in sorted(os.listdir(full_data_folder)):
+        
+        # 获取所有JSON文件并按日期排序
+        all_json_files = []
+        for year in sorted(os.listdir(full_data_folder), reverse=True):  # 从最新的年份开始
             year_path = os.path.join(full_data_folder, year)
             if os.path.isdir(year_path) and year.isdigit():
-                for month in sorted(os.listdir(year_path)):
+                for month in sorted(os.listdir(year_path), reverse=True):  # 从最新的月份开始
                     month_path = os.path.join(year_path, month)
                     if os.path.isdir(month_path) and month.isdigit():
-                        for day_file in sorted(os.listdir(month_path)):
+                        for day_file in sorted(os.listdir(month_path), reverse=True):  # 从最新的日期开始
                             if day_file.endswith('.json'):
                                 day_path = os.path.join(month_path, day_file)
-                                
-                                # 检查是否需要导入
-                                if last_record and day_path <= last_record['last_import_file']:
-                                    continue
-                                    
-                                print(f"\n导入文件: {day_path}")
-                                inserted_count = import_data_from_json(conn, None, day_path)
-                                if inserted_count > 0:
-                                    total_files += 1
-                                    total_records += inserted_count
-                                    file_insert_counts[day_path] = inserted_count
-                                    print(f"成功插入 {inserted_count} 条记录")
-                                
-                                # 更新导入记录
-                                save_last_import_record(day_path, int(datetime.now().timestamp()))
+                                all_json_files.append(day_path)
+        
+        for day_path in all_json_files:
+            logger.info(f"\n处理文件: {day_path}")
+            
+            # 读取文件中最新的记录时间
+            try:
+                with open(day_path, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                    if data:
+                        newest_view_at = max(item.get('view_at', 0) for item in data)
+                        logger.info(f"文件中最新记录时间: {datetime.fromtimestamp(newest_view_at)}")
+                        
+                        # 如果文件中最新的记录时间小于等于上次导入时间，跳过此文件和后续文件
+                        if last_record and newest_view_at <= last_record['last_import_time']:
+                            logger.info(f"跳过文件 {day_path} 及后续文件: 所有记录都早于上次导入时间")
+                            break
+            except Exception as e:
+                logger.error(f"读取文件 {day_path} 时出错: {e}")
+                continue
+            
+            inserted_count = import_data_from_json(conn, "bilibili_history", day_path)
+            if inserted_count > 0:
+                total_files += 1
+                total_records += inserted_count
+                file_insert_counts[day_path] = inserted_count
+                logger.info(f"成功插入 {inserted_count} 条记录")
+                
+                # 更新导入记录，使用文件中最新的记录时间
+                save_last_import_record(day_path, newest_view_at)
 
         # 打印导入统计
-        print("\n=== 导入统计 ===")
-        print(f"处理文件总数: {total_files}")
-        print(f"插入记录总数: {total_records}")
+        logger.info("\n=== 导入统计 ===")
+        logger.info(f"处理文件总数: {total_files}")
+        logger.info(f"插入记录总数: {total_records}")
         if file_insert_counts:
-            print("\n各文件插入详情:")
+            logger.info("\n各文件插入详情:")
             for file_path, count in file_insert_counts.items():
-                print(f"- {os.path.basename(file_path)}: {count} 条记录")
+                logger.info(f"- {os.path.basename(file_path)}: {count} 条记录")
         else:
-            print("\n没有新记录需要插入")
-        print("================\n")
+            logger.info("\n没有新记录需要插入")
+        logger.info("================\n")
 
-        message = f"数据导入完成。共处理 {total_files} 个文件，插入 {total_records} 条记录。"
-        return {"status": "success", "message": message}
+        message = f"数据导入完成，共插入 {total_records} 条记录。"
+        return {"status": "success", "message": message, "inserted_count": total_records}
 
     except sqlite3.Error as e:
         error_msg = f"数据库错误: {str(e)}"
-        print(f"=== 错误 ===\n{error_msg}\n===========")
+        logger.error(f"=== 错误 ===\n{error_msg}\n===========")
         return {"status": "error", "message": error_msg}
     finally:
         if conn:
