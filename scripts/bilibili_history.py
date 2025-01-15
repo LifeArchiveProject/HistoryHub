@@ -161,9 +161,9 @@ def fetch_and_compare_history(cookie, latest_date):
     page_count = 0
 
     if latest_date:
-        cutoff_date = latest_date - timedelta(days=1)
-        cutoff_timestamp = int(datetime.combine(cutoff_date, datetime.min.time()).timestamp())
-        print(f"设置停止条件：view_at <= {cutoff_timestamp} ({cutoff_date})")
+        # 直接使用最新日期的时间戳作为停止条件
+        cutoff_timestamp = int(datetime.combine(latest_date, datetime.min.time()).timestamp())
+        print(f"设置停止条件：view_at <= {cutoff_timestamp} ({latest_date})")
     else:
         cutoff_timestamp = 0
         print("没有本地数据，抓取所有可用的历史记录。")

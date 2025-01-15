@@ -38,7 +38,7 @@ def get_headers():
 
 
 @router.get("/bili-history")
-async def get_bili_history(output_dir: Optional[str] = "output/history"):
+async def get_bili_history(output_dir: Optional[str] = "history_by_date"):
     """获取B站历史记录"""
     try:
         result = await fetch_history(output_dir)
