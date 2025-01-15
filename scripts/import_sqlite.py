@@ -177,18 +177,15 @@ def get_last_import_time():
             with open(last_import_file, 'r', encoding='utf-8') as f:
                 data = json.load(f)
                 return data.get('last_import_time', 0)
+        logger.info("未找到last_import.json文件，将导入所有数据")
         return 0
     except Exception as e:
         logger.error(f"读取上次导入时间失败: {e}")
         return 0
 
-def import_data_from_json(conn, table_name, file_path, batch_size=1000):
+def import_data_from_json(conn, table_name, file_path, last_import_time=0, batch_size=1000):
     """从JSON文件导入数据"""
     try:
-        # 获取上次导入时间
-        last_import_time = get_last_import_time()
-        logger.info(f"上次导入时间: {datetime.fromtimestamp(last_import_time)}")
-        
         # 尝试不同的编码方式读取
         data = None
         for encoding in ['utf-8', 'gbk', 'utf-8-sig']:
@@ -215,8 +212,8 @@ def import_data_from_json(conn, table_name, file_path, batch_size=1000):
             if view_at == 0:
                 continue
             
-            # 只处理比上次导入时间更新的记录
-            if view_at <= last_import_time:
+            # 如果有上次导入时间，则只处理更新的记录
+            if last_import_time > 0 and view_at <= last_import_time:
                 logger.debug(f"跳过旧记录: {item.get('title')} - {datetime.fromtimestamp(view_at)}")
                 continue
                 
@@ -273,7 +270,6 @@ def import_data_from_json(conn, table_name, file_path, batch_size=1000):
                 main_category
             )
             data_by_year[year].append(record)
-            logger.info(f"找到新记录: {item.get('title')} - {datetime.fromtimestamp(view_at)}")
 
         if not has_new_records:
             logger.info(f"文件 {file_path} 中没有新记录需要导入")
@@ -339,12 +335,15 @@ def import_all_history_files():
 
     # 获取最后导入记录
     last_record = get_last_import_record()
+    last_import_time = last_record['last_import_time'] if last_record else 0
+    
     if last_record:
         logger.info(f"上次导入记录:")
         logger.info(f"- 文件: {last_record['last_import_file']}")
-        logger.info(f"- 时间: {last_record['last_import_time']}")
+        logger.info(f"- 时间: {last_import_time}")
         logger.info(f"- 日期: {last_record['last_import_date']}")
-
+    else:
+        logger.info("未找到导入记录，将导入所有数据")
 
     file_insert_counts = {}
 
@@ -385,23 +384,24 @@ def import_all_history_files():
                         newest_view_at = max(item.get('view_at', 0) for item in data)
                         logger.info(f"文件中最新记录时间: {datetime.fromtimestamp(newest_view_at)}")
                         
-                        # 如果文件中最新的记录时间小于等于上次导入时间，跳过此文件和后续文件
-                        if last_record and newest_view_at <= last_record['last_import_time']:
+                        # 只有当存在上次导入记录时才进行时间判断
+                        if last_import_time > 0 and newest_view_at <= last_import_time:
                             logger.info(f"跳过文件 {day_path} 及后续文件: 所有记录都早于上次导入时间")
                             break
             except Exception as e:
                 logger.error(f"读取文件 {day_path} 时出错: {e}")
                 continue
             
-            inserted_count = import_data_from_json(conn, "bilibili_history", day_path)
+            inserted_count = import_data_from_json(conn, "bilibili_history", day_path, last_import_time)
             if inserted_count > 0:
                 total_files += 1
                 total_records += inserted_count
                 file_insert_counts[day_path] = inserted_count
                 logger.info(f"成功插入 {inserted_count} 条记录")
                 
-                # 更新导入记录，使用文件中最新的记录时间
-                save_last_import_record(day_path, newest_view_at)
+                # 只有当成功插入记录时才更新导入记录
+                if last_record or total_records > 0:
+                    save_last_import_record(day_path, newest_view_at)
 
         # 打印导入统计
         logger.info("\n=== 导入统计 ===")
