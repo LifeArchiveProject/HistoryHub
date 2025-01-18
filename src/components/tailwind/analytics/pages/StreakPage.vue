@@ -4,8 +4,8 @@
     <h3 class="text-4xl font-bold text-center bg-gradient-to-r from-[#fb7299] to-[#fc9b7a] bg-clip-text text-transparent">
       连续观看记录
     </h3>
-    
-    <div v-if="viewingData?.insights?.continuity" 
+
+    <div v-if="viewingData?.insights?.continuity"
       class="text-lg text-center text-gray-600 dark:text-gray-300 mb-8"
     >
       {{ viewingData.insights.continuity }}
@@ -16,7 +16,7 @@
         <div class="text-4xl font-bold bg-gradient-to-r from-[#fb7299] to-[#fc9b7a] bg-clip-text text-transparent streak-number">{{ viewingData.viewing_continuity.max_streak }}天</div>
         <div class="text-lg text-gray-600 dark:text-gray-400 mt-2">最长连续观看</div>
         <div class="mt-4 text-sm text-gray-500">
-          {{ viewingData.viewing_continuity.longest_streak_period.start }} 至 
+          {{ viewingData.viewing_continuity.longest_streak_period.start }} 至
           {{ viewingData.viewing_continuity.longest_streak_period.end }}
         </div>
       </div>
@@ -32,7 +32,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { onMounted } from 'vue'
 import gsap from 'gsap'
 
 const props = defineProps({
@@ -47,7 +47,7 @@ onMounted(() => {
   const streakNumbers = document.querySelectorAll('.streak-number')
   streakNumbers.forEach(el => {
     const finalValue = parseInt(el.textContent)
-    gsap.fromTo(el, 
+    gsap.fromTo(el,
       { textContent: 0 },
       {
         duration: 2,
@@ -58,4 +58,4 @@ onMounted(() => {
     )
   })
 })
-</script> 
+</script>

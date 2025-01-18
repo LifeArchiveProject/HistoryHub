@@ -32,7 +32,7 @@
     "jsencrypt": "^3.3.2",
     "lottie-web": "^5.12.2",
     "typeit": "^8.8.7",
-    "vant": "^4.9.8",
+    "vant": "^4.9.15",
     "vue": "^3.5.11",
     "vue-countup-v3": "^1.4.2",
     "vue-echarts": "^7.0.3",
@@ -53,7 +53,7 @@
     "prettier-plugin-tailwindcss": "^0.6.8",
     "tailwindcss": "^3.4.13",
     "vite": "^5.4.8",
-    "vite-plugin-vue-inspector": "^5.2.0",
+    "vite-plugin-vue-inspector": "^5.3.1",
     "wait-on": "^7.0.1"
   },
   "build": {

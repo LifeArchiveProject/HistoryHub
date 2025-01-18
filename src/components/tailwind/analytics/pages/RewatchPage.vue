@@ -7,8 +7,8 @@
           <h3 class="text-3xl font-bold text-center bg-gradient-to-r from-[#fb7299] to-[#fc9b7a] bg-clip-text text-transparent">
             最爱重温的视频
           </h3>
-          
-          <div v-if="viewingData?.insights?.most_watched_videos" 
+
+          <div v-if="viewingData?.insights?.most_watched_videos"
             class="text-sm text-center text-gray-600 dark:text-gray-300 mb-2 px-4"
           >
             {{ viewingData.insights.most_watched_videos }}
@@ -41,7 +41,7 @@
 
           <!-- 其余视频 -->
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            <div v-for="(video, index) in viewingData.watch_counts.most_watched_videos.slice(1)" 
+            <div v-for="(video, index) in viewingData.watch_counts.most_watched_videos.slice(1)"
               :key="video.bvid"
               class="backdrop-blur-sm rounded-lg p-2.5 transform hover:scale-[1.02] transition-transform cursor-pointer video-item relative overflow-hidden border border-gray-300/50 dark:border-gray-500/50"
               :class="{
@@ -100,24 +100,7 @@ onMounted(() => {
     duration: 0.5,
     stagger: 0.1,
     ease: 'power2.out',
-    delay: 0.2,
-    onComplete: () => {
-      const intervals = document.querySelectorAll('.rewatch-interval')
-      intervals.forEach((intervalEl) => {
-        const value = parseInt(intervalEl.textContent)
-        if (!isNaN(value)) {
-          const obj = { value: 0 }
-          gsap.to(obj, {
-            value: value,
-            duration: 2,
-            ease: "expo.out",
-            onUpdate: () => {
-              intervalEl.textContent = Math.round(obj.value).toString()
-            }
-          })
-        }
-      })
-    }
+    delay: 0.2
   })
 })
 </script>
@@ -129,4 +112,4 @@ onMounted(() => {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
-</style> 
+</style>

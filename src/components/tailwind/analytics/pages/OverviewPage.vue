@@ -78,7 +78,9 @@ const getDateRange = (year) => {
 }
 
 // 获取年度分析数据
-const fetchYearlyData = async (year = 2024) => {
+const fetchYearlyData = async (year) => {
+  if (!year) return
+  
   try {
     const response = await getYearlyAnalysis(year)
     if (response.data.status === 'success') {
@@ -95,7 +97,9 @@ const fetchYearlyData = async (year = 2024) => {
 const initHeatmapChart = () => {
   if (!heatmapChartRef.value || !yearlyData.value?.data?.daily_count) return
 
-  const year = props.viewingData?.year || new Date().getFullYear()
+  const year = props.viewingData?.year
+  if (!year) return
+
   const dailyData = yearlyData.value.data.daily_count
   const allDates = getDateRange(year)
   
@@ -186,7 +190,9 @@ const initHeatmapChart = () => {
 }
 
 onMounted(() => {
-  fetchYearlyData()
+  if (props.viewingData?.year) {
+    fetchYearlyData(props.viewingData.year)
+  }
   
   // 监听窗口大小变化
   window.addEventListener('resize', () => {
@@ -196,7 +202,9 @@ onMounted(() => {
 
 // 监听数据变化
 watch(() => yearlyData.value, () => {
-  initHeatmapChart()
+  if (props.viewingData?.year) {
+    initHeatmapChart()
+  }
 }, { deep: true })
 
 // 监听年份变化
@@ -204,7 +212,7 @@ watch(() => props.viewingData?.year, (newYear) => {
   if (newYear) {
     fetchYearlyData(newYear)
   }
-})
+}, { immediate: true })
 </script>
 
 <style>

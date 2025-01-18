@@ -9,7 +9,6 @@ const isElectron = process.env.ELECTRON === 'true'
 export default defineConfig({
   plugins: [
     Inspector({
-      launchEditor: 'webstorm',
       toggleComboKey: 'alt-x',
     }),
     vue(),

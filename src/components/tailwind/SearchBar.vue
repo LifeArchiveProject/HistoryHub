@@ -1,14 +1,14 @@
 <template>
-  <div class="relative mx-auto max-w-4xl p-1">
+  <div class="relative mx-auto max-w-4xl">
     <!-- 搜索区域容器 -->
     <div class="relative">
       <!-- 搜索框容器 -->
-      <div class="flex w-full items-center rounded-lg border border-gray-300 bg-[#edf2fa] hover:bg-[#e1e6ed] focus-within:border-[#FF6699]">
+      <div class="flex w-full h-8 sm:h-10 items-center rounded-lg border border-gray-300 bg-[#edf2fa] hover:bg-[#e1e6ed] focus-within:border-[#FF6699]">
         <!-- 年份选择器 -->
         <select
           v-model="selectedYear"
           @change="handleYearChange"
-          class="w-18 lg:w-32 appearance-none border-none bg-transparent pl-2 text-[#FF6699] focus:outline-none focus:ring-0 lm:text-xs lg:text-lg"
+          class="h-full w-18 appearance-none border-none bg-transparent pl-2 text-[#FF6699] focus:outline-none focus:ring-0 text-sm leading-none flex items-center"
         >
           <option v-for="year in availableYears" :key="year" :value="year">
             {{ year }}年
@@ -16,7 +16,7 @@
         </select>
 
         <!-- 分隔线 -->
-        <div class="h-6 w-px bg-gray-300"></div>
+        <div class="h-5 sm:h-6 w-px bg-gray-300 mx-1"></div>
 
         <!-- 输入框 -->
         <input
@@ -24,7 +24,7 @@
           @keyup.enter="handleSearch"
           type="search"
           placeholder="视频标题/oid"
-          class="w-full border-none bg-transparent p-2 text-gray-900 focus:outline-none focus:ring-0 lm:text-xs lg:text-lg"
+          class="h-full w-full border-none bg-transparent px-2 text-gray-900 focus:outline-none focus:ring-0 text-sm leading-none"
         />
       </div>
     </div>

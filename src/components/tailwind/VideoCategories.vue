@@ -42,31 +42,6 @@ const localShowBottom = computed({
   },
 })
 
-// 定义数据转换函数，添加 type 字段
-const transformDataToItems = (data) => {
-  const transformedItems = []
-
-  data.forEach((category) => {
-    let existingMainCategory = transformedItems.find((item) => item.text === category.mainCategory)
-
-    if (existingMainCategory) {
-      existingMainCategory.children.push({
-        text: category.subCategory,
-        id: category.id,
-        type: 'sub',
-      })
-    } else {
-      transformedItems.push({
-        text: category.mainCategory,
-        type: 'main',
-        children: [{ text: category.subCategory, id: category.id, type: 'sub' }],
-      })
-    }
-  })
-
-  return transformedItems
-}
-
 // 获取视频分类并转换数据结构
 const fetchCategories = async () => {
   try {
