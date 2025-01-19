@@ -18,6 +18,30 @@
                   {{ year }}年
                 </option>
               </select>
+
+              <!-- 强制刷新按钮 -->
+              <button
+                @click="handleForceRefresh"
+                :disabled="loading"
+                class="inline-flex items-center text-gray-600 dark:text-gray-300 hover:text-[#fb7299] dark:hover:text-[#fb7299] disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+              >
+                <svg
+                  class="w-5 h-5 mr-1"
+                  :class="{ 'animate-spin': loading }"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                  />
+                </svg>
+                <span class="text-sm">强制刷新数据</span>
+              </button>
             </div>
           </div>
         </div>
@@ -28,6 +52,39 @@
     <div class="relative h-full pt-16">
       <!-- 页面容器 -->
       <div class="h-full">
+        <!-- 加载状态 -->
+        <div v-if="loading" class="absolute inset-0 flex items-center justify-center z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
+          <div class="text-center">
+            <svg
+              class="w-12 h-12 mx-auto mb-4 animate-spin text-[#fb7299]"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                class="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                stroke-width="4"
+              ></circle>
+              <path
+                class="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
+            </svg>
+            <div class="space-y-2">
+              <p class="text-lg font-medium text-gray-800 dark:text-gray-200">正在分析{{ selectedYear }}年的观看数据</p>
+              <p class="text-sm text-gray-600 dark:text-gray-400">
+                {{ loading && viewingData === null ? '首次加载数据可能需要30秒到1分钟，具体加载时间取决于数据量' : '正在从缓存加载数据，预计3-5秒' }}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 内容页面 -->
         <Transition mode="out-in" name="fade">
           <!-- 开场页 -->
           <HeroPage v-if="currentPage === 0" key="hero" :year="selectedYear" />
@@ -71,9 +128,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
-import { useRouter } from 'vue-router'
-import gsap from 'gsap'
+import { ref, watch, onMounted, onUnmounted } from 'vue'
 import { getAvailableYears, getTitleAnalytics, getViewingAnalytics } from '../../../api/api.js'
 import HeroPage from '../analytics/pages/HeroPage.vue'
 import OverviewPage from '../analytics/pages/OverviewPage.vue'
@@ -88,7 +143,6 @@ import MonthlyPage from '../analytics/pages/MonthlyPage.vue'
 import DurationAnalysisPage from '../analytics/pages/DurationAnalysisPage.vue'
 import TitleAnalysisPage from '../analytics/pages/TitleAnalysisPage.vue'
 import AnalyticsLayout from '../analytics/layout/AnalyticsLayout.vue'
-import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import { LineChart, BarChart } from 'echarts/charts'
 import {
@@ -152,15 +206,6 @@ watch(currentPage, (newPage, oldPage) => {
   }, 300)
 })
 
-// 键盘导航
-const handleKeydown = (e) => {
-  if (e.key === 'ArrowRight' && currentPage.value < pages.length - 1) {
-    currentPage.value++
-  } else if (e.key === 'ArrowLeft' && currentPage.value > 0) {
-    currentPage.value--
-  }
-}
-
 // 修改页面切换处理
 const handlePageTransition = (newPage) => {
   if (isTransitioning.value) return
@@ -169,6 +214,12 @@ const handlePageTransition = (newPage) => {
 
 // 修改滚轮事件处理
 const handleWheel = (e) => {
+  // 如果正在加载，阻止滚动
+  if (loading.value) {
+    e.preventDefault()
+    return
+  }
+
   const now = Date.now()
   if (isTransitioning.value || now - lastWheelTime < wheelCooldown) return
 
@@ -186,18 +237,26 @@ const handleWheel = (e) => {
 
 // 修改触摸事件处理
 const handleTouchStart = (e) => {
-  if (isTransitioning.value) return
+  // 如果正在加载，阻止触摸事件
+  if (loading.value || isTransitioning.value) return
   touchStartX = e.touches[0].clientX
   touchStartY = e.touches[0].clientY
 }
 
 const handleTouchMove = (e) => {
+  // 如果正在加载，阻止触摸移动
+  if (loading.value) {
+    e.preventDefault()
+    return
+  }
+
   if (isTransitioning.value) return
   e.preventDefault() // 防止页面滚动
 }
 
 const handleTouchEnd = (e) => {
-  if (isTransitioning.value) return
+  // 如果正在加载，阻止触摸结束事件
+  if (loading.value || isTransitioning.value) return
 
   const touchEndX = e.changedTouches[0].clientX
   const touchEndY = e.changedTouches[0].clientY
@@ -230,13 +289,19 @@ const fetchAvailableYears = async () => {
   }
 }
 
-const fetchAnalyticsData = async () => {
+const fetchAnalyticsData = async (forceRefresh = false) => {
+  if (forceRefresh) {
+    // 清空现有数据
+    analyticsData.value = null
+    viewingData.value = null
+  }
+
   loading.value = true
   try {
     console.log('Fetching analytics data for year:', selectedYear.value)
     const [titleResponse, viewingResponse] = await Promise.all([
-      getTitleAnalytics(selectedYear.value),
-      getViewingAnalytics(selectedYear.value)
+      getTitleAnalytics(selectedYear.value, !forceRefresh),
+      getViewingAnalytics(selectedYear.value, !forceRefresh)
     ])
 
     if (titleResponse.data.status === 'success') {
@@ -253,16 +318,22 @@ const fetchAnalyticsData = async () => {
   }
 }
 
-const refreshData = async () => {
+const refreshData = async (forceRefresh = false) => {
   loading.value = true
   try {
     await Promise.all([
       fetchAvailableYears(),
-      fetchAnalyticsData()
+      fetchAnalyticsData(forceRefresh)
     ])
   } finally {
     loading.value = false
   }
+}
+
+// 强制刷新方法
+const handleForceRefresh = async () => {
+  if (loading.value) return
+  await refreshData(true)
 }
 
 // 监听年份变化

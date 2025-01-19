@@ -1,22 +1,36 @@
 <template>
   <div>
     <!-- 导航栏 -->
-    <Navbar />
+    <Navbar
+      @refresh-data="refreshData"
+      :date="date"
+      :total="total"
+      :category="category"
+      @click-date="show = true"
+      @click-category="showBottom = true"
+    />
 
     <!-- 主要内容区域 -->
-    <div class="mx-auto max-w-7xl sm:px-2 lg:px-8">
-      <div class="pt-20">
-        <HistoryContent
-          :selected-year="selectedYear"
-          :page="page"
-          @update:total-pages="totalPages = $event"
-          @update:total="total = $event"
-        />
-      </div>
+    <div class="pt-[4.5em] smd:pt-20">
+      <div class="mx-auto max-w-7xl sm:px-2 lg:px-8">
+        <div class="">
+          <HistoryContent
+            ref="historyContentRef"
+            :selected-year="selectedYear"
+            :page="page"
+            @update:total-pages="totalPages = $event"
+            @update:total="total = $event"
+            @update:date="date = $event"
+            @update:category="category = $event"
+            v-model:show="show"
+            v-model:showBottom="showBottom"
+          />
+        </div>
 
-      <!-- 分页组件 -->
-      <div class="mx-auto mb-5 mt-8 max-w-4xl">
-        <Pagination :current-page="page" :total-pages="totalPages" :use-routing="true" />
+        <!-- 分页组件 -->
+        <div class="mx-auto mb-5 mt-8 max-w-4xl">
+          <Pagination :current-page="page" :total-pages="totalPages" :use-routing="true" />
+        </div>
       </div>
     </div>
   </div>
@@ -39,6 +53,29 @@ const totalPages = ref(0)
 const total = ref(0)
 const currentYear = new Date().getFullYear()
 const selectedYear = ref(currentYear)
+const historyContentRef = ref(null)
+const date = ref('')
+const category = ref('')
+const show = ref(false)
+const showBottom = ref(false)
+
+// 刷新数据的方法
+const refreshData = async () => {
+  try {
+    console.log('开始刷新数据')
+    console.log('historyContentRef:', historyContentRef.value)
+
+    if (historyContentRef.value) {
+      console.log('可用的方法:', Object.keys(historyContentRef.value))
+      await historyContentRef.value.fetchHistoryByDateRange()
+      console.log('数据刷新完成')
+    } else {
+      console.warn('historyContentRef 不存在')
+    }
+  } catch (error) {
+    console.error('刷新数据失败:', error)
+  }
+}
 
 // 组件挂载时获取数据
 onMounted(() => {
@@ -75,3 +112,18 @@ watch(
   { immediate: true }
 )
 </script>
+
+<style scoped>
+@keyframes bounce-x {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(4px);
+  }
+}
+
+.animate-bounce-x {
+  animation: bounce-x 1.5s infinite;
+}
+</style>
