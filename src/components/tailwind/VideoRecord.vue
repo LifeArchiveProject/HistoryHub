@@ -10,9 +10,7 @@
       <div v-if="record.business === 'article-list' || record.business === 'article'">
         <!-- 标题在封面图片上方 -->
         <div class="mb-2">
-          <div class="line-clamp-2 text-gray-900 lm:text-sm lg:font-semibold">
-            {{ record.title }}
-          </div>
+          <div class="line-clamp-2 text-gray-900 lm:text-sm lg:font-semibold" v-html="highlightedTitle"></div>
         </div>
         <!-- 封面图片，铺满整行 -->
         <div class="relative h-28 w-full overflow-hidden rounded-lg">
@@ -44,9 +42,8 @@
               class="cursor-pointer transition-colors hover:text-[#FF6699]"
               @click="handleAuthorClick"
               :title="`访问 ${record.author_name} 的个人空间`"
-            >
-              {{ record.author_name }}
-            </p>
+              v-html="highlightedAuthorName"
+            ></p>
           </div>
 
           <!-- 右侧：设备和时间信息 -->
@@ -124,9 +121,7 @@
         <!-- 右侧内容区域 -->
         <div class="ml-2 flex flex-1 flex-col justify-between lm:text-sm lg:font-semibold">
           <div class="items-center justify-between lg:flex">
-            <div class="line-clamp-2 text-gray-900 lm:text-sm lg:font-semibold">
-              {{ record.title }}
-            </div>
+            <div class="line-clamp-2 text-gray-900 lm:text-sm lg:font-semibold" v-html="highlightedTitle"></div>
           </div>
           <div>
             <span
@@ -150,9 +145,8 @@
                 class="cursor-pointer transition-colors hover:text-[#FF6699]"
                 @click="handleAuthorClick"
                 :title="`访问 ${record.author_name} 的个人空间`"
-              >
-                {{ record.author_name }}
-              </p>
+                v-html="highlightedAuthorName"
+              ></p>
             </div>
 
             <div class="flex items-center space-x-2">
@@ -187,10 +181,38 @@
 </template>
 
 <script setup>
-import { defineProps } from 'vue'
+import { defineProps, computed } from 'vue'
 
 const props = defineProps({
   record: Object,
+  searchKeyword: {
+    type: String,
+    default: ''
+  },
+  searchType: {
+    type: String,
+    default: 'title'
+  }
+})
+
+// 高亮显示匹配的文本
+const highlightText = (text) => {
+  if (!props.searchKeyword || !text) return text
+  
+  const regex = new RegExp(props.searchKeyword, 'gi')
+  return text.replace(regex, match => `<span class="text-[#FF6699]">${match}</span>`)
+}
+
+// 获取高亮后的标题
+const highlightedTitle = computed(() => {
+  if (props.searchType !== 'title' || !props.searchKeyword) return props.record.title
+  return highlightText(props.record.title)
+})
+
+// 获取高亮后的作者名称
+const highlightedAuthorName = computed(() => {
+  if (props.searchType !== 'author' || !props.searchKeyword) return props.record.author_name
+  return highlightText(props.record.author_name)
 })
 
 // 处理内容点击事件

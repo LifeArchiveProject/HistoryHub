@@ -18,12 +18,24 @@
         <!-- 分隔线 -->
         <div class="h-5 sm:h-6 w-px bg-gray-300 mx-1"></div>
 
+        <!-- 搜索类型选择器 -->
+        <select
+          v-model="searchType"
+          class="h-full w-20 appearance-none border-none bg-transparent pl-2 text-[#FF6699] focus:outline-none focus:ring-0 text-sm leading-none flex items-center"
+        >
+          <option value="title">标题</option>
+          <option value="author">UP主</option>
+        </select>
+
+        <!-- 分隔线 -->
+        <div class="h-5 sm:h-6 w-px bg-gray-300 mx-1"></div>
+
         <!-- 输入框 -->
         <input
           v-model="searchQuery"
           @keyup.enter="handleSearch"
           type="search"
-          placeholder="视频标题/oid"
+          :placeholder="searchType === 'title' ? '视频标题/oid' : 'UP主名称'"
           class="h-full w-full border-none bg-transparent px-2 text-gray-900 focus:outline-none focus:ring-0 text-sm leading-none"
         />
       </div>
@@ -44,6 +56,10 @@ const props = defineProps({
   initialKeyword: {
     type: String,
     default: ''
+  },
+  initialSearchType: {
+    type: String,
+    default: 'title'
   }
 })
 
@@ -53,6 +69,7 @@ const route = useRoute()
 
 // 搜索相关
 const searchQuery = ref(props.initialKeyword)
+const searchType = ref(props.initialSearchType)
 
 // 年份相关
 const selectedYear = ref(props.initialYear)
@@ -80,18 +97,37 @@ const handleYearChange = () => {
   emit('year-change', selectedYear.value)
 }
 
+// 监听搜索类型变化
+watch(searchType, (newType) => {
+  console.log('SearchBar - 搜索类型变化:', newType)
+  // 如果在搜索页面且有搜索关键词，触发搜索
+  if (route.name === 'Search' && searchQuery.value.trim()) {
+    handleSearch()
+  }
+})
+
 // 处理搜索
 const handleSearch = () => {
   if (searchQuery.value.trim()) {
+    console.log('SearchBar - 执行搜索:', {
+      keyword: searchQuery.value.trim(),
+      type: searchType.value
+    })
     if (route.name === 'Search') {
       // 如果在搜索页面，发出搜索事件
-      emit('search', searchQuery.value.trim())
+      emit('search', {
+        keyword: searchQuery.value.trim(),
+        type: searchType.value
+      })
     } else {
       // 如果在其他页面，打开新标签页
       const newUrl = router.resolve({
         name: 'Search',
         params: { keyword: searchQuery.value.trim() },
-        query: { year: selectedYear.value }
+        query: { 
+          year: selectedYear.value,
+          type: searchType.value
+        }
       }).href
       window.open(newUrl, '_blank')
       searchQuery.value = ''
@@ -109,6 +145,12 @@ watch(() => props.initialKeyword, (newKeyword) => {
 watch(() => props.initialYear, (newYear) => {
   if (newYear !== selectedYear.value) {
     selectedYear.value = newYear
+  }
+})
+
+watch(() => props.initialSearchType, (newType) => {
+  if (newType !== searchType.value) {
+    searchType.value = newType
   }
 })
 
