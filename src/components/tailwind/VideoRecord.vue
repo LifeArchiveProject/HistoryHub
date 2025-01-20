@@ -10,11 +10,20 @@
       <div v-if="record.business === 'article-list' || record.business === 'article'">
         <!-- 标题在封面图片上方 -->
         <div class="mb-2">
-          <div class="line-clamp-2 text-gray-900 lm:text-sm lg:font-semibold" v-html="highlightedTitle"></div>
+          <div 
+            class="line-clamp-2 text-gray-900 lm:text-sm lg:font-semibold" 
+            v-html="isPrivacyMode ? '******' : highlightedTitle"
+            :class="{ 'blur-sm': isPrivacyMode }"
+          ></div>
         </div>
         <!-- 封面图片，铺满整行 -->
         <div class="relative h-28 w-full overflow-hidden rounded-lg">
-          <img :src="record.cover || record.covers[0]" class="h-full w-full object-cover" alt="" />
+          <img 
+            :src="record.cover || record.covers[0]" 
+            class="h-full w-full object-cover transition-all duration-300" 
+            :class="{ 'blur-md': isPrivacyMode }"
+            alt="" 
+          />
           <!-- 右上角的类型角标，仅当不是稿件时显示 -->
           <div
             v-if="record.business !== 'archive'"
@@ -34,18 +43,18 @@
             <img
               :src="record.author_face"
               alt="author"
-              class="h-4 w-4 cursor-pointer rounded-full transition-transform hover:scale-110 lg:h-8 lg:w-8"
+              class="h-4 w-4 cursor-pointer rounded-full transition-all duration-300 hover:scale-110 lg:h-8 lg:w-8"
+              :class="{ 'blur-md': isPrivacyMode }"
               @click="handleAuthorClick"
-              :title="`访问 ${record.author_name} 的个人空间`"
+              :title="isPrivacyMode ? '隐私模式已开启' : `访问 ${record.author_name} 的个人空间`"
             />
             <p
               class="cursor-pointer transition-colors hover:text-[#FF6699]"
               @click="handleAuthorClick"
-              :title="`访问 ${record.author_name} 的个人空间`"
-              v-html="highlightedAuthorName"
+              :title="isPrivacyMode ? '隐私模式已开启' : `访问 ${record.author_name} 的个人空间`"
+              v-html="isPrivacyMode ? '******' : highlightedAuthorName"
             ></p>
           </div>
-
           <!-- 右侧：设备和时间信息 -->
           <div class="flex items-center space-x-2">
             <img
@@ -54,23 +63,19 @@
               alt="Mobile"
               class="h-4 w-4 lg:h-8 lg:w-8"
             />
-
             <img
               v-else-if="record.dt === 2 || record.dt === 33"
-              src="/public/PC.svg"
+              src="/PC.svg"
               alt="PC"
               class="h-4 w-4 lg:h-8 lg:w-8"
             />
-
             <img
               v-else-if="record.dt === 4 || record.dt === 6"
-              src="/public/Pad.svg"
+              src="/Pad.svg"
               alt="Pad"
               class="h-4 w-4 lg:h-8 lg:w-8"
             />
-
             <p v-else>未知设备</p>
-
             <!-- 显示时间 -->
             <span>{{ formatTimestamp(record.view_at) }}</span>
           </div>
@@ -81,10 +86,21 @@
       <div v-else class="flex space-x-2">
         <!-- 封面图片区域，设置为 relative，方便放置绝对定位的角标 -->
         <div class="relative h-20 w-32 overflow-hidden rounded-lg sm:h-28 sm:w-40">
-          <img v-if="record.cover" :src="record.cover" class="h-full w-full object-cover" alt="" />
+          <img 
+            v-if="record.cover" 
+            :src="record.cover" 
+            class="h-full w-full object-cover transition-all duration-300" 
+            :class="{ 'blur-md': isPrivacyMode }"
+            alt="" 
+          />
           <div v-else>
             <div v-for="(cover, index) in record.covers" :key="index" class="mb-1">
-              <img :src="cover" class="h-full w-full object-cover" alt="" />
+              <img 
+                :src="cover" 
+                class="h-full w-full object-cover transition-all duration-300" 
+                :class="{ 'blur-md': isPrivacyMode }"
+                alt="" 
+              />
             </div>
           </div>
           <!-- 右上的类型角标，稿件显示角标 -->
@@ -121,7 +137,11 @@
         <!-- 右侧内容区域 -->
         <div class="ml-2 flex flex-1 flex-col justify-between lm:text-sm lg:font-semibold">
           <div class="items-center justify-between lg:flex">
-            <div class="line-clamp-2 text-gray-900 lm:text-sm lg:font-semibold" v-html="highlightedTitle"></div>
+            <div 
+              class="line-clamp-2 text-gray-900 lm:text-sm lg:font-semibold" 
+              v-html="isPrivacyMode ? '******' : highlightedTitle"
+              :class="{ 'blur-sm': isPrivacyMode }"
+            ></div>
           </div>
           <div>
             <span
@@ -137,15 +157,16 @@
                 v-if="record.business !== 'cheese' && record.business !== 'pgc'"
                 :src="record.author_face"
                 alt="author"
-                class="h-5 w-5 cursor-pointer rounded-full transition-transform hover:scale-110 lg:h-8 lg:w-8"
+                class="h-5 w-5 cursor-pointer rounded-full transition-all duration-300 hover:scale-110 lg:h-8 lg:w-8"
+                :class="{ 'blur-md': isPrivacyMode }"
                 @click="handleAuthorClick"
-                :title="`访问 ${record.author_name} 的个人空间`"
+                :title="isPrivacyMode ? '隐私模式已开启' : `访问 ${record.author_name} 的个人空间`"
               />
               <p
                 class="cursor-pointer transition-colors hover:text-[#FF6699]"
                 @click="handleAuthorClick"
-                :title="`访问 ${record.author_name} 的个人空间`"
-                v-html="highlightedAuthorName"
+                :title="isPrivacyMode ? '隐私模式已开启' : `访问 ${record.author_name} 的个人空间`"
+                v-html="isPrivacyMode ? '******' : highlightedAuthorName"
               ></p>
             </div>
 
@@ -158,13 +179,13 @@
               />
               <img
                 v-else-if="record.dt === 2 || record.dt === 33"
-                src="/public/PC.svg"
+                src="/PC.svg"
                 alt="PC"
                 class="h-4 w-4 lg:h-8 lg:w-8"
               />
               <img
                 v-else-if="record.dt === 4 || record.dt === 6"
-                src="/public/Pad.svg"
+                src="/Pad.svg"
                 alt="Pad"
                 class="h-4 w-4 lg:h-8 lg:w-8"
               />
@@ -181,7 +202,10 @@
 </template>
 
 <script setup>
-import { defineProps, computed } from 'vue'
+import { computed } from 'vue'
+import { usePrivacyStore } from '../../store/privacy'
+
+const { isPrivacyMode } = usePrivacyStore()
 
 const props = defineProps({
   record: Object,

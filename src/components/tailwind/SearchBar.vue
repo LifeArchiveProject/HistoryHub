@@ -8,7 +8,7 @@
         <select
           v-model="selectedYear"
           @change="handleYearChange"
-          class="h-full w-18 appearance-none border-none bg-transparent pl-2 text-[#FF6699] focus:outline-none focus:ring-0 text-sm leading-none flex items-center"
+          class="h-full appearance-none border-none bg-transparent pl-2 text-[#FF6699] focus:outline-none focus:ring-0 lm:text-xs leading-none flex items-center"
         >
           <option v-for="year in availableYears" :key="year" :value="year">
             {{ year }}年
@@ -21,7 +21,7 @@
         <!-- 搜索类型选择器 -->
         <select
           v-model="searchType"
-          class="h-full w-20 appearance-none border-none bg-transparent pl-2 text-[#FF6699] focus:outline-none focus:ring-0 text-sm leading-none flex items-center"
+          class="h-full appearance-none border-none bg-transparent pl-2 text-[#FF6699] focus:outline-none focus:ring-0 lm:text-xs leading-none flex items-center"
         >
           <option value="title">标题</option>
           <option value="author">UP主</option>

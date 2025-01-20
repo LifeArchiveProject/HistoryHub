@@ -13,19 +13,21 @@
 </template>
 
 <script setup>
-import { defineProps, defineEmits, computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { getVideoCategories } from '../../api/api.js'
 
-// 定义 props 接受父组件传递的 showBottom
+const emit = defineEmits(['update:category', 'update:showBottom', 'selectSubCategory'])
+
 const props = defineProps({
+  category: {
+    type: String,
+    default: ''
+  },
   showBottom: {
     type: Boolean,
     default: false,
   },
 })
-
-// 定义 emits 用于向父组件发送事件
-const emit = defineEmits(['update:showBottom', 'selectSubCategory'])
 
 // 定义状态
 const activeId = ref(null)
