@@ -280,4 +280,89 @@ async def search_history(
         return {"status": "error", "message": f"数据库错误: {str(e)}"}
     finally:
         if conn:
+            conn.close()
+
+@router.get("/search_author")
+async def search_author(
+    page: int = Query(1, description="当前页码"),
+    size: int = Query(10, description="每页记录数"),
+    sortOrder: int = Query(0, description="排序顺序，0为降序，1为升序"),
+    author: Optional[str] = Query(None, description="作者名称，支持模糊搜索"),
+    year: Optional[int] = Query(None, description="要查询的年份，不传则使用当前年份")
+):
+    """搜索作者的历史记录"""
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+        
+        # 获取可用年份列表
+        available_years = get_available_years()
+        if not available_years:
+            return {
+                "status": "error",
+                "message": "未找到任何历史记录数据"
+            }
+        
+        # 如果未指定年份，使用最新的年份
+        target_year = year if year is not None else available_years[0]
+        
+        # 检查指定的年份是否可用
+        if year is not None and year not in available_years:
+            return {
+                "status": "error",
+                "message": f"未找到 {year} 年的历史记录数据。可用的年份有：{', '.join(map(str, available_years))}"
+            }
+        
+        table_name = f"bilibili_history_{target_year}"
+        query = f"SELECT * FROM {table_name} WHERE 1=1"
+        params = []
+
+        if author:
+            author = author.strip()
+            # 使用LIKE进行模糊搜索
+            query += " AND author_name LIKE ?"
+            params.append(f"%{author}%")
+
+        # 添加排序
+        query += " ORDER BY view_at " + ("ASC" if sortOrder == 1 else "DESC")
+
+        # 获取总记录数
+        count_query = f"SELECT COUNT(*) FROM ({query})"
+        cursor.execute(count_query, params)
+        total = cursor.fetchone()[0]
+
+        # 添加分页
+        query += " LIMIT ? OFFSET ?"
+        params.extend([size, (page - 1) * size])
+
+        # 执行查询
+        cursor.execute(query, params)
+        columns = [description[0] for description in cursor.description]
+        records = []
+        
+        for row in cursor.fetchall():
+            record = dict(zip(columns, row))
+            if 'covers' in record and record['covers']:
+                try:
+                    record['covers'] = json.loads(record['covers'])
+                except json.JSONDecodeError:
+                    record['covers'] = []
+            records.append(record)
+
+        return {
+            "status": "success",
+            "data": {
+                "records": records,
+                "total": total,
+                "size": size,
+                "current": page,
+                "year": target_year,
+                "available_years": available_years
+            }
+        }
+
+    except sqlite3.Error as e:
+        return {"status": "error", "message": f"数据库错误: {str(e)}"}
+    finally:
+        if conn:
             conn.close() 
