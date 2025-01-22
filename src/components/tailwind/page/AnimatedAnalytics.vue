@@ -92,35 +92,47 @@
           <!-- 数据概览页 -->
           <OverviewPage v-else-if="currentPage === 1" key="overview" :viewing-data="viewingData" />
 
-          <!-- 连续观看页 -->
-          <StreakPage v-else-if="currentPage === 2" key="streak" :viewing-data="viewingData" />
-
           <!-- 时间分析页 -->
-          <TimeAnalysisPage v-else-if="currentPage === 3" key="time-analysis" :viewing-data="viewingData" />
-
-          <!-- 最爱重温页 -->
-          <RewatchPage v-else-if="currentPage === 4" key="rewatch" :viewing-data="viewingData" />
-
-          <!-- 视频完成率分析页 -->
-          <OverallCompletionPage v-else-if="currentPage === 5" key="overall-completion" :viewing-data="viewingData" />
-
-          <!-- UP主完成率分析页 -->
-          <AuthorCompletionPage v-else-if="currentPage === 6" key="author-completion" :viewing-data="viewingData" />
-
-          <!-- 标签分析页 -->
-          <TagsPage v-else-if="currentPage === 7" key="tags" :viewing-data="viewingData" />
+          <TimeAnalysisPage v-else-if="currentPage === 2" key="time-analysis" :viewing-data="viewingData" />
 
           <!-- 时间分布分析页 -->
-          <TimeDistributionPage v-else-if="currentPage === 8" key="time-distribution" :viewing-data="viewingData" />
+          <TimeDistributionPage v-else-if="currentPage === 3" key="time-distribution" :viewing-data="viewingData" />
 
           <!-- 月度趋势页 -->
-          <MonthlyPage v-else-if="currentPage === 9" key="monthly" :viewing-data="viewingData" />
+          <MonthlyPage v-else-if="currentPage === 4" key="monthly" :viewing-data="viewingData" />
+
+          <!-- 连续观看页 -->
+          <StreakPage v-else-if="currentPage === 5" key="streak" :viewing-data="viewingData" />
+
+          <!-- 最爱重温页 -->
+          <RewatchPage v-else-if="currentPage === 6" key="rewatch" :viewing-data="viewingData" />
+
+          <!-- 视频完成率分析页 -->
+          <OverallCompletionPage v-else-if="currentPage === 7" key="overall-completion" :viewing-data="viewingData" />
+
+          <!-- UP主完成率分析页 -->
+          <AuthorCompletionPage v-else-if="currentPage === 8" key="author-completion" :viewing-data="viewingData" />
+
+          <!-- 标签分析页 -->
+          <TagsPage v-else-if="currentPage === 9" key="tags" :viewing-data="viewingData" />
 
           <!-- 视频时长分析页 -->
           <DurationAnalysisPage v-else-if="currentPage === 10" key="duration-analysis" :viewing-data="viewingData" />
 
           <!-- 标题分析页 -->
           <TitleAnalysisPage v-else-if="currentPage === 11" key="title-analysis" :title-analytics="analyticsData" />
+
+          <!-- 标题趋势分析页 -->
+          <TitleTrendAnalysisPage v-else-if="currentPage === 12" key="title-trend-analysis" :title-analytics="analyticsData" />
+
+          <!-- 标题长度分析页 -->
+          <TitleLengthAnalysisPage v-else-if="currentPage === 13" key="title-length-analysis" :title-analytics="analyticsData" />
+
+          <!-- 标题情感分析页 -->
+          <TitleSentimentAnalysisPage v-else-if="currentPage === 14" key="title-sentiment-analysis" :title-analytics="analyticsData" />
+
+          <!-- 标题互动分析页 -->
+          <TitleInteractionAnalysisPage v-else-if="currentPage === 15" key="title-interaction-analysis" :title-analytics="analyticsData" />
         </Transition>
       </div>
     </div>
@@ -142,6 +154,10 @@ import TimeDistributionPage from '../analytics/pages/TimeDistributionPage.vue'
 import MonthlyPage from '../analytics/pages/MonthlyPage.vue'
 import DurationAnalysisPage from '../analytics/pages/DurationAnalysisPage.vue'
 import TitleAnalysisPage from '../analytics/pages/TitleAnalysisPage.vue'
+import TitleLengthAnalysisPage from '../analytics/pages/TitleLengthAnalysisPage.vue'
+import TitleSentimentAnalysisPage from '../analytics/pages/TitleSentimentAnalysisPage.vue'
+import TitleTrendAnalysisPage from '../analytics/pages/TitleTrendAnalysisPage.vue'
+import TitleInteractionAnalysisPage from '../analytics/pages/TitleInteractionAnalysisPage.vue'
 import AnalyticsLayout from '../analytics/layout/AnalyticsLayout.vue'
 import { CanvasRenderer } from 'echarts/renderers'
 import { LineChart, BarChart } from 'echarts/charts'
@@ -153,6 +169,7 @@ import {
 } from 'echarts/components'
 import { use } from 'echarts/core'
 import 'echarts-wordcloud'
+import { useRouter, useRoute } from 'vue-router'
 
 // 注册必要的组件
 use([
@@ -166,6 +183,8 @@ use([
 ])
 
 // 状态
+const router = useRouter()
+const route = useRoute()
 const selectedYear = ref(new Date().getFullYear() - 1)
 const availableYears = ref([])
 const loading = ref(true)
@@ -185,25 +204,41 @@ const wheelCooldown = 800 // 增加冷却时间以适应新的动画持续时间
 const pages = [
   { name: '开场', color: '#fb7299' },
   { name: '数据概览', color: '#fc9b7a' },
-  { name: '连续观看', color: '#fb7299' },
-  { name: '时间分析', color: '#fc9b7a' },
+  // 时间相关分析
+  { name: '时间分析', color: '#fb7299' },
+  { name: '时间分布', color: '#fc9b7a' },
+  { name: '月度趋势', color: '#fb7299' },
+  // 观看行为分析
+  { name: '连续观看', color: '#fc9b7a' },
   { name: '最爱重温', color: '#fb7299' },
   { name: '视频完成率', color: '#fc9b7a' },
+  // 内容分析
   { name: 'UP主完成率', color: '#fb7299' },
   { name: '标签分析', color: '#fc9b7a' },
-  { name: '时间分布', color: '#fb7299' },
-  { name: '月度趋势', color: '#fc9b7a' },
   { name: '视频时长分析', color: '#fb7299' },
-  { name: '标题分析', color: '#fc9b7a' }
+  // 标题分析
+  { name: '标题分析', color: '#fc9b7a' },
+  { name: '标题趋势分析', color: '#fb7299' },
+  { name: '标题长度分析', color: '#fc9b7a' },
+  { name: '标题情感分析', color: '#fb7299' },
+  { name: '标题互动分析', color: '#fc9b7a' }
 ]
 
 // 监听页面切换
-watch(currentPage, (newPage, oldPage) => {
+watch(currentPage, (newPage) => {
   // 减少过渡动画时间
   isTransitioning.value = true
   setTimeout(() => {
-      isTransitioning.value = false
+    isTransitioning.value = false
   }, 300)
+
+  // 更新 URL
+  router.push({
+    query: {
+      ...route.query,
+      page: newPage
+    }
+  })
 })
 
 // 修改页面切换处理
@@ -275,20 +310,6 @@ const handleTouchEnd = (e) => {
 }
 
 // 获取数据方法
-const fetchAvailableYears = async () => {
-  try {
-    const response = await getAvailableYears()
-    if (response.data.status === 'success') {
-      availableYears.value = response.data.data
-      if (!availableYears.value.includes(selectedYear.value)) {
-        selectedYear.value = availableYears.value[0]
-      }
-    }
-  } catch (error) {
-    console.error('获取可用年份失败:', error)
-  }
-}
-
 const fetchAnalyticsData = async (forceRefresh = false) => {
   if (forceRefresh) {
     // 清空现有数据
@@ -306,6 +327,13 @@ const fetchAnalyticsData = async (forceRefresh = false) => {
 
     if (titleResponse.data.status === 'success') {
       analyticsData.value = titleResponse.data.data
+      // 更新可用年份
+      if (titleResponse.data.data.available_years) {
+        availableYears.value = titleResponse.data.data.available_years
+        if (!availableYears.value.includes(selectedYear.value)) {
+          selectedYear.value = availableYears.value[0]
+        }
+      }
     }
 
     if (viewingResponse.data.status === 'success') {
@@ -318,13 +346,11 @@ const fetchAnalyticsData = async (forceRefresh = false) => {
   }
 }
 
+// 移除单独的年份获取方法
 const refreshData = async (forceRefresh = false) => {
   loading.value = true
   try {
-    await Promise.all([
-      fetchAvailableYears(),
-      fetchAnalyticsData(forceRefresh)
-    ])
+    await fetchAnalyticsData(forceRefresh)
   } finally {
     loading.value = false
   }
@@ -345,6 +371,12 @@ watch(selectedYear, async (newYear) => {
 
 // 生命周期钩子
 onMounted(async () => {
+  // 从 URL 读取页码
+  const pageFromUrl = parseInt(Array.isArray(route.query.page) ? route.query.page[0] : route.query.page || '0')
+  if (!isNaN(pageFromUrl) && pageFromUrl >= 0 && pageFromUrl < pages.length) {
+    currentPage.value = pageFromUrl
+  }
+
   await refreshData()
   window.addEventListener('wheel', handleWheel, { passive: false })
   window.addEventListener('touchstart', handleTouchStart)
