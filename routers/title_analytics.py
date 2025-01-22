@@ -298,123 +298,6 @@ def analyze_title_sentiment(cursor, table_name: str) -> dict:
         ]
     }
 
-def analyze_title_patterns(cursor, table_name: str) -> dict:
-    """分析标题模式与观看行为的关系"""
-    cursor.execute(f"""
-        SELECT title, duration, progress, tag_name, view_at
-        FROM {table_name}
-        WHERE duration > 0 AND title IS NOT NULL
-        AND strftime('%Y', datetime(view_at, 'unixepoch')) = ?
-    """, (table_name.split('_')[-1],))
-    
-    titles_data = cursor.fetchall()
-    
-    # 使用模式发现功能，不再传递table_name参数
-    discovered_patterns = discover_title_patterns(titles_data)
-    
-    pattern_stats = defaultdict(lambda: {'count': 0, 'completion_rates': []})
-    
-    # 分析每个标题的完成率
-    for title, duration, progress, *_ in titles_data:
-        completion_rate = progress / duration if duration > 0 else 0
-        
-        # 检查标题属于哪个模式
-        matched = False
-        for pattern_name, pattern_info in discovered_patterns.items():
-            if any(keyword in title for keyword in pattern_info['keywords']):
-                pattern_stats[pattern_name]['count'] += 1
-                pattern_stats[pattern_name]['completion_rates'].append(completion_rate)
-                matched = True
-                break
-        
-        if not matched:
-            pattern_stats['其他']['count'] += 1
-            pattern_stats['其他']['completion_rates'].append(completion_rate)
-    
-    # 计算每种模式的平均完成率
-    results = {}
-    for pattern, stats in pattern_stats.items():
-        if stats['count'] > 0:
-            results[pattern] = {
-                'count': stats['count'],
-                'avg_completion_rate': np.mean(stats['completion_rates']),
-                'keywords': discovered_patterns[pattern]['keywords'] if pattern in discovered_patterns else []
-            }
-    
-    # 找出最受欢迎的模式
-    best_pattern = max(results.items(), key=lambda x: x[1]['avg_completion_rate'])
-    most_common = max(results.items(), key=lambda x: x[1]['count'])
-    
-    return {
-        'pattern_stats': results,
-        'best_pattern': best_pattern[0],
-        'most_common_pattern': most_common[0],
-        'insights': [
-            f"{best_pattern[0]}类型的视频最容易被你看完，平均完成率为{best_pattern[1]['avg_completion_rate']:.1%}",
-            f"你最常观看的是{most_common[0]}类型的视频，共计{most_common[1]['count']}个"
-        ]
-    }
-
-def analyze_title_clusters(cursor, table_name: str) -> dict:
-    """分析标题聚类与观看行为的关系"""
-    cursor.execute(f"""
-        SELECT title, duration, progress
-        FROM {table_name}
-        WHERE duration > 0 AND title IS NOT NULL
-        AND strftime('%Y', datetime(view_at, 'unixepoch')) = ?
-    """, (table_name.split('_')[-1],))
-    
-    titles = []
-    completion_rates = []
-    for title, duration, progress in cursor.fetchall():
-        titles.append(' '.join(jieba.cut(title)))
-        completion_rates.append(progress / duration if duration > 0 else 0)
-    
-    # 使用TF-IDF向量化标题
-    vectorizer = TfidfVectorizer(max_features=1000)
-    X = vectorizer.fit_transform(titles)
-    
-    # K-means聚类
-    n_clusters = 5
-    kmeans = KMeans(n_clusters=n_clusters, random_state=42)
-    clusters = kmeans.fit_predict(X)
-    
-    # 分析每个聚类
-    cluster_stats = defaultdict(lambda: {'titles': [], 'completion_rates': []})
-    for i, (title, cluster, completion_rate) in enumerate(zip(titles, clusters, completion_rates)):
-        cluster_stats[f'主题{cluster+1}']['titles'].append(title)
-        cluster_stats[f'主题{cluster+1}']['completion_rates'].append(completion_rate)
-    
-    # 计算每个聚类的特征词和统计信息
-    results = {}
-    for cluster_name, stats in cluster_stats.items():
-        avg_completion = np.mean(stats['completion_rates'])
-        # 获取该聚类的特征词
-        cluster_titles = stats['titles']
-        vectorizer = TfidfVectorizer(max_features=5)
-        cluster_vectors = vectorizer.fit_transform(cluster_titles)
-        top_words = vectorizer.get_feature_names_out()
-        
-        results[cluster_name] = {
-            'count': len(stats['titles']),
-            'avg_completion_rate': avg_completion,
-            'key_words': list(top_words)
-        }
-    
-    # 找出最受欢迎的主题
-    best_cluster = max(results.items(), key=lambda x: x[1]['avg_completion_rate'])
-    most_common = max(results.items(), key=lambda x: x[1]['count'])
-    
-    return {
-        'cluster_stats': results,
-        'best_cluster': best_cluster[0],
-        'most_common_cluster': most_common[0],
-        'insights': [
-            f"{best_cluster[0]}(关键词: {', '.join(best_cluster[1]['key_words'])})的视频最容易被你看完，平均完成率为{best_cluster[1]['avg_completion_rate']:.1%}",
-            f"你最常观看的是{most_common[0]}(关键词: {', '.join(most_common[1]['key_words'])})相关的视频，共有{most_common[1]['count']}个"
-        ]
-    }
-
 def analyze_title_trends(cursor, table_name: str) -> dict:
     """分析标题趋势与观看行为的关系"""
     cursor.execute(f"""
@@ -528,132 +411,6 @@ def analyze_title_interaction(cursor, table_name: str) -> dict:
         ]
     }
 
-def analyze_title_duration_correlation(cursor, table_name: str) -> dict:
-    """分析标题特征与视频时长的关系"""
-    cursor.execute(f"""
-        SELECT title, duration, progress
-        FROM {table_name}
-        WHERE duration > 0 AND title IS NOT NULL
-        AND strftime('%Y', datetime(view_at, 'unixepoch')) = ?
-    """, (table_name.split('_')[-1],))
-    
-    # 按时长分组
-    duration_groups = {
-        '短视频(0-5分钟)': (0, 300),
-        '中等(5-15分钟)': (300, 900),
-        '长视频(15-30分钟)': (900, 1800),
-        '超长(30分钟以上)': (1800, float('inf'))
-    }
-    
-    duration_stats = defaultdict(lambda: {
-        'title_lengths': [],
-        'completion_rates': [],
-        'count': 0,
-        'keywords': Counter()
-    })
-    
-    for title, duration, progress in cursor.fetchall():
-        completion_rate = progress / duration if duration > 0 else 0
-        
-        # 确定时长分组
-        for group_name, (min_dur, max_dur) in duration_groups.items():
-            if min_dur <= duration < max_dur:
-                stats = duration_stats[group_name]
-                stats['title_lengths'].append(len(title))
-                stats['completion_rates'].append(completion_rate)
-                stats['count'] += 1
-                
-                # 提取关键词
-                words = jieba.cut(title)
-                stats['keywords'].update(w for w in words if len(w) > 1)
-                break
-    
-    results = {}
-    for group, stats in duration_stats.items():
-        if stats['count'] > 0:
-            results[group] = {
-                'avg_title_length': np.mean(stats['title_lengths']),
-                'avg_completion_rate': np.mean(stats['completion_rates']),
-                'count': stats['count'],
-                'top_keywords': stats['keywords'].most_common(5)
-            }
-    
-    best_duration = max(results.items(), key=lambda x: x[1]['avg_completion_rate'])
-    most_common = max(results.items(), key=lambda x: x[1]['count'])
-    
-    return {
-        'duration_stats': results,
-        'best_duration': best_duration[0],
-        'most_common_duration': most_common[0],
-        'insights': [
-            f"{best_duration[0]}类视频最容易被看完，平均完成率为{best_duration[1]['avg_completion_rate']:.1%}",
-            f"你最常观看{most_common[0]}的视频，共有{most_common[1]['count']}个"
-        ]
-    }
-
-def analyze_title_feature_combinations(cursor, table_name: str) -> dict:
-    """分析标题特征组合与观看行为的关系"""
-    cursor.execute(f"""
-        SELECT title, duration, progress, tag_name, view_at
-        FROM {table_name}
-        WHERE duration > 0 AND title IS NOT NULL
-        AND strftime('%Y', datetime(view_at, 'unixepoch')) = ?
-    """, (table_name.split('_')[-1],))
-    
-    titles_data = cursor.fetchall()
-    
-    # 获取标题模式
-    discovered_patterns = discover_title_patterns(titles_data)
-    
-    # 定义特征检测函数
-    def get_sentiment(title):
-        sentiment = SnowNLP(title).sentiments
-        if sentiment > 0.6:
-            return '积极'
-        elif sentiment < 0.4:
-            return '消极'
-        return '中性'
-    
-    def get_pattern(title):
-        for pattern_name, pattern_info in discovered_patterns.items():
-            if any(keyword in title for keyword in pattern_info['keywords']):
-                return pattern_name
-        return '其他'
-    
-    combination_stats = defaultdict(lambda: {'count': 0, 'completion_rates': []})
-    
-    for title, duration, progress, *_ in titles_data:
-        completion_rate = progress / duration if duration > 0 else 0
-        
-        # 获取标题特征组合
-        sentiment = get_sentiment(title)
-        pattern = get_pattern(title)
-        combination = f"{pattern}+{sentiment}"
-        
-        combination_stats[combination]['count'] += 1
-        combination_stats[combination]['completion_rates'].append(completion_rate)
-    
-    results = {}
-    for combination, stats in combination_stats.items():
-        if stats['count'] >= 5:  # 只分析样本量足够的组合
-            results[combination] = {
-                'count': stats['count'],
-                'avg_completion_rate': np.mean(stats['completion_rates'])
-            }
-    
-    best_combination = max(results.items(), key=lambda x: x[1]['avg_completion_rate'])
-    most_common = max(results.items(), key=lambda x: x[1]['count'])
-    
-    return {
-        'combination_stats': results,
-        'best_combination': best_combination[0],
-        'most_common_combination': most_common[0],
-        'insights': [
-            f"{best_combination[0]}组合的标题最容易被看完，平均完成率为{best_combination[1]['avg_completion_rate']:.1%}",
-            f"你最常看到的是{most_common[0]}组合的标题，共有{most_common[1]['count']}个视频"
-        ]
-    }
-
 def get_available_years():
     """获取数据库中所有可用的年份"""
     conn = get_db()
@@ -756,14 +513,10 @@ async def get_title_analytics(
         # 获取新增的分析结果
         length_analysis = analyze_title_length(cursor, table_name)
         sentiment_analysis = analyze_title_sentiment(cursor, table_name)
-        pattern_analysis = analyze_title_patterns(cursor, table_name)
-        cluster_analysis = analyze_title_clusters(cursor, table_name)
         trend_analysis = analyze_title_trends(cursor, table_name)
         
         # 新增分析维度
         interaction_analysis = analyze_title_interaction(cursor, table_name)
-        duration_correlation = analyze_title_duration_correlation(cursor, table_name)
-        feature_combinations = analyze_title_feature_combinations(cursor, table_name)
         
         # 构建完整响应
         response = {
@@ -775,12 +528,8 @@ async def get_title_analytics(
                 },
                 "length_analysis": length_analysis,
                 "sentiment_analysis": sentiment_analysis,
-                "pattern_analysis": pattern_analysis,
-                "cluster_analysis": cluster_analysis,
                 "trend_analysis": trend_analysis,
                 "interaction_analysis": interaction_analysis,
-                "duration_correlation": duration_correlation,
-                "feature_combinations": feature_combinations,
                 "insights": insights,
                 "year": target_year,
                 "available_years": available_years

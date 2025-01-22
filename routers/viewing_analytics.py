@@ -941,7 +941,7 @@ async def get_viewing_analytics(
         # 3. 每日时段分布（按小时统计）
         cursor.execute(f"""
             SELECT 
-                strftime('%H', datetime(view_at, 'unixepoch')) as hour,
+                strftime('%H', datetime(view_at + 28800, 'unixepoch')) as hour,
                 COUNT(*) as view_count
             FROM {table_name}
             GROUP BY hour
@@ -952,7 +952,7 @@ async def get_viewing_analytics(
         # 4. 最活跃时段TOP5
         cursor.execute(f"""
             SELECT 
-                strftime('%H', datetime(view_at, 'unixepoch')) as hour,
+                strftime('%H', datetime(view_at + 28800, 'unixepoch')) as hour,
                 COUNT(*) as view_count
             FROM {table_name}
             GROUP BY hour
