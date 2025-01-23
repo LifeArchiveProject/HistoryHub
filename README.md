@@ -146,3 +146,7 @@ MIT License
 
 - [bilibili-API-collect](https://github.com/SocialSisterYi/bilibili-API-collect)
 - 所有贡献者
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=LifeArchiveProject/HistoryHub&type=Date)](https://star-history.com/#LifeArchiveProject/HistoryHub&Date)
