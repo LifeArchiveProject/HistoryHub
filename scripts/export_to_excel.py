@@ -45,19 +45,22 @@ def safe_json_loads(value):
         logger.error(f"处理JSON时发生未知错误: {e}, 值为: {value}")
         return []
 
-def export_bilibili_history():
-    """导出B站历史记录到Excel文件"""
+def export_bilibili_history(year=None):
+    """导出B站历史记录到Excel文件
+    
+    Args:
+        year: 要导出的年份，如果不指定则使用当前年份
+    """
     full_db_file = get_output_path(config['db_file'])
-    current_year = get_current_year()
-    excel_file = get_output_path(f'bilibili_history_{current_year}.xlsx')
+    target_year = year if year is not None else get_current_year()
+    excel_file = get_output_path(f'bilibili_history_{target_year}.xlsx')
 
     conn = create_connection(full_db_file)
     if conn is None:
         return {"status": "error", "message": f"无法连接到数据库 {full_db_file}。数据库文件可能不存在。"}
 
     try:
-        current_year = get_current_year()
-        table_name = f"bilibili_history_{current_year}"
+        table_name = f"bilibili_history_{target_year}"
 
         # 检查表是否存在
         cursor = conn.cursor()

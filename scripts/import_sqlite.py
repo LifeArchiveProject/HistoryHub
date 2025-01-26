@@ -359,6 +359,8 @@ def import_all_history_files():
         # 遍历文件并导入
         total_files = 0
         total_records = 0
+        latest_timestamp = 0  # 记录最新的时间戳
+        latest_file = None  # 记录最新的文件
         
         # 获取所有JSON文件并按日期排序
         all_json_files = []
@@ -384,6 +386,11 @@ def import_all_history_files():
                         newest_view_at = max(item.get('view_at', 0) for item in data)
                         logger.info(f"文件中最新记录时间: {datetime.fromtimestamp(newest_view_at)}")
                         
+                        # 更新最新的时间戳
+                        if newest_view_at > latest_timestamp:
+                            latest_timestamp = newest_view_at
+                            latest_file = day_path
+                        
                         # 只有当存在上次导入记录时才进行时间判断
                         if last_import_time > 0 and newest_view_at <= last_import_time:
                             logger.info(f"跳过文件 {day_path} 及后续文件: 所有记录都早于上次导入时间")
@@ -398,11 +405,12 @@ def import_all_history_files():
                 total_records += inserted_count
                 file_insert_counts[day_path] = inserted_count
                 logger.info(f"成功插入 {inserted_count} 条记录")
-                
-                # 只有当成功插入记录时才更新导入记录
-                if last_record or total_records > 0:
-                    save_last_import_record(day_path, newest_view_at)
-
+        
+        # 在所有文件处理完成后，使用最新的时间戳更新导入记录
+        if total_records > 0 and latest_timestamp > 0:
+            save_last_import_record(latest_file, latest_timestamp)
+            logger.info(f"更新导入记录为最新时间戳: {datetime.fromtimestamp(latest_timestamp)}")
+        
         # 打印导入统计
         logger.info("\n=== 导入统计 ===")
         logger.info(f"处理文件总数: {total_files}")
