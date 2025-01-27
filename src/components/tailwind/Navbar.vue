@@ -1,139 +1,187 @@
 <template>
-  <div>
-    <nav class="fixed left-0 right-0 top-0 z-50 bg-white dark:bg-gray-800">
-      <!-- 顶部导航栏 -->
-      <div class="mx-auto max-w-7xl">
-        <div class="flex h-10 justify-between items-center">
-          <!-- Logo -->
-          <div class="flex-shrink-0 flex items-center">
-            <router-link to="/" class="flex items-center space-x-2">
-              <svg class="h-8 w-8 text-gray-900 dark:text-white hidden sm:block" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
-                <path fill="currentColor" d="M306.005333 117.632L444.330667 256h135.296l138.368-138.325333a42.666667 42.666667 0 0 1 60.373333 60.373333L700.330667 256H789.333333A149.333333 149.333333 0 0 1 938.666667 405.333333v341.333334a149.333333 149.333333 0 0 1-149.333334 149.333333h-554.666666A149.333333 149.333333 0 0 1 85.333333 746.666667v-341.333334A149.333333 149.333333 0 0 1 234.666667 256h88.96L245.632 177.962667a42.666667 42.666667 0 0 1 60.373333-60.373334zM789.333333 341.333333h-554.666666a64 64 0 0 0-63.701334 57.856L170.666667 405.333333v341.333334a64 64 0 0 0 57.856 63.701333L234.666667 810.666667h554.666666a64 64 0 0 0 63.701334-57.856L853.333333 746.666667v-341.333334A64 64 0 0 0 789.333333 341.333333zM341.333333 469.333333a42.666667 42.666667 0 0 1 42.666667 42.666667v85.333333a42.666667 42.666667 0 0 1-85.333333 0v-85.333333a42.666667 42.666667 0 0 1 42.666666-42.666667z m341.333334 0a42.666667 42.666667 0 0 1 42.666666 42.666667v85.333333a42.666667 42.666667 0 0 1-85.333333 0v-85.333333a42.666667 42.666667 0 0 1 42.666667-42.666667z"></path>
-              </svg>
-              <span class="text-lg font-semibold text-gray-900 dark:text-white hidden sm:block">B站历史记录</span>
-            </router-link>
-          </div>
-
+  <div class="sticky top-0 z-50">
+    <nav class="bg-white lg:pt-4">
+      <div class="mx-auto max-w-4xl">
+        <div class="flex h-10 items-center gap-2 sm:gap-6 px-2">
           <!-- 搜索框 -->
-          <div class="flex-1 max-w-2xl smd:mx-4 mx-2">
+          <div class="flex-1 max-w-[85%]">
             <SearchBar />
           </div>
 
           <!-- 实时更新按钮 -->
-          <div class="flex-shrink-0 smd:mr-4 ml-4">
-            <button
-              @click="handleUpdate"
-              :disabled="isUpdating"
-              class="inline-flex h-8 sm:h-10 items-center text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-300 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+          <button
+            @click="handleUpdate"
+            :disabled="isUpdating"
+            class="flex items-center px-2 sm:px-3 py-2 text-gray-700 hover:text-[#fb7299] transition-colors duration-200 whitespace-nowrap"
+          >
+            <svg
+              :class="{'animate-spin': isUpdating}"
+              class="w-5 h-5"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
             >
-              <svg
-                :class="{'animate-spin': isUpdating}"
-                class="w-4 h-4 sm:w-5 sm:h-5"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  v-if="isUpdating"
-                  class="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  stroke-width="4"
-                ></circle>
-                <path
-                  v-if="isUpdating"
-                  class="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                ></path>
-                <path
-                  v-if="!isUpdating"
-                  stroke="currentColor"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                ></path>
-              </svg>
-              <span class="hidden sm:inline ml-1">{{ isUpdating ? '更新中' : '实时更新' }}</span>
-            </button>
-          </div>
-
-          <!-- 隐私模式切换按钮 -->
-          <div class="flex-shrink-0 mx-4">
-            <button
-              @click="togglePrivacyMode"
-              class="inline-flex h-8 sm:h-10 items-center text-gray-600 dark:text-gray-300 hover:text-[#FF6699] transition-colors duration-300 text-sm"
-            >
-              <svg
-                class="w-4 h-4 sm:w-5 sm:h-5"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
+              <circle
+                v-if="isUpdating"
+                class="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
                 stroke="currentColor"
-                :class="{ 'text-[#FF6699]': isPrivacyMode }"
-              >
-                <path
-                  v-if="isPrivacyMode"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                />
-                <path
-                  v-if="isPrivacyMode"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                />
-                <path
-                  v-else
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
-                />
-              </svg>
-              <span class="hidden sm:inline ml-1">{{ isPrivacyMode ? '退出隐私模式' : '隐私模式' }}</span>
-            </button>
-          </div>
+                stroke-width="4"
+              ></circle>
+              <path
+                v-if="isUpdating"
+                class="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
+              <path
+                v-if="!isUpdating"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+              ></path>
+            </svg>
+            <span class="ml-2 hidden sm:inline">{{ isUpdating ? '更新中' : '实时更新' }}</span>
+          </button>
 
-          <!-- 年度总结入口（桌面端） -->
-          <div class="flex-shrink-0 hidden sm:block">
-            <router-link
-              to="/analytics"
-              class="inline-flex h-8 sm:h-10 items-center rounded-lg border border-transparent px-2 sm:px-3 text-sm text-white bg-gradient-to-r from-[#FF6699] to-[#FF9966] hover:from-[#FF5588] hover:to-[#FF8855] transition-all duration-300"
+          <!-- 隐私模式按钮 -->
+          <button
+            @click="togglePrivacyMode"
+            class="sm:hidden flex items-center px-3 py-2 text-gray-700 hover:text-[#fb7299] transition-colors duration-200 whitespace-nowrap"
+          >
+            <svg 
+              class="w-5 h-5" 
+              fill="none" 
+              viewBox="0 0 256 256"
+              :stroke="isPrivacyMode ? '#fb7299' : 'currentColor'"
             >
-              <svg class="w-4 h-4 sm:w-5 sm:h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              <path 
+                d="M128,56C48,56,8,128,8,128s40,72,120,72s120-72,120-72S208,56,128,56Z" 
+                :class="isPrivacyMode ? 'hidden' : 'block'"
+                fill="none" 
+                stroke-linecap="round" 
+                stroke-linejoin="round" 
+                stroke-width="16"
+              />
+              <circle 
+                cx="128" 
+                cy="128" 
+                r="32"
+                :class="isPrivacyMode ? 'hidden' : 'block'"
+                fill="none" 
+                stroke-linecap="round" 
+                stroke-linejoin="round" 
+                stroke-width="16"
+              />
+              <path 
+                d="M48,40L208,216"
+                :class="isPrivacyMode ? 'block' : 'hidden'"
+                fill="none" 
+                stroke-linecap="round" 
+                stroke-linejoin="round" 
+                stroke-width="16"
+              />
+              <path 
+                d="M154.9,157.6A32,32,0,0,1,97.6,100.3"
+                :class="isPrivacyMode ? 'block' : 'hidden'"
+                fill="none" 
+                stroke-linecap="round" 
+                stroke-linejoin="round" 
+                stroke-width="16"
+              />
+              <path 
+                d="M183.9,186.1C165.9,197.5,147.2,204,128,204,48,204,8,132,8,132s15.3-27.4,41.9-48.5"
+                :class="isPrivacyMode ? 'block' : 'hidden'"
+                fill="none" 
+                stroke-linecap="round" 
+                stroke-linejoin="round" 
+                stroke-width="16"
+              />
+              <path 
+                d="M90.1,97.5a38.5,38.5,0,0,0-1.1,4.5"
+                :class="isPrivacyMode ? 'block' : 'hidden'"
+                fill="none" 
+                stroke-linecap="round" 
+                stroke-linejoin="round" 
+                stroke-width="16"
+              />
+              <path 
+                d="M165.8,166.2a37.2,37.2,0,0,0,4.2-1.2"
+                :class="isPrivacyMode ? 'block' : 'hidden'"
+                fill="none" 
+                stroke-linecap="round" 
+                stroke-linejoin="round" 
+                stroke-width="16"
+              />
+            </svg>
+          </button>
+
+          <!-- 布局切换按钮 -->
+          <div class="hidden sm:flex items-center border border-gray-200/50 rounded-lg">
+            <button
+              @click="$emit('change-layout', 'list')"
+              class="px-2 py-2 transition-colors duration-200"
+              :class="layout === 'list' ? 'text-[#fb7299]' : 'text-gray-600 hover:text-[#fb7299]'"
+            >
+              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
               </svg>
-              <span>年度总结</span>
-            </router-link>
+            </button>
+            <button
+              @click="$emit('change-layout', 'grid')"
+              class="px-2 py-2 transition-colors duration-200"
+              :class="layout === 'grid' ? 'text-[#fb7299]' : 'text-gray-600 hover:text-[#fb7299]'"
+            >
+              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+              </svg>
+            </button>
           </div>
         </div>
       </div>
 
       <!-- 筛选栏位 -->
-      <div class="bg-white dark:bg-gray-800">
-        <div class="mx-auto max-w-4xl px-2">
-          <div class="py-2 flex justify-between text-lg text-gray-700 dark:text-gray-300 lm:text-sm">
-            <div class="space-x-1" @click="$emit('click-date')">
+      <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md dark:border-gray-700">
+        <div class="mx-auto max-w-4xl">
+          <div class="p-2 grid grid-cols-3 gap-4 text-lg text-gray-700 dark:text-gray-300 lm:text-sm">
+            <!-- 日期区间 -->
+            <div class="flex items-center justify-start space-x-1 cursor-pointer hover:text-[#fb7299] transition-colors duration-200" @click="$emit('click-date')">
               <span>日期区间:</span>
-              <span class="text-xs text-[#FF6699]">{{ date }}</span>
+              <span class="text-xs text-[#FF6699]">{{ date || '全部' }}</span>
+              <button
+                v-if="date"
+                @click.stop="clearDate"
+                class="text-gray-400 hover:text-[#fb7299] transition-colors duration-200"
+              >
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <!-- 视频分区 -->
+            <div class="flex items-center justify-center space-x-1 cursor-pointer hover:text-[#fb7299] transition-colors duration-200" @click="$emit('click-category')">
+              <span>视频分区:</span>
+              <span class="text-xs text-[#FF6699]">{{ category || '全部' }}</span>
+              <button
+                v-if="category"
+                @click.stop="clearCategory"
+                class="text-gray-400 hover:text-[#fb7299] transition-colors duration-200"
+              >
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
             </div>
 
             <!-- 总计视频数量显示 -->
-            <div class="space-x-1">
+            <div class="flex items-center justify-end space-x-1 text-lg text-gray-700 dark:text-gray-300 lm:text-sm">
               <span>总视频数:</span>
               <span class="text-xs text-[#FF6699]">{{ total }}</span>
-            </div>
-
-            <div class="space-x-1" @click="$emit('click-category')">
-              <span>视频分区:</span>
-              <span class="text-xs text-[#FF6699]">{{ category || '全部分区' }}</span>
             </div>
           </div>
         </div>
@@ -147,8 +195,8 @@ import SearchBar from './SearchBar.vue'
 import { ref } from 'vue'
 import { updateBiliHistoryRealtime } from '../../api/api'
 import { showNotify } from 'vant'
-import 'vant/es/notify/style'
 import { usePrivacyStore } from '../../store/privacy'
+import 'vant/es/notify/style'
 
 const props = defineProps({
   date: {
@@ -156,17 +204,35 @@ const props = defineProps({
     default: ''
   },
   total: {
-    type: [Number, String],
+    type: Number,
     default: 0
   },
   category: {
     type: String,
     default: ''
+  },
+  isUpdating: {
+    type: Boolean,
+    default: false
+  },
+  layout: {
+    type: String,
+    default: 'list'
   }
 })
 
-const emit = defineEmits(['refresh-data', 'click-date', 'click-category'])
+const emit = defineEmits([
+  'click-date', 
+  'click-category', 
+  'change-layout',
+  'update:date',
+  'update:category',
+  'refresh-data'
+])
+
 const isUpdating = ref(false)
+
+// 隐私模式状态
 const { isPrivacyMode, togglePrivacyMode } = usePrivacyStore()
 
 const handleUpdate = async () => {
@@ -220,6 +286,19 @@ const handleUpdate = async () => {
     console.log('更新流程结束')
     isUpdating.value = false
   }
+}
+
+// 添加单独的清除方法
+const clearDate = () => {
+  console.log('清除日期')
+  emit('update:date', '')
+  emit('refresh-data')
+}
+
+const clearCategory = () => {
+  console.log('清除分区')
+  emit('update:category', '')
+  emit('refresh-data')
 }
 </script>
 

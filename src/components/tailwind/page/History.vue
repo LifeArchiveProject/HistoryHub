@@ -1,81 +1,108 @@
 <template>
-  <div>
-    <!-- 导航栏 -->
-    <Navbar
-      @refresh-data="refreshData"
-      :date="date"
-      :total="total"
-      :category="category"
-      @click-date="show = true"
-      @click-category="showBottom = true"
-    />
-
+  <Sidebar @change-content="currentContent = $event">
     <!-- 主要内容区域 -->
-    <div class="pt-[4.5em] smd:pt-20">
-      <div class="mx-auto max-w-7xl sm:px-2 lg:px-8">
-        <div class="">
-          <HistoryContent
-            ref="historyContentRef"
-            :selected-year="selectedYear"
-            :page="page"
-            @update:total-pages="totalPages = $event"
-            @update:total="total = $event"
-            @update:date="date = $event"
-            @update:category="category = $event"
-            v-model:show="show"
-            v-model:showBottom="showBottom"
-          />
-        </div>
+    <div class="h-screen overflow-y-auto">
+      <!-- 导航栏 -->
+      <Navbar
+        v-if="currentContent === 'history'"
+        @refresh-data="refreshData"
+        v-model:date="date"
+        v-model:category="category"
+        :total="total"
+        @click-date="show = true"
+        @click-category="showBottom = true"
+        :layout="layout"
+        @change-layout="layout = $event"
+      />
 
-        <!-- 分页组件 -->
-        <div class="mx-auto mb-5 mt-8 max-w-4xl">
-          <Pagination :current-page="page" :total-pages="totalPages" :use-routing="true" />
+      <!-- 内容区域 -->
+      <div>
+        <div class="mx-auto max-w-7xl sm:px-2 lg:px-8">
+          <div class="">
+            <!-- 历史记录内容 -->
+            <HistoryContent
+              v-if="currentContent === 'history'"
+              ref="historyContentRef"
+              :selected-year="selectedYear"
+              :page="page"
+              @update:total-pages="totalPages = $event"
+              @update:total="total = $event"
+              @update:date="date = $event"
+              @update:category="category = $event"
+              v-model:show="show"
+              v-model:showBottom="showBottom"
+              :layout="layout"
+              :date="date"
+              :category="category"
+            />
+
+            <!-- 设置内容 -->
+            <Settings v-else-if="currentContent === 'settings'" />
+          </div>
+
+          <!-- 分页组件 -->
+          <div v-if="currentContent === 'history'" class="mx-auto mb-5 mt-8 max-w-4xl">
+            <Pagination :current-page="page" :total-pages="totalPages" :use-routing="true" />
+          </div>
         </div>
       </div>
     </div>
-  </div>
+  </Sidebar>
 </template>
 
 <script setup>
 import { ref, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import Navbar from '../Navbar.vue'
+import Sidebar from '../Sidebar.vue'
 import HistoryContent from '../HistoryContent.vue'
 import Pagination from '../Pagination.vue'
+import Settings from '../Settings.vue'
+
+// 当前显示的内容
+const currentContent = ref('history')
 
 // 路由对象
 const router = useRouter()
 const route = useRoute()
 
-// 状态变量
+// 状态
 const page = ref(1)
-const totalPages = ref(0)
-const total = ref(0)
-const currentYear = new Date().getFullYear()
-const selectedYear = ref(currentYear)
-const historyContentRef = ref(null)
-const date = ref('')
-const category = ref('')
+const totalPages = ref(1)
+const selectedYear = ref(new Date().getFullYear())
 const show = ref(false)
 const showBottom = ref(false)
+const date = ref('')
+const total = ref(0)
+const category = ref('')
+const layout = ref('list')
 
-// 刷新数据的方法
+// 组件引用
+const historyContentRef = ref(null)
+
+// 刷新数据方法
 const refreshData = async () => {
+  console.log('History - refreshData 被调用')
+  console.log('当前日期:', date.value)
+  console.log('当前分区:', category.value)
   try {
-    console.log('开始刷新数据')
-    console.log('historyContentRef:', historyContentRef.value)
-
-    if (historyContentRef.value) {
-      console.log('可用的方法:', Object.keys(historyContentRef.value))
+    if (historyContentRef.value && typeof historyContentRef.value.fetchHistoryByDateRange === 'function') {
       await historyContentRef.value.fetchHistoryByDateRange()
-      console.log('数据刷新完成')
     } else {
-      console.warn('historyContentRef 不存在')
+      console.error('刷新数据失败: HistoryContent 组件的 fetchHistoryByDateRange 方法不可用')
     }
   } catch (error) {
     console.error('刷新数据失败:', error)
   }
 }
+
+// 监听 date 和 category 的变化
+watch([date, category], ([newDate, newCategory], [oldDate, oldCategory]) => {
+  console.log('History - date/category 变化:', {
+    date: { old: oldDate, new: newDate },
+    category: { old: oldCategory, new: newCategory }
+  })
+})
 
 // 组件挂载时获取数据
 onMounted(() => {
@@ -107,6 +134,19 @@ watch(
       if (page.value !== pageNum) {
         page.value = pageNum
       }
+    }
+  },
+  { immediate: true }
+)
+
+// 监听路由变化
+watch(
+  () => route.path,
+  (path) => {
+    if (path === '/settings') {
+      currentContent.value = 'settings'
+    } else if (path === '/' || path.startsWith('/page/')) {
+      currentContent.value = 'history'
     }
   },
   { immediate: true }

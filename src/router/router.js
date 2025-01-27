@@ -27,6 +27,11 @@ const routes = [
     name: 'AnimatedAnalytics',
     component: AnimatedAnalytics,
   },
+  {
+    path: '/settings',
+    name: 'Settings',
+    component: History,
+  }
 ]
 
 // 创建路由实例的工厂函数

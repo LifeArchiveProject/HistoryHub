@@ -21,31 +21,147 @@
 
     <!-- 视频记录列表 -->
     <div>
-      <template v-for="(record, index) in records" :key="record.id">
-        <!-- 日期分割线和视频数量 -->
-        <div v-if="shouldShowDivider(index)" class="relative py-1 max-w-4xl mx-auto">
-          <div class="px-2">
-            <div class="relative">
-              <div class="absolute inset-0 flex items-center" aria-hidden="true">
-                <div class="w-full border-t border-gray-300" />
-              </div>
-              <div class="relative flex items-center justify-between">
-                <div class="bg-white dark:bg-gray-800 pr-3">
-                <span class="lm:text-xs">
-                  {{ formatDividerDate(record.view_at) }}
-                </span>
+      <!-- 网格布局（仅PC端） -->
+      <div v-if="layout === 'grid'" class="hidden sm:grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 px-4">
+        <template v-for="(record, index) in records" :key="`grid-${record.id}-${record.view_at}`">
+          <!-- 日期分割线和视频数量 -->
+          <div v-if="shouldShowDivider(index)" class="col-span-full relative py-1">
+            <div class="px-2">
+              <div class="relative">
+                <div class="absolute inset-0 flex items-center" aria-hidden="true">
+                  <div class="w-full border-t border-gray-300" />
                 </div>
-                <div class="bg-white dark:bg-gray-800 pl-3">
-                <span class="lm:text-xs text-[#FF6699]">
-                  {{ getDailyStatsForDate(record.view_at) }}个视频
-                </span>
+                <div class="relative flex items-center justify-between">
+                  <div class="bg-white dark:bg-gray-800 pr-3">
+                    <span class="lm:text-xs">
+                      {{ formatDividerDate(record.view_at) }}
+                    </span>
+                  </div>
+                  <div class="bg-white dark:bg-gray-800 pl-3">
+                    <span class="lm:text-xs text-[#FF6699]">
+                      {{ getDailyStatsForDate(record.view_at) }}个视频
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-        <VideoRecord :record="record" />
-      </template>
+
+          <!-- 网格布局的视频卡片 -->
+          <div class="bg-white/50 dark:bg-white/5 backdrop-blur-sm rounded-lg overflow-hidden border border-gray-200/50 hover:border-[#FF6699] hover:shadow-md transition-all duration-200"
+               >
+            <!-- 封面图片 -->
+            <div class="relative aspect-video cursor-pointer" @click="handleVideoClick(record)">
+              <img
+                :src="record.cover || record.covers?.[0]"
+                class="w-full h-full object-cover transition-all duration-300"
+                :class="{ 'blur-md': isPrivacyMode }"
+                alt=""
+              />
+              <!-- 视频进度条 -->
+              <div v-if="record.business !== 'article-list' && record.business !== 'article' && record.business !== 'live'"
+                   class="absolute bottom-0 left-0 w-full">
+                <div class="absolute bottom-1 right-1 rounded bg-black/50 px-1 py-1 text-[10px] font-semibold text-white">
+                  <span>{{ formatDuration(record.progress) }}</span>
+                  <span>/</span>
+                  <span>{{ formatDuration(record.duration) }}</span>
+                </div>
+                <div class="absolute bottom-0 left-0 h-0.5 w-full bg-black">
+                  <div class="h-full bg-[#FF6699]"
+                       :style="{ width: getProgressWidth(record.progress, record.duration) }">
+                  </div>
+                </div>
+              </div>
+              <!-- 类型标签 -->
+              <div v-if="record.business !== 'archive'"
+                   class="absolute right-1 top-1 rounded bg-[#FF6699] px-1 py-0.5 text-[10px] text-white">
+                {{ getBusinessType(record.business) }}
+              </div>
+            </div>
+            <!-- 视频信息 -->
+            <div class="p-3 flex flex-col space-y-1">
+              <!-- 标题 - 单行显示 -->
+              <div class="line-clamp-1 text-sm text-gray-900 cursor-pointer"
+                   v-html="isPrivacyMode ? '******' : highlightText(record.title)"
+                   :class="{ 'blur-sm': isPrivacyMode }"
+                   @click="handleVideoClick(record)">
+              </div>
+              <!-- 分区标签 - 单行显示 -->
+              <div class="text-xs text-gray-500 truncate flex items-center space-x-1">
+                <span class="inline-flex items-center rounded-md bg-[#f1f2f3] px-2 py-1 text-xs text-[#71767d]">
+                  {{ record.business === 'archive' ? record.tag_name : getBusinessType(record.business) }}
+                </span>
+                <span v-if="record.business === 'archive'" class="text-gray-400">·</span>
+                <span v-if="record.business === 'archive' && record.name" class="text-[#71767d]">{{ record.name }}</span>
+              </div>
+              <!-- UP主和时间信息 - 单行显示 -->
+              <div class="flex items-center justify-between text-xs text-gray-600">
+                <div class="flex items-center space-x-2 min-w-0 flex-1">
+                  <img v-if="record.business !== 'cheese' && record.business !== 'pgc'"
+                       :src="record.author_face"
+                       :class="{ 'blur-md': isPrivacyMode }"
+                       class="w-4 h-4 rounded-full flex-shrink-0 cursor-pointer"
+                       @click="handleAuthorClick(record)"
+                       :title="isPrivacyMode ? '隐私模式已开启' : `访问 ${record.author_name} 的个人空间`"
+                  />
+                  <span v-html="isPrivacyMode ? '******' : highlightText(record.author_name)"
+                        :class="{ 'blur-sm': isPrivacyMode }"
+                        class="cursor-pointer hover:text-[#fb7299] transition-colors duration-200 truncate"
+                        @click="handleAuthorClick(record)">
+                  </span>
+                </div>
+                <div class="flex items-center space-x-2 flex-shrink-0">
+                  <img v-if="record.dt === 1 || record.dt === 3 || record.dt === 5 || record.dt === 7"
+                       src="/Mobile.svg"
+                       alt="Mobile"
+                       class="h-4 w-4"
+                  />
+                  <img v-else-if="record.dt === 2 || record.dt === 33"
+                       src="/PC.svg"
+                       alt="PC"
+                       class="h-4 w-4"
+                  />
+                  <img v-else-if="record.dt === 4 || record.dt === 6"
+                       src="/Pad.svg"
+                       alt="Pad"
+                       class="h-4 w-4"
+                  />
+                  <span>{{ formatTimestamp(record.view_at) }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </template>
+      </div>
+
+      <!-- 列表布局（移动端始终显示，PC端在list模式下显示） -->
+      <div :class="{'sm:hidden': layout === 'grid'}">
+        <template v-for="(record, index) in records" :key="`list-${record.id}-${record.view_at}`">
+          <!-- 日期分割线和视频数量 -->
+          <div v-if="shouldShowDivider(index)" class="relative py-1 max-w-4xl mx-auto">
+            <div class="px-2">
+              <div class="relative">
+                <div class="absolute inset-0 flex items-center" aria-hidden="true">
+                  <div class="w-full border-t border-gray-300" />
+                </div>
+                <div class="relative flex items-center justify-between">
+                  <div class="bg-white dark:bg-gray-800 pr-3">
+                    <span class="lm:text-xs">
+                      {{ formatDividerDate(record.view_at) }}
+                    </span>
+                  </div>
+                  <div class="bg-white dark:bg-gray-800 pl-3">
+                    <span class="lm:text-xs text-[#FF6699]">
+                      {{ getDailyStatsForDate(record.view_at) }}个视频
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <VideoRecord :record="record" />
+        </template>
+      </div>
     </div>
 
     <!-- 日期选择日历 -->
@@ -89,6 +205,9 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { getBiliHistory2024, getMainCategories, getDailyStats } from '../../api/api.js'
 import VideoRecord from './VideoRecord.vue'
 import VideoCategories from './VideoCategories.vue'
+import { usePrivacyStore } from '../../store/privacy'
+
+const { isPrivacyMode } = usePrivacyStore()
 
 const props = defineProps({
   selectedYear: {
@@ -107,6 +226,22 @@ const props = defineProps({
     type: Boolean,
     required: true,
   },
+  layout: {
+    type: String,
+    default: 'list'
+  },
+  searchKeyword: {
+    type: String,
+    default: ''
+  },
+  date: {
+    type: String,
+    default: ''
+  },
+  category: {
+    type: String,
+    default: ''
+  }
 })
 
 const emit = defineEmits([
@@ -210,6 +345,16 @@ const onConfirm = (values) => {
 
 // 数据获取函数
 const fetchHistoryByDateRange = async () => {
+  console.log('HistoryContent - fetchHistoryByDateRange 被调用')
+  console.log('参数:', {
+    page: props.page,
+    size: size.value,
+    sortOrder: sortOrder.value,
+    tagName: tagName.value,
+    mainCategory: mainCategory.value,
+    dateRange: dateRange.value
+  })
+
   try {
     records.value = []
     const response = await getBiliHistory2024(
@@ -218,8 +363,10 @@ const fetchHistoryByDateRange = async () => {
       sortOrder.value,
       tagName.value,
       mainCategory.value,
-      dateRange.value,
+      dateRange.value || '',
     )
+
+    console.log('API 响应:', response.data)
 
     if (response.data && response.data.data) {
       total.value = response.data.data.total
@@ -240,10 +387,34 @@ const fetchHistoryByDateRange = async () => {
 watch(
   () => [props.selectedYear, props.page],
   () => {
-    if (dateRange.value) {
+    console.log('HistoryContent - 年份或页码变化')
+    fetchHistoryByDateRange()
+  },
+)
+
+// 监听父组件的 date 变化
+watch(
+  () => props.date,
+  (newDate) => {
+    console.log('HistoryContent - date prop 变化:', newDate)
+    if (!newDate) {
+      dateRange.value = ''
       fetchHistoryByDateRange()
     }
-  },
+  }
+)
+
+// 监听父组件的 category 变化
+watch(
+  () => props.category,
+  (newCategory) => {
+    console.log('HistoryContent - category prop 变化:', newCategory)
+    if (!newCategory) {
+      tagName.value = ''
+      mainCategory.value = ''
+      fetchHistoryByDateRange()
+    }
+  }
 )
 
 // 获取每日统计数据
@@ -298,9 +469,7 @@ const getDailyStatsForDate = (timestamp) => {
 
 onMounted(async () => {
   await fetchMainCategories()
-  const today = new Date()
-  const startOfYear = new Date(props.selectedYear, 0, 1)
-  onConfirm([startOfYear, today])
+  fetchHistoryByDateRange()
 })
 
 // 暴露方法给父组件
@@ -327,4 +496,116 @@ const shouldShowDivider = (index) => {
     currentDate.getMonth() !== prevDate.getMonth() ||
     currentDate.getFullYear() !== prevDate.getFullYear()
 }
+
+// 处理视频点击
+const handleVideoClick = (record) => {
+  let url = ''
+
+  switch (record.business) {
+    case 'archive':
+      url = `https://www.bilibili.com/video/${record.bvid}`
+      break
+    case 'article':
+      url = `https://www.bilibili.com/read/cv${record.oid}`
+      break
+    case 'article-list':
+      url = `https://www.bilibili.com/read/readlist/rl${record.oid}`
+      break
+    case 'live':
+      url = `https://live.bilibili.com/${record.oid}`
+      break
+    case 'pgc':
+      url = record.uri || `https://www.bilibili.com/bangumi/play/ep${record.epid}`
+      break
+    case 'cheese':
+      url = record.uri || `https://www.bilibili.com/cheese/play/ep${record.epid}`
+      break
+    default:
+      console.warn('未知的业务类型:', record.business)
+      return
+  }
+
+  if (url) {
+    window.open(url, '_blank')
+  }
+}
+
+// 处理UP主点击
+const handleAuthorClick = (record) => {
+  const url = `https://space.bilibili.com/${record.author_mid}`
+  window.open(url, '_blank')
+}
+
+// 格式化时长
+const formatDuration = (seconds) => {
+  if (seconds === -1) return '已看完'
+  const minutes = String(Math.floor(seconds / 60)).padStart(2, '0')
+  const secs = String(seconds % 60).padStart(2, '0')
+  return `${minutes}:${secs}`
+}
+
+// 获取业务类型
+const getBusinessType = (business) => {
+  const businessTypes = {
+    archive: '稿件',
+    cheese: '课堂',
+    pgc: '电影',
+    live: '直播',
+    'article-list': '专栏',
+    article: '专栏',
+  }
+  return businessTypes[business] || '其他类型'
+}
+
+// 获取进度条宽度
+const getProgressWidth = (progress, duration) => {
+  if (progress === -1) return '100%'
+  if (duration === 0) return '0%'
+  return `${(progress / duration) * 100}%`
+}
+
+// 格式化时间戳
+const formatTimestamp = (timestamp) => {
+  if (!timestamp) {
+    console.warn('Invalid timestamp:', timestamp)
+    return '时间未知'
+  }
+
+  try {
+    const date = new Date(timestamp * 1000)
+    const now = new Date()
+
+    if (isNaN(date.getTime())) {
+      console.warn('Invalid date from timestamp:', timestamp)
+      return '时间未知'
+    }
+
+    const isToday = now.toDateString() === date.toDateString()
+    const isYesterday =
+      new Date(now.setDate(now.getDate() - 1)).toDateString() === date.toDateString()
+    const timeString = date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
+
+    if (isToday) {
+      return timeString
+    } else if (isYesterday) {
+      return `昨天 ${timeString}`
+    } else if (now.getFullYear() === date.getFullYear()) {
+      return `${date.getMonth() + 1}-${date.getDate()} ${timeString}`
+    } else {
+      return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()} ${timeString}`
+    }
+  } catch (error) {
+    console.error('Error formatting timestamp:', error)
+    return '时间未知'
+  }
+}
+
+// 高亮显示匹配的文本
+const highlightText = (text) => {
+  if (!props.searchKeyword || !text) return text
+
+  const regex = new RegExp(props.searchKeyword, 'gi')
+  return text.replace(regex, match => `<span class="text-[#FF6699]">${match}</span>`)
+}
+
 </script>
