@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 // 你的服务器地址
-// const BASE_URL = 'http://localhost:8899'
+const BASE_URL = 'http://localhost:8899'
 
 // 创建一个 axios 实例
 const instance = axios.create({
