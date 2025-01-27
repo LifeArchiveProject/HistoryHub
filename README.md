@@ -39,38 +39,50 @@
   - 视频分类标签
   - 一键跳转原视频
 
-### 2. 数据分析页面（部分页面涉及到隐私就不截图了）
+### 2. 设置页面
+<img src="./public/setting.png" alt="">
 
-#### 2.1 开场页（HeroPage）
+- **数据导出**：
+  - 支持按年份导出历史记录到 Excel
+  - 导出过程状态实时反馈
+  - 自动下载导出的文件
+- **数据库下载**：
+  - 支持下载完整的 SQLite 数据库文件
+  - 包含所有历史记录数据
+  - 方便本地备份和高级查询
+
+### 3. 数据分析页面（部分页面涉及到隐私就不截图了）
+
+#### 3.1 开场页（HeroPage）
 <img src="public/HeroPage.png" alt="">
 
-#### 2.2 数据概览（OverviewPage）
+#### 3.2 数据概览（OverviewPage）
 <img src="./public/OverviewPage.png" alt="">
 
-#### 2.3 连续观看分析（StreakPage）
+#### 3.3 连续观看分析（StreakPage）
 <img src="./public/StreakPage.png">
 
-#### 2.4 时间分析（TimeAnalysisPage）
+#### 3.4 时间分析（TimeAnalysisPage）
 <img src="./public/TimeAnalysisPage.png">
 
-#### 2.5 重复观看分析（RewatchPage）
+#### 3.5 重复观看分析（RewatchPage）
 <img src="./public/RewatchPage.png">
 
-#### 2.6 整体完成率分析（OverallCompletionPage）
+#### 3.6 整体完成率分析（OverallCompletionPage）
 <img src="./public/OverallCompletionPage.png">
 
-#### 2.7 UP主完成率分析（AuthorCompletionPage）
+#### 3.7 UP主完成率分析（AuthorCompletionPage）
 <img src="./public/AuthorCompletionPage.png">
 
-#### 2.8 标签分析（TagsPage）
+#### 3.8 标签分析（TagsPage）
 
-#### 2.9 时间分布分析（TimeDistributionPage）
+#### 3.9 时间分布分析（TimeDistributionPage）
 
-#### 2.10 月度趋势分析（MonthlyPage）
+#### 3.10 月度趋势分析（MonthlyPage）
 
-#### 2.11 视频时长分析（DurationAnalysisPage）
+#### 3.11 视频时长分析（DurationAnalysisPage）
 
-#### 2.12 标题分析（TitleAnalysisPage）
+#### 3.12 标题分析（TitleAnalysisPage）
 
 ## 技术栈
 
@@ -96,7 +108,7 @@
 
 1. 克隆项目
 ```bash
-git clone [项目地址]
+git clone https://github.com/LifeArchiveProject/BiliHistoryFrontend.git
 cd BilibiliHistoryFrontend
 ```
 
