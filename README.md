@@ -171,7 +171,7 @@ BilibiliHistoryFrontend/
 
 1. 首先需要运行 [BilibiliHistoryFetcher](https://github.com/LifeArchiveProject/HistoryHub) 后端服务
 2. 启动本前端应用
-3. 登录B站账号（通过后端服务）
+3. 扫码登录B站账号
 4. 开始浏览和分析您的B站观看历史数据
 
 ## 贡献指南
