@@ -23,7 +23,8 @@ from routers import (
     viewing_analytics,
     title_analytics,
     daily_count,
-    login
+    login,
+    delete_history
 )
 from scripts.scheduler_manager import SchedulerManager
 from scripts.utils import load_config
@@ -237,6 +238,7 @@ app.include_router(viewing_analytics.router, prefix="/viewing-analytics", tags=[
 app.include_router(title_analytics.router, prefix="/title-analytics", tags=["TitleAnalytics"])
 app.include_router(daily_count.router, prefix="/stats", tags=["统计数据"])
 app.include_router(login.router, prefix="/login", tags=["Login"])
+app.include_router(delete_history.router, prefix="/history", tags=["History"])
 
 # 入口点，启动应用
 if __name__ == "__main__":

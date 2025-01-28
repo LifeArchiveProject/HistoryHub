@@ -88,7 +88,7 @@ def save_history(history_data, base_folder='history_by_date'):
 
         file_path = os.path.join(folder_path, f"{day}.json")
 
-        existing_oids = set()
+        existing_records = set()  # 使用集合存储bvid和view_at的组合
         if os.path.exists(file_path):
             try:
                 # 尝试不同的编码方式读取
@@ -96,7 +96,11 @@ def save_history(history_data, base_folder='history_by_date'):
                     try:
                         with open(file_path, 'r', encoding=encoding) as f:
                             daily_data = json.load(f)
-                            existing_oids = {item['history']['oid'] for item in daily_data}
+                            # 将bvid和view_at组合作为唯一标识
+                            existing_records = {
+                                (item['history']['bvid'], item['view_at']) 
+                                for item in daily_data
+                            }
                             break
                     except UnicodeDecodeError:
                         continue
@@ -108,9 +112,11 @@ def save_history(history_data, base_folder='history_by_date'):
         else:
             daily_data = []
 
-        if entry['history']['oid'] not in existing_oids:
+        # 检查当前记录的bvid和view_at组合是否已存在
+        current_record = (entry['history']['bvid'], entry['view_at'])
+        if current_record not in existing_records:
             daily_data.append(entry)
-            existing_oids.add(entry['history']['oid'])
+            existing_records.add(current_record)
             saved_count += 1
 
         # 保存时使用 utf-8 编码

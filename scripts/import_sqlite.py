@@ -205,6 +205,15 @@ def import_data_from_json(conn, table_name, file_path, last_import_time=0, batch
         data_by_year = {}
         has_new_records = False
 
+        # 获取现有记录的bvid和view_at组合
+        cursor = conn.cursor()
+        existing_records = set()
+        for year in range(datetime.now().year - 1, datetime.now().year + 1):
+            table = f"bilibili_history_{year}"
+            if table_exists(conn, table):
+                cursor.execute(f"SELECT bvid, view_at FROM {table}")
+                existing_records.update((bvid, view_at) for bvid, view_at in cursor.fetchall())
+
         # 遍历所有记录，检查每条记录的时间
         for item in data:
             # 获取观看时间
@@ -216,6 +225,13 @@ def import_data_from_json(conn, table_name, file_path, last_import_time=0, batch
             if last_import_time > 0 and view_at <= last_import_time:
                 logger.debug(f"跳过旧记录: {item.get('title')} - {datetime.fromtimestamp(view_at)}")
                 continue
+
+            # 检查bvid和view_at组合是否已存在
+            history = item.get('history', {})
+            bvid = history.get('bvid', '')
+            if (bvid, view_at) in existing_records:
+                logger.debug(f"跳过重复记录: {item.get('title')} - {datetime.fromtimestamp(view_at)}")
+                continue
                 
             has_new_records = True
             year = datetime.fromtimestamp(view_at).year
@@ -223,7 +239,6 @@ def import_data_from_json(conn, table_name, file_path, last_import_time=0, batch
                 data_by_year[year] = []
                 
             main_category = None
-            history = item.get('history', {})
             business = history.get('business', '')
             tag_name = item.get('tag_name', '').strip()
 
@@ -244,53 +259,57 @@ def import_data_from_json(conn, table_name, file_path, last_import_time=0, batch
                 item.get('uri', ''),
                 history.get('oid', 0),
                 history.get('epid', 0),
-                history.get('bvid', ''),
+                bvid,
                 history.get('page', 1),
                 history.get('cid', 0),
                 history.get('part', ''),
                 business,
                 history.get('dt', 0),
-                item.get('videos', 1),
+                history.get('videos', 0),
                 item.get('author_name', ''),
                 item.get('author_face', ''),
                 item.get('author_mid', 0),
                 view_at,
-                item.get('progress', 0),
+                history.get('progress', 0),
                 item.get('badge', ''),
                 item.get('show_title', ''),
-                item.get('duration', 0),
+                history.get('duration', 0),
                 item.get('current', ''),
                 item.get('total', 0),
                 item.get('new_desc', ''),
                 item.get('is_finish', 0),
                 item.get('is_fav', 0),
-                item.get('kid', 0),
+                history.get('kid', 0),
                 tag_name,
                 item.get('live_status', 0),
                 main_category
             )
+            
             data_by_year[year].append(record)
-
-        if not has_new_records:
-            logger.info(f"文件 {file_path} 中没有新记录需要导入")
-            return 0
-
-        # 批量插入数据
-        for year, records in data_by_year.items():
-            table = f"{table_name}_{year}"
-            if not table_exists(conn, table):
-                create_table(conn, table)
+            existing_records.add((bvid, view_at))  # 添加到已存在记录集合中
             
-            for i in range(0, len(records), batch_size):
-                batch = records[i:i + batch_size]
-                inserted = batch_insert_data(conn, table, batch)
+            # 当达到批量大小时，执行插入
+            if len(data_by_year[year]) >= batch_size:
+                year_table = f"{table_name}_{year}"
+                if not table_exists(conn, year_table):
+                    create_table(conn, year_table)
+                inserted = batch_insert_data(conn, year_table, data_by_year[year])
                 total_inserted += inserted
-                logger.info(f"已导入 {inserted} 条记录到表 {table}")
-        
+                data_by_year[year] = []
+                
+        # 处理剩余的数据
+        for year, records in data_by_year.items():
+            if records:
+                year_table = f"{table_name}_{year}"
+                if not table_exists(conn, year_table):
+                    create_table(conn, year_table)
+                inserted = batch_insert_data(conn, year_table, records)
+                total_inserted += inserted
+                
         return total_inserted
-            
-    except Exception as e:
-        logger.error(f"导入文件 {file_path} 时发生错误: {e}")
+        
+    except sqlite3.Error as e:
+        logger.error(f"导入数据时发生错误: {e}")
         return 0
 
 def save_last_import_record(file_path, timestamp):
