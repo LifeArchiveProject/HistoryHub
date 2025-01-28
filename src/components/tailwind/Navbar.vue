@@ -53,68 +53,68 @@
             @click="togglePrivacyMode"
             class="sm:hidden flex items-center px-3 py-2 text-gray-700 hover:text-[#fb7299] transition-colors duration-200 whitespace-nowrap"
           >
-            <svg 
-              class="w-5 h-5" 
-              fill="none" 
+            <svg
+              class="w-5 h-5"
+              fill="none"
               viewBox="0 0 256 256"
               :stroke="isPrivacyMode ? '#fb7299' : 'currentColor'"
             >
-              <path 
-                d="M128,56C48,56,8,128,8,128s40,72,120,72s120-72,120-72S208,56,128,56Z" 
+              <path
+                d="M128,56C48,56,8,128,8,128s40,72,120,72s120-72,120-72S208,56,128,56Z"
                 :class="isPrivacyMode ? 'hidden' : 'block'"
-                fill="none" 
-                stroke-linecap="round" 
-                stroke-linejoin="round" 
+                fill="none"
+                stroke-linecap="round"
+                stroke-linejoin="round"
                 stroke-width="16"
               />
-              <circle 
-                cx="128" 
-                cy="128" 
+              <circle
+                cx="128"
+                cy="128"
                 r="32"
                 :class="isPrivacyMode ? 'hidden' : 'block'"
-                fill="none" 
-                stroke-linecap="round" 
-                stroke-linejoin="round" 
+                fill="none"
+                stroke-linecap="round"
+                stroke-linejoin="round"
                 stroke-width="16"
               />
-              <path 
+              <path
                 d="M48,40L208,216"
                 :class="isPrivacyMode ? 'block' : 'hidden'"
-                fill="none" 
-                stroke-linecap="round" 
-                stroke-linejoin="round" 
+                fill="none"
+                stroke-linecap="round"
+                stroke-linejoin="round"
                 stroke-width="16"
               />
-              <path 
+              <path
                 d="M154.9,157.6A32,32,0,0,1,97.6,100.3"
                 :class="isPrivacyMode ? 'block' : 'hidden'"
-                fill="none" 
-                stroke-linecap="round" 
-                stroke-linejoin="round" 
+                fill="none"
+                stroke-linecap="round"
+                stroke-linejoin="round"
                 stroke-width="16"
               />
-              <path 
+              <path
                 d="M183.9,186.1C165.9,197.5,147.2,204,128,204,48,204,8,132,8,132s15.3-27.4,41.9-48.5"
                 :class="isPrivacyMode ? 'block' : 'hidden'"
-                fill="none" 
-                stroke-linecap="round" 
-                stroke-linejoin="round" 
+                fill="none"
+                stroke-linecap="round"
+                stroke-linejoin="round"
                 stroke-width="16"
               />
-              <path 
+              <path
                 d="M90.1,97.5a38.5,38.5,0,0,0-1.1,4.5"
                 :class="isPrivacyMode ? 'block' : 'hidden'"
-                fill="none" 
-                stroke-linecap="round" 
-                stroke-linejoin="round" 
+                fill="none"
+                stroke-linecap="round"
+                stroke-linejoin="round"
                 stroke-width="16"
               />
-              <path 
+              <path
                 d="M165.8,166.2a37.2,37.2,0,0,0,4.2-1.2"
                 :class="isPrivacyMode ? 'block' : 'hidden'"
-                fill="none" 
-                stroke-linecap="round" 
-                stroke-linejoin="round" 
+                fill="none"
+                stroke-linecap="round"
+                stroke-linejoin="round"
                 stroke-width="16"
               />
             </svg>
@@ -141,6 +141,18 @@
               </svg>
             </button>
           </div>
+
+          <!-- 批量操作按钮 -->
+          <button
+            @click="$emit('toggle-batch-mode')"
+            class="flex items-center px-2 sm:px-3 py-2 text-gray-700 hover:text-[#fb7299] transition-colors duration-200 whitespace-nowrap"
+            :class="{ 'text-[#fb7299]': isBatchMode }"
+          >
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+            <span class="ml-2 hidden sm:inline">{{ isBatchMode ? '取消' : '批量删除' }}</span>
+          </button>
         </div>
       </div>
 
@@ -218,16 +230,21 @@ const props = defineProps({
   layout: {
     type: String,
     default: 'list'
+  },
+  isBatchMode: {
+    type: Boolean,
+    default: false
   }
 })
 
 const emit = defineEmits([
-  'click-date', 
-  'click-category', 
+  'click-date',
+  'click-category',
   'change-layout',
   'update:date',
   'update:category',
-  'refresh-data'
+  'refresh-data',
+  'toggle-batch-mode'
 ])
 
 const isUpdating = ref(false)

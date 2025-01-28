@@ -1,28 +1,47 @@
 <template>
-  <!-- 每条记录的容器，添加边框和圆角 -->
+  <!-- 每条记录的容器 -->
   <div
-    class="mx-auto max-w-2xl cursor-pointer space-y-8 border-b border-gray-200 transition-all duration-200 ease-in-out hover:scale-[1.01] hover:border-[#FF6699] hover:bg-[#f5f5f5] hover:shadow-md sm:px-4 lg:max-w-4xl lg:px-0"
-    @click="handleContentClick"
+    class="mx-auto max-w-2xl cursor-pointer border-b border-gray-200 transition-all duration-200 ease-in-out hover:scale-[1.01] hover:border-[#FF6699] hover:bg-[#f5f5f5] hover:shadow-md sm:px-4 lg:max-w-4xl lg:px-0 relative group"
+    @click="handleClick"
   >
-    <!-- 内层容器，加入 padding 以确保内容有足够的内边距 -->
+    <!-- 内层容器 -->
     <div class="p-2">
       <!-- 当类型为文章或文集时，图片铺满整行，标题在上方 -->
       <div v-if="record.business === 'article-list' || record.business === 'article'">
         <!-- 标题在封面图片上方 -->
         <div class="mb-2">
-          <div 
-            class="line-clamp-2 text-gray-900 lm:text-sm lg:font-semibold" 
+          <div
+            class="line-clamp-2 text-gray-900 lm:text-sm lg:font-semibold"
             v-html="isPrivacyMode ? '******' : highlightedTitle"
             :class="{ 'blur-sm': isPrivacyMode }"
           ></div>
         </div>
         <!-- 封面图片，铺满整行 -->
         <div class="relative h-28 w-full overflow-hidden rounded-lg">
-          <img 
-            :src="record.cover || record.covers[0]" 
-            class="h-full w-full object-cover transition-all duration-300" 
+          <!-- 删除按钮 -->
+          <div v-if="!isBatchMode"
+               class="absolute right-2 top-2 z-20 hidden group-hover:flex items-center justify-center w-8 h-8 bg-black/50 hover:bg-[#fb7299] rounded-full cursor-pointer transition-all duration-200"
+               @click.stop="handleDelete">
+            <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </div>
+          <!-- 多选框 -->
+          <div v-if="isBatchMode"
+               class="absolute left-2 top-2 z-10"
+               @click.stop="$emit('toggle-selection', record)">
+            <div class="w-5 h-5 rounded border-2 flex items-center justify-center"
+                 :class="isSelected ? 'bg-[#fb7299] border-[#fb7299]' : 'border-white bg-black/20'">
+              <svg v-if="isSelected" class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+          </div>
+          <img
+            :src="record.cover || record.covers[0]"
+            class="h-full w-full object-cover transition-all duration-300"
             :class="{ 'blur-md': isPrivacyMode }"
-            alt="" 
+            alt=""
           />
           <!-- 右上角的类型角标，仅当不是稿件时显示 -->
           <div
@@ -84,22 +103,33 @@
 
       <!-- 其他类型的展示方式 -->
       <div v-else class="flex space-x-2">
-        <!-- 封面图片区域，设置为 relative，方便放置绝对定位的角标 -->
+        <!-- 封面图片区域 -->
         <div class="relative h-20 w-32 overflow-hidden rounded-lg sm:h-28 sm:w-40">
-          <img 
-            v-if="record.cover" 
-            :src="record.cover" 
-            class="h-full w-full object-cover transition-all duration-300" 
+          <!-- 多选框 -->
+          <div v-if="isBatchMode"
+               class="absolute left-2 top-2 z-10"
+               @click.stop="$emit('toggle-selection', record)">
+            <div class="w-5 h-5 rounded border-2 flex items-center justify-center"
+                 :class="isSelected ? 'bg-[#fb7299] border-[#fb7299]' : 'border-white bg-black/20'">
+              <svg v-if="isSelected" class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+          </div>
+          <img
+            v-if="record.cover"
+            :src="record.cover"
+            class="h-full w-full object-cover transition-all duration-300"
             :class="{ 'blur-md': isPrivacyMode }"
-            alt="" 
+            alt=""
           />
           <div v-else>
             <div v-for="(cover, index) in record.covers" :key="index" class="mb-1">
-              <img 
-                :src="cover" 
-                class="h-full w-full object-cover transition-all duration-300" 
+              <img
+                :src="cover"
+                class="h-full w-full object-cover transition-all duration-300"
                 :class="{ 'blur-md': isPrivacyMode }"
-                alt="" 
+                alt=""
               />
             </div>
           </div>
@@ -135,10 +165,18 @@
         </div>
 
         <!-- 右侧内容区域 -->
-        <div class="ml-2 flex flex-1 flex-col justify-between lm:text-sm lg:font-semibold">
+        <div class="ml-2 flex flex-1 flex-col justify-between lm:text-sm lg:font-semibold relative">
+          <!-- 删除按钮 -->
+          <div v-if="!isBatchMode"
+               class="absolute right-0 top-0 z-20 hidden group-hover:flex items-center justify-center w-8 h-8 bg-black/50 hover:bg-[#fb7299] rounded-full cursor-pointer transition-all duration-200"
+               @click.stop="handleDelete">
+            <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </div>
           <div class="items-center justify-between lg:flex">
-            <div 
-              class="line-clamp-2 text-gray-900 lm:text-sm lg:font-semibold" 
+            <div
+              class="line-clamp-2 text-gray-900 lm:text-sm lg:font-semibold"
               v-html="isPrivacyMode ? '******' : highlightedTitle"
               :class="{ 'blur-sm': isPrivacyMode }"
             ></div>
@@ -204,11 +242,18 @@
 <script setup>
 import { computed } from 'vue'
 import { usePrivacyStore } from '../../store/privacy'
+import { showDialog } from 'vant'
+import { batchDeleteHistory } from '../../api/api'
+import { showNotify } from 'vant'
+import 'vant/es/dialog/style'
 
 const { isPrivacyMode } = usePrivacyStore()
 
 const props = defineProps({
-  record: Object,
+  record: {
+    type: Object,
+    required: true
+  },
   searchKeyword: {
     type: String,
     default: ''
@@ -216,13 +261,23 @@ const props = defineProps({
   searchType: {
     type: String,
     default: 'title'
+  },
+  isBatchMode: {
+    type: Boolean,
+    default: false
+  },
+  isSelected: {
+    type: Boolean,
+    default: false
   }
 })
+
+const emit = defineEmits(['toggle-selection', 'refresh-data'])
 
 // 高亮显示匹配的文本
 const highlightText = (text) => {
   if (!props.searchKeyword || !text) return text
-  
+
   const regex = new RegExp(props.searchKeyword, 'gi')
   return text.replace(regex, match => `<span class="text-[#FF6699]">${match}</span>`)
 }
@@ -238,6 +293,15 @@ const highlightedAuthorName = computed(() => {
   if (props.searchType !== 'author' || !props.searchKeyword) return props.record.author_name
   return highlightText(props.record.author_name)
 })
+
+// 处理点击事件
+const handleClick = () => {
+  if (props.isBatchMode) {
+    emit('toggle-selection', props.record)
+  } else {
+    handleContentClick()
+  }
+}
 
 // 处理内容点击事件
 const handleContentClick = () => {
@@ -341,6 +405,41 @@ const getProgressWidth = (progress, duration) => {
   if (duration === 0) return '0%'
   return `${(progress / duration) * 100}%`
 }
+
+// 处理删除事件
+const handleDelete = async () => {
+  try {
+    await showDialog({
+      title: '确认删除',
+      message: '确定要删除这条记录吗？此操作不可恢复。',
+      showCancelButton: true,
+      confirmButtonText: '确认删除',
+      cancelButtonText: '取消',
+      confirmButtonColor: '#fb7299'
+    })
+
+    const response = await batchDeleteHistory([{
+      bvid: props.record.bvid,
+      view_at: props.record.view_at
+    }])
+    if (response.data.status === 'success') {
+      showNotify({
+        type: 'success',
+        message: response.data.message
+      })
+      emit('refresh-data')
+    } else {
+      throw new Error(response.data.message || '删除失败')
+    }
+  } catch (error) {
+    if (error.toString().includes('cancel')) return
+
+    showNotify({
+      type: 'danger',
+      message: error.response?.data?.detail || error.message || '删除失败'
+    })
+  }
+}
 </script>
 
 <style scoped>
@@ -359,5 +458,10 @@ const getProgressWidth = (progress, duration) => {
 
 .hover\:text-\[\#FF6699\]:hover {
   color: #ff6699;
+}
+
+/* 添加 group-hover 相关样式 */
+.group:hover .group-hover\:flex {
+  display: flex;
 }
 </style>

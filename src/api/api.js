@@ -100,12 +100,12 @@ export const updateBiliHistoryRealtime = () => {
     if (!response.data) {
       throw new Error('响应数据格式错误')
     }
-    
+
     // 如果返回未找到本地历史记录错误，则调用完整获取接口
     if (response.data.status === 'error' && response.data.message === '未找到本地历史记录') {
       return getBiliHistory()
     }
-    
+
     return response
   }).catch(error => {
     console.error('API 请求错误:', error)
@@ -121,7 +121,7 @@ export const getBiliHistory = () => {
     if (!response.data) {
       throw new Error('响应数据格式错误')
     }
-    
+
     // 如果获取历史记录成功，调用导入SQLite接口
     if (response.data.status === 'success') {
       try {
@@ -135,7 +135,7 @@ export const getBiliHistory = () => {
         // 即使导入失败也返回历史记录的响应
       }
     }
-    
+
     return response
   }).catch(error => {
     console.error('获取历史记录失败:', error)
@@ -244,4 +244,11 @@ export const logout = () => {
 // 获取登录状态
 export const getLoginStatus = () => {
   return instance.get('/login/check')
+}
+
+// 批量删除历史记录
+export const batchDeleteHistory = (items) => {
+  return instance.delete('/history/batch-delete', {
+    data: items  // 直接发送数组，不要包装在 items 对象中
+  })
 }

@@ -32,7 +32,18 @@
                   <div class="w-full border-t border-gray-300" />
                 </div>
                 <div class="relative flex items-center justify-between">
-                  <div class="bg-white dark:bg-gray-800 pr-3">
+                  <div class="bg-white dark:bg-gray-800 pr-3 flex items-center space-x-2">
+                    <!-- 添加当天记录的勾选框 -->
+                    <div v-if="isBatchMode"
+                         class="flex items-center justify-center cursor-pointer"
+                         @click.stop="toggleDaySelection(record.view_at)">
+                      <div class="w-5 h-5 rounded border-2 flex items-center justify-center"
+                           :class="isDaySelected(record.view_at) ? 'bg-[#fb7299] border-[#fb7299]' : 'border-gray-300 bg-white'">
+                        <svg v-if="isDaySelected(record.view_at)" class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+                    </div>
                     <span class="lm:text-xs">
                       {{ formatDividerDate(record.view_at) }}
                     </span>
@@ -48,10 +59,30 @@
           </div>
 
           <!-- 网格布局的视频卡片 -->
-          <div class="bg-white/50 dark:bg-white/5 backdrop-blur-sm rounded-lg overflow-hidden border border-gray-200/50 hover:border-[#FF6699] hover:shadow-md transition-all duration-200"
-               >
+          <div class="bg-white/50 dark:bg-white/5 backdrop-blur-sm rounded-lg overflow-hidden border border-gray-200/50 hover:border-[#FF6699] hover:shadow-md transition-all duration-200 relative group"
+               :class="{ 'ring-2 ring-[#fb7299]': selectedRecords.has(`${record.bvid}_${record.view_at}`) }">
+            <!-- 多选框 -->
+            <div v-if="isBatchMode"
+                 class="absolute top-2 left-2 z-10"
+                 @click.stop="toggleRecordSelection(record)">
+              <div class="w-5 h-5 rounded border-2 flex items-center justify-center"
+                   :class="selectedRecords.has(`${record.bvid}_${record.view_at}`) ? 'bg-[#fb7299] border-[#fb7299]' : 'border-white bg-black/20'">
+                <svg v-if="selectedRecords.has(`${record.bvid}_${record.view_at}`)" class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+            </div>
+
             <!-- 封面图片 -->
             <div class="relative aspect-video cursor-pointer" @click="handleVideoClick(record)">
+              <!-- 删除按钮 -->
+              <div v-if="!isBatchMode"
+                   class="absolute right-2 top-2 z-20 hidden group-hover:flex items-center justify-center w-8 h-8 bg-black/50 hover:bg-[#fb7299] rounded-full cursor-pointer transition-all duration-200"
+                   @click.stop="handleDelete(record)">
+                <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </div>
               <img
                 :src="record.cover || record.covers?.[0]"
                 class="w-full h-full object-cover transition-all duration-300"
@@ -145,7 +176,18 @@
                   <div class="w-full border-t border-gray-300" />
                 </div>
                 <div class="relative flex items-center justify-between">
-                  <div class="bg-white dark:bg-gray-800 pr-3">
+                  <div class="bg-white dark:bg-gray-800 pr-3 flex items-center space-x-2">
+                    <!-- 添加当天记录的勾选框 -->
+                    <div v-if="isBatchMode"
+                         class="flex items-center justify-center cursor-pointer"
+                         @click.stop="toggleDaySelection(record.view_at)">
+                      <div class="w-5 h-5 rounded border-2 flex items-center justify-center"
+                           :class="isDaySelected(record.view_at) ? 'bg-[#fb7299] border-[#fb7299]' : 'border-gray-300 bg-white'">
+                        <svg v-if="isDaySelected(record.view_at)" class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+                    </div>
                     <span class="lm:text-xs">
                       {{ formatDividerDate(record.view_at) }}
                     </span>
@@ -159,7 +201,13 @@
               </div>
             </div>
           </div>
-          <VideoRecord :record="record" />
+          <VideoRecord
+            :record="record"
+            :is-batch-mode="isBatchMode"
+            :is-selected="selectedRecords.has(`${record.bvid}_${record.view_at}`)"
+            @toggle-selection="toggleRecordSelection"
+            @refresh-data="fetchHistoryByDateRange"
+          />
         </template>
       </div>
     </div>
@@ -182,6 +230,20 @@
       @update:showBottom="(val) => emit('update:showBottom', val)"
       @selectSubCategory="onSubCategorySelected"
     />
+
+    <!-- 批量删除按钮 -->
+    <div v-if="isBatchMode && selectedRecords.size > 0"
+         class="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50">
+      <button
+        @click="handleBatchDelete"
+        class="px-4 py-2 bg-[#fb7299] text-white rounded-full shadow-lg hover:bg-[#fb7299]/90 transition-colors duration-200 flex items-center space-x-2"
+      >
+        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+        </svg>
+        <span>删除选中的 {{ selectedRecords.size }} 条记录</span>
+      </button>
+    </div>
   </div>
 </template>
 
@@ -202,7 +264,14 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
-import { getBiliHistory2024, getMainCategories, getDailyStats } from '../../api/api.js'
+import {
+  getBiliHistory2024,
+  getMainCategories,
+  getDailyStats,
+  batchDeleteHistory
+} from '../../api/api.js'
+import { showNotify, showDialog } from 'vant'
+import 'vant/es/dialog/style'
 import VideoRecord from './VideoRecord.vue'
 import VideoCategories from './VideoCategories.vue'
 import { usePrivacyStore } from '../../store/privacy'
@@ -241,6 +310,10 @@ const props = defineProps({
   category: {
     type: String,
     default: ''
+  },
+  isBatchMode: {
+    type: Boolean,
+    default: false
   }
 })
 
@@ -268,6 +341,76 @@ const mainCategories = ref([])
 
 // 每日统计数据
 const dailyStats = ref({})
+
+// 批量删除相关
+const selectedRecords = ref(new Set())
+
+// 选择/取消选择记录
+const toggleRecordSelection = (record) => {
+  const key = `${record.bvid}_${record.view_at}`
+  if (selectedRecords.value.has(key)) {
+    selectedRecords.value.delete(key)
+  } else {
+    selectedRecords.value.add(key)
+  }
+}
+
+// 批量删除选中的记录
+const handleBatchDelete = async () => {
+  if (selectedRecords.value.size === 0) {
+    showNotify({
+      type: 'warning',
+      message: '请先选择要删除的记录'
+    })
+    return
+  }
+
+  try {
+    await showDialog({
+      title: '确认删除',
+      message: `确定要删除选中的 ${selectedRecords.value.size} 条记录吗？此操作不可恢复。`,
+      showCancelButton: true,
+      confirmButtonText: '确认删除',
+      cancelButtonText: '取消',
+      confirmButtonColor: '#fb7299'
+    })
+
+    // 从记录中找到对应的完整信息
+    const items = Array.from(selectedRecords.value).map(key => {
+      const [bvid, view_at] = key.split('_')
+      return {
+        bvid,
+        view_at: parseInt(view_at)
+      }
+    })
+
+    const response = await batchDeleteHistory(items)
+    if (response.data.status === 'success') {
+      showNotify({
+        type: 'success',
+        message: response.data.message
+      })
+      selectedRecords.value.clear()
+      await fetchHistoryByDateRange()
+    } else {
+      throw new Error(response.data.message || '删除失败')
+    }
+  } catch (error) {
+    if (error.toString().includes('cancel')) return
+
+    showNotify({
+      type: 'danger',
+      message: error.response?.data?.detail || error.message || '删除失败'
+    })
+  }
+}
+
+// 监听批量模式变化
+watch(() => props.isBatchMode, (newVal) => {
+  if (!newVal) {
+    selectedRecords.value.clear()
+  }
+})
 
 // 计算属性用于显示当前选中的分类
 computed(() => {
@@ -606,6 +749,78 @@ const highlightText = (text) => {
 
   const regex = new RegExp(props.searchKeyword, 'gi')
   return text.replace(regex, match => `<span class="text-[#FF6699]">${match}</span>`)
+}
+
+// 处理删除记录
+const handleDelete = async (record) => {
+  try {
+    await showDialog({
+      title: '确认删除',
+      message: '确定要删除这条记录吗？此操作不可恢复。',
+      showCancelButton: true,
+      confirmButtonText: '确认删除',
+      cancelButtonText: '取消',
+      confirmButtonColor: '#fb7299'
+    })
+
+    const response = await batchDeleteHistory([{
+      bvid: record.bvid,
+      view_at: record.view_at
+    }])
+    if (response.data.status === 'success') {
+      showNotify({
+        type: 'success',
+        message: response.data.message
+      })
+      fetchHistoryByDateRange()
+    } else {
+      throw new Error(response.data.message || '删除失败')
+    }
+  } catch (error) {
+    if (error.toString().includes('cancel')) return
+
+    showNotify({
+      type: 'danger',
+      message: error.response?.data?.detail || error.message || '删除失败'
+    })
+  }
+}
+
+// 判断某一天是否被全部选中
+const isDaySelected = (timestamp) => {
+  const date = new Date(timestamp * 1000)
+  const dayStart = new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime() / 1000
+  const dayEnd = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1).getTime() / 1000 - 1
+
+  const dayRecords = records.value.filter(record =>
+    record.view_at >= dayStart && record.view_at <= dayEnd
+  )
+
+  return dayRecords.every(record =>
+    selectedRecords.value.has(`${record.bvid}_${record.view_at}`)
+  )
+}
+
+// 切换某一天的所有记录的选中状态
+const toggleDaySelection = (timestamp) => {
+  const date = new Date(timestamp * 1000)
+  const dayStart = new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime() / 1000
+  const dayEnd = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1).getTime() / 1000 - 1
+
+  const dayRecords = records.value.filter(record =>
+    record.view_at >= dayStart && record.view_at <= dayEnd
+  )
+
+  const allSelected = isDaySelected(timestamp)
+
+  dayRecords.forEach(record => {
+    const key = `${record.bvid}_${record.view_at}`
+    if (allSelected) {
+      selectedRecords.value.delete(key)
+    } else {
+      selectedRecords.value.add(key)
+    }
+  })
 }
 
 </script>

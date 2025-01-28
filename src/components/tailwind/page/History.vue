@@ -13,6 +13,8 @@
         @click-category="showBottom = true"
         :layout="layout"
         @change-layout="layout = $event"
+        :is-batch-mode="isBatchMode"
+        @toggle-batch-mode="isBatchMode = !isBatchMode"
       />
 
       <!-- 内容区域 -->
@@ -34,6 +36,7 @@
               :layout="layout"
               :date="date"
               :category="category"
+              :is-batch-mode="isBatchMode"
             />
 
             <!-- 设置内容 -->
@@ -76,6 +79,7 @@ const date = ref('')
 const total = ref(0)
 const category = ref('')
 const layout = ref('list')
+const isBatchMode = ref(false)
 
 // 组件引用
 const historyContentRef = ref(null)
