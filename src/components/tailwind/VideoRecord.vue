@@ -20,11 +20,14 @@
         <div class="relative h-28 w-full overflow-hidden rounded-lg">
           <!-- 删除按钮 -->
           <div v-if="!isBatchMode"
-               class="absolute right-2 top-2 z-20 hidden group-hover:flex items-center justify-center w-8 h-8 bg-black/50 hover:bg-[#fb7299] rounded-full cursor-pointer transition-all duration-200"
-               @click.stop="handleDelete">
-            <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
+               class="absolute right-2 top-2 z-20 hidden group-hover:flex items-center space-x-2">
+            <!-- 删除按钮 -->
+            <div class="flex items-center justify-center w-8 h-8 bg-black/50 hover:bg-[#fb7299] rounded-full cursor-pointer transition-all duration-200"
+                 @click.stop="handleDelete">
+              <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </div>
           </div>
           <!-- 多选框 -->
           <div v-if="isBatchMode"
@@ -168,11 +171,14 @@
         <div class="ml-2 flex flex-1 flex-col justify-between lm:text-sm lg:font-semibold relative">
           <!-- 删除按钮 -->
           <div v-if="!isBatchMode"
-               class="absolute right-0 top-0 z-20 hidden group-hover:flex items-center justify-center w-8 h-8 bg-black/50 hover:bg-[#fb7299] rounded-full cursor-pointer transition-all duration-200"
-               @click.stop="handleDelete">
-            <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
+               class="absolute right-2 top-2 z-20 hidden group-hover:flex items-center space-x-2">
+            <!-- 删除按钮 -->
+            <div class="flex items-center justify-center w-8 h-8 bg-black/50 hover:bg-[#fb7299] rounded-full cursor-pointer transition-all duration-200"
+                 @click.stop="handleDelete">
+              <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </div>
           </div>
           <div class="items-center justify-between lg:flex">
             <div
@@ -181,12 +187,34 @@
               :class="{ 'blur-sm': isPrivacyMode }"
             ></div>
           </div>
-          <div>
+          <div class="flex items-center space-x-2">
             <span
               class="inline-flex items-center rounded-md bg-[#f1f2f3] px-2 py-1 text-xs text-[#71767d]"
             >
               {{ record.tag_name }}
             </span>
+            <!-- 备注输入框 -->
+            <div class="flex-1 relative group" @click.stop>
+              <div class="flex items-center space-x-1">
+                <span class="text-xs text-[#fb7299]">备注:</span>
+                <input
+                  type="text"
+                  v-model="remarkContent"
+                  @focus="handleRemarkFocus"
+                  @blur="handleRemarkBlur"
+                  placeholder="添加备注..."
+                  :disabled="isPrivacyMode"
+                  :value="isPrivacyMode ? '******' : remarkContent"
+                  class="flex-1 px-2 py-1 text-xs text-[#fb7299] bg-[#f8f8f8] rounded border-0 border-b border-transparent hover:border-gray-200 focus:border-[#fb7299] focus:ring-0 transition-colors duration-200 placeholder-[#fb7299]/50"
+                  :class="{ 'blur-sm': isPrivacyMode }"
+                />
+              </div>
+              <div v-if="!remarkContent && !isPrivacyMode" class="absolute right-2 top-1/2 -translate-y-1/2 hidden group-hover:block">
+                <svg class="w-3 h-3 text-[#fb7299]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+              </div>
+            </div>
           </div>
 
           <div class="flex items-end justify-between text-sm text-[#99a2aa] lm:text-xs">
@@ -240,12 +268,13 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { usePrivacyStore } from '../../store/privacy'
-import { showDialog } from 'vant'
-import { batchDeleteHistory } from '../../api/api'
-import { showNotify } from 'vant'
+import { showDialog, showNotify } from 'vant'
+import { batchDeleteHistory, updateVideoRemark, getVideoRemark } from '../../api/api'
 import 'vant/es/dialog/style'
+import 'vant/es/popup/style'
+import 'vant/es/field/style'
 
 const { isPrivacyMode } = usePrivacyStore()
 
@@ -273,6 +302,9 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['toggle-selection', 'refresh-data'])
+
+const remarkContent = ref('')
+const originalRemark = ref('') // 用于存储原始备注内容
 
 // 高亮显示匹配的文本
 const highlightText = (text) => {
@@ -440,6 +472,60 @@ const handleDelete = async () => {
     })
   }
 }
+
+// 初始化备注内容
+const initRemark = async () => {
+  try {
+    const response = await getVideoRemark(props.record.bvid, props.record.view_at)
+    remarkContent.value = response.data.data.remark || ''
+    originalRemark.value = remarkContent.value // 保存原始值
+  } catch (error) {
+    console.error('获取备注失败:', error)
+  }
+}
+
+// 处理备注获取焦点
+const handleRemarkFocus = async () => {
+  if (remarkContent.value === '') {
+    await initRemark()
+  }
+}
+
+// 处理备注失去焦点
+const handleRemarkBlur = async () => {
+  // 如果内容没有变化，不发送请求
+  if (remarkContent.value === originalRemark.value) {
+    return
+  }
+
+  try {
+    const response = await updateVideoRemark(
+      props.record.bvid,
+      props.record.view_at,
+      remarkContent.value
+    )
+    if (response.data.status === 'success') {
+      if (remarkContent.value) { // 只在有内容时显示提示
+        showNotify({
+          type: 'success',
+          message: '备注已保存'
+        })
+      }
+      originalRemark.value = remarkContent.value // 更新原始值
+    }
+  } catch (error) {
+    showNotify({
+      type: 'danger',
+      message: `保存备注失败：${error.message}`
+    })
+    remarkContent.value = originalRemark.value // 恢复原始值
+  }
+}
+
+// 组件挂载时初始化备注
+onMounted(async () => {
+  await initRemark()
+})
 </script>
 
 <style scoped>

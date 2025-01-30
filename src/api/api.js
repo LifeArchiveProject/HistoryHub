@@ -267,3 +267,40 @@ export const batchDeleteHistory = (items) => {
     data: items  // 直接发送数组，不要包装在 items 对象中
   })
 }
+
+// 数据库管理相关接口
+// 重置数据库
+export const resetDatabase = () => {
+  return instance.post('/BiliHistory2024/reset-database')
+}
+
+// 备注相关接口
+// 更新视频备注
+export const updateVideoRemark = (bvid, viewAt, remark) => {
+  return instance.post('/BiliHistory2024/update-remark', {
+    bvid,
+    view_at: viewAt,
+    remark
+  })
+}
+
+// 获取视频备注
+export const getVideoRemark = (bvid, viewAt) => {
+  return instance.get('/BiliHistory2024/remark', {
+    params: {
+      bvid,
+      view_at: viewAt
+    }
+  })
+}
+
+// 获取所有备注记录
+export const getAllRemarks = (page = 1, size = 10, sortOrder = 0) => {
+  return instance.get('/BiliHistory2024/remarks', {
+    params: {
+      page,
+      size,
+      sort_order: sortOrder
+    }
+  })
+}

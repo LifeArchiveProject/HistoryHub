@@ -26,7 +26,7 @@
             :title="isCollapsed ? '历史记录' : ''"
             class="w-full flex items-center py-2 text-gray-700 transition-all duration-300 ease-in-out"
             :class="[
-              { 'bg-[#fb7299]/10 text-[#fb7299]': currentContent === 'history' },
+              { 'bg-[#fb7299]/10 text-[#fb7299]': currentContent === 'history' && !showRemarks },
               { 'justify-center': isCollapsed },
               isCollapsed ? 'px-2' : 'px-3 rounded-lg'
             ]"
@@ -35,6 +35,23 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <span v-show="!isCollapsed" class="truncate">历史记录</span>
+          </button>
+
+          <!-- 我的备注 -->
+          <button
+            @click="changeContent('remarks')"
+            :title="isCollapsed ? '我的备注' : ''"
+            class="w-full flex items-center py-2 text-gray-700 transition-all duration-300 ease-in-out"
+            :class="[
+              { 'bg-[#fb7299]/10 text-[#fb7299]': currentContent === 'remarks' || (currentContent === 'history' && showRemarks) },
+              { 'justify-center': isCollapsed },
+              isCollapsed ? 'px-2' : 'px-3 rounded-lg'
+            ]"
+          >
+            <svg class="w-6 h-6 flex-shrink-0" :class="{ 'mr-3': !isCollapsed }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+            <span v-show="!isCollapsed" class="truncate">我的备注</span>
           </button>
 
           <!-- 年度总结 -->
@@ -256,7 +273,13 @@ const currentRoute = computed(() => route.path)
 
 // 当前内容 - 根据路由初始化
 const currentContent = ref(route.path === '/settings' ? 'settings' : 'history')
-const emit = defineEmits(['change-content'])
+const props = defineProps({
+  showRemarks: {
+    type: Boolean,
+    default: false
+  }
+})
+const emit = defineEmits(['change-content', 'update:showRemarks'])
 
 // 监听路由变化
 watch(
@@ -264,6 +287,8 @@ watch(
   (path) => {
     if (path === '/settings') {
       currentContent.value = 'settings'
+    } else if (path === '/remarks') {
+      currentContent.value = 'remarks'
     } else if (path === '/' || path.startsWith('/page/')) {
       currentContent.value = 'history'
     }
@@ -272,16 +297,22 @@ watch(
 
 // 切换内容
 const changeContent = (content) => {
-  currentContent.value = content
-  emit('change-content', content)
-  
-  // 更新路由
-  if (content === 'history') {
-    if (route.path !== '/' && !route.path.startsWith('/page/')) {
-      router.push('/')
+  if (content === 'remarks') {
+    emit('change-content', 'history')
+    emit('update:showRemarks', true)
+    router.push('/remarks')
+  } else {
+    emit('change-content', content)
+    emit('update:showRemarks', false)
+    
+    // 更新路由
+    if (content === 'history') {
+      if (route.path !== '/' && !route.path.startsWith('/page/')) {
+        router.push('/')
+      }
+    } else if (content === 'settings') {
+      router.push('/settings')
     }
-  } else if (content === 'settings') {
-    router.push('/settings')
   }
 }
 

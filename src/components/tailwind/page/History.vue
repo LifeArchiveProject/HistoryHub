@@ -1,66 +1,77 @@
 <template>
-  <Sidebar @change-content="currentContent = $event">
-    <!-- 主要内容区域 -->
-    <div class="h-screen overflow-y-auto">
-      <!-- 导航栏 -->
-      <Navbar
-        v-if="currentContent === 'history'"
-        @refresh-data="refreshData"
-        v-model:date="date"
-        v-model:category="category"
-        :total="total"
-        @click-date="show = true"
-        @click-category="showBottom = true"
-        :layout="layout"
-        @change-layout="layout = $event"
-        :is-batch-mode="isBatchMode"
-        @toggle-batch-mode="isBatchMode = !isBatchMode"
-      />
+  <!-- 主要内容区域 -->
+  <div>
+    <!-- 导航栏 -->
+    <Navbar
+      v-if="currentContent === 'history' && !showRemarks"
+      @refresh-data="refreshData"
+      v-model:date="date"
+      v-model:category="category"
+      :total="total"
+      @click-date="show = true"
+      @click-category="showBottom = true"
+      :layout="layout"
+      @change-layout="layout = $event"
+      :is-batch-mode="isBatchMode"
+      :show-remarks="showRemarks"
+      @toggle-batch-mode="isBatchMode = !isBatchMode"
+      @toggle-remarks="showRemarks = !showRemarks"
+    />
 
-      <!-- 内容区域 -->
-      <div>
-        <div class="mx-auto max-w-7xl sm:px-2 lg:px-8">
-          <div class="">
-            <!-- 历史记录内容 -->
-            <HistoryContent
-              v-if="currentContent === 'history'"
-              ref="historyContentRef"
-              :selected-year="selectedYear"
-              :page="page"
-              @update:total-pages="totalPages = $event"
-              @update:total="total = $event"
-              @update:date="date = $event"
-              @update:category="category = $event"
-              v-model:show="show"
-              v-model:showBottom="showBottom"
-              :layout="layout"
-              :date="date"
-              :category="category"
-              :is-batch-mode="isBatchMode"
-            />
+    <!-- 内容区域 -->
+    <div>
+      <div class="mx-auto max-w-7xl sm:px-2 lg:px-8">
+        <div class="">
+          <!-- 历史记录内容 -->
+          <HistoryContent
+            v-if="currentContent === 'history' && !showRemarks"
+            ref="historyContentRef"
+            :selected-year="selectedYear"
+            :page="page"
+            @update:total-pages="totalPages = $event"
+            @update:total="total = $event"
+            @update:date="date = $event"
+            @update:category="category = $event"
+            v-model:show="show"
+            v-model:showBottom="showBottom"
+            :layout="layout"
+            :date="date"
+            :category="category"
+            :is-batch-mode="isBatchMode"
+          />
 
-            <!-- 设置内容 -->
-            <Settings v-else-if="currentContent === 'settings'" />
-          </div>
+          <!-- 备注列表内容 -->
+          <Remarks v-else-if="showRemarks" />
 
-          <!-- 分页组件 -->
-          <div v-if="currentContent === 'history'" class="mx-auto mb-5 mt-8 max-w-4xl">
-            <Pagination :current-page="page" :total-pages="totalPages" :use-routing="true" />
-          </div>
+          <!-- 设置内容 -->
+          <Settings v-else-if="currentContent === 'settings'" />
+        </div>
+
+        <!-- 分页组件 -->
+        <div v-if="currentContent === 'history' && !showRemarks" class="mx-auto mb-5 mt-8 max-w-4xl">
+          <Pagination :current-page="page" :total-pages="totalPages" :use-routing="true" />
         </div>
       </div>
     </div>
-  </Sidebar>
+  </div>
 </template>
 
 <script setup>
 import { ref, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import Navbar from '../Navbar.vue'
-import Sidebar from '../Sidebar.vue'
 import HistoryContent from '../HistoryContent.vue'
 import Pagination from '../Pagination.vue'
 import Settings from '../Settings.vue'
+import Remarks from './Remarks.vue'
+
+// 定义 props
+const props = defineProps({
+  defaultShowRemarks: {
+    type: Boolean,
+    default: false
+  }
+})
 
 // 当前显示的内容
 const currentContent = ref('history')
@@ -80,6 +91,7 @@ const total = ref(0)
 const category = ref('')
 const layout = ref('list')
 const isBatchMode = ref(false)
+const showRemarks = ref(false)
 
 // 组件引用
 const historyContentRef = ref(null)
@@ -108,15 +120,38 @@ watch([date, category], ([newDate, newCategory], [oldDate, oldCategory]) => {
   })
 })
 
-// 组件挂载时获取数据
+// 监听路由变化
+watch(
+  () => route.path,
+  (path) => {
+    if (path === '/settings') {
+      currentContent.value = 'settings'
+      showRemarks.value = false
+    } else if (path === '/remarks') {
+      currentContent.value = 'history'
+      showRemarks.value = true
+    } else if (path === '/' || path.startsWith('/page/')) {
+      currentContent.value = 'history'
+      showRemarks.value = false
+    }
+  },
+  { immediate: true }
+)
+
+// 组件挂载时设置初始状态
 onMounted(() => {
+  // 设置初始的备注显示状态
+  if (props.defaultShowRemarks || route.path === '/remarks') {
+    showRemarks.value = true
+  }
+
   // 确保路由参数是单个字符串并进行类型转换
   const pageParam = Array.isArray(route.params.pageNumber)
     ? route.params.pageNumber[0]
     : route.params.pageNumber
   page.value = parseInt(pageParam) || 1
 
-  if (page.value !== 1) {
+  if (page.value !== 1 && !route.path.startsWith('/remarks')) {
     router.push(`/page/${page.value}`)
   }
 })
@@ -143,18 +178,6 @@ watch(
   { immediate: true }
 )
 
-// 监听路由变化
-watch(
-  () => route.path,
-  (path) => {
-    if (path === '/settings') {
-      currentContent.value = 'settings'
-    } else if (path === '/' || path.startsWith('/page/')) {
-      currentContent.value = 'history'
-    }
-  },
-  { immediate: true }
-)
 </script>
 
 <style scoped>

@@ -2,35 +2,49 @@ import { createRouter, createWebHashHistory, createWebHistory } from 'vue-router
 import History from '../components/tailwind/page/History.vue'
 import Search from '../components/tailwind/page/Search.vue'
 import AnimatedAnalytics from '../components/tailwind/page/AnimatedAnalytics.vue'
+import Settings from '../components/tailwind/Settings.vue'
+import MainLayout from '../components/tailwind/layout/MainLayout.vue'
 
 const routes = [
   {
     path: '/',
-    component: History,
-  },
-  {
-    path: '/page/:pageNumber',
-    component: History,
-  },
-  {
-    path: '/search/:keyword',
-    name: 'Search',
-    component: Search,
-  },
-  {
-    path: '/search/:keyword/page/:pageNumber',
-    name: 'SearchPage',
-    component: Search,
-  },
-  {
-    path: '/analytics',
-    name: 'AnimatedAnalytics',
-    component: AnimatedAnalytics,
-  },
-  {
-    path: '/settings',
-    name: 'Settings',
-    component: History,
+    component: MainLayout,
+    children: [
+      {
+        path: '',
+        component: History,
+      },
+      {
+        path: 'page/:pageNumber',
+        component: History,
+      },
+      {
+        path: 'search/:keyword',
+        name: 'Search',
+        component: Search,
+      },
+      {
+        path: 'search/:keyword/page/:pageNumber',
+        name: 'SearchPage',
+        component: Search,
+      },
+      {
+        path: 'analytics',
+        name: 'AnimatedAnalytics',
+        component: AnimatedAnalytics,
+      },
+      {
+        path: 'settings',
+        name: 'Settings',
+        component: Settings,
+      },
+      {
+        path: 'remarks',
+        name: 'Remarks',
+        component: History,
+        props: { defaultShowRemarks: true }
+      }
+    ]
   }
 ]
 
