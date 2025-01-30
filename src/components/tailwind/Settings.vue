@@ -11,6 +11,40 @@
         </div>
         
         <div class="mt-6 space-y-6">
+          <!-- 服务器配置卡片 -->
+          <div class="bg-white border border-gray-200 rounded-lg">
+            <div class="p-6">
+              <div class="flex items-center space-x-3 text-gray-900">
+                <svg class="w-5 h-5 text-[#fb7299]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01" />
+                </svg>
+                <h2 class="text-lg font-medium">服务器配置</h2>
+              </div>
+              <p class="mt-2 text-sm text-gray-500">配置API服务器地址，修改后将自动刷新页面</p>
+              
+              <div class="mt-6 space-y-4">
+                <div class="flex flex-col space-y-2">
+                  <label for="serverUrl" class="text-sm font-medium text-gray-700">服务器地址</label>
+                  <div class="flex space-x-2">
+                    <input
+                      id="serverUrl"
+                      v-model="serverUrl"
+                      type="text"
+                      class="flex-1 block rounded-md border-gray-300 shadow-sm focus:border-[#fb7299] focus:ring-[#fb7299] sm:text-sm"
+                      placeholder="例如：http://localhost:8899"
+                    />
+                    <button
+                      @click="saveServerUrl"
+                      class="inline-flex items-center px-4 py-2 text-sm font-medium text-[#fb7299] bg-[#fb7299]/5 rounded-lg hover:bg-[#fb7299]/10 focus:outline-none focus:ring-2 focus:ring-[#fb7299]/20"
+                    >
+                      保存
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
           <!-- 数据导出卡片 -->
           <div class="bg-white border border-gray-200 rounded-lg">
             <div class="p-6">
@@ -83,6 +117,8 @@
               </div>
             </div>
           </div>
+
+          
         </div>
       </div>
     </div>
@@ -96,15 +132,19 @@ import {
   exportHistory, 
   downloadExcelFile, 
   downloadDatabase,
-  getAvailableYears
+  getAvailableYears,
+  getCurrentBaseUrl,
+  setBaseUrl
 } from '../../api/api'
 
 const selectedYear = ref(new Date().getFullYear())
 const availableYears = ref([])
 const isExporting = ref(false)
+const serverUrl = ref('')
 
-// 获取可用年份
+// 初始化服务器地址
 onMounted(async () => {
+  serverUrl.value = getCurrentBaseUrl()
   try {
     const response = await getAvailableYears()
     if (response.data.status === 'success') {
@@ -171,6 +211,24 @@ const downloadSqlite = async () => {
     showNotify({
       type: 'danger',
       message: `下载失败：${error.message}`
+    })
+  }
+}
+
+// 保存服务器地址
+const saveServerUrl = () => {
+  try {
+    // 简单的URL格式验证
+    const url = new URL(serverUrl.value)
+    setBaseUrl(serverUrl.value)
+    showNotify({
+      type: 'success',
+      message: '服务器地址已更新，页面即将刷新'
+    })
+  } catch (error) {
+    showNotify({
+      type: 'danger',
+      message: '请输入有效的URL地址'
     })
   }
 }

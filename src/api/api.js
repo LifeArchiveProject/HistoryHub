@@ -1,7 +1,22 @@
 import axios from 'axios'
 
 // 你的服务器地址
-const BASE_URL = 'http://localhost:8899'
+const getBaseUrl = () => {
+  return localStorage.getItem('baseUrl') || 'http://localhost:8899'
+}
+
+const BASE_URL = getBaseUrl()
+
+// 设置服务器地址
+export const setBaseUrl = (url) => {
+  localStorage.setItem('baseUrl', url)
+  window.location.reload() // 刷新页面以应用新的baseUrl
+}
+
+// 获取当前服务器地址
+export const getCurrentBaseUrl = () => {
+  return getBaseUrl()
+}
 
 // 创建一个 axios 实例
 const instance = axios.create({
