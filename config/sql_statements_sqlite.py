@@ -32,13 +32,15 @@ CREATE TABLE IF NOT EXISTS {table} (
     tag_name TEXT,
     live_status INTEGER DEFAULT 0,
     main_category TEXT,
-    remark TEXT DEFAULT ''
+    remark TEXT DEFAULT '',
+    remark_time INTEGER DEFAULT 0
 );
 """
 
 CREATE_INDEXES = [
     "CREATE INDEX IF NOT EXISTS idx_{table}_author_mid ON {table} (author_mid);",
-    "CREATE INDEX IF NOT EXISTS idx_{table}_view_at ON {table} (view_at);"
+    "CREATE INDEX IF NOT EXISTS idx_{table}_view_at ON {table} (view_at);",
+    "CREATE INDEX IF NOT EXISTS idx_{table}_remark_time ON {table} (remark_time);"
 ]
 
 INSERT_DATA = """
@@ -46,6 +48,6 @@ INSERT INTO {table} (
     id, title, long_title, cover, covers, uri, oid, epid, bvid, page, cid, part, 
     business, dt, videos, author_name, author_face, author_mid, view_at, progress, 
     badge, show_title, duration, current, total, new_desc, is_finish, is_fav, kid, 
-    tag_name, live_status, main_category, remark
+    tag_name, live_status, main_category, remark, remark_time
 ) VALUES ({placeholders})
 """

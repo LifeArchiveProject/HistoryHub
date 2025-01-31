@@ -404,13 +404,14 @@ async def update_video_remark(request: UpdateRemarkRequest):
                 detail=f"未找到 {year} 年的历史记录数据"
             )
         
-        # 更新备注
+        # 更新备注和备注时间
+        current_time = int(datetime.now().timestamp())
         query = f"""
             UPDATE {table_name}
-            SET remark = ?
+            SET remark = ?, remark_time = ?
             WHERE bvid = ? AND view_at = ?
         """
-        cursor.execute(query, (request.remark, request.bvid, request.view_at))
+        cursor.execute(query, (request.remark, current_time, request.bvid, request.view_at))
         conn.commit()
         
         if cursor.rowcount == 0:
@@ -425,7 +426,8 @@ async def update_video_remark(request: UpdateRemarkRequest):
             "data": {
                 "bvid": request.bvid,
                 "view_at": request.view_at,
-                "remark": request.remark
+                "remark": request.remark,
+                "remark_time": current_time
             }
         }
         
@@ -471,7 +473,7 @@ async def get_video_remark(bvid: str, view_at: int):
         
         # 查询备注
         query = f"""
-            SELECT title, remark
+            SELECT title, remark, remark_time
             FROM {table_name}
             WHERE bvid = ? AND view_at = ?
         """
@@ -490,7 +492,8 @@ async def get_video_remark(bvid: str, view_at: int):
                 "bvid": bvid,
                 "view_at": view_at,
                 "title": result[0],
-                "remark": result[1]
+                "remark": result[1],
+                "remark_time": result[2]
             }
         }
         
@@ -596,10 +599,10 @@ async def get_all_remarks(
         base_query = " UNION ALL ".join(queries)
         count_query = f"SELECT COUNT(*) FROM ({base_query})"
         
-        # 添加排序和分页
+        # 添加排序和分页（按备注时间排序）
         final_query = f"""
             SELECT * FROM ({base_query})
-            ORDER BY view_at {('ASC' if sort_order == 1 else 'DESC')}
+            ORDER BY remark_time {('ASC' if sort_order == 1 else 'DESC')}
             LIMIT ? OFFSET ?
         """
         

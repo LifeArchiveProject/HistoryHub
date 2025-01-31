@@ -135,7 +135,8 @@ def create_table(conn, table_name):
         tag_name TEXT,
         live_status INTEGER DEFAULT 0,
         main_category TEXT,
-        remark TEXT DEFAULT ''
+        remark TEXT DEFAULT '',
+        remark_time INTEGER DEFAULT 0
     )
     """)
     
@@ -156,9 +157,9 @@ def batch_insert_data(conn, table_name, data_batch):
         id, title, long_title, cover, covers, uri, oid, epid, bvid, page, 
         cid, part, business, dt, videos, author_name, author_face, author_mid, 
         view_at, progress, badge, show_title, duration, current, total, 
-        new_desc, is_finish, is_fav, kid, tag_name, live_status, main_category, remark
+        new_desc, is_finish, is_fav, kid, tag_name, live_status, main_category, remark, remark_time
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 
-              ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+              ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """
     
     try:
@@ -288,7 +289,8 @@ def import_data_from_json(conn, table_name, file_path, last_import_time=0, batch
                 tag_name,
                 item.get('live_status', 0),
                 main_category,
-                ''  # 默认的空备注
+                '',  # 默认的空备注
+                0   # 默认的备注时间为0
             )
             
             data_by_year[year].append(record)
