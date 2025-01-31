@@ -90,7 +90,7 @@
           </button>
 
           <!-- 登录状态显示 -->
-          <div 
+          <div
             @click="handleLoginClick"
             class="w-full flex items-center py-2 text-gray-700 transition-all duration-300 ease-in-out cursor-pointer hover:text-[#fb7299]"
             :class="[
@@ -98,22 +98,22 @@
               isCollapsed ? 'px-2' : 'px-3 rounded-lg'
             ]"
           >
-            <svg 
-              class="w-6 h-6 flex-shrink-0" 
+            <svg
+              class="w-6 h-6 flex-shrink-0"
               :class="{ 'mr-3': !isCollapsed }"
-              fill="none" 
-              viewBox="0 0 24 24" 
+              fill="none"
+              viewBox="0 0 24 24"
               :stroke="isLoggedIn ? '#10b981' : 'currentColor'"
             >
-              <path 
-                stroke-linecap="round" 
-                stroke-linejoin="round" 
-                stroke-width="2" 
-                d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" 
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"
               />
             </svg>
-            <span 
-              v-show="!isCollapsed" 
+            <span
+              v-show="!isCollapsed"
               class="truncate"
               :class="{ 'text-green-500': isLoggedIn }"
             >
@@ -144,82 +144,6 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
             </svg>
             <span v-show="!isCollapsed" class="truncate">{{ isImporting ? '导入中...' : '导入SQLite' }}</span>
-          </button>
-
-          <!-- 隐私模式 -->
-          <button
-            @click="togglePrivacyMode"
-            :title="isCollapsed ? (isPrivacyMode ? '取消隐私' : '隐私模式') : ''"
-            class="mt-4 w-full flex items-center px-2 py-2 text-gray-700 hover:text-[#fb7299] rounded-lg transition-colors duration-200"
-            :class="{ 'justify-center': isCollapsed }"
-          >
-            <svg 
-              class="w-6 h-6 flex-shrink-0" 
-              :class="{ 'mr-3': !isCollapsed }" 
-              fill="none" 
-              viewBox="0 0 256 256"
-              :stroke="isPrivacyMode ? '#fb7299' : 'currentColor'"
-            >
-              <path 
-                d="M128,56C48,56,8,128,8,128s40,72,120,72s120-72,120-72S208,56,128,56Z" 
-                :class="isPrivacyMode ? 'hidden' : 'block'"
-                fill="none" 
-                stroke-linecap="round" 
-                stroke-linejoin="round" 
-                stroke-width="16"
-              />
-              <circle 
-                cx="128" 
-                cy="128" 
-                r="32"
-                :class="isPrivacyMode ? 'hidden' : 'block'"
-                fill="none" 
-                stroke-linecap="round" 
-                stroke-linejoin="round" 
-                stroke-width="16"
-              />
-              <path 
-                d="M48,40L208,216"
-                :class="isPrivacyMode ? 'block' : 'hidden'"
-                fill="none" 
-                stroke-linecap="round" 
-                stroke-linejoin="round" 
-                stroke-width="16"
-              />
-              <path 
-                d="M154.9,157.6A32,32,0,0,1,97.6,100.3"
-                :class="isPrivacyMode ? 'block' : 'hidden'"
-                fill="none" 
-                stroke-linecap="round" 
-                stroke-linejoin="round" 
-                stroke-width="16"
-              />
-              <path 
-                d="M183.9,186.1C165.9,197.5,147.2,204,128,204,48,204,8,132,8,132s15.3-27.4,41.9-48.5"
-                :class="isPrivacyMode ? 'block' : 'hidden'"
-                fill="none" 
-                stroke-linecap="round" 
-                stroke-linejoin="round" 
-                stroke-width="16"
-              />
-              <path 
-                d="M90.1,97.5a38.5,38.5,0,0,0-1.1,4.5"
-                :class="isPrivacyMode ? 'block' : 'hidden'"
-                fill="none" 
-                stroke-linecap="round" 
-                stroke-linejoin="round" 
-                stroke-width="16"
-              />
-              <path 
-                d="M165.8,166.2a37.2,37.2,0,0,0,4.2-1.2"
-                :class="isPrivacyMode ? 'block' : 'hidden'"
-                fill="none" 
-                stroke-linecap="round" 
-                stroke-linejoin="round" 
-                stroke-width="16"
-              />
-            </svg>
-            <span v-show="!isCollapsed" class="truncate" :class="{ 'text-[#fb7299]': isPrivacyMode }">{{ isPrivacyMode ? '取消隐私' : '隐私模式' }}</span>
           </button>
 
           <!-- 收缩按钮 -->
@@ -304,7 +228,7 @@ const changeContent = (content) => {
   } else {
     emit('change-content', content)
     emit('update:showRemarks', false)
-    
+
     // 更新路由
     if (content === 'history') {
       if (route.path !== '/' && !route.path.startsWith('/page/')) {
@@ -317,12 +241,11 @@ const changeContent = (content) => {
 }
 
 // 判断是否在历史记录页面（包括分页）
-const isHistoryRoute = computed(() => {
+computed(() => {
   return currentRoute.value === '/' || currentRoute.value.startsWith('/page/')
 })
-
 // 隐私模式状态
-const { isPrivacyMode, togglePrivacyMode } = usePrivacyStore()
+const { isPrivacyMode } = usePrivacyStore()
 
 // 侧边栏收缩状态
 const isCollapsed = ref(false)
@@ -334,7 +257,7 @@ const toggleCollapse = () => {
 const isImporting = ref(false)
 const importToSqlite = async () => {
   if (isImporting.value) return
-  
+
   try {
     isImporting.value = true
     const response = await importSqliteData()
@@ -425,8 +348,8 @@ const handleLogout = async () => {
     console.error('退出登录失败:', error)
     showNotify({
       type: 'danger',
-      message: error.response?.status === 500 ? 
-        '服务器错误,请稍后重试' : 
+      message: error.response?.status === 500 ?
+        '服务器错误,请稍后重试' :
         `退出登录失败: ${error.message}`
     })
   }
@@ -435,4 +358,4 @@ const handleLogout = async () => {
 onMounted(() => {
   checkLoginStatus()
 })
-</script> 
+</script>

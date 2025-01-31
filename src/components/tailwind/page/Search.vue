@@ -1,45 +1,50 @@
 <template>
-  <div class="mx-auto mt-2 max-w-7xl sm:px-2 lg:px-8">
+  <div>
     <!-- 搜索框和总数显示容器 -->
-    <div class="fixed left-0 right-0 top-0 z-50 bg-white px-1.5 pb-1.5">
-      <!-- 使用SearchBar组件 -->
-      <SearchBar
-        :initial-year="selectedYear"
-        :initial-keyword="keyword"
-        :initial-search-type="searchType"
-        @year-change="handleYearChange"
-        @search="handleSearch"
-      />
+    <div class="sticky top-0 bg-white lg:pt-4 z-50">
+      <div class="bg-white">
+        <div class="mx-auto max-w-4xl">
+          <!-- 使用SearchBar组件 -->
+          <SearchBar
+            :initial-year="selectedYear"
+            :initial-keyword="keyword"
+            :initial-search-type="searchType"
+            @year-change="handleYearChange"
+            @search="handleSearch"
+          />
 
-      <!-- 显示总条数，和输入框左端对齐 -->
-      <div class="mx-auto max-w-4xl">
-        <p class="p-1.5 text-lg text-gray-700 lm:text-sm">
-          共 <span class="text-[#FF6699]">{{ totalResults }}</span> 条数据和
-          <span class="text-[#FF6699]">{{ keyword }}</span> 相关
-        </p>
+          <!-- 显示总条数，和输入框左端对齐 -->
+          <p class="p-1.5 text-lg text-gray-700 lm:text-sm">
+            共 <span class="text-[#FF6699]">{{ totalResults }}</span> 条数据和
+            <span class="text-[#FF6699]">{{ keyword }}</span> 相关
+          </p>
+        </div>
       </div>
     </div>
 
-    <!-- 使用 key 来强制组件重新渲染 -->
-    <div :key="page" class="pt-20 lm:pt-16">
-      <!-- 增加顶部填充，确保内容不被固定元素遮挡 -->
-      <VideoRecord 
-        v-for="record in records" 
-        :key="record.id" 
-        :record="record"
-        :search-keyword="keyword"
-        :search-type="searchType"
-      />
-    </div>
+    <!-- 主要内容区域 -->
+    <div class="mx-auto max-w-7xl sm:px-2 lg:px-8">
+      <!-- 使用 key 来强制组件重新渲染 -->
+      <div :key="page">
+        <!-- 视频记录列表 -->
+        <VideoRecord 
+          v-for="record in records" 
+          :key="record.id" 
+          :record="record"
+          :search-keyword="keyword"
+          :search-type="searchType"
+        />
+      </div>
 
-    <!-- 分页功能 -->
-    <div class="mb-5 mt-8">
-      <Pagination
-        v-model:current-page="page"
-        :total-pages="totalPages"
-        :use-routing="true"
-        @update:current-page="handlePageChange"
-      />
+      <!-- 分页功能 -->
+      <div class="mb-5 mt-8">
+        <Pagination
+          v-model:current-page="page"
+          :total-pages="totalPages"
+          :use-routing="true"
+          @update:current-page="handlePageChange"
+        />
+      </div>
     </div>
   </div>
 </template>
@@ -242,3 +247,7 @@ onMounted(async () => {
   await fetchSearchResults()
 })
 </script>
+
+<style scoped>
+/* 移除之前的sticky样式 */
+</style>

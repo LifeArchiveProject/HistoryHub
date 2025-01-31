@@ -208,6 +208,7 @@
                   class="flex-1 px-2 py-1 text-xs text-[#fb7299] bg-[#f8f8f8] rounded border-0 border-b border-transparent hover:border-gray-200 focus:border-[#fb7299] focus:ring-0 transition-colors duration-200 placeholder-[#fb7299]/50"
                   :class="{ 'blur-sm': isPrivacyMode }"
                 />
+                <span v-if="remarkTime" class="text-xs text-gray-400">{{ formatRemarkTime(remarkTime) }}</span>
               </div>
               <div v-if="!remarkContent && !isPrivacyMode" class="absolute right-2 top-1/2 -translate-y-1/2 hidden group-hover:block">
                 <svg class="w-3 h-3 text-[#fb7299]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -305,6 +306,7 @@ const emit = defineEmits(['toggle-selection', 'refresh-data'])
 
 const remarkContent = ref('')
 const originalRemark = ref('') // 用于存储原始备注内容
+const remarkTime = ref(null)
 
 // 高亮显示匹配的文本
 const highlightText = (text) => {
@@ -473,25 +475,33 @@ const handleDelete = async () => {
   }
 }
 
-// 初始化备注内容
+// 格式化备注时间
+const formatRemarkTime = (timestamp) => {
+  if (!timestamp) return ''
+  const date = new Date(timestamp * 1000)
+  return date.toLocaleString('zh-CN', {
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
+
+// 修改初始化备注内容的方法
 const initRemark = async () => {
   try {
     const response = await getVideoRemark(props.record.bvid, props.record.view_at)
-    remarkContent.value = response.data.data.remark || ''
-    originalRemark.value = remarkContent.value // 保存原始值
+    if (response.data.status === 'success') {
+      remarkContent.value = response.data.data.remark || ''
+      remarkTime.value = response.data.data.remark_time || null
+      originalRemark.value = remarkContent.value // 保存原始值
+    }
   } catch (error) {
     console.error('获取备注失败:', error)
   }
 }
 
-// 处理备注获取焦点
-const handleRemarkFocus = async () => {
-  if (remarkContent.value === '') {
-    await initRemark()
-  }
-}
-
-// 处理备注失去焦点
+// 修改备注更新方法
 const handleRemarkBlur = async () => {
   // 如果内容没有变化，不发送请求
   if (remarkContent.value === originalRemark.value) {
@@ -512,6 +522,7 @@ const handleRemarkBlur = async () => {
         })
       }
       originalRemark.value = remarkContent.value // 更新原始值
+      remarkTime.value = response.data.data.remark_time // 更新备注时间
     }
   } catch (error) {
     showNotify({
@@ -519,6 +530,13 @@ const handleRemarkBlur = async () => {
       message: `保存备注失败：${error.message}`
     })
     remarkContent.value = originalRemark.value // 恢复原始值
+  }
+}
+
+// 处理备注获取焦点
+const handleRemarkFocus = async () => {
+  if (remarkContent.value === '') {
+    await initRemark()
   }
 }
 

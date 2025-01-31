@@ -90,6 +90,9 @@
                   :placeholder="'添加备注...'"
                   class="remarks-field !bg-transparent"
                 />
+                <div v-if="record.remark_time" class="absolute bottom-1 right-2 text-xs text-gray-400">
+                  最后更新: {{ formatRemarkTime(record.remark_time) }}
+                </div>
               </div>
             </div>
           </div>
@@ -185,6 +188,19 @@ const getProgressWidth = (progress, duration) => {
   return `${(progress / duration) * 100}%`
 }
 
+// 格式化备注时间
+const formatRemarkTime = (timestamp) => {
+  if (!timestamp) return ''
+  const date = new Date(timestamp * 1000)
+  return date.toLocaleString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
+
 // 处理备注更新
 const handleRemarkUpdate = async (record) => {
   const newValue = record.remark
@@ -198,6 +214,7 @@ const handleRemarkUpdate = async (record) => {
     )
     if (response.data.status === 'success') {
       record.originalRemark = newValue
+      record.remark_time = response.data.data.remark_time // 更新备注时间
       showNotify({
         type: 'success',
         message: '备注已更新'
