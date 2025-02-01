@@ -71,7 +71,10 @@
         <!-- 页面容器 -->
         <div class="h-full">
           <!-- 加载状态 -->
-          <div v-if="loading" class="absolute inset-0 flex items-center justify-center z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
+          <div v-if="loading"
+            class="fixed inset-0 flex items-center justify-center z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm"
+            style="min-height: 100vh"
+          >
             <div class="text-center">
               <svg
                 class="w-12 h-12 mx-auto mb-4 animate-spin text-[#fb7299]"
@@ -160,7 +163,7 @@
 
 <script setup>
 import { ref, watch, onMounted, onUnmounted } from 'vue'
-import { getAvailableYears, getTitleAnalytics, getViewingAnalytics } from '../../../api/api.js'
+import { getTitleAnalytics, getViewingAnalytics } from '../../../api/api.js'
 import HeroPage from '../analytics/pages/HeroPage.vue'
 import OverviewPage from '../analytics/pages/OverviewPage.vue'
 import StreakPage from '../analytics/pages/StreakPage.vue'

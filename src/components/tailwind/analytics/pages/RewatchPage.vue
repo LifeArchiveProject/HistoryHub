@@ -78,7 +78,7 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue'
+import { onMounted, nextTick, watch, ref } from 'vue'
 import gsap from 'gsap'
 
 const props = defineProps({
@@ -88,20 +88,49 @@ const props = defineProps({
   }
 })
 
+// 用于存储当前视频列表的引用
+const videoList = ref([])
+
 const handleVideoClick = (bvid) => {
   window.open(`https://www.bilibili.com/video/${bvid}`, '_blank')
 }
 
-onMounted(() => {
-  const videoItems = document.querySelectorAll('.video-item')
-  gsap.from(videoItems, {
-    opacity: 0,
-    y: 20,
-    duration: 0.5,
-    stagger: 0.1,
-    ease: 'power2.out',
-    delay: 0.2
+// 初始化动画
+const initAnimation = () => {
+  nextTick(() => {
+    if (props.viewingData?.watch_counts?.most_watched_videos?.length > 0) {
+      const videoItems = document.querySelectorAll('.video-item')
+      if (videoItems.length > 0) {
+        gsap.from(videoItems, {
+          opacity: 0,
+          y: 20,
+          duration: 0.5,
+          stagger: 0.1,
+          ease: 'power2.out',
+          delay: 0.2
+        })
+      }
+    }
   })
+}
+
+// 监听数据变化
+watch(() => props.viewingData?.watch_counts?.most_watched_videos, (newVal) => {
+  // 先清空现有数据
+  videoList.value = []
+  
+  // 在下一个 tick 中更新数据
+  nextTick(() => {
+    if (newVal) {
+      videoList.value = newVal
+      initAnimation()
+    }
+  })
+}, { deep: true })
+
+onMounted(() => {
+  videoList.value = props.viewingData?.watch_counts?.most_watched_videos || []
+  initAnimation()
 })
 </script>
 
