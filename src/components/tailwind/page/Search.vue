@@ -6,10 +6,9 @@
         <div class="mx-auto max-w-4xl">
           <!-- 使用SearchBar组件 -->
           <SearchBar
-            :initial-year="selectedYear"
             :initial-keyword="keyword"
             :initial-search-type="searchType"
-            @year-change="handleYearChange"
+            :initial-sort-by="sortBy"
             @search="handleSearch"
           />
 
@@ -52,7 +51,7 @@
 <script setup>
 import { onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { searchBiliHistory2024, searchBiliHistoryAuthor } from '../../../api/api.js'
+import { searchBiliHistory2024 } from '../../../api/api.js'
 import SearchBar from '../SearchBar.vue'
 import VideoRecord from '../VideoRecord.vue'
 import Pagination from '../Pagination.vue'
@@ -60,8 +59,6 @@ import Pagination from '../Pagination.vue'
 // 获取路由参数
 const route = useRoute()
 const router = useRouter()
-const keyword = ref('')  // 初始化为空字符串
-const searchType = ref('title')  // 默认为标题搜索
 
 // 状态变量
 const records = ref([])
@@ -71,21 +68,10 @@ const sortOrder = ref(0)
 const totalPages = ref(0)
 const totalResults = ref(0)
 
-// 年份相关
-const currentYear = new Date().getFullYear()
-const selectedYear = ref(currentYear)
-
-// 处理年份变化
-const handleYearChange = (year) => {
-  selectedYear.value = year
-  router.replace({
-    name: route.name,
-    params: route.params,
-    query: { ...route.query, year }
-  })
-  page.value = 1
-  fetchSearchResults()
-}
+// 搜索相关变量
+const keyword = ref('')  // 初始化为空字符串
+const searchType = ref('all')  // 默认为全部搜索
+const sortBy = ref('relevance')  // 默认按相关度排序
 
 // 处理搜索
 const handleSearch = ({ keyword: searchKeyword, type }) => {
@@ -98,7 +84,6 @@ const handleSearch = ({ keyword: searchKeyword, type }) => {
       name: 'Search',
       params: { keyword: searchKeyword.trim() },
       query: { 
-        year: selectedYear.value,
         type: type
       }
     })
@@ -114,9 +99,21 @@ const handlePageChange = async (newPage) => {
     records.value = []
     // 更新路由
     if (newPage === 1) {
-      await router.push(`/search/${keyword.value}`)
+      await router.push({
+        name: 'Search',
+        params: { keyword: keyword.value },
+        query: {
+          type: searchType.value
+        }
+      })
     } else {
-      await router.push(`/search/${keyword.value}/page/${newPage}`)
+      await router.push({
+        name: 'Search',
+        params: { keyword: keyword.value, pageNumber: newPage },
+        query: {
+          type: searchType.value
+        }
+      })
     }
     await fetchSearchResults()
   }
@@ -127,8 +124,7 @@ const fetchSearchResults = async () => {
   console.log('Search - 开始获取搜索结果:', {
     keyword: keyword.value,
     type: searchType.value,
-    page: page.value,
-    year: selectedYear.value
+    page: page.value
   })
   
   try {
@@ -137,26 +133,14 @@ const fetchSearchResults = async () => {
     // 确保传递的是字符串类型
     const searchKeyword = Array.isArray(keyword.value) ? keyword.value[0] : String(keyword.value)
 
-    let response
-    if (searchType.value === 'author') {
-      console.log('Search - 使用作者搜索 API')
-      response = await searchBiliHistoryAuthor(
-        page.value,
-        size.value,
-        searchKeyword,
-        sortOrder.value,
-        selectedYear.value
-      )
-    } else {
-      console.log('Search - 使用标题搜索 API')
-      response = await searchBiliHistory2024(
-        page.value,
-        size.value,
-        searchKeyword,
-        sortOrder.value,
-        selectedYear.value
-      )
-    }
+    const response = await searchBiliHistory2024(
+      page.value,
+      size.value,
+      searchKeyword,
+      searchType.value,
+      sortOrder.value,
+      'relevance'  // 默认使用相关度排序
+    )
 
     if (response.data && response.data.data) {
       records.value = response.data.data.records
@@ -213,7 +197,6 @@ watch(
         name: 'Search',
         params: { keyword: keyword.value },
         query: { 
-          year: selectedYear.value,
           type: newType
         }
       })
@@ -224,12 +207,6 @@ watch(
 
 // 组件挂载时获取数据
 onMounted(async () => {
-  // 从URL查询参数获取年份和搜索类型
-  const yearFromQuery = Number(route.query.year || 0)
-  if (yearFromQuery) {
-    selectedYear.value = yearFromQuery
-  }
-
   const typeFromQuery = String(route.query.type || '')
   if (typeFromQuery) {
     searchType.value = typeFromQuery

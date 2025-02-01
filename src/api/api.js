@@ -37,30 +37,15 @@ export const getBiliHistory2024 = (page, size, sortOrder, tagName, mainCategory,
   })
 }
 
-export const searchBiliHistory2024 = (page, size, search, sortOrder = 0, year) => {
+export const searchBiliHistory2024 = (page, size, search, searchType = 'all', sortOrder = 0, sortBy = 'relevance') => {
   return instance.get(`/BiliHistory2024/search`, {
     params: {
       page,
       size,
       search,
+      search_type: searchType,
       sort_order: sortOrder,
-      year,
-    },
-  })
-}
-
-// 作者搜索接口
-export const searchBiliHistoryAuthor = (page, size, author, sortOrder = 0, year) => {
-  // 确保 author 是字符串类型
-  const authorStr = Array.isArray(author) ? author[0] : String(author || '')
-
-  return instance.get(`/BiliHistory2024/search_author`, {
-    params: {
-      page,
-      size,
-      author: authorStr,
-      sort_order: sortOrder,
-      year,
+      sort_by: sortBy
     },
   })
 }

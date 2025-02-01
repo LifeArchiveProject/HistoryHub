@@ -316,20 +316,35 @@ const remarkTime = ref(null)
 const highlightText = (text) => {
   if (!props.searchKeyword || !text) return text
 
-  const regex = new RegExp(props.searchKeyword, 'gi')
-  return text.replace(regex, match => `<span class="text-[#FF6699]">${match}</span>`)
+  // 将搜索关键词按空格分割成数组
+  const keywords = props.searchKeyword.split(/\s+/).filter(k => k)
+  let highlightedText = text
+
+  // 对每个关键词进行高亮处理
+  keywords.forEach(keyword => {
+    const regex = new RegExp(keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi')
+    highlightedText = highlightedText.replace(regex, match => `<span class="text-[#FF6699]">${match}</span>`)
+  })
+
+  return highlightedText
 }
 
 // 获取高亮后的标题
 const highlightedTitle = computed(() => {
-  if (props.searchType !== 'title' || !props.searchKeyword) return props.record.title
-  return highlightText(props.record.title)
+  if (!props.searchKeyword) return props.record.title
+  if (props.searchType === 'all' || props.searchType === 'title') {
+    return highlightText(props.record.title)
+  }
+  return props.record.title
 })
 
 // 获取高亮后的作者名称
 const highlightedAuthorName = computed(() => {
-  if (props.searchType !== 'author' || !props.searchKeyword) return props.record.author_name
-  return highlightText(props.record.author_name)
+  if (!props.searchKeyword) return props.record.author_name
+  if (props.searchType === 'all' || props.searchType === 'author') {
+    return highlightText(props.record.author_name)
+  }
+  return props.record.author_name
 })
 
 // 处理点击事件

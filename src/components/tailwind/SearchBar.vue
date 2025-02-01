@@ -4,27 +4,16 @@
     <div class="relative">
       <!-- 搜索框容器 -->
       <div class="flex w-full h-8 sm:h-10 items-center rounded-lg border border-gray-300 bg-[#edf2fa] hover:bg-[#e1e6ed] focus-within:border-[#FF6699]">
-        <!-- 年份选择器 -->
-        <select
-          v-model="selectedYear"
-          @change="handleYearChange"
-          class="h-full appearance-none border-none bg-transparent pl-2 text-[#FF6699] focus:outline-none focus:ring-0 lm:text-xs leading-none flex items-center"
-        >
-          <option v-for="year in availableYears" :key="year" :value="year">
-            {{ year }}年
-          </option>
-        </select>
-
-        <!-- 分隔线 -->
-        <div class="h-5 sm:h-6 w-px bg-gray-300 mx-1"></div>
-
         <!-- 搜索类型选择器 -->
         <select
           v-model="searchType"
           class="h-full appearance-none border-none bg-transparent pl-2 text-[#FF6699] focus:outline-none focus:ring-0 lm:text-xs leading-none flex items-center"
         >
+          <option value="all">全部</option>
           <option value="title">标题</option>
           <option value="author">UP主</option>
+          <option value="tag">分区</option>
+          <option value="remark">备注</option>
         </select>
 
         <!-- 分隔线 -->
@@ -35,7 +24,7 @@
           v-model="searchQuery"
           @keyup.enter="handleSearch"
           type="search"
-          :placeholder="searchType === 'title' ? '视频标题/oid' : 'UP主名称'"
+          :placeholder="getPlaceholder"
           class="h-full w-full border-none bg-transparent px-2 text-gray-900 focus:outline-none focus:ring-0 text-sm leading-none"
         />
       </div>
@@ -44,7 +33,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { getAvailableYears } from '../../api/api.js'
 
@@ -59,7 +48,7 @@ const props = defineProps({
   },
   initialSearchType: {
     type: String,
-    default: 'title'
+    default: 'all'
   }
 })
 
@@ -74,6 +63,22 @@ const searchType = ref(props.initialSearchType)
 // 年份相关
 const selectedYear = ref(props.initialYear)
 const availableYears = ref([props.initialYear])
+
+// 根据搜索类型获取占位符文本
+const getPlaceholder = computed(() => {
+  switch (searchType.value) {
+    case 'title':
+      return '视频标题/oid'
+    case 'author':
+      return 'UP主名称'
+    case 'tag':
+      return '分区名称'
+    case 'remark':
+      return '备注内容'
+    default:
+      return '输入关键词搜索'
+  }
+})
 
 // 获取可用年份列表
 const fetchAvailableYears = async () => {
@@ -125,7 +130,6 @@ const handleSearch = () => {
         name: 'Search',
         params: { keyword: searchQuery.value.trim() },
         query: { 
-          year: selectedYear.value,
           type: searchType.value
         }
       }).href
