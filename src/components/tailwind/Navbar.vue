@@ -323,51 +323,53 @@ const handleUpdate = async () => {
 </script>
 
 <style>
-/* 全局滚动条样式 */
-::-webkit-scrollbar {
-  width: 12px;
-  height: 12px;
-}
+/* 全局滚动条样式 - 仅在PC端生效 */
+@media (min-width: 1024px) {
+  ::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+  }
 
-::-webkit-scrollbar-track {
-  background: #f6f7f8;
-  border-radius: 6px;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #e3e5e7;
-  border-radius: 6px;
-  border: 3px solid #f6f7f8;
-  transition: all 0.2s ease-in-out;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #fb7299;
-  border: 3px solid #f6f7f8;
-}
-
-::-webkit-scrollbar-corner {
-  background: #f6f7f8;
-}
-
-/* 暗色模式滚动条 */
-@media (prefers-color-scheme: dark) {
   ::-webkit-scrollbar-track {
-    background: #1f1f1f;
+    background: #f6f7f8;
+    border-radius: 6px;
   }
 
   ::-webkit-scrollbar-thumb {
-    background: #2f2f2f;
-    border: 3px solid #1f1f1f;
+    background: #e3e5e7;
+    border-radius: 6px;
+    border: 3px solid #f6f7f8;
+    transition: all 0.2s ease-in-out;
   }
 
   ::-webkit-scrollbar-thumb:hover {
     background: #fb7299;
-    border: 3px solid #1f1f1f;
+    border: 3px solid #f6f7f8;
   }
 
   ::-webkit-scrollbar-corner {
-    background: #1f1f1f;
+    background: #f6f7f8;
+  }
+
+  /* PC端暗色模式滚动条 */
+  @media (prefers-color-scheme: dark) {
+    ::-webkit-scrollbar-track {
+      background: #1f1f1f;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #2f2f2f;
+      border: 3px solid #1f1f1f;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #fb7299;
+      border: 3px solid #1f1f1f;
+    }
+
+    ::-webkit-scrollbar-corner {
+      background: #1f1f1f;
+    }
   }
 }
 

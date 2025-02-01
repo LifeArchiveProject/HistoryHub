@@ -46,12 +46,12 @@
             :class="{ 'blur-md': isPrivacyMode }"
             alt=""
           />
-          <!-- 右上角的类型角标，仅当不是稿件时显示 -->
+          <!-- 右上角的类型角标 -->
           <div
-            v-if="record.business !== 'archive'"
-            class="absolute right-1 top-1 rounded bg-[#FF6699] px-1 py-0.5 text-[10px] text-white"
+            v-if="record.badge"
+            class="absolute right-1 top-1 rounded bg-[#FF6699] px-1 py-0.5 text-[10px] font-semibold text-white"
           >
-            {{ getBusinessType(record.business) }}
+            {{ record.badge }}
           </div>
         </div>
         <!-- 文章类型：作者信息、观看设备、时间放在封面图片下方 -->
@@ -136,12 +136,12 @@
               />
             </div>
           </div>
-          <!-- 右上的类型角标，稿件显示角标 -->
+          <!-- 右上角的类型角标 -->
           <div
-            v-if="record.business !== 'archive'"
+            v-if="record.badge"
             class="absolute right-1 top-1 rounded bg-[#FF6699] px-1 py-0.5 text-[10px] font-semibold text-white"
           >
-            {{ getBusinessType(record.business) }}
+            {{ record.badge }}
           </div>
           <!-- 右下角的时间进度角标和进度条，仅当不是文章时显示 -->
           <div
@@ -189,6 +189,7 @@
           </div>
           <div class="flex items-center space-x-2">
             <span
+              v-if="record.business !== 'pgc'"
               class="inline-flex items-center rounded-md bg-[#f1f2f3] px-2 py-1 text-xs text-[#71767d]"
             >
               {{ record.tag_name }}
@@ -204,7 +205,6 @@
                   @blur="handleRemarkBlur"
                   placeholder="添加备注..."
                   :disabled="isPrivacyMode"
-                  :value="isPrivacyMode ? '******' : remarkContent"
                   class="flex-1 px-2 py-1 text-xs text-[#fb7299] bg-[#f8f8f8] rounded border-0 border-b border-transparent hover:border-gray-200 focus:border-[#fb7299] focus:ring-0 transition-colors duration-200 placeholder-[#fb7299]/50"
                   :class="{ 'blur-sm': isPrivacyMode }"
                 />
@@ -219,9 +219,13 @@
           </div>
 
           <div class="flex items-end justify-between text-sm text-[#99a2aa] lm:text-xs">
-            <div class="flex items-center space-x-2" @click.stop>
+            <!-- PGC内容显示long_title -->
+            <div v-if="record.business === 'pgc'" class="flex items-center space-x-2">
+              <p class="text-[#99a2aa]">{{ record.long_title }}</p>
+            </div>
+            <!-- 非PGC内容显示UP主信息 -->
+            <div v-else class="flex items-center space-x-2" @click.stop>
               <img
-                v-if="record.business !== 'cheese' && record.business !== 'pgc'"
                 :src="record.author_face"
                 alt="author"
                 class="h-5 w-5 cursor-pointer rounded-full transition-all duration-300 hover:scale-110 lg:h-8 lg:w-8"
@@ -420,18 +424,6 @@ const formatDuration = (seconds) => {
   const minutes = String(Math.floor(seconds / 60)).padStart(2, '0')
   const secs = String(seconds % 60).padStart(2, '0')
   return `${minutes}:${secs}`
-}
-
-const getBusinessType = (business) => {
-  const businessTypes = {
-    archive: '稿件',
-    cheese: '课堂',
-    pgc: '电影',
-    live: '直播',
-    'article-list': '专栏',
-    article: '专栏',
-  }
-  return businessTypes[business] || '其他类型'
 }
 
 const getProgressWidth = (progress, duration) => {

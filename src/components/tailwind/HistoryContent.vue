@@ -50,7 +50,7 @@
                   </div>
                   <div class="bg-white dark:bg-gray-800 pl-3">
                     <span class="lm:text-xs text-[#FF6699]">
-                      {{ getDailyStatsForDate(record.view_at) }}个视频
+                      {{ getDailyStatsForDate(record.view_at) }}条数据
                     </span>
                   </div>
                 </div>
@@ -103,10 +103,12 @@
                   </div>
                 </div>
               </div>
-              <!-- 类型标签 -->
-              <div v-if="record.business !== 'archive'"
-                   class="absolute right-1 top-1 rounded bg-[#FF6699] px-1 py-0.5 text-[10px] text-white">
-                {{ getBusinessType(record.business) }}
+              <!-- 右上角的类型角标 -->
+              <div
+                v-if="record.badge"
+                class="absolute right-1 top-1 rounded bg-[#FF6699] px-1 py-0.5 text-[10px] text-white"
+              >
+                {{ record.badge }}
               </div>
             </div>
             <!-- 视频信息 -->
@@ -194,7 +196,7 @@
                   </div>
                   <div class="bg-white dark:bg-gray-800 pl-3">
                     <span class="lm:text-xs text-[#FF6699]">
-                      {{ getDailyStatsForDate(record.view_at) }}个视频
+                      {{ getDailyStatsForDate(record.view_at) }}条数据
                     </span>
                   </div>
                 </div>
@@ -566,15 +568,16 @@ const fetchDailyStats = async (timestamp) => {
 
   try {
     const date = new Date(timestamp * 1000)
+    const year = date.getFullYear()
     const month = String(date.getMonth() + 1).padStart(2, '0')
     const day = String(date.getDate()).padStart(2, '0')
     const dateStr = `${month}${day}`
 
     // 如果已经有这个日期的数据，就不重复获取
-    const dateKey = `${date.getFullYear()}-${month}-${day}`
+    const dateKey = `${year}-${month}-${day}`
     if (dailyStats.value[dateKey]) return
 
-    const response = await getDailyStats(dateStr, props.selectedYear)
+    const response = await getDailyStats(dateStr, year)
     if (response.data.status === 'success') {
       dailyStats.value[dateKey] = response.data.data
     }
@@ -607,7 +610,7 @@ const getDailyStatsForDate = (timestamp) => {
   const month = String(date.getMonth() + 1).padStart(2, '0')
   const day = String(date.getDate()).padStart(2, '0')
   const dateKey = `${date.getFullYear()}-${month}-${day}`
-  return dailyStats.value[dateKey]?.total_videos || 0
+  return dailyStats.value[dateKey]?.total_count || 0
 }
 
 onMounted(async () => {
@@ -623,9 +626,16 @@ defineExpose({
 // 格式化分割线日期
 const formatDividerDate = (timestamp) => {
   const date = new Date(timestamp * 1000)
+  const currentYear = new Date().getFullYear()
+  const year = date.getFullYear()
   const month = date.getMonth() + 1
   const day = date.getDate()
-  return `${month}月${day}日`
+
+  if (year === currentYear) {
+    return `${month}月${day}日`
+  } else {
+    return `${year}年${month}月${day}日`
+  }
 }
 
 // 判断是否需要显示分割线
