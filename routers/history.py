@@ -29,34 +29,22 @@ def get_db():
         conn = sqlite3.connect(db_path)
         cursor = conn.cursor()
         
-        # 获取当前SQLite版本
-        cursor.execute('SELECT sqlite_version()')
-        current_version = cursor.fetchone()[0]
-        print(f"\n=== SQLite版本信息 ===")
-        print(f"当前SQLite版本: {current_version}")
+        # 设置数据库兼容性参数
+        pragmas = [
+            ('legacy_file_format', 1),
+            ('journal_mode', 'DELETE'),
+            ('synchronous', 'NORMAL'),
+            ('user_version', 317)  # 使用固定的用户版本号
+        ]
+        
+        for pragma, value in pragmas:
+            cursor.execute(f'PRAGMA {pragma}={value}')
+        conn.commit()
         
         if not db_exists:
             print("数据库文件不存在，将创建新数据库")
-            # 设置数据库兼容性级别
-            cursor.execute('PRAGMA legacy_file_format=ON')
-            cursor.execute('PRAGMA journal_mode=DELETE')
-            cursor.execute('PRAGMA synchronous=NORMAL')
-            cursor.execute('PRAGMA user_version=1')  # 设置用户版本
-            conn.commit()
             print("已配置数据库兼容性设置")
-        else:
-            # 检查现有数据库的用户版本
-            cursor.execute('PRAGMA user_version')
-            user_version = cursor.fetchone()[0]
-            print(f"数据库用户版本: {user_version}")
             
-            # 设置兼容性模式
-            cursor.execute('PRAGMA legacy_file_format=ON')
-            cursor.execute('PRAGMA journal_mode=DELETE')
-            cursor.execute('PRAGMA synchronous=NORMAL')
-            conn.commit()
-            
-        print("===================\n")
         return conn
         
     except sqlite3.Error as e:
@@ -802,4 +790,95 @@ async def reset_database():
         raise HTTPException(
             status_code=500,
             detail=f"重置数据库失败: {str(e)}"
-        ) 
+        )
+
+@router.get("/sqlite-version")
+async def get_sqlite_version():
+    """获取 SQLite 版本信息"""
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+        
+        version_info = {
+            "sqlite_version": None,
+            "user_version": None,
+            "database_settings": {
+                "journal_mode": None,
+                "synchronous": None,
+                "legacy_format": None,
+                "page_size": None,
+                "cache_size": None,
+                "encoding": None
+            }
+        }
+        
+        # 获取 SQLite 版本信息
+        try:
+            cursor.execute('SELECT sqlite_version()')
+            result = cursor.fetchone()
+            version_info["sqlite_version"] = result[0] if result else "未知"
+        except sqlite3.Error as e:
+            print(f"获取 SQLite 版本失败: {e}")
+        
+        # 获取所有 PRAGMA 设置
+        pragmas = {
+            "user_version": None,
+            "journal_mode": "journal_mode",
+            "synchronous": "synchronous",
+            "legacy_file_format": "legacy_format",
+            "page_size": "page_size",
+            "cache_size": "cache_size",
+            "encoding": "encoding"
+        }
+        
+        # 获取用户版本
+        try:
+            cursor.execute('PRAGMA user_version')
+            result = cursor.fetchone()
+            version_info["user_version"] = result[0] if result else 0
+        except sqlite3.Error as e:
+            print(f"获取用户版本失败: {e}")
+        
+        # 获取其他 PRAGMA 设置
+        for pragma_name, setting_name in pragmas.items():
+            if setting_name:  # 跳过已经处理的 user_version
+                try:
+                    cursor.execute(f'PRAGMA {pragma_name}')
+                    result = cursor.fetchone()
+                    if result is not None:
+                        value = result[0]
+                        # 特殊处理某些值
+                        if pragma_name == "legacy_file_format":
+                            value = bool(int(value)) if value is not None else False
+                        elif pragma_name == "synchronous":
+                            value = {0: "OFF", 1: "NORMAL", 2: "FULL"}.get(value, value)
+                        version_info["database_settings"][setting_name] = value
+                except sqlite3.Error as e:
+                    print(f"获取 {pragma_name} 设置失败: {e}")
+        
+        # 获取数据库文件信息
+        db_path = get_output_path(config['db_file'])
+        db_exists = os.path.exists(db_path)
+        db_size = os.path.getsize(db_path) if db_exists else 0
+        
+        # 添加数据库文件信息
+        version_info["database_file"] = {
+            "exists": db_exists,
+            "size_bytes": db_size,
+            "size_mb": round(db_size / (1024 * 1024), 2) if db_exists else 0,
+            "path": db_path
+        }
+        
+        return {
+            "status": "success",
+            "data": version_info
+        }
+        
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": f"获取版本信息失败: {str(e)}"
+        }
+    finally:
+        if conn:
+            conn.close() 
