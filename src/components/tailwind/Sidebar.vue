@@ -146,6 +146,16 @@
             <span v-show="!isCollapsed" class="truncate">{{ isImporting ? '导入中...' : '导入SQLite' }}</span>
           </button>
 
+          <!-- SQLite版本显示 -->
+          <div v-if="!isCollapsed" class="mt-2 text-xs space-y-1 px-2">
+            <div class="text-gray-500">
+              SQLite版本: {{ sqliteVersion?.sqlite_version || '加载中...' }}
+            </div>
+            <div class="text-gray-500">
+              数据库大小: {{ sqliteVersion?.database_file?.size_mb?.toFixed(2) || '0' }} MB
+            </div>
+          </div>
+
           <!-- 收缩按钮 -->
           <button
             @click="toggleCollapse"
@@ -184,7 +194,7 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { usePrivacyStore } from '../../store/privacy'
-import { importSqliteData, getLoginStatus, logout } from '../../api/api'
+import { importSqliteData, getLoginStatus, logout, getSqliteVersion } from '../../api/api'
 import { showNotify } from 'vant'
 import { showDialog } from 'vant'
 import 'vant/es/notify/style'
@@ -255,6 +265,21 @@ const toggleCollapse = () => {
 
 // 导入SQLite数据
 const isImporting = ref(false)
+const sqliteVersion = ref({
+  sqlite_version: '',
+  user_version: 0,
+  database_settings: {
+    journal_mode: '',
+    synchronous: 0,
+    legacy_format: null
+  },
+  database_file: {
+    exists: false,
+    size_bytes: 0,
+    size_mb: 0,
+    path: ''
+  }
+})
 const importToSqlite = async () => {
   if (isImporting.value) return
 
@@ -355,7 +380,21 @@ const handleLogout = async () => {
   }
 }
 
-onMounted(() => {
+// 获取SQLite版本
+const fetchSqliteVersion = async () => {
+  try {
+    const response = await getSqliteVersion()
+    if (response.data.status === 'success') {
+      sqliteVersion.value = response.data.data
+    }
+  } catch (error) {
+    console.error('获取SQLite版本失败:', error)
+    sqliteVersion.value = null
+  }
+}
+
+onMounted(async () => {
   checkLoginStatus()
+  await fetchSqliteVersion()
 })
 </script>

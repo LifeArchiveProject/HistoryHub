@@ -289,3 +289,8 @@ export const getAllRemarks = (page = 1, size = 10, sortOrder = 0) => {
     }
   })
 }
+
+// 获取SQLite版本
+export const getSqliteVersion = () => {
+  return instance.get('/BiliHistory2024/sqlite-version')
+}
