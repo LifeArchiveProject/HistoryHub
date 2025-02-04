@@ -310,67 +310,93 @@ def get_daily_and_monthly_counts(target_year=None):
     """获取每日和每月的观看数量统计
     
     Args:
-        target_year: 要分析的年份，不传则使用当前年份
+        target_year: 要分析的年份，不传则分析所有年份
     """
     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     print(f"========== 运行时间: {current_time} ==========")
     
-    # 如果未指定年份，使用当前年份
-    if target_year is None:
-        target_year = get_current_year()
-    
     conn = get_db()
     try:
         cursor = conn.cursor()
-        table_name = f"bilibili_history_{target_year}"
         
-        # 检查表是否存在
-        cursor.execute("""
-            SELECT name FROM sqlite_master 
-            WHERE type='table' AND name=?
-        """, (table_name,))
+        # 获取所有可用年份
+        available_years = get_available_years()
+        if not available_years:
+            return {"error": "未找到任何历史记录数据"}
         
-        if not cursor.fetchone():
-            return {"error": f"未找到 {target_year} 年的历史记录数据"}
+        # 如果指定了年份，检查是否可用
+        if target_year is not None:
+            if target_year not in available_years:
+                return {"error": f"未找到 {target_year} 年的历史记录数据"}
+            years_to_analyze = [target_year]
+        else:
+            years_to_analyze = available_years
         
-        # 获取每日观看数量，使用localtime进行时区转换
-        cursor.execute(f"""
-            SELECT 
-                strftime('%Y-%m-%d', datetime(view_at, 'unixepoch', 'localtime')) as date,
-                COUNT(*) as count
-            FROM {table_name}
-            GROUP BY date
-            ORDER BY date
-        """)
-        daily_count = {row[0]: row[1] for row in cursor.fetchall()}
+        daily_count = {}
+        monthly_count = {}
+        total_count = 0
         
-        # 获取每月观看数量，使用localtime进行时区转换
-        cursor.execute(f"""
-            SELECT 
-                strftime('%Y-%m', datetime(view_at, 'unixepoch', 'localtime')) as month,
-                COUNT(*) as count
-            FROM {table_name}
-            GROUP BY month
-            ORDER BY month
-        """)
-        monthly_count = {row[0]: row[1] for row in cursor.fetchall()}
-        
-        # 输出每月的视频观看统计
-        print("\n每月观看视频数量：")
-        for month, count in sorted(monthly_count.items()):
-            print(f"{month}: {count} 个视频")
+        # 分析每个年份的数据
+        for year in years_to_analyze:
+            table_name = f"bilibili_history_{year}"
+            
+            # 获取每日观看数量，使用localtime进行时区转换
+            cursor.execute(f"""
+                SELECT 
+                    strftime('%Y-%m-%d', datetime(view_at, 'unixepoch', 'localtime')) as date,
+                    COUNT(*) as count
+                FROM {table_name}
+                GROUP BY date
+                ORDER BY date
+            """)
+            year_daily_count = {row[0]: row[1] for row in cursor.fetchall()}
+            daily_count.update(year_daily_count)
+            
+            # 获取每月观看数量，使用localtime进行时区转换
+            cursor.execute(f"""
+                SELECT 
+                    strftime('%Y-%m', datetime(view_at, 'unixepoch', 'localtime')) as month,
+                    COUNT(*) as count
+                FROM {table_name}
+                GROUP BY month
+                ORDER BY month
+            """)
+            year_monthly_count = {row[0]: row[1] for row in cursor.fetchall()}
+            monthly_count.update(year_monthly_count)
+            
+            # 计算该年份的总数
+            total_count += sum(year_daily_count.values())
+            
+            # 输出每月的视频观看统计
+            print(f"\n{year}年每月观看视频数量：")
+            for month, count in sorted(year_monthly_count.items()):
+                print(f"{month}: {count} 个视频")
         
         # 保存每日观看数量到JSON文件
         try:
-            output_file = save_daily_count_to_json(daily_count, target_year)
-            print(f"每日观看数量已保存到: {output_file}")
+            if target_year:
+                output_file = save_daily_count_to_json(daily_count, target_year)
+                print(f"每日观看数量已保存到: {output_file}")
+            else:
+                # 按年份拆分数据并保存
+                daily_count_by_year = {}
+                for date, count in daily_count.items():
+                    year = date.split('-')[0]
+                    if year not in daily_count_by_year:
+                        daily_count_by_year[year] = {}
+                    daily_count_by_year[year][date] = count
+                
+                # 保存每年的数据到单独的文件
+                for year, data in daily_count_by_year.items():
+                    output_file = save_daily_count_to_json(data, year)
+                    print(f"{year}年每日观看数量已保存到: {output_file}")
         except Exception as e:
             print(f"保存JSON文件时出错: {e}")
         
         return {
             "daily_count": daily_count,
             "monthly_count": monthly_count,
-            "total_count": sum(daily_count.values())
+            "total_count": total_count
         }
         
     except sqlite3.Error as e:
