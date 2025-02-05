@@ -282,10 +282,15 @@ watch(() => props.show, (newVal) => {
   }
 })
 
-// 组件卸载时清理
+// 组件卸载时清除轮询
 onUnmounted(() => {
   if (pollingInterval.value) {
     clearInterval(pollingInterval.value)
   }
+})
+
+// 定义组件选项
+defineOptions({
+  name: 'LoginDialog'
 })
 </script> 

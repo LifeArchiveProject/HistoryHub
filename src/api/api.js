@@ -294,3 +294,23 @@ export const getAllRemarks = (page = 1, size = 10, sortOrder = 0) => {
 export const getSqliteVersion = () => {
   return instance.get('/BiliHistory2024/sqlite-version')
 }
+
+// 图片管理相关接口
+// 获取图片下载状态
+export const getImagesStatus = () => {
+  return instance.get('/images/status')
+}
+
+// 开始下载图片
+export const startImagesDownload = (year = null) => {
+  return instance.post('/images/start', null, {
+    params: {
+      year
+    }
+  })
+}
+
+// 清空图片
+export const clearImages = () => {
+  return instance.post('/images/clear')
+}

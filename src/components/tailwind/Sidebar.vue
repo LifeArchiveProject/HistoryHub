@@ -60,7 +60,7 @@
             :title="isCollapsed ? '年度总结' : ''"
             class="flex items-center py-2 text-gray-700 transition-all duration-300 ease-in-out"
             :class="[
-              { 'bg-[#fb7299]/10 text-[#fb7299]': currentRoute === '/analytics' },
+              { 'bg-[#fb7299]/10 text-[#fb7299]': currentContent === 'analytics' },
               { 'justify-center': isCollapsed },
               isCollapsed ? 'px-2' : 'px-3 rounded-lg'
             ]"
@@ -69,6 +69,23 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
             </svg>
             <span v-show="!isCollapsed" class="truncate">年度总结</span>
+          </router-link>
+
+          <!-- 图片管理 -->
+          <router-link
+            to="/images"
+            :title="isCollapsed ? '图片管理' : ''"
+            class="flex items-center py-2 text-gray-700 transition-all duration-300 ease-in-out"
+            :class="[
+              { 'bg-[#fb7299]/10 text-[#fb7299]': currentContent === 'images' },
+              { 'justify-center': isCollapsed },
+              isCollapsed ? 'px-2' : 'px-3 rounded-lg'
+            ]"
+          >
+            <svg class="w-6 h-6 flex-shrink-0" :class="{ 'mr-3': !isCollapsed }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            <span v-show="!isCollapsed" class="truncate">图片管理</span>
           </router-link>
 
           <!-- 设置 -->
@@ -88,6 +105,7 @@
             </svg>
             <span v-show="!isCollapsed" class="truncate">设置</span>
           </button>
+
 
           <!-- 登录状态显示 -->
           <div
@@ -206,7 +224,21 @@ const router = useRouter()
 const currentRoute = computed(() => route.path)
 
 // 当前内容 - 根据路由初始化
-const currentContent = ref(route.path === '/settings' ? 'settings' : 'history')
+const currentContent = ref((() => {
+  const path = route.path
+  if (path === '/settings') {
+    return 'settings'
+  } else if (path === '/remarks') {
+    return 'remarks'
+  } else if (path === '/images') {
+    return 'images'
+  } else if (path === '/analytics') {
+    return 'analytics'
+  } else if (path === '/' || path.startsWith('/page/')) {
+    return 'history'
+  }
+  return 'history'
+})())
 const props = defineProps({
   showRemarks: {
     type: Boolean,
@@ -223,6 +255,10 @@ watch(
       currentContent.value = 'settings'
     } else if (path === '/remarks') {
       currentContent.value = 'remarks'
+    } else if (path === '/images') {
+      currentContent.value = 'images'
+    } else if (path === '/analytics') {
+      currentContent.value = 'analytics'
     } else if (path === '/' || path.startsWith('/page/')) {
       currentContent.value = 'history'
     }

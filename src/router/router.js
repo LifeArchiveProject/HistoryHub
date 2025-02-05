@@ -4,6 +4,7 @@ import Search from '../components/tailwind/page/Search.vue'
 import AnimatedAnalytics from '../components/tailwind/page/AnimatedAnalytics.vue'
 import Settings from '../components/tailwind/Settings.vue'
 import MainLayout from '../components/tailwind/layout/MainLayout.vue'
+import Images from '../components/tailwind/page/Images.vue'
 
 const routes = [
   {
@@ -43,6 +44,11 @@ const routes = [
         name: 'Remarks',
         component: History,
         props: { defaultShowRemarks: true }
+      },
+      {
+        path: 'images',
+        name: 'Images',
+        component: Images
       }
     ]
   }
