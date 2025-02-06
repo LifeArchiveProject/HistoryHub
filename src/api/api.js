@@ -314,3 +314,62 @@ export const startImagesDownload = (year = null) => {
 export const clearImages = () => {
   return instance.post('/images/clear')
 }
+
+// 下载视频
+export const downloadVideo = async (bvid, sessdata = null, onMessage) => {
+  console.log('调用下载API, bvid:', bvid)
+  
+  const response = await fetch(`${BASE_URL}/download/download_video`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      url: bvid,
+      sessdata
+    })
+  })
+
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`)
+  }
+
+  const reader = response.body.getReader()
+  const decoder = new TextDecoder()
+  let buffer = ''
+
+  while (true) {
+    const { value, done } = await reader.read()
+    if (done) break
+
+    buffer += decoder.decode(value, { stream: true })
+    
+    // 处理缓冲区中的完整行
+    const lines = buffer.split('\n')
+    buffer = lines.pop() // 保留最后一个不完整的行
+
+    for (const line of lines) {
+      if (line.startsWith('data: ')) {
+        const content = line.substring(6).trim()
+        if (content && content !== 'close') {
+          onMessage(content)
+        }
+      }
+    }
+  }
+
+  // 处理最后可能剩余的数据
+  if (buffer) {
+    if (buffer.startsWith('data: ')) {
+      const content = buffer.substring(6).trim()
+      if (content && content !== 'close') {
+        onMessage(content)
+      }
+    }
+  }
+}
+
+// 获取下载进度事件流 URL
+export const getDownloadProgressUrl = (bvid) => {
+  return `${BASE_URL}/download/download_video/stream?bvid=${bvid}`
+}
