@@ -316,7 +316,7 @@ export const clearImages = () => {
 }
 
 // 下载视频
-export const downloadVideo = async (bvid, sessdata = null, onMessage) => {
+export const downloadVideo = async (bvid, sessdata = null, onMessage, downloadCover = true) => {
   console.log('调用下载API, bvid:', bvid)
   
   const response = await fetch(`${BASE_URL}/download/download_video`, {
@@ -326,12 +326,14 @@ export const downloadVideo = async (bvid, sessdata = null, onMessage) => {
     },
     body: JSON.stringify({
       url: bvid,
-      sessdata
+      sessdata,
+      download_cover: downloadCover
     })
   })
 
   if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`)
+    const errorData = await response.json()
+    throw new Error(errorData.detail || '下载请求失败')
   }
 
   const reader = response.body.getReader()
@@ -372,4 +374,9 @@ export const downloadVideo = async (bvid, sessdata = null, onMessage) => {
 // 获取下载进度事件流 URL
 export const getDownloadProgressUrl = (bvid) => {
   return `${BASE_URL}/download/download_video/stream?bvid=${bvid}`
+}
+
+// 检查 FFmpeg 安装状态
+export const checkFFmpeg = () => {
+  return instance.get('/download/check_ffmpeg')
 }
