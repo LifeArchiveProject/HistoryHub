@@ -497,7 +497,8 @@ const fetchHistoryByDateRange = async () => {
     sortOrder: sortOrder.value,
     tagName: tagName.value,
     mainCategory: mainCategory.value,
-    dateRange: dateRange.value
+    dateRange: dateRange.value,
+    useLocalImages: localStorage.getItem('useLocalImages') === 'true'
   })
 
   try {
@@ -509,6 +510,7 @@ const fetchHistoryByDateRange = async () => {
       tagName.value,
       mainCategory.value,
       dateRange.value || '',
+      localStorage.getItem('useLocalImages') === 'true'
     )
 
     console.log('API 响应:', response.data)

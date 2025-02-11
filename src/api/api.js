@@ -24,7 +24,7 @@ const instance = axios.create({
 })
 
 // 历史记录相关接口
-export const getBiliHistory2024 = (page, size, sortOrder, tagName, mainCategory, dateRange) => {
+export const getBiliHistory2024 = (page, size, sortOrder, tagName, mainCategory, dateRange, useLocalImages = false) => {
   return instance.get(`/BiliHistory2024/all`, {
     params: {
       page,
@@ -33,6 +33,7 @@ export const getBiliHistory2024 = (page, size, sortOrder, tagName, mainCategory,
       tag_name: tagName,
       main_category: mainCategory,
       date_range: dateRange,
+      use_local_images: useLocalImages,
     },
   })
 }

@@ -12,13 +12,13 @@
    - 使用B站手机APP扫描二维码进行登录
    - 登录成功后会显示你的用户名
 
-3. **获取历史记录**
+2. **获取历史记录**
    - 登录成功后，点击导航栏中的"实时更新"按钮
    - 首次使用时会自动获取你的全部历史记录，这可能需要一些时间
    - 获取完成后数据会自动导入到本地数据库
    - 页面会自动刷新并显示你的观看历史
 
-4. **后续使用**
+3. **后续使用**
    - 每次打开页面时，建议点击"实时更新"以获取最新记录
    - 实时更新只会获取新增的记录，速度很快
 
@@ -33,6 +33,8 @@
   - 完成率分析：分析视频观看完成度
 - 🎨 **美观的数据可视化**：使用 ECharts 提供丰富的图表展示
 - 💻 **跨平台支持**：能使用浏览器的地方就可以显示此页面
+- 📥 **视频下载功能**：支持下载B站视频到本地
+- 🖼️ **离线图片缓存**：支持缓存视频封面和UP主头像到本地，实现离线查看
 
 ## 页面功能介绍
 
@@ -60,7 +62,7 @@
   - 备注列表快速查看
 
 ### 2. 设置页面
-<img src="./public/setting.png" alt="">
+<img src="./public/setting.jpg" alt="">
 
 设置页面提供了多个功能模块，采用现代化的网格布局设计：
 
@@ -69,13 +71,19 @@
 - 支持一键重置为默认地址
 - 修改后自动刷新以应用新设置
 
-#### 2.2 数据导出功能
+#### 2.2 图片源设置
+- 支持切换在线/本地图片源
+- 本地图片源适合离线环境使用
+- 自动缓存视频封面和UP主头像
+- 无需网络即可查看历史记录中的图片
+
+#### 2.3 数据导出功能
 - 支持按年份导出历史记录到Excel
 - 智能获取可用年份列表
 - 导出过程状态实时反馈
 - 自动下载生成的文件
 
-#### 2.3 数据库管理
+#### 2.4 数据库管理
 - **数据库下载**
   - 支持下载完整的SQLite数据库文件
   - 包含所有历史记录数据
@@ -86,38 +94,107 @@
   - 用于解决数据异常问题
   - 操作前二次确认防止误操作
 
-### 3. 数据分析页面（部分页面涉及到隐私就不截图了）
+### 3. 图片管理页面
+<img src="./public/images.png" alt="">
 
-#### 3.1 开场页（HeroPage）
+图片管理页面提供了全面的图片资源管理功能：
+
+#### 3.1 下载管理
+- **批量下载选项**：
+  - 支持下载全部历史记录的图片
+  - 支持按年份下载图片
+  - 实时显示下载进度
+- **图片类型管理**：
+  - 视频封面图片管理
+  - UP主头像图片管理
+  - 分别显示各类型图片的统计信息
+
+#### 3.2 状态监控
+- **实时统计**：
+  - 显示总图片数量
+  - 已下载数量
+  - 下载失败数量
+  - 待下载数量
+- **详细信息**：
+  - 显示实际文件数
+  - 显示孤立文件数
+  - 最后更新时间
+- **失败记录**：
+  - 显示下载失败的详细记录
+  - 包含失败原因和时间戳
+  - 支持查看失败URL
+
+#### 3.3 操作功能
+- **一键清空**：支持清空所有已下载的图片
+- **状态刷新**：自动刷新显示最新的下载状态
+- **进度展示**：使用进度条直观显示下载进度
+
+### 4. 视频下载功能
+<img src="./public/download.png" alt="">
+
+<div align="center">
+  <a href="https://yutto.nyakku.moe/" target="_blank">
+    <img src="https://yutto.nyakku.moe/logo-mini.svg" alt="Yutto Logo" width="32" height="32">
+  </a>
+  <p>视频下载功能由 <a href="https://yutto.nyakku.moe/" target="_blank">Yutto</a> 提供支持，感谢 Yutto 开发团队的开源贡献。</p>
+</div>
+
+#### 4.1 前置要求
+- **FFmpeg 安装**：
+  - 由于B站视频需要混流合并（将视频流和音频流合并为完整视频），因此需要 FFmpeg 的帮助
+  - 支持自动检测 FFmpeg 安装状态
+  - 提供详细的多平台安装指南
+  - 支持命令行快速复制功能
+
+#### 4.2 基本功能
+- **一键下载**：在视频卡片上直接点击下载按钮
+- **版本兼容**：
+  - 显示当前 FFmpeg 版本
+  - 提供兼容性提示
+  - 支持关闭封面合成以兼容低版本
+
+#### 4.3 下载管理
+- **实时状态**：
+  - 显示下载进度
+  - 显示当前下载状态
+  - 支持查看详细日志
+- **错误处理**：
+  - 显示详细的错误信息
+  - 支持失败后重试
+  - 提供故障排查指南
+
+### 5. 年度总结页面（部分页面涉及到隐私就不截图了）
+
+#### 5.1 开场页（HeroPage）
 <img src="public/HeroPage.png" alt="">
 
-#### 3.2 数据概览（OverviewPage）
+#### 5.2 数据概览（OverviewPage）
 <img src="./public/OverviewPage.png" alt="">
 
-#### 3.3 连续观看分析（StreakPage）
+#### 5.3 连续观看分析（StreakPage）
 <img src="./public/StreakPage.png">
 
-#### 3.4 时间分析（TimeAnalysisPage）
+#### 5.4 时间分析（TimeAnalysisPage）
 <img src="./public/TimeAnalysisPage.png">
 
-#### 3.5 重复观看分析（RewatchPage）
+#### 5.5 重复观看分析（RewatchPage）
 <img src="./public/RewatchPage.png">
 
-#### 3.6 整体完成率分析（OverallCompletionPage）
+#### 5.6 整体完成率分析（OverallCompletionPage）
 <img src="./public/OverallCompletionPage.png">
 
-#### 3.7 UP主完成率分析（AuthorCompletionPage）
+#### 5.7 UP主完成率分析（AuthorCompletionPage）
 <img src="./public/AuthorCompletionPage.png">
 
-#### 3.8 标签分析（TagsPage）
+#### 5.8 标签分析（TagsPage）
 
-#### 3.9 时间分布分析（TimeDistributionPage）
+#### 5.9 时间分布分析（TimeDistributionPage）
 
-#### 3.10 月度趋势分析（MonthlyPage）
+#### 5.10 月度趋势分析（MonthlyPage）
 
-#### 3.11 视频时长分析（DurationAnalysisPage）
+#### 5.11 视频时长分析（DurationAnalysisPage）
 
-#### 3.12 标题分析（TitleAnalysisPage）
+#### 5.12 标题分析（TitleAnalysisPage）
 
 ## 技术栈
 
@@ -202,7 +279,8 @@ BilibiliHistoryFrontend/
 
 ## 致谢
 
-- [bilibili-API-collect](https://github.com/SocialSisterYi/bilibili-API-collect)
+- [bilibili-API-collect](https://github.com/SocialSisterYi/bilibili-API-collect) - 没有它就没有这个项目
+- [Yutto](https://yutto.nyakku.moe/) - 可爱的B站视频下载工具
 - 所有贡献者
 
 ## Star History

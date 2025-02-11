@@ -24,7 +24,7 @@
         <div class="py-3 px-4 flex items-center justify-center space-x-4 bg-gray-50 border-b border-gray-100 rounded-t-lg">
           <img src="https://yutto.nyakku.moe/logo-mini.svg" alt="Yutto Logo" class="w-8 h-8">
           <div class="flex flex-col">
-            <p class="text-sm text-gray-600">下载功能由 <a href="https://yutto.nyakku.moe/" target="_blank" class="text-[#fb7299] hover:text-[#fb7299]/80 font-medium">Yutto</a> 提供支持</p>
+            <p class="text-sm text-gray-600">下载功能通过 <a href="https://yutto.nyakku.moe/" target="_blank" class="text-[#fb7299] hover:text-[#fb7299]/80 font-medium">Yutto</a> 实现</p>
             <p class="text-xs text-gray-400">感谢 Yutto 开发团队的开源贡献</p>
           </div>
         </div>
@@ -112,7 +112,7 @@
                 <img :src="videoInfo.cover" :alt="videoInfo.title" class="w-full h-full object-cover rounded-lg">
               </div>
               <div class="flex-1 min-w-0 space-y-2">
-                <h4 class="text-base font-medium text-gray-900">{{ videoInfo.title }}</h4>
+                <h4 class="text-base font-medium text-gray-900 truncate whitespace-nowrap overflow-hidden">{{ videoInfo.title }}</h4>
                 <p class="text-sm text-gray-500">UP主：{{ videoInfo.author }}</p>
                 <p class="text-sm text-gray-500">BV号：{{ videoInfo.bvid }}</p>
                 <!-- 下载选项 -->
