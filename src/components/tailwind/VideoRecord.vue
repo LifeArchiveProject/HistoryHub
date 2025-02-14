@@ -305,10 +305,10 @@
 </template>
 
 <script setup>
-import { computed, ref, onMounted } from 'vue'
+import { computed, ref, onMounted, watch } from 'vue'
 import { usePrivacyStore } from '../../store/privacy'
 import { showDialog, showNotify } from 'vant'
-import { batchDeleteHistory, updateVideoRemark, getVideoRemark } from '../../api/api'
+import { batchDeleteHistory, updateVideoRemark } from '../../api/api'
 import 'vant/es/dialog/style'
 import 'vant/es/popup/style'
 import 'vant/es/field/style'
@@ -336,10 +336,14 @@ const props = defineProps({
   isSelected: {
     type: Boolean,
     default: false
+  },
+  remarkData: {
+    type: Object,
+    default: () => ({})
   }
 })
 
-const emit = defineEmits(['toggle-selection', 'refresh-data'])
+const emit = defineEmits(['toggle-selection', 'refresh-data', 'remark-updated'])
 
 const remarkContent = ref('')
 const originalRemark = ref('') // 用于存储原始备注内容
@@ -528,16 +532,17 @@ const formatRemarkTime = (timestamp) => {
 }
 
 // 修改初始化备注内容的方法
-const initRemark = async () => {
-  try {
-    const response = await getVideoRemark(props.record.bvid, props.record.view_at)
-    if (response.data.status === 'success') {
-      remarkContent.value = response.data.data.remark || ''
-      remarkTime.value = response.data.data.remark_time || null
-      originalRemark.value = remarkContent.value // 保存原始值
-    }
-  } catch (error) {
-    console.error('获取备注失败:', error)
+const initRemark = () => {
+  const key = `${props.record.bvid}_${props.record.view_at}`
+  const data = props.remarkData[key]
+  if (data) {
+    remarkContent.value = data.remark || ''
+    remarkTime.value = data.remark_time || null
+    originalRemark.value = remarkContent.value // 保存原始值
+  } else {
+    remarkContent.value = ''
+    remarkTime.value = null
+    originalRemark.value = ''
   }
 }
 
@@ -563,6 +568,13 @@ const handleRemarkBlur = async () => {
       }
       originalRemark.value = remarkContent.value // 更新原始值
       remarkTime.value = response.data.data.remark_time // 更新备注时间
+      // 通知父组件备注已更新
+      emit('remark-updated', {
+        bvid: props.record.bvid,
+        view_at: props.record.view_at,
+        remark: remarkContent.value,
+        remark_time: response.data.data.remark_time
+      })
     }
   } catch (error) {
     showNotify({
@@ -573,17 +585,17 @@ const handleRemarkBlur = async () => {
   }
 }
 
-// 处理备注获取焦点
-const handleRemarkFocus = async () => {
-  if (remarkContent.value === '') {
-    await initRemark()
-  }
-}
+
 
 // 组件挂载时初始化备注
-onMounted(async () => {
-  await initRemark()
+onMounted(() => {
+  initRemark()
 })
+
+// 监听 remarkData 的变化
+watch(() => props.remarkData, () => {
+  initRemark()
+}, { deep: true })
 
 // 下载弹窗状态
 const showDownloadDialog = ref(false)

@@ -136,7 +136,7 @@
   <a href="https://yutto.nyakku.moe/" target="_blank">
     <img src="https://yutto.nyakku.moe/logo-mini.svg" alt="Yutto Logo" width="32" height="32">
   </a>
-  <p>视频下载功能由 <a href="https://yutto.nyakku.moe/" target="_blank">Yutto</a> 提供支持，感谢 Yutto 开发团队的开源贡献。</p>
+  <p>视频下载功能通过 <a href="https://yutto.nyakku.moe/" target="_blank">Yutto</a> 实现，感谢 Yutto 开发团队的开源贡献。</p>
 </div>
 
 #### 4.1 前置要求

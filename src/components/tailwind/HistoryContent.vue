@@ -207,8 +207,10 @@
             :record="record"
             :is-batch-mode="isBatchMode"
             :is-selected="selectedRecords.has(`${record.bvid}_${record.view_at}`)"
+            :remark-data="remarkData"
             @toggle-selection="toggleRecordSelection"
             @refresh-data="fetchHistoryByDateRange"
+            @remark-updated="handleRemarkUpdate"
           />
         </template>
       </div>
@@ -270,7 +272,8 @@ import {
   getBiliHistory2024,
   getMainCategories,
   getDailyStats,
-  batchDeleteHistory
+  batchDeleteHistory,
+  batchGetRemarks
 } from '../../api/api.js'
 import { showNotify, showDialog } from 'vant'
 import 'vant/es/dialog/style'
@@ -333,6 +336,7 @@ const records = ref([])
 const total = ref(0)
 const sortOrder = ref(0)
 const size = ref(30)
+const remarkData = ref({}) // 存储备注数据
 
 const date = ref('')
 const dateRange = ref('')
@@ -520,6 +524,18 @@ const fetchHistoryByDateRange = async () => {
       records.value = response.data.data.records
       emit('update:total-pages', Math.ceil(response.data.data.total / size.value))
       emit('update:total', response.data.data.total)
+
+      // 批量获取备注
+      if (records.value.length > 0) {
+        const batchRecords = records.value.map(record => ({
+          bvid: record.bvid,
+          view_at: record.view_at
+        }))
+        const remarksResponse = await batchGetRemarks(batchRecords)
+        if (remarksResponse.data.status === 'success') {
+          remarkData.value = remarksResponse.data.data
+        }
+      }
     }
   } catch (error) {
     console.error('数据获取失败:', error)
@@ -833,6 +849,17 @@ const toggleDaySelection = (timestamp) => {
       selectedRecords.value.add(key)
     }
   })
+}
+
+// 处理备注更新
+const handleRemarkUpdate = (data) => {
+  const key = `${data.bvid}_${data.view_at}`
+  remarkData.value[key] = {
+    bvid: data.bvid,
+    view_at: data.view_at,
+    remark: data.remark,
+    remark_time: data.remark_time
+  }
 }
 
 </script>

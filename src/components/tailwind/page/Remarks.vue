@@ -115,7 +115,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { usePrivacyStore } from '../../../store/privacy'
-import { getAllRemarks, updateVideoRemark } from '../../../api/api'
+import { getAllRemarks, updateVideoRemark, batchGetRemarks } from '../../../api/api'
 import { showNotify } from 'vant'
 import Pagination from '../Pagination.vue'
 
@@ -132,10 +132,28 @@ const fetchRemarks = async () => {
   try {
     const response = await getAllRemarks(page.value, 12) // 每页显示12条
     if (response.data.status === 'success') {
-      remarkRecords.value = response.data.data.records.map(record => ({
-        ...record,
-        originalRemark: record.remark // 保存原始备注内容
+      const records = response.data.data.records
+      // 构建批量查询请求
+      const batchRecords = records.map(record => ({
+        bvid: record.bvid,
+        view_at: record.view_at
       }))
+      
+      // 批量获取备注信息
+      const remarksResponse = await batchGetRemarks(batchRecords)
+      if (remarksResponse.data.status === 'success') {
+        remarkRecords.value = records.map(record => {
+          const key = `${record.bvid}_${record.view_at}`
+          const remarkData = remarksResponse.data.data[key] || {}
+          return {
+            ...record,
+            remark: remarkData.remark || '',
+            remark_time: remarkData.remark_time,
+            originalRemark: remarkData.remark || '' // 保存原始备注内容
+          }
+        })
+      }
+      
       totalPages.value = Math.ceil(response.data.data.total / response.data.data.size)
       total.value = response.data.data.total
     } else {

@@ -32,6 +32,8 @@
           :record="record"
           :search-keyword="keyword"
           :search-type="searchType"
+          :remark-data="remarkData"
+          @remark-updated="handleRemarkUpdate"
         />
       </div>
 
@@ -51,7 +53,7 @@
 <script setup>
 import { onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { searchBiliHistory2024 } from '../../../api/api.js'
+import { searchBiliHistory2024, batchGetRemarks } from '../../../api/api.js'
 import SearchBar from '../SearchBar.vue'
 import VideoRecord from '../VideoRecord.vue'
 import Pagination from '../Pagination.vue'
@@ -64,9 +66,9 @@ const router = useRouter()
 const records = ref([])
 const page = ref(1)
 const size = ref(30)
-const sortOrder = ref(0)
 const totalPages = ref(0)
 const totalResults = ref(0)
+const remarkData = ref({}) // 存储备注数据
 
 // 搜索相关变量
 const keyword = ref('')  // 初始化为空字符串
@@ -119,43 +121,48 @@ const handlePageChange = async (newPage) => {
   }
 }
 
-// 获取搜索数据的函数
+// 获取搜索结果
 const fetchSearchResults = async () => {
-  console.log('Search - 开始获取搜索结果:', {
-    keyword: keyword.value,
-    type: searchType.value,
-    page: page.value
-  })
-  
   try {
-    // 清空当前记录
-    records.value = []
-    // 确保传递的是字符串类型
-    const searchKeyword = Array.isArray(keyword.value) ? keyword.value[0] : String(keyword.value)
-
     const response = await searchBiliHistory2024(
-      page.value,
-      size.value,
-      searchKeyword,
-      searchType.value,
-      sortOrder.value,
-      'relevance'  // 默认使用相关度排序
+      keyword.value,           // search
+      searchType.value,        // searchType
+      page.value,             // page
+      size.value,             // size
+      sortBy.value === 'time' ? 0 : 1,  // sortOrder
+      sortBy.value            // sortBy
     )
 
-    if (response.data && response.data.data) {
+    if (response.data.status === 'success') {
       records.value = response.data.data.records
-      totalResults.value = response.data.data.total
       totalPages.value = Math.ceil(response.data.data.total / size.value)
-      console.log('Search - 搜索结果:', {
-        total: totalResults.value,
-        records: records.value.length
-      })
+      totalResults.value = response.data.data.total
+
+      // 批量获取备注
+      if (records.value.length > 0) {
+        const batchRecords = records.value.map(record => ({
+          bvid: record.bvid,
+          view_at: record.view_at
+        }))
+        const remarksResponse = await batchGetRemarks(batchRecords)
+        if (remarksResponse.data.status === 'success') {
+          remarkData.value = remarksResponse.data.data
+        }
+      }
     }
   } catch (error) {
-    console.error('搜索数据获取失败: ', error)
-    records.value = []
-    totalResults.value = 0
-    totalPages.value = 0
+    console.error('搜索失败:', error)
+  }
+}
+
+// 处理备注更新
+const handleRemarkUpdate = (data) => {
+  const key = `${data.bvid}_${data.view_at}`
+  remarkData.value[key] = {
+    bvid: data.bvid,
+    view_at: data.view_at,
+    remark: data.remark,
+    remark_time: data.remark_time
   }
 }
 

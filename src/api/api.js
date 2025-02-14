@@ -38,7 +38,7 @@ export const getBiliHistory2024 = (page, size, sortOrder, tagName, mainCategory,
   })
 }
 
-export const searchBiliHistory2024 = (page, size, search, searchType = 'all', sortOrder = 0, sortBy = 'relevance') => {
+export const searchBiliHistory2024 = (search, searchType = 'all', page = 1, size = 30, sortOrder = 0, sortBy = 'relevance') => {
   return instance.get(`/BiliHistory2024/search`, {
     params: {
       page,
@@ -270,13 +270,10 @@ export const updateVideoRemark = (bvid, viewAt, remark) => {
   })
 }
 
-// 获取视频备注
-export const getVideoRemark = (bvid, viewAt) => {
-  return instance.get('/BiliHistory2024/remark', {
-    params: {
-      bvid,
-      view_at: viewAt
-    }
+// 批量获取视频备注
+export const batchGetRemarks = (records) => {
+  return instance.post('/BiliHistory2024/batch-remarks', {
+    items: records
   })
 }
 

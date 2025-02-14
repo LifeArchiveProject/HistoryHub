@@ -3,7 +3,7 @@
   <Teleport to="body">
     <!-- 通知容器 -->
     <div class="notification-container fixed top-0 left-0 right-0 z-[100000]"></div>
-    
+
     <div v-if="show" class="fixed inset-0 z-[9999] flex items-center justify-center">
       <!-- 遮罩层 -->
       <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" @click="handleClose"></div>
@@ -64,8 +64,8 @@
                   <div class="text-sm text-gray-600">
                     <p>由于 B 站视频需要混流合并（将视频流和音频流合并为完整视频），因此需要 FFmpeg 的帮助。</p>
                     <p class="mt-1">
-                      <a href="https://yutto.nyakku.moe/guide/quick-start#ffmpeg-%E4%B8%8B%E8%BD%BD%E4%B8%8E%E9%85%8D%E7%BD%AE" 
-                         target="_blank" 
+                      <a href="https://yutto.nyakku.moe/guide/quick-start#ffmpeg-%E4%B8%8B%E8%BD%BD%E4%B8%8E%E9%85%8D%E7%BD%AE"
+                         target="_blank"
                          class="text-[#fb7299] hover:text-[#fb7299]/80">
                         点击查看Yutto说明 →
                       </a>
@@ -183,7 +183,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onUnmounted, nextTick, onMounted } from 'vue'
+import { ref, computed, watch, onUnmounted, nextTick } from 'vue'
 import { downloadVideo, checkFFmpeg } from '../../api/api'
 
 defineOptions({
@@ -247,10 +247,7 @@ const checkFFmpegStatus = async () => {
   }
 }
 
-// 组件挂载时检查 FFmpeg
-onMounted(() => {
-  checkFFmpegStatus()
-})
+
 
 // 下载封面选项
 const downloadCover = ref(true)
@@ -275,7 +272,7 @@ const startDownload = async () => {
     await downloadVideo(props.videoInfo.bvid, null, (content) => {
       console.log('收到消息:', content)
       downloadLogs.value.push(content)
-      
+
       // 检查下载状态
       if (content.includes('下载完成')) {
         isDownloading.value = false
@@ -283,7 +280,7 @@ const startDownload = async () => {
         downloadError.value = true
         isDownloading.value = false
       }
-      
+
       // 自动滚动到底部
       nextTick(() => {
         scrollToBottom()
@@ -333,6 +330,9 @@ const handleClose = () => {
 watch(() => props.show, (newVal) => {
   if (!newVal) {
     handleClose()
+  } else {
+    // 在弹窗打开时检查 FFmpeg
+    checkFFmpegStatus()
   }
 })
 
@@ -376,8 +376,8 @@ const installGuideLines = computed(() => {
 
 // 判断是否为命令行
 const isCommand = (line) => {
-  return line.trim().startsWith('yum') || 
-         line.trim().startsWith('sudo') || 
+  return line.trim().startsWith('yum') ||
+         line.trim().startsWith('sudo') ||
          line.trim().startsWith('apt') ||
          line.trim().startsWith('brew')
 }
