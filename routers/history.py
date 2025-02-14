@@ -936,30 +936,26 @@ async def get_video_remarks(request: BatchRemarksRequest):
                 print(f"未找到 {year} 年的历史记录数据")
                 continue
             
-            # 构建查询条件
-            placeholders = ','.join(['(?,?)' for _ in year_records])
-            query = f"""
-                SELECT bvid, view_at, title, remark, remark_time
-                FROM {table_name}
-                WHERE (bvid, view_at) IN ({placeholders})
-            """
-            
-            # 展平参数列表
-            params = [param for record in year_records for param in record]
-            
-            # 执行查询
-            cursor.execute(query, params)
-            
-            # 处理查询结果
-            for row in cursor.fetchall():
-                bvid, view_at, title, remark, remark_time = row
-                results[f"{bvid}_{view_at}"] = {
-                    "bvid": bvid,
-                    "view_at": view_at,
-                    "title": title,
-                    "remark": remark,
-                    "remark_time": remark_time
-                }
+            # 为每个(bvid, view_at)对执行单独的查询
+            for bvid, view_at in year_records:
+                query = f"""
+                    SELECT bvid, view_at, title, remark, remark_time
+                    FROM {table_name}
+                    WHERE bvid = ? AND view_at = ?
+                """
+                
+                cursor.execute(query, (bvid, view_at))
+                row = cursor.fetchone()
+                
+                if row:
+                    bvid, view_at, title, remark, remark_time = row
+                    results[f"{bvid}_{view_at}"] = {
+                        "bvid": bvid,
+                        "view_at": view_at,
+                        "title": title,
+                        "remark": remark,
+                        "remark_time": remark_time
+                    }
         
         return {
             "status": "success",
