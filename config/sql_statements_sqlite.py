@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS {table} (
     title TEXT NOT NULL,
     long_title TEXT,
     cover TEXT,
-    covers TEXT,
+    covers JSON,
     uri TEXT,
     oid INTEGER NOT NULL,
     epid INTEGER DEFAULT 0,
@@ -40,7 +40,8 @@ CREATE TABLE IF NOT EXISTS {table} (
 CREATE_INDEXES = [
     "CREATE INDEX IF NOT EXISTS idx_{table}_author_mid ON {table} (author_mid);",
     "CREATE INDEX IF NOT EXISTS idx_{table}_view_at ON {table} (view_at);",
-    "CREATE INDEX IF NOT EXISTS idx_{table}_remark_time ON {table} (remark_time);"
+    "CREATE INDEX IF NOT EXISTS idx_{table}_remark_time ON {table} (remark_time);",
+    "CREATE INDEX IF NOT EXISTS idx_{table}_covers ON {table} (json_valid(covers));"
 ]
 
 INSERT_DATA = """

@@ -6,6 +6,7 @@ import threading
 import time
 from datetime import datetime
 
+from config.sql_statements_sqlite import CREATE_TABLE_DEFAULT, CREATE_INDEXES, INSERT_DATA
 from scripts.utils import load_config, get_base_path, get_output_path
 
 config = load_config()
@@ -101,66 +102,24 @@ def table_exists(conn, table_name):
 def create_table(conn, table_name):
     """创建数据表"""
     cursor = conn.cursor()
-    cursor.execute(f"""
-    CREATE TABLE IF NOT EXISTS {table_name} (
-        id INTEGER PRIMARY KEY,
-        title TEXT NOT NULL,
-        long_title TEXT,
-        cover TEXT,
-        covers TEXT,
-        uri TEXT,
-        oid INTEGER NOT NULL,
-        epid INTEGER DEFAULT 0,
-        bvid TEXT NOT NULL,
-        page INTEGER DEFAULT 1,
-        cid INTEGER,
-        part TEXT,
-        business TEXT,
-        dt INTEGER NOT NULL,
-        videos INTEGER DEFAULT 1,
-        author_name TEXT NOT NULL,
-        author_face TEXT,
-        author_mid INTEGER NOT NULL,
-        view_at INTEGER NOT NULL,
-        progress INTEGER DEFAULT 0,
-        badge TEXT,
-        show_title TEXT,
-        duration INTEGER NOT NULL,
-        current TEXT,
-        total INTEGER DEFAULT 0,
-        new_desc TEXT,
-        is_finish INTEGER DEFAULT 0,
-        is_fav INTEGER DEFAULT 0,
-        kid INTEGER,
-        tag_name TEXT,
-        live_status INTEGER DEFAULT 0,
-        main_category TEXT,
-        remark TEXT DEFAULT '',
-        remark_time INTEGER DEFAULT 0
-    )
-    """)
+    
+    # 使用 sql_statements_sqlite.py 中的建表语句
+    cursor.execute(CREATE_TABLE_DEFAULT.format(table=table_name))
     
     # 创建索引
-    cursor.execute(f"""
-    CREATE INDEX IF NOT EXISTS idx_{table_name}_view_at 
-    ON {table_name} (view_at)
-    """)
+    for index_sql in CREATE_INDEXES:
+        cursor.execute(index_sql.format(table=table_name))
     
     conn.commit()
-    logger.info(f"成功为表 {table_name} 创建索引")
+    logger.info(f"成功创建表 {table_name} 及其索引")
 
 def batch_insert_data(conn, table_name, data_batch):
     """批量插入数据"""
     cursor = conn.cursor()
-    insert_sql = f"""
-    INSERT OR REPLACE INTO {table_name} (
-        id, title, long_title, cover, covers, uri, oid, epid, bvid, page, 
-        cid, part, business, dt, videos, author_name, author_face, author_mid, 
-        view_at, progress, badge, show_title, duration, current, total, 
-        new_desc, is_finish, is_fav, kid, tag_name, live_status, main_category, remark, remark_time
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 
-              ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """
+    
+    # 使用 sql_statements_sqlite.py 中的插入语句
+    placeholders = ','.join(['?' for _ in range(34)])  # 34个字段
+    insert_sql = INSERT_DATA.format(table=table_name, placeholders=placeholders)
     
     try:
         cursor.executemany(insert_sql, data_batch)
