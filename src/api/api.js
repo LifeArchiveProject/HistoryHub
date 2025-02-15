@@ -308,6 +308,11 @@ export const startImagesDownload = (year = null) => {
   })
 }
 
+// 停止下载图片
+export const stopImagesDownload = () => {
+  return instance.post('/images/stop')
+}
+
 // 清空图片
 export const clearImages = () => {
   return instance.post('/images/clear')

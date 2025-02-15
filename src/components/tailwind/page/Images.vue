@@ -5,49 +5,26 @@
 
     <!-- 操作按钮 -->
     <div class="mb-8 flex space-x-4">
-      <div class="relative">
-        <button
-          @click="showDownloadMenu = !showDownloadMenu"
-          :disabled="isDownloading"
-          class="px-4 py-2 bg-[#fb7299] text-white rounded-lg hover:bg-[#fb7299]/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-        >
-          <div class="flex items-center space-x-2">
-            <svg v-if="isDownloading" class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            <svg v-else class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-            </svg>
-            <span>{{ isDownloading ? '下载中...' : '下载图片' }}</span>
-            <svg class="h-5 w-5 transition-transform duration-200" :class="{ 'rotate-180': showDownloadMenu }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-            </svg>
-          </div>
-        </button>
-        <!-- 下拉菜单 -->
-        <div v-if="showDownloadMenu && !isDownloading" 
-             class="absolute z-10 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-gray-100">
-          <div class="py-1">
-            <button
-              @click="handleDownload()"
-              class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-[#fb7299]/10 hover:text-[#fb7299]"
-            >
-              下载全部图片
-            </button>
-            <button
-              @click="handleDownload(new Date().getFullYear())"
-              class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-[#fb7299]/10 hover:text-[#fb7299]"
-            >
-              下载本年图片
-            </button>
-          </div>
+      <button
+        @click="handleDownloadClick"
+        :disabled="isLoading || isStoppingDownload"
+        class="px-4 py-2 bg-[#fb7299] text-white rounded-lg hover:bg-[#fb7299]/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+      >
+        <div class="flex items-center space-x-2">
+          <svg v-if="isDownloading" class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <svg v-else class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+          <span>{{ isDownloading ? (isStoppingDownload ? '正在停止...' : '停止下载') : '下载图片' }}</span>
         </div>
-      </div>
+      </button>
 
       <button
         @click="handleClear"
-        :disabled="isDownloading"
+        :disabled="isDownloading || isLoading || isStoppingDownload"
         class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
       >
         <div class="flex items-center space-x-2">
@@ -59,8 +36,21 @@
       </button>
     </div>
 
+    <!-- 加载状态 -->
+    <div v-if="isLoading" class="space-y-8">
+      <div v-for="i in 2" :key="i" class="bg-white/50 backdrop-blur-sm rounded-lg p-6 border border-gray-200/50 animate-pulse">
+        <div class="h-8 bg-gray-200 rounded w-32 mb-4"></div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
+          <div v-for="j in 4" :key="j" class="bg-white/50 rounded-lg p-4 border border-gray-200/50">
+            <div class="h-8 bg-gray-200 rounded w-16 mb-2"></div>
+            <div class="h-4 bg-gray-200 rounded w-20"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- 下载状态 -->
-    <div class="space-y-8">
+    <div v-else class="space-y-8">
       <!-- 封面图片状态 -->
       <div class="bg-white/50 backdrop-blur-sm rounded-lg p-6 border border-gray-200/50">
         <div class="flex items-center justify-between mb-4">
@@ -72,19 +62,19 @@
         <div v-if="isDownloading" class="mb-6">
           <div class="flex justify-between mb-1">
             <span class="text-sm text-gray-600">下载进度</span>
-            <span class="text-sm text-gray-600">{{ getProgressPercentage(status?.covers) }}%</span>
+            <span class="text-sm text-gray-600">{{ getProgressPercentage(status?.covers, 'covers') }}%</span>
           </div>
           <div class="w-full bg-gray-200 rounded-full h-2.5">
             <div class="bg-[#fb7299] h-2.5 rounded-full transition-all duration-500 animate-pulse"
-                 :style="{ width: getProgressPercentage(status?.covers) + '%' }"></div>
+                 :style="{ width: getProgressPercentage(status?.covers, 'covers') + '%' }"></div>
           </div>
         </div>
 
         <!-- 状态卡片网格 -->
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
           <div class="bg-white/50 rounded-lg p-4 border border-gray-200/50">
-            <div class="text-2xl font-bold text-[#fb7299]">{{ status?.covers?.total || 0 }}</div>
-            <div class="text-sm text-gray-500">总数</div>
+            <div class="text-2xl font-bold text-[#fb7299]">{{ status?.covers?.total_planned || 0 }}</div>
+            <div class="text-sm text-gray-500">计划下载</div>
           </div>
           <div class="bg-white/50 rounded-lg p-4 border border-gray-200/50">
             <div class="text-2xl font-bold text-green-500">{{ status?.covers?.downloaded || 0 }}</div>
@@ -95,16 +85,8 @@
             <div class="text-sm text-gray-500">失败数</div>
           </div>
           <div class="bg-white/50 rounded-lg p-4 border border-gray-200/50">
-            <div class="text-2xl font-bold text-blue-500">{{ status?.covers?.pending || 0 }}</div>
+            <div class="text-2xl font-bold text-blue-500">{{ status?.covers?.total_planned ? (status.covers.total_planned - status.covers.downloaded - status.covers.failed) : 0 }}</div>
             <div class="text-sm text-gray-500">待下载</div>
-          </div>
-        </div>
-
-        <!-- 额外信息 -->
-        <div class="text-sm text-gray-600 space-y-1">
-          <div class="flex justify-between">
-            <span>实际文件数：{{ status?.covers?.existing_files || 0 }}</span>
-            <span>孤立文件数：{{ status?.covers?.orphaned_files || 0 }}</span>
           </div>
         </div>
 
@@ -139,19 +121,19 @@
         <div v-if="isDownloading" class="mb-6">
           <div class="flex justify-between mb-1">
             <span class="text-sm text-gray-600">下载进度</span>
-            <span class="text-sm text-gray-600">{{ getProgressPercentage(status?.avatars) }}%</span>
+            <span class="text-sm text-gray-600">{{ getProgressPercentage(status?.avatars, 'avatars') }}%</span>
           </div>
           <div class="w-full bg-gray-200 rounded-full h-2.5">
             <div class="bg-[#fb7299] h-2.5 rounded-full transition-all duration-500 animate-pulse"
-                 :style="{ width: getProgressPercentage(status?.avatars) + '%' }"></div>
+                 :style="{ width: getProgressPercentage(status?.avatars, 'avatars') + '%' }"></div>
           </div>
         </div>
 
         <!-- 状态卡片网格 -->
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
           <div class="bg-white/50 rounded-lg p-4 border border-gray-200/50">
-            <div class="text-2xl font-bold text-[#fb7299]">{{ status?.avatars?.total || 0 }}</div>
-            <div class="text-sm text-gray-500">总数</div>
+            <div class="text-2xl font-bold text-[#fb7299]">{{ status?.avatars?.total_planned || 0 }}</div>
+            <div class="text-sm text-gray-500">计划下载</div>
           </div>
           <div class="bg-white/50 rounded-lg p-4 border border-gray-200/50">
             <div class="text-2xl font-bold text-green-500">{{ status?.avatars?.downloaded || 0 }}</div>
@@ -162,16 +144,8 @@
             <div class="text-sm text-gray-500">失败数</div>
           </div>
           <div class="bg-white/50 rounded-lg p-4 border border-gray-200/50">
-            <div class="text-2xl font-bold text-blue-500">{{ status?.avatars?.pending || 0 }}</div>
+            <div class="text-2xl font-bold text-blue-500">{{ status?.avatars?.total_planned ? (status.avatars.total_planned - status.avatars.downloaded - status.avatars.failed) : 0 }}</div>
             <div class="text-sm text-gray-500">待下载</div>
-          </div>
-        </div>
-
-        <!-- 额外信息 -->
-        <div class="text-sm text-gray-600 space-y-1">
-          <div class="flex justify-between">
-            <span>实际文件数：{{ status?.avatars?.existing_files || 0 }}</span>
-            <span>孤立文件数：{{ status?.avatars?.orphaned_files || 0 }}</span>
           </div>
         </div>
 
@@ -201,15 +175,17 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted, onBeforeUnmount } from 'vue'
-import { getImagesStatus, startImagesDownload, clearImages } from '../../../api/api'
-import { showNotify } from 'vant'
-import { showDialog } from 'vant'
+import { getImagesStatus, startImagesDownload, stopImagesDownload, clearImages } from '../../../api/api'
+import { showNotify, showDialog } from 'vant'
 import 'vant/es/notify/style'
 import 'vant/es/dialog/style'
 
 const status = ref(null)
 const isDownloading = ref(false)
-const showDownloadMenu = ref(false)
+const plannedCoversTotal = ref(0)
+const plannedAvatarsTotal = ref(0)
+const isLoading = ref(true)
+const isStoppingDownload = ref(false)  // 新增：是否正在停止下载
 let statusInterval = null
 
 // 格式化时间戳
@@ -227,9 +203,10 @@ const formatTime = (timestamp) => {
 }
 
 // 计算进度百分比
-const getProgressPercentage = (data) => {
-  if (!data || !data.total_to_download) return 0
-  return Math.round((data.downloaded / data.total_to_download) * 100)
+const getProgressPercentage = (data, type) => {
+  if (!data) return 0
+  const planned = type === 'covers' ? plannedCoversTotal.value : plannedAvatarsTotal.value
+  return Math.round((data.downloaded / (planned || data.total_planned)) * 100)
 }
 
 // 获取状态
@@ -237,8 +214,17 @@ const fetchStatus = async () => {
   try {
     const response = await getImagesStatus()
     if (response.data.status === 'success') {
+      // 如果正在下载且计划总数为0，则更新计划总数
+      if (response.data.data.is_downloading && plannedCoversTotal.value === 0) {
+        plannedCoversTotal.value = response.data.data.covers.total_planned
+      }
+      if (response.data.data.is_downloading && plannedAvatarsTotal.value === 0) {
+        plannedAvatarsTotal.value = response.data.data.avatars.total_planned
+      }
+
       status.value = response.data.data
       isDownloading.value = status.value.is_downloading
+      isLoading.value = false  // 数据加载完成，关闭加载状态
 
       // 如果下载完成，停止轮询
       if (!status.value.is_downloading && statusInterval) {
@@ -252,10 +238,14 @@ const fetchStatus = async () => {
         setTimeout(() => {
           window.location.reload()
         }, 1000)
+        // 重置计划总数
+        plannedCoversTotal.value = 0
+        plannedAvatarsTotal.value = 0
       }
     }
   } catch (error) {
     console.error('获取状态失败:', error)
+    isLoading.value = false  // 发生错误时也关闭加载状态
     if (statusInterval) {
       clearInterval(statusInterval)
       statusInterval = null
@@ -263,44 +253,85 @@ const fetchStatus = async () => {
   }
 }
 
-// 点击外部关闭下拉菜单
-const handleClickOutside = (event) => {
-  const menu = document.querySelector('.relative')
-  if (menu && !menu.contains(event.target)) {
-    showDownloadMenu.value = false
-  }
-}
+// 处理下载按钮点击
+const handleDownloadClick = async () => {
+  if (isDownloading.value) {
+    // 如果已经在停止过程中，直接返回
+    if (isStoppingDownload.value) return
 
-// 处理下载
-const handleDownload = async (year = null) => {
-  showDownloadMenu.value = false
-  await startDownload(year)
-}
-
-// 开始下载
-const startDownload = async (year = null) => {
-  try {
-    const response = await startImagesDownload(year)
-    if (response.data.status === 'success') {
-      showNotify({
-        type: 'success',
-        message: response.data.message
+    // 显示确认对话框
+    try {
+      await showDialog({
+        title: '确认停止',
+        message: '确定要停止当前下载任务吗？',
+        showCancelButton: true,
+        confirmButtonText: '确认停止',
+        cancelButtonText: '取消',
+        confirmButtonColor: '#ef4444'
       })
-      isDownloading.value = true
-      
-      // 立即获取一次状态
-      await fetchStatus()
-      
-      // 开始定时获取状态
-      if (!statusInterval) {
-        statusInterval = setInterval(fetchStatus, 1000)
+
+      // 设置停止状态，防止重复点击
+      isStoppingDownload.value = true
+
+      // 停止下载
+      const response = await stopImagesDownload()
+      if (response.data.status === 'success') {
+        showNotify({
+          type: 'success',
+          message: '已停止下载'
+        })
+        // 重置所有状态
+        isDownloading.value = false
+        isStoppingDownload.value = false
+        plannedCoversTotal.value = 0
+        plannedAvatarsTotal.value = 0
+        
+        // 清除定时器
+        if (statusInterval) {
+          clearInterval(statusInterval)
+          statusInterval = null
+        }
+        
+        // 刷新状态
+        await fetchStatus()
       }
+    } catch (error) {
+      // 如果是用户取消，直接返回
+      if (error.toString().includes('cancel')) return
+
+      showNotify({
+        type: 'danger',
+        message: `停止下载失败: ${error.message}`
+      })
+    } finally {
+      // 如果停止失败，也需要重置停止状态
+      isStoppingDownload.value = false
     }
-  } catch (error) {
-    showNotify({
-      type: 'danger',
-      message: `开始下载失败: ${error.message}`
-    })
+  } else {
+    // 如果未在下载，则开始下载
+    try {
+      const response = await startImagesDownload()
+      if (response.data.status === 'success') {
+        showNotify({
+          type: 'success',
+          message: response.data.message
+        })
+        isDownloading.value = true
+        
+        // 立即获取一次状态
+        await fetchStatus()
+        
+        // 开始定时获取状态
+        if (!statusInterval) {
+          statusInterval = setInterval(fetchStatus, 1000)
+        }
+      }
+    } catch (error) {
+      showNotify({
+        type: 'danger',
+        message: `开始下载失败: ${error.message}`
+      })
+    }
   }
 }
 
@@ -339,17 +370,12 @@ const handleClear = async () => {
   }
 }
 
-// 组件挂载时获取一次状态和添加点击事件监听
+// 组件挂载时获取一次状态
 onMounted(() => {
   fetchStatus()
-  document.addEventListener('click', handleClickOutside)
 })
 
-// 组件卸载时移除事件监听和清除定时器
-onBeforeUnmount(() => {
-  document.removeEventListener('click', handleClickOutside)
-})
-
+// 组件卸载时清除定时器
 onUnmounted(() => {
   if (statusInterval) {
     clearInterval(statusInterval)
