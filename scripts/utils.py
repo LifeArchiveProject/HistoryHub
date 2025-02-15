@@ -1,5 +1,6 @@
 import logging
 import os
+import sqlite3
 import sys
 from datetime import datetime
 from typing import Dict, Any
@@ -108,3 +109,8 @@ def get_logs_path() -> str:
         f"{current_time.day:02d}.log"
     )
     return log_path
+
+def get_db():
+    """获取数据库连接"""
+    db_path = get_output_path('bilibili_history.db')
+    return sqlite3.connect(db_path)

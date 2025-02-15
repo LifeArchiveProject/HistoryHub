@@ -1,14 +1,15 @@
+import json
+import os
 import sqlite3
 from collections import Counter, defaultdict
 from typing import List, Dict, Tuple, Set, Optional
+
 import jieba
 import numpy as np
-from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.cluster import KMeans
+from sklearn.feature_extraction.text import TfidfVectorizer
 from snownlp import SnowNLP
-import json
-import os
-from datetime import datetime, timedelta
+
 
 class PatternCache:
     """模式缓存管理器"""
@@ -35,15 +36,17 @@ class PatternCache:
             os.chmod(self.cache_dir, 0o755)
             print(f"缓存目录权限已设置为755")
             
-            # 获取当前用户和组
-            import pwd
-            import grp
-            current_user = os.getlogin() if hasattr(os, 'getlogin') else pwd.getpwuid(os.getuid()).pw_name
-            current_group = grp.getgrgid(os.getgid()).gr_name if hasattr(grp, 'getgrgid') else None
-            
-            print(f"当前用户: {current_user}")
-            if current_group:
+            # 根据操作系统获取用户信息
+            if sys.platform != 'win32':
+                import pwd
+                import grp
+                current_user = pwd.getpwuid(os.getuid()).pw_name
+                current_group = grp.getgrgid(os.getgid()).gr_name
+                print(f"当前用户: {current_user}")
                 print(f"当前用户组: {current_group}")
+            else:
+                current_user = os.getlogin() if hasattr(os, 'getlogin') else 'unknown'
+                print(f"当前用户: {current_user}")
             
             # 检查目录权限
             mode = oct(os.stat(self.cache_dir).st_mode)[-3:]

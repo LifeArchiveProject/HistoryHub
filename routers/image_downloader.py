@@ -1,13 +1,20 @@
+import os
+import sqlite3
 from typing import Optional
+
 from fastapi import APIRouter, BackgroundTasks, HTTPException
 from fastapi.responses import FileResponse
-import os
 
 from scripts.image_downloader import ImageDownloader
 from scripts.utils import get_output_path
 
 router = APIRouter()
 downloader = ImageDownloader()
+
+def get_history_db():
+    """获取历史记录数据库连接"""
+    db_path = get_output_path('bilibili_history.db')
+    return sqlite3.connect(db_path)
 
 @router.post("/start")
 async def start_download(
@@ -26,6 +33,22 @@ async def start_download(
         "status": "success",
         "message": f"开始下载{'所有年份' if year is None else f'{year}年'}的图片"
     }
+
+@router.post("/stop")
+async def stop_download():
+    """停止当前下载任务
+    
+    Returns:
+        dict: 包含停止状态和当前下载统计的响应
+    """
+    try:
+        result = downloader.stop_download()
+        return result
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": f"停止下载失败: {str(e)}"
+        }
 
 @router.get("/status")
 async def get_status():
@@ -94,24 +117,43 @@ async def get_local_image(image_type: str, file_hash: str):
         base_path = get_output_path('images')
         type_path = os.path.join(base_path, image_type)
         sub_dir = file_hash[:2]  # 使用哈希的前两位作为子目录
-        img_dir = os.path.join(type_path, sub_dir)
         
-        # 查找匹配的图片文件
-        if not os.path.exists(img_dir):
-            raise HTTPException(
-                status_code=404,
-                detail=f"图片不存在: {file_hash}"
-            )
+        # 获取所有年份目录
+        years = []
+        if os.path.exists(type_path):
+            for item in os.listdir(type_path):
+                if item.isdigit():
+                    years.append(item)
+        
+        # 按年份倒序搜索图片
+        for year in sorted(years, reverse=True):
+            year_path = os.path.join(type_path, year)
+            img_dir = os.path.join(year_path, sub_dir)
             
-        # 查找所有可能的图片文件扩展名
-        for ext in ('.jpg', '.jpeg', '.png', '.webp', '.gif'):
-            img_path = os.path.join(img_dir, f"{file_hash}{ext}")
-            if os.path.exists(img_path):
-                print(f"找到图片文件: {img_path}")
-                return FileResponse(
-                    img_path,
-                    media_type=f"image/{ext[1:]}" if ext != '.jpg' else "image/jpeg"
-                )
+            if not os.path.exists(img_dir):
+                continue
+                
+            # 查找所有可能的图片文件扩展名
+            for ext in ('.jpg', '.jpeg', '.png', '.webp', '.gif'):
+                img_path = os.path.join(img_dir, f"{file_hash}{ext}")
+                if os.path.exists(img_path):
+                    print(f"找到图片文件: {img_path}")
+                    return FileResponse(
+                        img_path,
+                        media_type=f"image/{ext[1:]}" if ext != '.jpg' else "image/jpeg"
+                    )
+        
+        # 如果在年份目录中没有找到，尝试在根目录中查找
+        img_dir = os.path.join(type_path, sub_dir)
+        if os.path.exists(img_dir):
+            for ext in ('.jpg', '.jpeg', '.png', '.webp', '.gif'):
+                img_path = os.path.join(img_dir, f"{file_hash}{ext}")
+                if os.path.exists(img_path):
+                    print(f"找到图片文件: {img_path}")
+                    return FileResponse(
+                        img_path,
+                        media_type=f"image/{ext[1:]}" if ext != '.jpg' else "image/jpeg"
+                    )
         
         # 如果没有找到任何匹配的文件
         raise HTTPException(
