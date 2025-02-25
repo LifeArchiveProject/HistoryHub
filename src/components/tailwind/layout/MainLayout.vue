@@ -31,6 +31,15 @@ watch(
     } else if (path === '/' || path.startsWith('/page/')) {
       currentContent.value = 'history'
       showRemarks.value = false
+    } else if (path === '/analytics') {
+      currentContent.value = 'analytics'
+      showRemarks.value = false
+    } else if (path === '/images') {
+      currentContent.value = 'images'
+      showRemarks.value = false
+    } else if (path === '/scheduler') {
+      currentContent.value = 'scheduler'
+      showRemarks.value = false
     }
   },
   { immediate: true }

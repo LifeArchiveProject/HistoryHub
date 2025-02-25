@@ -5,6 +5,7 @@ import AnimatedAnalytics from '../components/tailwind/page/AnimatedAnalytics.vue
 import Settings from '../components/tailwind/Settings.vue'
 import MainLayout from '../components/tailwind/layout/MainLayout.vue'
 import Images from '../components/tailwind/page/Images.vue'
+import SchedulerTasks from '../components/tailwind/page/SchedulerTasks.vue'
 
 const routes = [
   {
@@ -49,6 +50,11 @@ const routes = [
         path: 'images',
         name: 'Images',
         component: Images
+      },
+      {
+        path: 'scheduler',
+        name: 'SchedulerTasks',
+        component: SchedulerTasks
       }
     ]
   }

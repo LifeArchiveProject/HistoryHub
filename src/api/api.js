@@ -25,7 +25,7 @@ const instance = axios.create({
 
 // 历史记录相关接口
 export const getBiliHistory2024 = (page, size, sortOrder, tagName, mainCategory, dateRange, useLocalImages = false) => {
-  return instance.get(`/BiliHistory2024/all`, {
+  return instance.get(`/history/all`, {
     params: {
       page,
       size,
@@ -39,7 +39,7 @@ export const getBiliHistory2024 = (page, size, sortOrder, tagName, mainCategory,
 }
 
 export const searchBiliHistory2024 = (search, searchType = 'all', page = 1, size = 30, sortOrder = 0, sortBy = 'relevance') => {
-  return instance.get(`/BiliHistory2024/search`, {
+  return instance.get(`/history/search`, {
     params: {
       page,
       size,
@@ -53,16 +53,16 @@ export const searchBiliHistory2024 = (search, searchType = 'all', page = 1, size
 
 // 获取可用年份列表
 export const getAvailableYears = () => {
-  return instance.get(`/BiliHistory2024/available-years`)
+  return instance.get(`/history/available-years`)
 }
 
 // 分类相关接口
 export const getVideoCategories = () => {
-  return instance.get(`/BiliHistory2024/categories`) // 使用新的分类接口
+  return instance.get(`/history/categories`) // 使用新的分类接口
 }
 
 export const getMainCategories = () => {
-  return instance.get(`/BiliHistory2024/main-categories`)
+  return instance.get(`/history/main-categories`)
 }
 
 // 标题分析相关接口
@@ -257,13 +257,13 @@ export const batchDeleteHistory = (items) => {
 // 数据库管理相关接口
 // 重置数据库
 export const resetDatabase = () => {
-  return instance.post('/BiliHistory2024/reset-database')
+  return instance.post('/history/reset-database')
 }
 
 // 备注相关接口
 // 更新视频备注
 export const updateVideoRemark = (bvid, viewAt, remark) => {
-  return instance.post('/BiliHistory2024/update-remark', {
+  return instance.post('/history/update-remark', {
     bvid,
     view_at: viewAt,
     remark
@@ -272,14 +272,14 @@ export const updateVideoRemark = (bvid, viewAt, remark) => {
 
 // 批量获取视频备注
 export const batchGetRemarks = (records) => {
-  return instance.post('/BiliHistory2024/batch-remarks', {
+  return instance.post('/history/batch-remarks', {
     items: records
   })
 }
 
 // 获取所有备注记录
 export const getAllRemarks = (page = 1, size = 10, sortOrder = 0) => {
-  return instance.get('/BiliHistory2024/remarks', {
+  return instance.get('/history/remarks', {
     params: {
       page,
       size,
@@ -290,7 +290,7 @@ export const getAllRemarks = (page = 1, size = 10, sortOrder = 0) => {
 
 // 获取SQLite版本
 export const getSqliteVersion = () => {
-  return instance.get('/BiliHistory2024/sqlite-version')
+  return instance.get('/history/sqlite-version')
 }
 
 // 图片管理相关接口
@@ -382,4 +382,59 @@ export const getDownloadProgressUrl = (bvid) => {
 // 检查 FFmpeg 安装状态
 export const checkFFmpeg = () => {
   return instance.get('/download/check_ffmpeg')
+}
+
+// 计划任务管理相关接口
+export const getAllSchedulerTasks = () => {
+  return instance.get('/scheduler/tasks')
+}
+
+export const getSchedulerTaskDetail = (taskId) => {
+  return instance.get(`/scheduler/tasks/${taskId}`)
+}
+
+export const createSchedulerTask = (taskData) => {
+  return instance.post('/scheduler/tasks', taskData)
+}
+
+export const updateSchedulerTask = (taskId, taskData) => {
+  return instance.put(`/scheduler/tasks/${taskId}`, taskData)
+}
+
+export const deleteSchedulerTask = (taskId) => {
+  return instance.delete(`/scheduler/tasks/${taskId}`)
+}
+
+export const executeSchedulerTask = (taskId) => {
+  return instance.post(`/scheduler/tasks/${taskId}/execute`)
+}
+
+// 新增计划任务接口
+// 获取任务执行历史
+export const getTaskExecutionHistory = (taskId, limit = 10) => {
+  return instance.get(`/scheduler/history/task/${taskId}`, {
+    params: { limit }
+  })
+}
+
+// 获取最近执行的任务历史
+export const getRecentTaskHistory = (limit = 20) => {
+  return instance.get('/scheduler/history/recent', {
+    params: { limit }
+  })
+}
+
+// 获取任务链执行历史
+export const getTaskChainHistory = (taskId) => {
+  return instance.get(`/scheduler/tasks/${taskId}/chain-history`)
+}
+
+// 启用或禁用任务
+export const setTaskEnabled = (taskId, enabled) => {
+  return instance.post(`/scheduler/tasks/${taskId}/enable`, { enabled })
+}
+
+// 设置任务优先级
+export const setTaskPriority = (taskId, priority) => {
+  return instance.post(`/scheduler/tasks/${taskId}/priority`, { priority })
 }
