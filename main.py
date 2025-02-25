@@ -25,7 +25,8 @@ from routers import (
     daily_count,
     login,
     delete_history,
-    image_downloader
+    image_downloader,
+    scheduler
 )
 from scripts.scheduler_manager import SchedulerManager
 from scripts.utils import load_config
@@ -224,23 +225,24 @@ app.add_middleware(
 )
 
 # 注册路由
-app.include_router(analysis.router, prefix="/analysis", tags=["Analysis"])
-app.include_router(fetch_bili_history.router, prefix="/fetch", tags=["Fetch"])
-app.include_router(export.router, prefix="/export", tags=["Export"])
-app.include_router(import_data_mysql.router, prefix="/importMysql", tags=["Import"])
-app.include_router(import_data_sqlite.router, prefix="/importSqlite", tags=["Import"])
-app.include_router(clean_data.router, prefix="/clean", tags=["Clean"])
-app.include_router(heatmap.router, prefix="/heatmap", tags=["Heatmap"])
-app.include_router(send_log.router, prefix="/log", tags=["Log"])
-app.include_router(download.router, prefix="/download", tags=["Download"])
-app.include_router(history.router, prefix="/BiliHistory2024", tags=["History"])
-app.include_router(categories.router, prefix="/BiliHistory2024", tags=["Categories"])
-app.include_router(viewing_analytics.router, prefix="/viewing-analytics", tags=["ViewingAnalytics"])
-app.include_router(title_analytics.router, prefix="/title-analytics", tags=["TitleAnalytics"])
-app.include_router(daily_count.router, prefix="/stats", tags=["统计数据"])
-app.include_router(login.router, prefix="/login", tags=["Login"])
-app.include_router(delete_history.router, prefix="/history", tags=["History"])
-app.include_router(image_downloader.router, prefix="/images", tags=["Images"])
+app.include_router(login.router, prefix="/login", tags=["用户登录"])
+app.include_router(analysis.router, prefix="/analysis", tags=["数据分析"])
+app.include_router(clean_data.router, prefix="/clean", tags=["数据清洗"])
+app.include_router(export.router, prefix="/export", tags=["数据导出"])
+app.include_router(fetch_bili_history.router, prefix="/fetch", tags=["历史记录获取"])
+app.include_router(import_data_mysql.router, prefix="/importMysql", tags=["MySQL数据导入"])
+app.include_router(import_data_sqlite.router, prefix="/importSqlite", tags=["SQLite数据导入"])
+app.include_router(heatmap.router, prefix="/heatmap", tags=["热力图生成"])
+app.include_router(send_log.router, prefix="/log", tags=["日志发送"])
+app.include_router(download.router, prefix="/download", tags=["视频下载"])
+app.include_router(history.router, prefix="/history", tags=["历史记录管理"])
+app.include_router(categories.router, prefix="/categories", tags=["分类管理"])
+app.include_router(viewing_analytics.router, prefix="/viewing", tags=["观看时间分析"])
+app.include_router(title_analytics.router, prefix="/title", tags=["标题分析"])
+app.include_router(daily_count.router, prefix="/daily", tags=["每日观看统计"])
+app.include_router(delete_history.router, prefix="/delete", tags=["删除历史记录"])
+app.include_router(image_downloader.router, prefix="/images", tags=["图片下载管理"])
+app.include_router(scheduler.router, prefix="/scheduler", tags=["计划任务管理"])
 
 # 入口点，启动应用
 if __name__ == "__main__":

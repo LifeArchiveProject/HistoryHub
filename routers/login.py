@@ -7,7 +7,7 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse, FileResponse
 from scripts.utils import load_config, get_output_path
 
-router = APIRouter(tags=["Login"])
+router = APIRouter()
 
 def get_current_config():
     """获取当前配置"""

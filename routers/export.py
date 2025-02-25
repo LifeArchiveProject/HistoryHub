@@ -5,7 +5,7 @@ from scripts.utils import get_output_path, load_config
 from typing import Dict, Any
 import os
 
-router = APIRouter(tags=["Export"])
+router = APIRouter()
 config = load_config()
 
 @router.post(

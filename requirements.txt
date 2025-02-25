@@ -15,6 +15,7 @@ openpyxl~=3.1.5
 PyMySQL~=1.1.1
 urllib3~=2.3.0
 httpx~=0.28.1
+aiohttp~=3.11.13
 Jinja2~=3.1.5
 pyecharts~=2.0.8
 Pillow~=10.2.0
