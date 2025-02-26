@@ -58,11 +58,11 @@ export const getAvailableYears = () => {
 
 // 分类相关接口
 export const getVideoCategories = () => {
-  return instance.get(`/history/categories`) // 使用新的分类接口
+  return instance.get(`/categories/categories`) // 使用新的分类接口
 }
 
 export const getMainCategories = () => {
-  return instance.get(`/history/main-categories`)
+  return instance.get(`/categories/main-categories`)
 }
 
 // 标题分析相关接口
@@ -146,7 +146,7 @@ export const getBiliHistory = () => {
 
 // 获取每日视频统计
 export const getDailyStats = async (date, year) => {
-  return instance.get(`/stats/daily-count`, {
+  return instance.get(`/daily/daily-count`, {
     params: {
       date,
       year

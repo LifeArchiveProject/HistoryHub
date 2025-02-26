@@ -164,7 +164,7 @@
                       </button>
                       <button 
                         v-if="task.enabled !== undefined"
-                        @click="toggleTaskEnabled(task.task_id, task.enabled)" 
+                        @click="toggleTaskEnabled(task.task_id, !task.enabled)" 
                         :class="task.enabled ? 'text-orange-600 hover:text-orange-900' : 'text-teal-600 hover:text-teal-900'"
                       >
                         {{ task.enabled ? '禁用' : '启用' }}
@@ -418,12 +418,20 @@ const getSuccessRate = (historyList) => {
   return Math.round((successCount / historyList.length) * 100)
 }
 
-// 切换任务启用状态
-const toggleTaskEnabled = (taskId, enabled) => {
-  showNotify({ 
-    type: 'warning',
-    message: '任务启用/禁用功能将在下次更新开放，敬请期待！'
-  })
+// 启用或禁用任务
+const toggleTaskEnabled = async (taskId, enabled) => {
+  try {
+    const response = await setTaskEnabled(taskId, enabled)
+    if (response.data && response.data.status === 'success') {
+      showNotify({ type: 'success', message: enabled ? '任务已启用' : '任务已禁用' })
+      fetchTasks()
+    } else {
+      showNotify({ type: 'danger', message: '更新任务状态失败: ' + (response.data?.message || '未知错误') })
+    }
+  } catch (error) {
+    console.error('更新任务状态出错:', error)
+    showNotify({ type: 'danger', message: '更新任务状态出错: ' + (error.message || '未知错误') })
+  }
 }
 
 // 打开创建任务弹窗
