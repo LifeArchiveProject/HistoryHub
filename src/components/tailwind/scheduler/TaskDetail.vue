@@ -8,7 +8,7 @@
     class="task-detail-dialog"
   >
     <template #title>
-      <div class="flex items-center justify-between">
+      <div class="flex items-center justify-between px-3">
         <span>任务详情</span>
         <div class="flex items-center space-x-2">
           <button 
@@ -42,7 +42,7 @@
           </div>
           <div>
             <div class="flex items-center space-x-1">
-              <h3 class="text-base font-medium text-gray-800 truncate" :title="task.name">{{ task.name }}</h3>
+              <h3 class="text-base font-medium text-gray-800 truncate" :title="task.config?.name">{{ task.config?.name }}</h3>
             </div>
             <p class="text-xs text-gray-500">ID: {{ task.task_id }}</p>
           </div>
@@ -50,22 +50,22 @@
         <div class="flex flex-col items-end">
           <div class="flex items-center space-x-1 mb-1">
             <span 
-              v-if="task.last_status"
+              v-if="task.execution?.status"
               :class="{
-                'bg-green-50 text-green-700 border-green-200': task.last_status === 'success',
-                'bg-yellow-50 text-yellow-700 border-yellow-200': task.last_status === 'running',
-                'bg-red-50 text-red-700 border-red-200': task.last_status === 'error'
+                'bg-green-50 text-green-700 border-green-200': task.execution.status === 'success',
+                'bg-yellow-50 text-yellow-700 border-yellow-200': task.execution.status === 'running',
+                'bg-red-50 text-red-700 border-red-200': task.execution.status === 'error'
               }" 
               class="px-1.5 py-0.5 text-xs font-medium rounded-md border"
             >
-              {{ task.last_status }}
+              {{ statusLabel }}
             </span>
             <span 
-              v-if="task.enabled !== undefined"
-              :class="{'bg-green-50 text-green-700 border-green-200': task.enabled, 'bg-red-50 text-red-700 border-red-200': !task.enabled}" 
+              v-if="task.config?.enabled !== undefined"
+              :class="{'bg-green-50 text-green-700 border-green-200': task.config.enabled, 'bg-red-50 text-red-700 border-red-200': !task.config.enabled}" 
               class="px-1.5 py-0.5 text-xs font-medium rounded-md border"
             >
-              {{ task.enabled ? '已启用' : '已禁用' }}
+              {{ task.config.enabled ? '已启用' : '已禁用' }}
             </span>
           </div>
         </div>
@@ -84,15 +84,15 @@
           <div class="grid grid-cols-2 gap-2">
             <div>
               <p class="text-xs text-gray-500">API端点</p>
-              <p class="text-sm text-gray-800 font-mono">{{ task.endpoint }}</p>
+              <p class="text-sm text-gray-800 font-mono">{{ task.config?.endpoint }}</p>
             </div>
             <div>
               <p class="text-xs text-gray-500">请求方法</p>
-              <p class="text-sm text-gray-800">{{ task.method }}</p>
+              <p class="text-sm text-gray-800">{{ task.config?.method }}</p>
             </div>
             <div>
               <p class="text-xs text-gray-500">优先级</p>
-              <p class="text-sm text-gray-800">{{ task.priority || 0 }}</p>
+              <p class="text-sm text-gray-800">{{ task.config?.priority || 0 }}</p>
             </div>
             <div>
               <p class="text-xs text-gray-500">最后修改</p>
@@ -114,17 +114,31 @@
               <p class="text-xs text-gray-500">调度类型</p>
               <p class="text-sm text-gray-800">{{ scheduleTypeLabel }}</p>
             </div>
-            <div v-if="task.schedule?.type === 'daily'">
+            <div>
               <p class="text-xs text-gray-500">执行时间</p>
-              <p class="text-sm text-gray-800">{{ task.schedule.time }}</p>
+              <p class="text-sm text-gray-800">
+                <template v-if="task.task_type === 'main'">
+                  {{ task.config?.schedule_time || '未设置' }}
+                </template>
+                <template v-else>
+                  依赖于主任务
+                </template>
+              </p>
             </div>
             <div>
               <p class="text-xs text-gray-500">上次执行</p>
-              <p class="text-sm text-gray-800">{{ task.last_run_time || '从未执行' }}</p>
+              <p class="text-sm text-gray-800">{{ task.execution?.last_run?.replace('T', ' ') || '从未执行' }}</p>
             </div>
             <div>
               <p class="text-xs text-gray-500">下次执行</p>
-              <p class="text-sm text-gray-800">{{ task.next_run_time || '未排定' }}</p>
+              <p class="text-sm text-gray-800">
+                <template v-if="task.task_type === 'main'">
+                  {{ task.execution?.next_run || '未排定' }}
+                </template>
+                <template v-else>
+                  依赖于主任务
+                </template>
+              </p>
             </div>
           </div>
         </div>
@@ -141,33 +155,39 @@
             <div>
               <div class="flex justify-between items-center mb-1">
                 <span class="text-xs text-gray-500">成功率</span>
-                <span class="text-xs text-gray-800">{{ task.success_rate }}%</span>
+                <span class="text-xs text-gray-800">
+                  {{ Math.round(executionInfo.successRate) }}%
+                </span>
               </div>
               <div class="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
                 <div class="h-full rounded-full" 
                   :class="{
-                    'bg-green-500': task.success_rate >= 90,
-                    'bg-yellow-500': task.success_rate >= 60 && task.success_rate < 90,
-                    'bg-red-500': task.success_rate < 60
+                    'bg-green-500': executionInfo.successRate >= 90,
+                    'bg-yellow-500': executionInfo.successRate >= 60 && executionInfo.successRate < 90,
+                    'bg-red-500': executionInfo.successRate < 60
                   }" 
-                  :style="{width: `${task.success_rate}%`}">
+                  :style="{width: `${executionInfo.successRate}%`}">
                 </div>
               </div>
             </div>
             <div>
               <p class="text-xs text-gray-500">平均耗时</p>
-              <p class="text-sm text-gray-800">{{ task.avg_duration?.toFixed(2) || 0 }}秒</p>
+              <p class="text-sm text-gray-800">
+                {{ executionInfo.avgDuration.toFixed(2) }}秒
+              </p>
             </div>
             <div>
               <p class="text-xs text-gray-500">总执行次数</p>
-              <p class="text-sm text-gray-800">{{ task.total_runs || 0 }}</p>
+              <p class="text-sm text-gray-800">
+                {{ executionInfo.totalRuns }}
+              </p>
             </div>
             <div>
               <p class="text-xs text-gray-500">成功/失败</p>
               <p class="text-sm">
-                <span class="text-green-600">{{ task.success_runs || 0 }}</span>
+                <span class="text-green-600">{{ executionInfo.successRuns }}</span>
                 <span class="text-gray-400 mx-1">/</span>
-                <span class="text-red-600">{{ task.fail_runs || 0 }}</span>
+                <span class="text-red-600">{{ executionInfo.failRuns }}</span>
               </p>
             </div>
           </div>
@@ -181,27 +201,26 @@
             </svg>
             依赖任务
           </h4>
-          <div v-if="task.requires && task.requires.length > 0" class="flex flex-wrap gap-0.5">
+          <div v-if="task.depends_on" class="flex flex-wrap gap-0.5">
             <span 
-              v-for="(req, index) in task.requires" 
-              :key="index"
               class="inline-flex items-center px-1.5 py-0.5 rounded-md text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200"
+              :title="task.depends_on.name"
             >
-              {{ req }}
+              {{ task.depends_on.name }} ({{ task.depends_on.task_id }})
             </span>
           </div>
           <p v-else class="text-xs text-gray-500">无依赖</p>
         </div>
 
         <!-- 最近错误 -->
-        <div v-if="task.last_error" class="bg-white rounded-lg p-2 border border-red-100 shadow-sm">
+        <div v-if="task.execution?.last_error" class="bg-white rounded-lg p-2 border border-red-100 shadow-sm">
           <h4 class="text-xs font-semibold text-red-600 uppercase tracking-wider mb-1.5 flex items-center">
             <svg class="w-3 h-3 mr-1 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             最近错误
           </h4>
-          <p class="text-xs text-red-600 whitespace-pre-wrap">{{ task.last_error }}</p>
+          <p class="text-xs text-red-600 whitespace-pre-wrap">{{ task.execution.last_error }}</p>
         </div>
       </div>
     </div>
@@ -209,7 +228,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, watch } from 'vue'
 import { showNotify, showDialog } from 'vant'
 import 'vant/es/dialog/style'
 import 'vant/es/notify/style'
@@ -234,19 +253,54 @@ const emit = defineEmits([
   'delete-task'
 ])
 
+// 添加 watch 来监控 task 属性的变化
+watch(() => props.task, (newTask) => {
+  if (!newTask) {
+    return
+  }
+}, { deep: true, immediate: true })
+
+// 添加计算属性来处理执行信息
+const executionInfo = computed(() => {
+  const execution = props.task?.execution || {}
+  
+  // 确保所有数值类型的字段都有默认值
+  const info = {
+    lastRun: execution.last_run ?? null,
+    nextRun: execution.next_run ?? null,
+    status: execution.status ?? 'pending',
+    successRate: typeof execution.success_rate === 'number' ? execution.success_rate : 0,
+    avgDuration: typeof execution.avg_duration === 'number' ? execution.avg_duration : 0,
+    totalRuns: typeof execution.total_runs === 'number' ? execution.total_runs : 0,
+    successRuns: typeof execution.success_runs === 'number' ? execution.success_runs : 0,
+    failRuns: typeof execution.fail_runs === 'number' ? execution.fail_runs : 0
+  }
+  
+  return info
+})
+
 // 计算调度类型标签
 const scheduleTypeLabel = computed(() => {
-  const type = props.task?.schedule?.type
+  const type = props.task?.config?.schedule_type
   return type === 'daily' ? '每日' : 
-         type === 'chain' ? '链式' : 
+         type === 'chain' ? '链式任务' : 
          type === 'once' ? '一次性' : type
+})
+
+// 计算状态标签
+const statusLabel = computed(() => {
+  const status = props.task?.execution?.status
+  return status === 'success' ? '成功' :
+         status === 'running' ? '执行中' :
+         status === 'error' ? '失败' :
+         status === 'pending' ? '等待中' : status
 })
 
 // 确认删除
 const confirmDelete = () => {
   showDialog({
     title: '确认删除',
-    message: `确定要删除任务 "${props.task.name}" 吗？此操作不可撤销。`,
+    message: `确定要删除任务 "${props.task.config?.name}" 吗？此操作不可撤销。`,
     showCancelButton: true,
     confirmButtonText: '删除',
     confirmButtonColor: '#ee0a24',

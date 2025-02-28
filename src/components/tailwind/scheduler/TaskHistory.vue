@@ -8,7 +8,7 @@
     class="task-history-dialog"
   >
     <template #title>
-      <div class="flex items-center justify-between">
+      <div class="flex items-center justify-between px-3">
         <span>任务执行历史</span>
         <button 
           @click="$emit('update:show', false)"
@@ -49,74 +49,63 @@
       <div v-if="loading" class="flex justify-center items-center py-8">
         <van-loading type="spinner" color="#fb7299" />
       </div>
-      
-      <div v-else-if="history.length === 0" class="text-center py-8 text-gray-500">
-        <svg class="w-12 h-12 mx-auto text-gray-300 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-        <p>暂无执行历史记录</p>
+      <div v-else-if="!history.length" class="text-center py-8 text-gray-500">
+        暂无执行历史
       </div>
-      
-      <div v-else class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-200">
-          <thead class="bg-gray-50">
-            <tr>
-              <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                执行时间
-              </th>
-              <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                状态
-              </th>
-              <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                耗时
-              </th>
-              <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                触发方式
-              </th>
-            </tr>
-          </thead>
-          <tbody class="bg-white divide-y divide-gray-200">
-            <tr v-for="record in history" :key="record.id" class="hover:bg-gray-50">
-              <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900">
-                {{ record.start_time }}
-              </td>
-              <td class="px-3 py-2 whitespace-nowrap">
-                <span 
-                  :class="{
-                    'bg-green-50 text-green-700 border-green-200': record.status === 'success',
-                    'bg-yellow-50 text-yellow-700 border-yellow-200': record.status === 'running',
-                    'bg-red-50 text-red-700 border-red-200': record.status === 'error'
-                  }" 
-                  class="px-1.5 py-0.5 text-xs font-medium rounded-md border"
-                >
-                  {{ statusLabel(record.status) }}
-                </span>
-                <span v-if="record.error_message" class="ml-1 text-xs text-red-600 cursor-pointer hover:text-red-800" @click="viewError(record)">
-                  查看错误
-                </span>
-              </td>
-              <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-500">
-                {{ record.duration ? `${record.duration.toFixed(2)}秒` : '-' }}
-              </td>
-              <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-500">
-                {{ record.triggered_by || '-' }}
-              </td>
-            </tr>
-          </tbody>
-        </table>
+      <div v-else class="space-y-2">
+        <div v-for="record in history" :key="record.execution_id" class="bg-white rounded-lg p-3 border border-gray-100 shadow-sm">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+              <span 
+                :class="{
+                  'bg-green-50 text-green-700 border-green-200': record.status === 'success',
+                  'bg-yellow-50 text-yellow-700 border-yellow-200': record.status === 'running',
+                  'bg-red-50 text-red-700 border-red-200': record.status === 'error'
+                }" 
+                class="px-1.5 py-0.5 text-xs font-medium rounded-md border"
+              >
+                {{ statusLabel(record.status) }}
+              </span>
+              <span class="text-sm text-gray-600">{{ record.start_time?.replace('T', ' ') }}</span>
+            </div>
+            <div class="text-sm text-gray-500">
+              耗时: {{ record.duration?.toFixed(2) || 0 }}秒
+            </div>
+          </div>
+          <div v-if="record.error" class="mt-2">
+            <button 
+              @click="viewError(record)"
+              class="text-xs text-red-600 hover:text-red-800"
+            >
+              查看错误详情
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 分页器 -->
+      <div v-if="total > pageSize" class="mt-4 flex justify-center">
+        <van-pagination
+          v-model="currentPage"
+          :total-items="total"
+          :items-per-page="pageSize"
+          :show-page-size="3"
+          force-ellipses
+          @change="handlePageChange"
+        />
       </div>
     </div>
-    
+
     <!-- 错误详情弹窗 -->
     <van-dialog
       v-model:show="showErrorDialog"
       title="错误详情"
-      width="70%"
+      width="80%"
       :show-confirm-button="false"
-      class="result-dialog"
+      class="task-history-dialog"
     >
       <template #title>
-        <div class="flex items-center justify-between">
+        <div class="flex items-center justify-between px-3">
           <span>错误详情</span>
           <button 
             @click="showErrorDialog = false"
@@ -130,7 +119,7 @@
       </template>
       <div v-if="selectedRecord" class="p-3">
         <div class="bg-red-50 p-2 rounded-md">
-          <pre class="text-xs font-mono text-red-800 whitespace-pre-wrap overflow-x-auto">{{ selectedRecord.error_message }}</pre>
+          <pre class="text-xs font-mono text-red-800 whitespace-pre-wrap overflow-x-auto">{{ selectedRecord.error }}</pre>
         </div>
       </div>
     </van-dialog>
@@ -143,9 +132,9 @@ import { showNotify } from 'vant'
 import 'vant/es/dialog/style'
 import 'vant/es/notify/style'
 import 'vant/es/loading/style'
-import { 
-  getTaskExecutionHistory 
-} from '../../../api/api'
+import 'vant/es/pagination/style'
+import 'vant/es/date-picker/style'
+import { getTaskHistory } from '../../../api/api'
 
 const props = defineProps({
   show: {
@@ -169,24 +158,40 @@ const history = ref([])
 const showErrorDialog = ref(false)
 const selectedRecord = ref(null)
 
+// 分页相关
+const currentPage = ref(1)
+const pageSize = ref(20)
+const total = ref(0)
+
 // 获取任务历史记录
 const fetchHistory = async () => {
   if (!props.taskId) return
   
   loading.value = true
   try {
-    const response = await getTaskExecutionHistory(props.taskId)
+    const response = await getTaskHistory({
+      task_id: props.taskId,
+      include_subtasks: false,
+      page: currentPage.value,
+      page_size: pageSize.value
+    })
     if (response.data && response.data.status === 'success') {
       history.value = response.data.history || []
+      total.value = response.data.total || 0
     } else {
       showNotify({ type: 'danger', message: '获取历史记录失败: ' + (response.data?.message || '未知错误') })
     }
   } catch (error) {
-    console.error('获取历史记录出错:', error)
     showNotify({ type: 'danger', message: '获取历史记录出错: ' + (error.message || '未知错误') })
   } finally {
     loading.value = false
   }
+}
+
+// 处理页码变化
+const handlePageChange = (page) => {
+  currentPage.value = page
+  fetchHistory()
 }
 
 // 刷新历史记录
@@ -209,6 +214,8 @@ const statusLabel = (status) => {
       return '失败'
     case 'running':
       return '执行中'
+    case 'pending':
+      return '等待中'
     default:
       return status
   }

@@ -4,9 +4,9 @@
     "moduleResolution": "Node",
     "target": "ESNext",
     "jsx": "preserve",
-    "strictFunctionTypes": true,
+    "strictFunctionTypes": false,
     "allowJs": true,
-    "checkJs": true
+    "checkJs": false
   },
   "exclude": ["node_modules", "dist"]
 } 

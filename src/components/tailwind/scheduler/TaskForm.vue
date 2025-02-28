@@ -2,7 +2,7 @@
   <van-dialog
     :show="show"
     @update:show="$emit('update:show', $event)"
-    :title="isEditing ? '编辑任务' : '创建任务'"
+    :title="getDialogTitle"
     width="60%"
     :show-confirm-button="false"
     class="task-form-dialog"
@@ -17,8 +17,8 @@
             </svg>
           </div>
           <div>
-            <h3 class="text-sm font-medium text-gray-800">{{ isEditing ? '编辑任务信息' : '创建新任务' }}</h3>
-            <p class="text-xs text-gray-500">{{ isEditing ? '修改任务配置信息' : '填写以下信息创建新的计划任务' }}</p>
+            <h3 class="text-sm font-medium text-gray-800">{{ getFormTitle }}</h3>
+            <p class="text-xs text-gray-500">{{ getFormDescription }}</p>
           </div>
         </div>
 
@@ -32,15 +32,14 @@
           </h4>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
             <div>
-              <label for="taskId" class="block text-xs font-medium text-gray-700 mb-0.5">任务ID *</label>
+              <label for="taskId" class="block text-xs font-medium text-gray-700 mb-0.5">任务ID</label>
               <input 
                 id="taskId" 
                 v-model="form.task_id" 
                 type="text" 
-                :disabled="isEditing"
-                class="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#fb7299] focus:ring-[#fb7299] text-xs py-1" 
-                required
-                placeholder="例如：fetch_history"
+                disabled
+                class="block w-full rounded-md border-gray-300 bg-gray-50 shadow-sm focus:border-[#fb7299] focus:ring-[#fb7299] text-xs py-1" 
+                placeholder="选择API端点后自动设置"
               />
             </div>
             
@@ -69,27 +68,26 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
             <div>
               <label for="endpoint" class="block text-xs font-medium text-gray-700 mb-0.5">API端点 *</label>
-              <input 
-                id="endpoint" 
-                v-model="form.endpoint" 
-                type="text" 
-                class="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#fb7299] focus:ring-[#fb7299] text-xs py-1" 
-                required
-                placeholder="例如：/fetch/bili-history"
-              />
+              <div class="relative">
+                <button 
+                  type="button"
+                  @click="showApiSelector = true"
+                  class="block w-full text-left rounded-md border border-gray-300 shadow-sm focus:border-[#fb7299] focus:ring-[#fb7299] text-xs py-1.5 px-2"
+                >
+                  {{ form.endpoint || '请选择API端点' }}
+                </button>
+              </div>
             </div>
             
             <div>
-              <label for="method" class="block text-xs font-medium text-gray-700 mb-0.5">请求方法 *</label>
-              <select 
+              <label for="method" class="block text-xs font-medium text-gray-700 mb-0.5">请求方法</label>
+              <input 
                 id="method" 
                 v-model="form.method" 
-                class="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#fb7299] focus:ring-[#fb7299] text-xs py-1"
-                required
-              >
-                <option value="GET">GET</option>
-                <option value="POST">POST</option>
-              </select>
+                type="text" 
+                disabled
+                class="block w-full rounded-md border-gray-300 bg-gray-50 shadow-sm focus:border-[#fb7299] focus:ring-[#fb7299] text-xs py-1"
+              />
             </div>
           </div>
         </div>
@@ -107,32 +105,33 @@
               <label for="scheduleType" class="block text-xs font-medium text-gray-700 mb-0.5">调度类型 *</label>
               <select 
                 id="scheduleType" 
-                v-model="form.schedule.type" 
-                class="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#fb7299] focus:ring-[#fb7299] text-xs py-1"
+                v-model="form.schedule_type" 
+                class="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#fb7299] focus:ring-[#fb7299] text-xs py-1 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
                 required
+                :disabled="props.parentTaskId"
               >
-                <option value="daily">每日</option>
+                <option v-if="!props.parentTaskId" value="daily">每日</option>
                 <option value="chain">链式</option>
-                <option value="once">一次性</option>
+                <option v-if="!props.parentTaskId" value="once">一次性</option>
               </select>
             </div>
             
-            <div v-if="form.schedule.type === 'daily'">
+            <div v-if="form.schedule_type === 'daily' && !props.parentTaskId">
               <label for="scheduleTime" class="block text-xs font-medium text-gray-700 mb-0.5">执行时间 *</label>
               <input 
                 id="scheduleTime" 
-                v-model="form.schedule.time" 
+                v-model="form.schedule_time" 
                 type="time" 
                 class="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#fb7299] focus:ring-[#fb7299] text-xs py-1" 
                 required
               />
             </div>
             
-            <div v-if="form.schedule.type === 'once'">
+            <div v-if="form.schedule_type === 'once' && !props.parentTaskId">
               <label for="scheduleDelay" class="block text-xs font-medium text-gray-700 mb-0.5">延迟时间(秒) *</label>
               <input 
                 id="scheduleDelay" 
-                v-model.number="form.schedule.delay" 
+                v-model.number="form.schedule_delay" 
                 type="number" 
                 min="0"
                 class="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#fb7299] focus:ring-[#fb7299] text-xs py-1" 
@@ -152,18 +151,37 @@
           </h4>
           <div>
             <label for="requires" class="block text-xs font-medium text-gray-700 mb-0.5">依赖任务 (可选)</label>
-            <select 
-              id="requires" 
-              v-model="form.depends_on" 
-              multiple
-              class="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#fb7299] focus:ring-[#fb7299] text-xs py-1"
-              size="4"
-            >
-              <option v-for="task in tasks.filter(t => t.task_id !== form.task_id)" :key="task.task_id" :value="task.task_id">
-                {{ task.name }} ({{ task.task_id }})
-              </option>
-            </select>
-            <p class="mt-0.5 text-xs text-gray-500">按住Ctrl键可多选</p>
+            <div class="relative">
+              <button 
+                type="button"
+                @click="showDependencySelector = true"
+                :disabled="props.parentTaskId"
+                class="block w-full text-left rounded-md border border-gray-300 shadow-sm focus:border-[#fb7299] focus:ring-[#fb7299] text-xs py-1.5 px-2 min-h-[2rem] disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
+              >
+                <div v-if="form.depends_on.length === 0" class="text-gray-500">
+                  {{ props.parentTaskId ? '子任务依赖关系由系统自动设置' : '选择依赖任务' }}
+                </div>
+                <div v-else class="flex flex-wrap gap-1">
+                  <div 
+                    v-for="taskId in form.depends_on" 
+                    :key="taskId"
+                    class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#fb7299]/10 text-[#fb7299]"
+                  >
+                    <span>{{ getTaskName(taskId) }}</span>
+                    <button 
+                      type="button"
+                      @click.stop="removeTask(taskId)" 
+                      class="ml-1 hover:text-[#fb7299]/70"
+                      v-if="!props.parentTaskId"
+                    >
+                      <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </button>
+            </div>
           </div>
         </div>
         
@@ -180,22 +198,58 @@
             type="submit" 
             class="inline-flex items-center px-2 py-1 border border-transparent rounded-md shadow-sm text-xs font-medium text-white bg-[#fb7299] hover:bg-[#fb7299]/90 focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-[#fb7299]"
           >
-            {{ isEditing ? '保存' : '创建' }}
+            {{ getSubmitButtonText }}
           </button>
         </div>
       </form>
     </div>
+
+    <!-- API选择弹窗 -->
+    <select-dialog
+      v-model:show="showApiSelector"
+      title="选择API端点"
+      :items="availableEndpoints"
+      v-model:selected="selectedEndpoint"
+      :show-method-filter="true"
+      search-placeholder="搜索API端点..."
+      group-by="tags"
+      id-field="id"
+      name-field="name"
+      description-field="description"
+      @select="handleApiSelect"
+    />
+
+    <!-- 依赖任务选择弹窗 -->
+    <select-dialog
+      v-model:show="showDependencySelector"
+      title="选择依赖任务"
+      :items="availableEndpoints"
+      v-model:selected="form.depends_on"
+      :multiple="false"
+      :show-method-filter="true"
+      search-placeholder="搜索任务..."
+      group-by="tags"
+      id-field="operationId"
+      name-field="summary"
+      description-field="path"
+    />
   </van-dialog>
 </template>
 
 <script setup>
-import { ref, computed, reactive, watch } from 'vue'
+import { ref, computed, reactive, watch, nextTick } from 'vue'
 import { showNotify } from 'vant'
 import 'vant/es/notify/style'
+import SelectDialog from './SelectDialog.vue'
 import { 
   createSchedulerTask, 
   updateSchedulerTask,
-  getSchedulerTaskDetail
+  getSchedulerTaskDetail,
+  getAvailableEndpoints,
+  addSubTask,
+  getSubTasks,
+  deleteSubTask,
+  updateSubTaskSequence
 } from '../../../api/api'
 
 const props = defineProps({
@@ -211,9 +265,17 @@ const props = defineProps({
     type: String,
     default: ''
   },
+  parentTaskId: {
+    type: String,
+    default: ''
+  },
   tasks: {
     type: Array,
     default: () => []
+  },
+  currentTask: {
+    type: Object,
+    default: () => null
   }
 })
 
@@ -224,19 +286,125 @@ const form = reactive({
   task_id: '',
   name: '',
   endpoint: '',
-  method: 'GET',
+  method: '',
   params: {},
-  schedule: {
-    type: 'daily',
-    time: '00:00',
-    delay: 0
-  },
-  depends_on: []
+  schedule_type: 'daily',
+  schedule_time: '00:00',
+  schedule_delay: 0,
+  depends_on: [],
+  enabled: true,
+  sub_tasks: []
 })
 
 // 参数JSON文本和错误信息
 const paramsJson = ref('{}')
 const paramsError = ref('')
+
+// 可用的API端点
+const availableEndpoints = ref([])
+
+// 在 script setup 部分添加
+const showApiSelector = ref(false)
+const showDependencySelector = ref(false)
+const apiSearchQuery = ref('')
+const expandedTags = reactive({})
+const methodFilter = ref('ALL')
+const selectedEndpoint = ref('')
+
+// 按tag对API进行分组
+const groupedEndpoints = computed(() => {
+  const groups = {}
+  availableEndpoints.value.forEach(endpoint => {
+    const tags = endpoint.tags && endpoint.tags.length > 0 ? endpoint.tags : ['未分类']
+    tags.forEach(tag => {
+      if (!groups[tag]) {
+        groups[tag] = []
+      }
+      groups[tag].push(endpoint)
+    })
+  })
+  return groups
+})
+
+// 过滤后的分组结果
+const filteredGroupedEndpoints = computed(() => {
+  const query = apiSearchQuery.value.toLowerCase()
+  const filtered = {}
+  
+  Object.entries(groupedEndpoints.value).forEach(([tag, apis]) => {
+    const filteredApis = apis.filter(endpoint => {
+      const matchesSearch = !query || 
+        endpoint.path.toLowerCase().includes(query) ||
+        endpoint.summary?.toLowerCase().includes(query)
+      
+      const matchesMethod = methodFilter.value === 'ALL' || 
+        endpoint.method === methodFilter.value
+      
+      return matchesSearch && matchesMethod
+    })
+    
+    if (filteredApis.length > 0) {
+      filtered[tag] = filteredApis
+    }
+  })
+  
+  return filtered
+})
+
+// 切换tag展开状态
+const toggleTagExpand = (tag) => {
+  expandedTags[tag] = !expandedTags[tag]
+}
+
+// 重置搜索和展开状态
+const resetSearch = () => {
+  apiSearchQuery.value = ''
+  methodFilter.value = 'ALL'
+  Object.keys(groupedEndpoints.value).forEach(tag => {
+    expandedTags[tag] = true
+  })
+}
+
+// 监听搜索框变化
+watch(apiSearchQuery, (newVal) => {
+  if (!newVal) {
+    // 当搜索框清空时，重置所有展开状态
+    resetSearch()
+  }
+})
+
+// 初始化所有tag为展开状态
+watch(() => showApiSelector.value, (newVal) => {
+  if (newVal) {
+    resetSearch()
+  }
+})
+
+// 监听选中的API端点变化
+watch(selectedEndpoint, (newVal) => {
+  if (newVal) {
+    const endpoint = availableEndpoints.value.find(e => e.id === newVal || e.operationId === newVal || e.path === newVal)
+    if (endpoint) {
+      form.endpoint = endpoint.description || endpoint.path
+      form.method = endpoint.method || 'GET'
+      form.task_id = endpoint.id || endpoint.operationId || endpoint.path
+      if (!form.name && (endpoint.name || endpoint.summary)) {
+        form.name = endpoint.name || endpoint.summary
+      }
+    }
+  }
+})
+
+// 获取任务名称
+const getTaskName = (taskId) => {
+  const endpoint = availableEndpoints.value.find(e => e.operationId === taskId || e.path === taskId)
+  return endpoint ? `${endpoint.summary || endpoint.path} (${taskId})` : taskId
+}
+
+// 移除依赖任务
+const removeTask = (taskId) => {
+  form.depends_on = form.depends_on.filter(id => id !== taskId)
+}
 
 // 计算属性：检查表单是否有效
 const isFormValid = computed(() => {
@@ -244,11 +412,11 @@ const isFormValid = computed(() => {
     return false
   }
   
-  if (form.schedule.type === 'daily' && !form.schedule.time) {
+  if (form.schedule_type === 'daily' && !form.schedule_time) {
     return false
   }
   
-  if (form.schedule.type === 'once' && (form.schedule.delay === null || form.schedule.delay < 0)) {
+  if (form.schedule_type === 'once' && (form.schedule_delay === null || form.schedule_delay < 0)) {
     return false
   }
   
@@ -257,58 +425,192 @@ const isFormValid = computed(() => {
 
 // 重置表单
 const resetForm = () => {
-  form.task_id = ''
-  form.name = ''
-  form.endpoint = ''
-  form.method = 'GET'
-  form.params = {}
-  form.schedule.type = 'daily'
-  form.schedule.time = '00:00'
-  form.schedule.delay = 0
-  form.depends_on = []
+  // 根据当前的props状态设置初始值
+  const initialState = {
+    task_id: '',
+    name: '',
+    endpoint: '',
+    method: '',
+    params: {},
+    schedule_type: props.parentTaskId ? 'chain' : 'daily',
+    schedule_time: '00:00',
+    schedule_delay: 0,
+    depends_on: props.currentTask?.depends_on ? [props.currentTask.depends_on.task_id] : [],
+    enabled: true,
+    sub_tasks: []
+  }
+  
+  // 使用Object.keys确保所有属性都被重置
+  Object.keys(form).forEach(key => {
+    if (key === 'depends_on' && props.parentTaskId && props.currentTask) {
+      return
+    }
+    form[key] = initialState[key]
+  })
+  
+  // 重置其他相关状态
+  selectedEndpoint.value = ''
   paramsJson.value = '{}'
   paramsError.value = ''
+  showApiSelector.value = false
+  showDependencySelector.value = false
+  apiSearchQuery.value = ''
+  methodFilter.value = 'ALL'
+  Object.keys(expandedTags).forEach(key => {
+    expandedTags[key] = false
+  })
+}
+
+// 监听show变化
+watch(() => props.show, async (newVal) => {
+  if (newVal) {
+    await fetchAvailableEndpoints()
+    
+    if (props.isEditing && props.taskId) {
+      await loadTaskDetail(props.taskId)
+    } else if (!props.isEditing && props.parentTaskId) {
+      resetForm()
+      form.schedule_type = 'chain'
+      
+      // 查找父任务及其子任务
+      const parentTask = props.tasks.find(task => task.task_id === props.parentTaskId)
+      
+      if (parentTask?.sub_tasks?.length > 0) {
+        // 如果父任务有子任务，依赖最后一个子任务
+        const lastSubTask = parentTask.sub_tasks[parentTask.sub_tasks.length - 1]
+        form.depends_on = [lastSubTask.task_id]
+        
+        // 确保依赖任务在availableEndpoints中
+        if (!availableEndpoints.value.find(e => e.operationId === lastSubTask.task_id)) {
+          availableEndpoints.value.push({
+            operationId: lastSubTask.task_id,
+            summary: lastSubTask.config?.name || lastSubTask.task_id,
+            path: lastSubTask.task_id
+          })
+        }
+      } else {
+        // 如果父任务没有子任务，依赖父任务
+        form.depends_on = [props.parentTaskId]
+        
+        // 确保父任务在availableEndpoints中
+        if (!availableEndpoints.value.find(e => e.operationId === props.parentTaskId)) {
+          availableEndpoints.value.push({
+            operationId: props.parentTaskId,
+            summary: parentTask?.config?.name || props.parentTaskId,
+            path: props.parentTaskId
+          })
+        }
+      }
+    } else {
+      resetForm()
+    }
+  } else {
+    resetForm()
+    emit('task-saved')
+  }
+}, { immediate: true })
+
+// 监听currentTask变化
+watch(() => props.currentTask, async (newVal) => {
+  if (props.show && !props.isEditing && props.parentTaskId && newVal) {
+    await nextTick()
+    setDependencyFromCurrentTask(newVal)
+  }
+})
+
+// 设置依赖关系的辅助函数
+const setDependencyFromCurrentTask = (task) => {
+  if (!task) {
+    form.depends_on = [props.parentTaskId]
+    return
+  }
+  
+  if (task.sub_tasks?.length > 0) {
+    // 如果主任务有子任务，依赖最后一个子任务
+    const lastSubTask = task.sub_tasks[task.sub_tasks.length - 1]
+    form.depends_on = [lastSubTask.task_id]
+    
+    // 确保依赖任务在availableEndpoints中
+    if (!availableEndpoints.value.find(e => e.operationId === lastSubTask.task_id)) {
+      availableEndpoints.value.push({
+        operationId: lastSubTask.task_id,
+        summary: lastSubTask.config?.name || lastSubTask.task_id,
+        path: lastSubTask.task_id
+      })
+    }
+  } else {
+    // 如果主任务没有子任务，依赖主任务
+    form.depends_on = [props.parentTaskId]
+    
+    // 确保父任务在availableEndpoints中
+    if (!availableEndpoints.value.find(e => e.operationId === props.parentTaskId)) {
+      availableEndpoints.value.push({
+        operationId: props.parentTaskId,
+        summary: props.parentTaskId,
+        path: props.parentTaskId
+      })
+    }
+  }
 }
 
 // 加载任务详情
 const loadTaskDetail = async (taskId) => {
   try {
-    const response = await getSchedulerTaskDetail(taskId)
-    if (response.data && response.data.status === 'success' && response.data.task) {
-      const task = response.data.task
-      form.task_id = task.task_id
-      form.name = task.name
-      form.endpoint = task.endpoint
-      form.method = task.method
-      form.params = task.params || {}
-      form.schedule.type = task.schedule?.type || 'daily'
-      form.schedule.time = task.schedule?.time || '00:00'
-      form.schedule.delay = task.schedule?.delay || 0
-      form.depends_on = task.depends_on || task.requires || []
-      paramsJson.value = JSON.stringify(task.params || {}, null, 2)
-      paramsError.value = ''
+    const response = await getSchedulerTaskDetail(taskId, { include_subtasks: true })
+    if (response.data && response.data.status === 'success') {
+      const taskInfo = response.data.tasks[0]
+      if (taskInfo) {
+        // 基本信息
+        form.task_id = taskInfo.task_id
+        form.name = taskInfo.config.name
+        form.endpoint = taskInfo.config.endpoint
+        form.method = taskInfo.config.method
+        form.params = taskInfo.config.params || {}
+        form.schedule_type = taskInfo.config.schedule_type
+        form.schedule_time = taskInfo.config.schedule_time
+        form.enabled = taskInfo.config.enabled
+        
+        // 设置依赖任务
+        if (taskInfo.depends_on) {
+          form.depends_on = [taskInfo.depends_on.task_id]
+          // 确保依赖任务在availableEndpoints中
+          if (!availableEndpoints.value.find(e => e.operationId === taskInfo.depends_on.task_id)) {
+            availableEndpoints.value.push({
+              operationId: taskInfo.depends_on.task_id,
+              summary: taskInfo.depends_on.name,
+              path: taskInfo.depends_on.task_id
+            })
+          }
+        } else {
+          form.depends_on = []
+        }
+        
+        // 加载子任务
+        if (taskInfo.sub_tasks) {
+          form.sub_tasks = taskInfo.sub_tasks
+        }
+      }
     } else {
-      showNotify({ type: 'danger', message: '获取任务详情失败' })
+      showNotify({ type: 'danger', message: '获取任务详情失败: ' + (response.data?.message || '未知错误') })
     }
   } catch (error) {
-    console.error('获取任务详情出错:', error)
     showNotify({ type: 'danger', message: '获取任务详情出错: ' + (error.message || '未知错误') })
   }
 }
 
-// 监听taskId变化，加载任务详情
-watch(() => props.taskId, (newVal) => {
-  if (newVal && props.isEditing) {
-    loadTaskDetail(newVal)
+// 获取可用的API端点
+const fetchAvailableEndpoints = async () => {
+  try {
+    const response = await getAvailableEndpoints()
+    if (response.data && response.data.status === 'success') {
+      availableEndpoints.value = response.data.endpoints || []
+    } else {
+      showNotify({ type: 'danger', message: '获取API端点失败: ' + (response.data?.message || '未知错误') })
+    }
+  } catch (error) {
+    showNotify({ type: 'danger', message: '获取API端点出错: ' + (error.message || '未知错误') })
   }
-})
-
-// 监听show变化，重置表单
-watch(() => props.show, (newVal) => {
-  if (newVal && !props.isEditing) {
-    resetForm()
-  }
-})
+}
 
 // 监听paramsJson变化，验证JSON格式
 watch(paramsJson, (newVal) => {
@@ -328,49 +630,131 @@ watch(paramsJson, (newVal) => {
 
 // 取消按钮
 const cancel = () => {
+  resetForm()
   emit('update:show', false)
+  emit('task-saved')
 }
 
 // 提交表单
 const submitForm = async () => {
-  if (!isFormValid.value) {
-    showNotify({ type: 'warning', message: '请填写所有必填字段并确保参数格式正确' })
-    return
-  }
-
   try {
-    // 解析参数JSON
-    form.params = JSON.parse(paramsJson.value)
-    
+    if (props.parentTaskId) {
+      form.schedule_type = 'chain'
+    }
+
+    const taskData = {
+      task_id: form.task_id,
+      name: form.name,
+      endpoint: form.endpoint,
+      method: form.method,
+      params: form.params,
+      schedule_type: form.schedule_type,
+      schedule_time: form.schedule_type === 'daily' ? form.schedule_time : undefined,
+      schedule_delay: form.schedule_type === 'once' ? form.schedule_delay : undefined,
+      depends_on: form.depends_on.length > 0 ? {
+        task_id: form.depends_on[0],
+        name: getTaskName(form.depends_on[0])
+      } : undefined,
+      enabled: form.enabled
+    }
+
     let response
     if (props.isEditing) {
-      // 更新任务
-      response = await updateSchedulerTask(form.task_id, form)
-      if (response.data && response.data.status === 'success') {
-        showNotify({ type: 'success', message: '任务更新成功' })
-      } else {
-        showNotify({ type: 'danger', message: '任务更新失败: ' + (response.data?.message || '未知错误') })
-        return
-      }
+      response = await updateSchedulerTask(props.taskId, taskData)
+    } else if (props.parentTaskId) {
+      response = await addSubTask(props.parentTaskId, {
+        ...taskData,
+        schedule_type: 'chain'
+      })
     } else {
-      // 创建任务
-      response = await createSchedulerTask(form)
-      if (response.data && response.data.status === 'success') {
-        showNotify({ type: 'success', message: '任务创建成功' })
-      } else {
-        showNotify({ type: 'danger', message: '任务创建失败: ' + (response.data?.message || '未知错误') })
-        return
-      }
+      response = await createSchedulerTask({
+        task_id: form.task_id,
+        task_type: 'main',
+        config: {
+          name: form.name,
+          endpoint: form.endpoint,
+          method: form.method,
+          params: form.params,
+          schedule_type: form.schedule_type,
+          schedule_time: form.schedule_type === 'daily' ? form.schedule_time : undefined,
+          schedule_delay: form.schedule_type === 'once' ? form.schedule_delay : undefined,
+          enabled: form.enabled
+        },
+        depends_on: taskData.depends_on
+      })
     }
-    
-    // 关闭弹窗并通知父组件
-    emit('update:show', false)
-    emit('task-saved')
+
+    if (response.data && response.data.status === 'success') {
+      showNotify({ 
+        type: 'success', 
+        message: props.isEditing ? '更新成功' : 
+                 props.parentTaskId ? '子任务创建成功' : '创建成功' 
+      })
+      emit('task-saved')
+      emit('update:show', false)
+      resetForm()
+    } else {
+      showNotify({ 
+        type: 'danger', 
+        message: (props.isEditing ? '更新失败: ' : 
+                 props.parentTaskId ? '创建子任务失败: ' : '创建失败: ') + 
+                 (response.data?.message || '未知错误') 
+      })
+    }
   } catch (error) {
-    console.error('提交任务表单出错:', error)
-    showNotify({ type: 'danger', message: '提交任务表单出错: ' + (error.message || '未知错误') })
+    showNotify({ 
+      type: 'danger', 
+      message: (props.isEditing ? '更新出错: ' : 
+               props.parentTaskId ? '创建子任务出错: ' : '创建出错: ') + 
+               (error.message || '未知错误') 
+    })
   }
 }
+
+// 添加handleApiSelect函数
+const handleApiSelect = (endpoint) => {
+  selectedEndpoint.value = endpoint.id
+}
+
+// 在 script setup 中添加计算属性
+const getDialogTitle = computed(() => {
+  if (props.isEditing) return '编辑任务'
+  if (props.parentTaskId) return '创建子任务'
+  return '创建主任务'
+})
+
+const getFormTitle = computed(() => {
+  if (props.isEditing) return '编辑任务信息'
+  if (props.parentTaskId) return '创建新子任务'
+  return '创建新主任务'
+})
+
+const getFormDescription = computed(() => {
+  if (props.isEditing) return '修改任务配置信息'
+  if (props.parentTaskId) return '填写以下信息创建新的子任务'
+  return '填写以下信息创建新的主任务'
+})
+
+const getSubmitButtonText = computed(() => {
+  if (props.isEditing) return '保存'
+  if (props.parentTaskId) return '创建子任务'
+  return '创建主任务'
+})
+
+// 监听props变化，确保状态同步
+watch(() => props.parentTaskId, (newVal) => {
+  if (props.show) {
+    // 如果弹窗是打开的，根据parentTaskId的变化更新schedule_type
+    form.schedule_type = newVal ? 'chain' : 'daily'
+  }
+})
+
+watch(() => props.isEditing, (newVal) => {
+  if (props.show && newVal && props.taskId) {
+    // 如果弹窗是打开的且切换到编辑模式，加载任务详情
+    loadTaskDetail(props.taskId)
+  }
+})
 </script>
 
 <script>
@@ -380,11 +764,6 @@ export default {
 </script>
 
 <style scoped>
-.task-form-dialog :deep(.van-dialog__content) {
-  max-height: 70vh;
-  overflow-y: auto;
-}
-
 .task-form-dialog :deep(.van-dialog) {
   max-height: 85vh;
   overflow: hidden;
@@ -394,7 +773,27 @@ export default {
 
 .task-form-dialog :deep(.van-dialog__header) {
   flex-shrink: 0;
-  padding: 10px 14px;
-  font-size: 13px;
+  padding: 12px 16px;
+  font-size: 14px;
+}
+
+/* 自定义滚动条样式 */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #fb7299 #f3f4f6;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #f3f4f6;
+  border-radius: 2px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #fb7299;
+  border-radius: 2px;
 }
 </style> 

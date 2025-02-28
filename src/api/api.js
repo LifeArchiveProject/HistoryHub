@@ -67,7 +67,7 @@ export const getMainCategories = () => {
 
 // 标题分析相关接口
 export const getTitleAnalytics = (year, useCache = true) => {
-  return instance.get(`/title-analytics/`, {
+  return instance.get(`/title/`, {
     params: {
       year,
       use_cache: useCache
@@ -77,7 +77,7 @@ export const getTitleAnalytics = (year, useCache = true) => {
 
 // 获取观看时间分布分析
 export const getViewingAnalytics = async (year, useCache = true) => {
-  return instance.get(`/viewing-analytics/`, {
+  return instance.get(`/viewing/`, {
     params: {
       year,
       use_cache: useCache
@@ -385,12 +385,32 @@ export const checkFFmpeg = () => {
 }
 
 // 计划任务管理相关接口
-export const getAllSchedulerTasks = () => {
-  return instance.get('/scheduler/tasks')
+export const getAllSchedulerTasks = (params = {}) => {
+  console.log('调用getAllSchedulerTasks API:', { params })
+  return instance.get('/scheduler/tasks', { params })
+    .then(response => {
+      console.log('getAllSchedulerTasks API响应:', response)
+      return response
+    })
+    .catch(error => {
+      console.error('getAllSchedulerTasks API错误:', error)
+      throw error
+    })
 }
 
-export const getSchedulerTaskDetail = (taskId) => {
-  return instance.get(`/scheduler/tasks/${taskId}`)
+export const getSchedulerTaskDetail = (taskId, params = {}) => {
+  return instance.get(`/scheduler/tasks`, { 
+    params: { 
+      task_id: taskId,
+      include_subtasks: true,  // 默认包含子任务
+      ...params 
+    }
+  }).then(response => {
+    return response;
+  }).catch(error => {
+    console.error('API - 获取任务详情出错:', error);
+    throw error;
+  });
 }
 
 export const createSchedulerTask = (taskData) => {
@@ -405,36 +425,80 @@ export const deleteSchedulerTask = (taskId) => {
   return instance.delete(`/scheduler/tasks/${taskId}`)
 }
 
-export const executeSchedulerTask = (taskId) => {
-  return instance.post(`/scheduler/tasks/${taskId}/execute`)
+export const executeSchedulerTask = (taskId, options = {}) => {
+  return instance.post(`/scheduler/tasks/${taskId}/execute`, options)
 }
 
-// 新增计划任务接口
-// 获取任务执行历史
-export const getTaskExecutionHistory = (taskId, limit = 10) => {
-  return instance.get(`/scheduler/history/task/${taskId}`, {
-    params: { limit }
+// 子任务管理接口
+export const addSubTask = (taskId, subTaskData) => {
+  console.log('调用addSubTask API:', { taskId, subTaskData })
+  return instance.post(`/scheduler/tasks/${taskId}/subtasks`, subTaskData)
+    .then(response => {
+      console.log('addSubTask API响应:', response)
+      return response
+    })
+    .catch(error => {
+      console.error('addSubTask API错误:', error)
+      throw error
+    })
+}
+
+export const getSubTasks = (taskId) => {
+  console.log('调用getSubTasks API:', { taskId })
+  return instance.get(`/scheduler/tasks/${taskId}/subtasks`)
+    .then(response => {
+      console.log('getSubTasks API响应:', response)
+      return response
+    })
+    .catch(error => {
+      console.error('getSubTasks API错误:', error)
+      throw error
+    })
+}
+
+export const deleteSubTask = (taskId, subTaskId) => {
+  return instance.delete(`/scheduler/tasks/${taskId}/subtasks/${subTaskId}`)
+}
+
+export const updateSubTaskSequence = (taskId, subTaskId, sequence) => {
+  return instance.put(`/scheduler/tasks/${taskId}/subtasks/${subTaskId}/sequence`, { sequence })
+}
+
+export const setSubTaskEnabled = (taskId, subTaskId, enabled) => {
+  return instance.post(`/scheduler/tasks/${taskId}/subtasks/${subTaskId}/enable`, { enabled })
+}
+
+// 获取任务历史记录
+export const getTaskHistory = ({ 
+  task_id = null, 
+  include_subtasks = true, 
+  status = null,
+  start_date = null,
+  end_date = null,
+  page = 1,
+  page_size = 20
+}) => {
+  return instance.get(`/scheduler/tasks/history`, {
+    params: {
+      task_id,
+      include_subtasks,
+      status,
+      start_date,
+      end_date,
+      page,
+      page_size
+    }
   })
 }
 
-// 获取最近执行的任务历史
-export const getRecentTaskHistory = (limit = 20) => {
-  return instance.get('/scheduler/history/recent', {
-    params: { limit }
-  })
+// 系统接口
+export const getAvailableEndpoints = () => {
+  return instance.get('/scheduler/available-endpoints')
 }
 
-// 获取任务链执行历史
-export const getTaskChainHistory = (taskId) => {
-  return instance.get(`/scheduler/tasks/${taskId}/chain-history`)
-}
-
-// 启用或禁用任务
+// 启用/禁用任务
 export const setTaskEnabled = (taskId, enabled) => {
-  return instance.post(`/scheduler/tasks/${taskId}/enable`, { enabled })
-}
-
-// 设置任务优先级
-export const setTaskPriority = (taskId, priority) => {
-  return instance.post(`/scheduler/tasks/${taskId}/priority`, { priority })
+  return instance.post(`/scheduler/tasks/${taskId}/enable`, {
+    enabled
+  })
 }

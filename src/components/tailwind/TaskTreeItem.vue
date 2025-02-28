@@ -23,20 +23,21 @@
           <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-3 hover:border-[#fb7299] transition-colors duration-200">
             <div class="flex items-center justify-between">
               <div class="flex items-center space-x-2">
-                <span class="font-medium text-sm">{{ task.name }}</span>
+                <span class="font-medium text-sm">{{ task.config?.name || task.task_id }}</span>
                 <div class="flex items-center space-x-1">
                   <span 
+                    v-if="task.config?.schedule_type"
                     :class="scheduleTypeClass" 
                     class="px-1.5 py-0.5 rounded-full text-xs"
                   >
                     {{ scheduleTypeLabel }}
                   </span>
                   <span 
-                    v-if="task.status" 
+                    v-if="task.execution?.status" 
                     :class="statusClass" 
                     class="px-1.5 py-0.5 rounded-full text-xs"
                   >
-                    {{ task.status }}
+                    {{ task.execution.status }}
                   </span>
                 </div>
               </div>
@@ -60,12 +61,12 @@
                   执行
                 </button>
                 <button 
-                  v-if="task.enabled !== undefined"
+                  v-if="task.config?.enabled !== undefined"
                   @click="toggleEnabled" 
-                  :class="task.enabled ? 'text-orange-600 hover:text-orange-900' : 'text-teal-600 hover:text-teal-900'"
+                  :class="task.config.enabled ? 'text-orange-600 hover:text-orange-900' : 'text-teal-600 hover:text-teal-900'"
                   class="text-xs px-1.5 py-0.5"
                 >
-                  {{ task.enabled ? '禁用' : '启用' }}
+                  {{ task.config.enabled ? '禁用' : '启用' }}
                 </button>
                 <button 
                   @click="deleteTask" 
@@ -75,8 +76,9 @@
                 </button>
               </div>
             </div>
-            <div class="mt-2 text-xs text-gray-500" v-if="task.last_run">
-              上次运行: {{ task.last_run }}
+            <div class="mt-2 text-xs text-gray-500">
+              <div v-if="task.execution?.last_run">上次运行: {{ task.execution.last_run }}</div>
+              <div v-if="task.config?.endpoint" class="mt-0.5">端点: {{ task.config.endpoint }}</div>
             </div>
           </div>
         </div>
@@ -102,87 +104,135 @@
   </div>
 </template>
 
-<script>
-export default {
+<script lang="ts">
+import { ref, computed, defineComponent } from 'vue'
+
+type TaskConfig = {
+  name?: string;
+  schedule_type?: string;
+  schedule_time?: string;
+  enabled?: boolean;
+  endpoint?: string;
+  method?: string;
+}
+
+type TaskExecution = {
+  status?: string;
+  last_run?: string;
+}
+
+type Task = {
+  task_id: string;
+  config?: TaskConfig;
+  execution?: TaskExecution;
+  sub_tasks?: Task[];
+  success_rate?: number;
+  depends_on?: string[];
+  requires?: string[];
+  sequence_number?: number;
+}
+
+export default defineComponent({
   name: 'TaskTreeItem',
   props: {
     task: {
-      type: Object,
+      type: Object as () => Task,
       required: true
     },
     tasks: {
-      type: Array,
+      type: Array as () => Task[],
       default: () => []
     }
   },
-  data() {
-    return {
-      expanded: true
-    }
-  },
-  computed: {
-    // 找出依赖于当前任务的子任务
-    childTasks() {
-      return this.tasks.filter((t) => {
-        // 使用更基本的JavaScript方式安全地访问属性
-        const dependencies = [];
-        if (t && typeof t === 'object') {
-          if ('depends_on' in t && Array.isArray(t['depends_on'])) {
-            dependencies.push(...t['depends_on']);
-          } else if ('requires' in t && Array.isArray(t['requires'])) {
-            dependencies.push(...t['requires']);
-          }
-        }
-        return this.task && this.task.task_id && dependencies.includes(this.task.task_id);
-      });
-    },
-    scheduleTypeLabel() {
-      const type = this.task.schedule_type || (this.task.schedule && this.task.schedule.type);
+  emits: ['view-detail', 'edit-task', 'execute-task', 'delete-task', 'toggle-enabled'],
+  setup(props, { emit }) {
+    const expanded = ref(true)
+
+    // 获取子任务，按 sequence_number 排序
+    const childTasks = computed(() => {
+      const subTasks = props.task.sub_tasks || []
+      return subTasks.sort((a, b) => (a.sequence_number || 0) - (b.sequence_number || 0))
+    })
+
+    // 计算调度类型标签
+    const scheduleTypeLabel = computed(() => {
+      const type = props.task.config?.schedule_type
       return type === 'daily' ? '每日' : 
              type === 'chain' ? '链式' : 
-             type === 'once' ? '一次性' : type;
-    },
-    scheduleTypeClass() {
-      const type = this.task.schedule_type || (this.task.schedule && this.task.schedule.type);
+             type === 'once' ? '一次性' : type
+    })
+
+    // 计算调度类型样式
+    const scheduleTypeClass = computed(() => {
+      const type = props.task.config?.schedule_type
       return {
         'bg-blue-100 text-blue-800': type === 'daily',
         'bg-purple-100 text-purple-800': type === 'chain',
         'bg-green-100 text-green-800': type === 'once'
-      };
-    },
-    statusClass() {
+      }
+    })
+
+    // 计算状态样式
+    const statusClass = computed(() => {
+      const status = props.task.execution?.status
       return {
-        'bg-green-100 text-green-800': this.task.status === '配置完成' || this.task.status === 'success',
-        'bg-yellow-100 text-yellow-800': this.task.status === '执行中',
-        'bg-red-100 text-red-800': this.task.status === '失败' || this.task.status === 'error'
-      };
+        'bg-green-100 text-green-800': status === 'success',
+        'bg-yellow-100 text-yellow-800': status === 'running',
+        'bg-red-100 text-red-800': status === 'error' || status === 'failed'
+      }
+    })
+
+    // 切换展开状态
+    const toggleExpanded = () => {
+      expanded.value = !expanded.value
     }
-  },
-  methods: {
-    toggleExpanded() {
-      this.expanded = !this.expanded;
-    },
-    viewDetail() {
-      this.$emit('view-detail', this.task.task_id);
-    },
-    editTask() {
-      this.$emit('edit-task', this.task.task_id);
-    },
-    executeTask() {
-      this.$emit('execute-task', this.task.task_id);
-    },
-    deleteTask() {
-      this.$emit('delete-task', this.task.task_id);
-    },
-    toggleEnabled() {
-      this.$emit('toggle-enabled', this.task.task_id, !this.task.enabled);
-    },
+
+    // 查看详情
+    const viewDetail = () => {
+      emit('view-detail', props.task.task_id)
+    }
+
+    // 编辑任务
+    const editTask = () => {
+      emit('edit-task', props.task.task_id)
+    }
+
+    // 执行任务
+    const executeTask = () => {
+      emit('execute-task', props.task.task_id)
+    }
+
+    // 删除任务
+    const deleteTask = () => {
+      emit('delete-task', props.task.task_id)
+    }
+
+    // 切换启用状态
+    const toggleEnabled = () => {
+      emit('toggle-enabled', props.task.task_id, !props.task.config?.enabled)
+    }
+
     // 安全地获取任务ID
-    getTaskId(task) {
-      return task && typeof task === 'object' && 'task_id' in task ? task.task_id : Math.random().toString();
+    const getTaskId = (task: Task | null) => {
+      return task?.task_id || Math.random().toString()
+    }
+
+    return {
+      expanded,
+      childTasks,
+      scheduleTypeLabel,
+      scheduleTypeClass,
+      statusClass,
+      toggleExpanded,
+      viewDetail,
+      editTask,
+      executeTask,
+      deleteTask,
+      toggleEnabled,
+      getTaskId
     }
   }
-}
+})
 </script>
 
 <style scoped>
