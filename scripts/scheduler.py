@@ -93,6 +93,10 @@ class TaskScheduler:
                         schedule.every(interval).hours.do(self.execute_task, task_name)
                     elif unit == 'days':
                         schedule.every(interval).days.do(self.execute_task, task_name)
+                    elif unit == 'months':
+                        schedule.every(interval).months.do(self.execute_task, task_name)
+                    elif unit == 'years':
+                        schedule.every(interval).years.do(self.execute_task, task_name)
                     
                     logging.info(f"已设置每 {interval} {unit} 执行任务: {task_name}")
 

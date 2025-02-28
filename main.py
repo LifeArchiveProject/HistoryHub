@@ -29,6 +29,7 @@ from routers import (
     scheduler
 )
 from scripts.scheduler_manager import SchedulerManager
+from scripts.scheduler_db_enhanced import EnhancedSchedulerDB
 from scripts.utils import load_config
 
 
@@ -166,6 +167,10 @@ async def lifespan(app: FastAPI):
     print("正在启动应用...")
     
     try:
+        # 初始化增强版数据库
+        EnhancedSchedulerDB.get_instance()
+        print("已初始化增强版调度器数据库")
+        
         # 初始化调度器
         scheduler_manager = SchedulerManager.get_instance(app)
         
