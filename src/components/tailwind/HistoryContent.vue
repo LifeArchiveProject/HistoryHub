@@ -83,6 +83,14 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>
               </div>
+              <!-- 详情按钮 -->
+              <div v-if="!isBatchMode"
+                   class="absolute right-12 top-2 z-20 hidden group-hover:flex items-center justify-center w-8 h-8 bg-black/50 hover:bg-[#fb7299] rounded-full cursor-pointer transition-all duration-200"
+                   @click.stop="openVideoDetail(record)">
+                <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
               <img
                 :src="record.cover || record.covers?.[0]"
                 class="w-full h-full object-cover transition-all duration-300"
@@ -249,6 +257,17 @@
       </button>
     </div>
   </div>
+  
+  <!-- 视频详情对话框 -->
+  <Teleport to="body">
+    <VideoDetailDialog
+      :modelValue="showDetailDialog"
+      @update:modelValue="showDetailDialog = $event"
+      :video="selectedRecord"
+      :remarkData="remarkData"
+      @remark-updated="handleRemarkUpdate"
+    />
+  </Teleport>
 </template>
 
 <style scoped>
@@ -280,6 +299,7 @@ import 'vant/es/dialog/style'
 import VideoRecord from './VideoRecord.vue'
 import VideoCategories from './VideoCategories.vue'
 import { usePrivacyStore } from '../../store/privacy'
+import VideoDetailDialog from './VideoDetailDialog.vue'
 
 const { isPrivacyMode } = usePrivacyStore()
 
@@ -350,6 +370,10 @@ const dailyStats = ref({})
 
 // 批量删除相关
 const selectedRecords = ref(new Set())
+
+// 在data区域添加
+const selectedRecord = ref(null)
+const showDetailDialog = ref(false)
 
 // 选择/取消选择记录
 const toggleRecordSelection = (record) => {
@@ -860,6 +884,12 @@ const handleRemarkUpdate = (data) => {
     remark: data.remark,
     remark_time: data.remark_time
   }
+}
+
+// 添加打开详情对话框的方法
+const openVideoDetail = (record) => {
+  selectedRecord.value = record
+  showDetailDialog.value = true
 }
 
 </script>

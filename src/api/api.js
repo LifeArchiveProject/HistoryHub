@@ -247,6 +247,28 @@ export const getLoginStatus = () => {
   return instance.get('/login/check')
 }
 
+// 获取视频摘要
+export const getVideoSummary = (bvid, cid, upMid, forceRefresh = false) => {
+  return instance.get('/summary/get_summary', {
+    params: {
+      bvid,
+      cid,
+      up_mid: upMid,
+      force_refresh: forceRefresh
+    }
+  })
+}
+
+// 获取摘要配置
+export const getSummaryConfig = () => {
+  return instance.get('/summary/config')
+}
+
+// 更新摘要配置
+export const updateSummaryConfig = (config) => {
+  return instance.post('/summary/config', config)
+}
+
 // 批量删除历史记录
 export const batchDeleteHistory = (items) => {
   return instance.delete('/history/batch-delete', {
@@ -321,7 +343,7 @@ export const clearImages = () => {
 // 下载视频
 export const downloadVideo = async (bvid, sessdata = null, onMessage, downloadCover = true) => {
   console.log('调用下载API, bvid:', bvid)
-  
+
   const response = await fetch(`${BASE_URL}/download/download_video`, {
     method: 'POST',
     headers: {
@@ -348,7 +370,7 @@ export const downloadVideo = async (bvid, sessdata = null, onMessage, downloadCo
     if (done) break
 
     buffer += decoder.decode(value, { stream: true })
-    
+
     // 处理缓冲区中的完整行
     const lines = buffer.split('\n')
     buffer = lines.pop() // 保留最后一个不完整的行
@@ -399,11 +421,11 @@ export const getAllSchedulerTasks = (params = {}) => {
 }
 
 export const getSchedulerTaskDetail = (taskId, params = {}) => {
-  return instance.get(`/scheduler/tasks`, { 
-    params: { 
+  return instance.get(`/scheduler/tasks`, {
+    params: {
       task_id: taskId,
       include_subtasks: true,  // 默认包含子任务
-      ...params 
+      ...params
     }
   }).then(response => {
     return response;
@@ -469,9 +491,9 @@ export const setSubTaskEnabled = (taskId, subTaskId, enabled) => {
 }
 
 // 获取任务历史记录
-export const getTaskHistory = ({ 
-  task_id = null, 
-  include_subtasks = true, 
+export const getTaskHistory = ({
+  task_id = null,
+  include_subtasks = true,
   status = null,
   start_date = null,
   end_date = null,

@@ -38,6 +38,14 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
               </svg>
             </div>
+            <!-- 详情按钮 -->
+            <div class="flex items-center justify-center w-8 h-8 bg-black/50 hover:bg-[#fb7299] rounded-full cursor-pointer transition-all duration-200"
+                 @click.stop="showDetailDialog = true"
+                 title="查看详情">
+              <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
           </div>
           <!-- 多选框 -->
           <div v-if="isBatchMode"
@@ -198,6 +206,14 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
               </svg>
             </div>
+            <!-- 详情按钮 -->
+            <div class="flex items-center justify-center w-8 h-8 bg-black/50 hover:bg-[#fb7299] rounded-full cursor-pointer transition-all duration-200"
+                 @click.stop="showDetailDialog = true"
+                 title="查看详情">
+              <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
           </div>
           <div class="items-center justify-between lg:flex">
             <div
@@ -301,6 +317,17 @@
         }"
       />
     </Teleport>
+
+    <!-- 视频详情对话框 -->
+    <Teleport to="body">
+      <VideoDetailDialog
+        :modelValue="showDetailDialog"
+        @update:modelValue="showDetailDialog = $event"
+        :video="record"
+        :remarkData="remarkData"
+        @remark-updated="$emit('remark-updated', $event)"
+      />
+    </Teleport>
   </div>
 </template>
 
@@ -313,6 +340,7 @@ import 'vant/es/dialog/style'
 import 'vant/es/popup/style'
 import 'vant/es/field/style'
 import DownloadDialog from './DownloadDialog.vue'
+import VideoDetailDialog from './VideoDetailDialog.vue'
 
 const { isPrivacyMode } = usePrivacyStore()
 
@@ -348,6 +376,7 @@ const emit = defineEmits(['toggle-selection', 'refresh-data', 'remark-updated'])
 const remarkContent = ref('')
 const originalRemark = ref('') // 用于存储原始备注内容
 const remarkTime = ref(null)
+const showDetailDialog = ref(false)
 
 // 高亮显示匹配的文本
 const highlightText = (text) => {

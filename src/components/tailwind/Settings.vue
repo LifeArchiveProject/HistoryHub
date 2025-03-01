@@ -12,7 +12,7 @@
           </div>
           <h1 class="text-2xl font-medium bg-gradient-to-r from-[#fb7299] to-[#fc9b7a] bg-clip-text text-transparent">设置</h1>
         </div>
-        
+
         <!-- 基础设置分类 -->
         <div class="mb-6">
           <h2 class="text-lg font-medium text-gray-900 mb-3 flex items-center space-x-2">
@@ -34,7 +34,7 @@
                   <h2 class="text-lg font-medium">服务器配置</h2>
                 </div>
                 <p class="text-sm text-gray-500 mb-3">配置API服务器地址，修改后将自动刷新页面</p>
-                
+
                 <div class="space-y-2">
                   <div class="flex flex-col space-y-2">
                     <label for="serverUrl" class="text-sm font-medium text-gray-700">服务器地址</label>
@@ -79,7 +79,7 @@
                   <h2 class="text-lg font-medium">图片源设置</h2>
                 </div>
                 <p class="text-sm text-gray-500 mb-3">选择使用本地图片源或在线图片源，本地图片源适合离线访问</p>
-                
+
                 <div class="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
                   <span class="text-sm font-medium text-gray-700">使用本地图片源</span>
                   <label class="relative inline-flex items-center cursor-pointer">
@@ -88,6 +88,21 @@
                   </label>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- AI摘要配置 -->
+        <div class="mb-6">
+          <h2 class="text-lg font-medium text-gray-900 mb-3 flex items-center space-x-2">
+            <svg class="w-5 h-5 text-[#fb7299]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <span>AI摘要配置</span>
+          </h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-all duration-300">
+              <SummaryConfig />
             </div>
           </div>
         </div>
@@ -113,7 +128,7 @@
                   <h2 class="text-lg font-medium">数据导出</h2>
                 </div>
                 <p class="text-sm text-gray-500 mb-3">导出历史记录数据到Excel文件，支持按年份导出</p>
-                
+
                 <div class="flex items-center space-x-4 bg-gray-50 p-3 rounded-lg">
                   <select
                     v-model="selectedYear"
@@ -123,7 +138,7 @@
                       {{ year }}年
                     </option>
                   </select>
-                  
+
                   <button
                     @click="exportAndDownloadExcel"
                     :disabled="isExporting"
@@ -163,7 +178,7 @@
                   <h2 class="text-lg font-medium">数据库下载</h2>
                 </div>
                 <p class="text-sm text-gray-500 mb-3">下载完整的SQLite数据库文件，包含所有历史记录数据</p>
-                
+
                 <div class="bg-gray-50 p-3 rounded-lg">
                   <button
                     @click="downloadSqlite"
@@ -201,7 +216,7 @@
                   <h2 class="text-lg font-medium">数据库重置</h2>
                 </div>
                 <p class="text-sm text-gray-500 mb-3">由于本地存储的有原始的历史记录数据文件，所以删除现有数据库并重新导入数据并不会丢失数据，目的是用于解决数据异常问题（此操作不可逆）</p>
-                
+
                 <div class="bg-red-50 p-3 rounded-lg">
                   <button
                     @click="handleResetDatabase"
@@ -224,17 +239,11 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { showNotify, showDialog } from 'vant'
-import { 
-  exportHistory, 
-  downloadExcelFile, 
-  downloadDatabase,
-  getAvailableYears,
-  getCurrentBaseUrl,
-  setBaseUrl,
-  resetDatabase,
-  importSqliteData
-} from '../../api/api'
+import { showDialog, showNotify } from 'vant'
+import { getCurrentBaseUrl, setBaseUrl, resetDatabase, clearImages, getImagesStatus, getSqliteVersion, getAvailableYears } from '../../api/api'
+import 'vant/es/dialog/style'
+import 'vant/es/notify/style'
+import SummaryConfig from './SummaryConfig.vue'
 
 const selectedYear = ref(new Date().getFullYear())
 const availableYears = ref([])
@@ -270,21 +279,21 @@ onMounted(async () => {
 // 导出并下载Excel
 const exportAndDownloadExcel = async () => {
   if (isExporting.value) return
-  
+
   try {
     isExporting.value = true
     showNotify({
       type: 'primary',
       message: '正在导出数据...'
     })
-    
+
     const response = await exportHistory(selectedYear.value)
     if (response.data.status === 'success') {
       showNotify({
         type: 'success',
         message: '导出成功，准备下载...'
       })
-      
+
       await downloadExcelFile(selectedYear.value)
       showNotify({
         type: 'success',
@@ -373,7 +382,7 @@ const handleResetDatabase = () => {
           type: 'warning',
           message: '正在重置数据库...'
         })
-        
+
         // 重置数据库
         const resetResponse = await resetDatabase()
         if (resetResponse.data.status === 'success') {
@@ -381,7 +390,7 @@ const handleResetDatabase = () => {
             type: 'success',
             message: '数据库已重置，正在重新导入数据...'
           })
-          
+
           // 重新导入数据
           try {
             const importResponse = await importSqliteData()
@@ -424,4 +433,4 @@ const handleImageSourceChange = () => {
   // 刷新页面以应用新设置
   window.location.reload()
 }
-</script> 
+</script>
