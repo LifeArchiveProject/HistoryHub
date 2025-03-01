@@ -14,7 +14,7 @@ SESSDATA: "Cookie里的SESSDATA字段值"
 # - 设置为false时：只缓存有实际摘要内容的视频结果(result_type=1或2)
 #   优点：节省数据库空间
 #   缺点：对于无摘要的视频，每次都会重新请求B站API
-CACHE_EMPTY_SUMMARY: true  # 是否缓存空摘要结果
+CACHE_EMPTY_SUMMARY: true
 
 # 原始历史记录数据的输入文件夹
 input_folder: "history_by_date"

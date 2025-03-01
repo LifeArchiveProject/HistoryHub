@@ -375,25 +375,36 @@ async def get_video_summary(bvid: str, cid: int, up_mid: int, force_refresh: Opt
 
 # 配置操作函数
 def save_config(new_config: Dict[str, Any]) -> bool:
-    """保存配置到配置文件"""
+    """保存配置到配置文件，只修改指定的配置项，保持文件其余部分不变"""
     try:
         # 获取配置文件路径
         config_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'config', 'config.yaml')
         
-        # 读取当前配置
+        # 读取配置文件内容
         with open(config_path, 'r', encoding='utf-8') as f:
-            current_config = yaml.safe_load(f)
+            config_content = f.read()
         
-        # 更新配置
-        current_config.update(new_config)
+        # 只更新指定的字段
+        for key, value in new_config.items():
+            # 对于布尔值，需要特殊处理
+            if isinstance(value, bool):
+                value_str = str(value).lower()
+            else:
+                value_str = str(value)
+            
+            # 使用正则表达式查找并替换配置项
+            import re
+            pattern = rf'^{key}\s*:.*$'
+            replacement = f'{key}: {value_str}'
+            config_content = re.sub(pattern, replacement, config_content, flags=re.MULTILINE)
         
-        # 写入配置文件
+        # 写回配置文件
         with open(config_path, 'w', encoding='utf-8') as f:
-            yaml.dump(current_config, f, allow_unicode=True)
+            f.write(config_content)
         
         # 更新全局变量
         global config, CACHE_EMPTY_SUMMARY
-        config = current_config
+        config.update(new_config)  # 只更新指定的字段
         CACHE_EMPTY_SUMMARY = config.get('CACHE_EMPTY_SUMMARY', True)
         
         return True
@@ -416,7 +427,7 @@ async def update_summary_config(config_data: SummaryConfig = Body(...)):
     
     - **cache_empty_summary**: 是否缓存空摘要结果
     """
-    # 准备要更新的配置项
+    # 准备要更新的配置项，只包含CACHE_EMPTY_SUMMARY字段
     new_config = {
         "CACHE_EMPTY_SUMMARY": config_data.cache_empty_summary
     }
