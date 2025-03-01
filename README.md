@@ -129,7 +129,51 @@
 - **状态刷新**：自动刷新显示最新的下载状态
 - **进度展示**：使用进度条直观显示下载进度
 
-### 4. 视频下载功能
+### 4. 计划任务页面
+<img src="./public/scheduler.png" alt="">
+
+计划任务页面提供了强大的任务调度和管理功能：
+
+#### 4.1 任务管理
+- **主任务管理**：
+  - 创建和编辑主任务
+  - 设置任务名称
+  - 配置调度类型（每日/一次性）
+  - 设置执行时间
+  - 启用/禁用任务
+
+- **子任务管理**：
+  - 为主任务创建子任务
+  - 自动设置任务依赖关系
+  - 链式任务执行流程
+  - 独立的子任务控制
+
+#### 4.2 任务监控
+- **执行状态**：
+  - 成功率统计和展示
+  - 最近执行时间记录
+  - 下次执行时间预览
+
+- **详细信息**：
+  - 任务执行历史记录
+  - 错误日志查看
+  - 执行时长统计
+  - 成功/失败次数统计
+
+#### 4.3 操作功能
+- **任务操作**：
+  - 手动触发任务执行
+  - 启用/禁用任务
+  - 删除任务（含确认机制）
+  - 刷新任务状态
+
+- **任务展示**：
+  - 树形结构显示
+  - 可折叠的子任务列表
+  - 清晰的依赖关系展示
+  - 直观的状态标识
+
+### 5. 视频下载功能
 <img src="./public/download.png" alt="">
 
 <div align="center">
@@ -139,21 +183,21 @@
   <p>视频下载功能通过 <a href="https://yutto.nyakku.moe/" target="_blank">Yutto</a> 实现，感谢 Yutto 开发团队的开源贡献。</p>
 </div>
 
-#### 4.1 前置要求
+#### 5.1 前置要求
 - **FFmpeg 安装**：
   - 由于B站视频需要混流合并（将视频流和音频流合并为完整视频），因此需要 FFmpeg 的帮助
   - 支持自动检测 FFmpeg 安装状态
   - 提供详细的多平台安装指南
   - 支持命令行快速复制功能
 
-#### 4.2 基本功能
+#### 5.2 基本功能
 - **一键下载**：在视频卡片上直接点击下载按钮
 - **版本兼容**：
   - 显示当前 FFmpeg 版本
   - 提供兼容性提示
   - 支持关闭封面合成以兼容低版本
 
-#### 4.3 下载管理
+#### 5.3 下载管理
 - **实时状态**：
   - 显示下载进度
   - 显示当前下载状态
@@ -163,38 +207,38 @@
   - 支持失败后重试
   - 提供故障排查指南
 
-### 5. 年度总结页面（部分页面涉及到隐私就不截图了）
+### 6. 年度总结页面（部分页面涉及到隐私就不截图了）
 
-#### 5.1 开场页（HeroPage）
+#### 6.1 开场页（HeroPage）
 <img src="public/HeroPage.png" alt="">
 
-#### 5.2 数据概览（OverviewPage）
+#### 6.2 数据概览（OverviewPage）
 <img src="./public/OverviewPage.png" alt="">
 
-#### 5.3 连续观看分析（StreakPage）
+#### 6.3 连续观看分析（StreakPage）
 <img src="./public/StreakPage.png">
 
-#### 5.4 时间分析（TimeAnalysisPage）
+#### 6.4 时间分析（TimeAnalysisPage）
 <img src="./public/TimeAnalysisPage.png">
 
-#### 5.5 重复观看分析（RewatchPage）
+#### 6.5 重复观看分析（RewatchPage）
 <img src="./public/RewatchPage.png">
 
-#### 5.6 整体完成率分析（OverallCompletionPage）
+#### 6.6 整体完成率分析（OverallCompletionPage）
 <img src="./public/OverallCompletionPage.png">
 
-#### 5.7 UP主完成率分析（AuthorCompletionPage）
+#### 6.7 UP主完成率分析（AuthorCompletionPage）
 <img src="./public/AuthorCompletionPage.png">
 
-#### 5.8 标签分析（TagsPage）
+#### 6.8 标签分析（TagsPage）
 
-#### 5.9 时间分布分析（TimeDistributionPage）
+#### 6.9 时间分布分析（TimeDistributionPage）
 
-#### 5.10 月度趋势分析（MonthlyPage）
+#### 6.10 月度趋势分析（MonthlyPage）
 
-#### 5.11 视频时长分析（DurationAnalysisPage）
+#### 6.11 视频时长分析（DurationAnalysisPage）
 
-#### 5.12 标题分析（TitleAnalysisPage）
+#### 6.12 标题分析（TitleAnalysisPage）
 
 ## 技术栈
 
