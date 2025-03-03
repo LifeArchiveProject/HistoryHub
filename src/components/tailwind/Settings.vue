@@ -240,7 +240,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { showDialog, showNotify } from 'vant'
-import { getCurrentBaseUrl, setBaseUrl, resetDatabase, clearImages, getImagesStatus, getSqliteVersion, getAvailableYears } from '../../api/api'
+import { getCurrentBaseUrl, setBaseUrl, resetDatabase, getAvailableYears, importSqliteData, exportHistory, downloadExcelFile, downloadDatabase } from '../../api/api'
 import 'vant/es/dialog/style'
 import 'vant/es/notify/style'
 import SummaryConfig from './SummaryConfig.vue'
