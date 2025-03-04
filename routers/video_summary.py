@@ -6,11 +6,13 @@ from typing import Optional, List, Dict, Any, Union
 
 import requests
 import yaml
-from fastapi import APIRouter, HTTPException, Body
-from pydantic import BaseModel
+from fastapi import APIRouter, HTTPException, Body, BackgroundTasks
+from pydantic import BaseModel, Field
 
 from scripts.utils import get_output_path, load_config
 from scripts.wbi_sign import get_wbi_sign
+# 导入DeepSeek API相关模块
+from routers.deepseek import chat_completion, ChatMessage, ChatRequest
 
 router = APIRouter()
 config = load_config()
@@ -21,6 +23,10 @@ CACHE_EMPTY_SUMMARY = config.get('CACHE_EMPTY_SUMMARY', True)
 # 定义配置模型
 class SummaryConfig(BaseModel):
     cache_empty_summary: bool = True
+
+class VideoSummaryPrompt(BaseModel):
+    default_prompt: str = Field(..., description="默认提示词，用于重置")
+    custom_prompt: str = Field(..., description="用户自定义提示词")
 
 # 数据模型定义
 class OutlinePoint(BaseModel):
@@ -428,19 +434,441 @@ async def update_summary_config(config_data: SummaryConfig = Body(...)):
     - **cache_empty_summary**: 是否缓存空摘要结果
     """
     # 准备要更新的配置项，只包含CACHE_EMPTY_SUMMARY字段
-    new_config = {
+    config_updates = {
         "CACHE_EMPTY_SUMMARY": config_data.cache_empty_summary
     }
     
-    # 保存配置
-    success = save_config(new_config)
-    
-    if not success:
+    try:
+        # 读取当前配置
+        config_path = get_output_path("config/config.yaml")
+        with open(config_path, 'r', encoding='utf-8') as f:
+            current_config = yaml.safe_load(f)
+        
+        # 更新配置
+        current_config.update(config_updates)
+        
+        # 写回配置文件
+        with open(config_path, 'w', encoding='utf-8') as f:
+            yaml.dump(current_config, f, default_flow_style=False, allow_unicode=True)
+        
+        # 更新全局配置
+        global config, CACHE_EMPTY_SUMMARY
+        config = load_config()
+        CACHE_EMPTY_SUMMARY = config.get('CACHE_EMPTY_SUMMARY', True)
+        
+        return {
+            "cache_empty_summary": CACHE_EMPTY_SUMMARY
+        }
+    except Exception as e:
         raise HTTPException(
             status_code=500,
-            detail="更新配置失败"
+            detail=f"更新配置失败: {str(e)}"
+        )
+
+# 自定义视频摘要请求模型
+class CustomSummaryRequest(BaseModel):
+    bvid: str
+    cid: int
+    up_mid: int
+    subtitle_content: str = Field(..., description="视频字幕内容")
+    model: Optional[str] = Field("deepseek-chat", description="DeepSeek模型名称")
+    temperature: Optional[float] = Field(0.7, description="生成温度，控制创造性")
+    max_tokens: Optional[int] = Field(1000, description="最大生成标记数")
+
+# 添加 TokenDetails 和 UsageInfo 模型
+class TokenDetails(BaseModel):
+    cached_tokens: Optional[int] = None
+
+class UsageInfo(BaseModel):
+    prompt_tokens: int
+    completion_tokens: int
+    total_tokens: int
+    prompt_tokens_details: Optional[TokenDetails] = None
+
+# 自定义视频摘要响应模型
+class CustomSummaryResponse(BaseModel):
+    bvid: str
+    cid: int
+    up_mid: int
+    summary: str
+    success: bool
+    message: str
+    from_deepseek: bool = True
+    tokens_used: Optional[UsageInfo] = None
+    processing_time: Optional[float] = None
+
+# 使用DeepSeek API生成自定义视频摘要
+async def generate_custom_summary(subtitle_content: str, model: str = "deepseek-chat", 
+                                 temperature: float = 0.7, max_tokens: int = 1000,
+                                 top_p: float = 1.0, stream: bool = False,
+                                 json_mode: bool = False, frequency_penalty: float = 0.0,
+                                 presence_penalty: float = 0.0,
+                                 background_tasks: BackgroundTasks = None) -> Dict[str, Any]:
+    """生成自定义视频摘要"""
+    try:
+        # 加载配置获取提示词
+        config = load_config()
+        prompt = config.get('deepseek', {}).get('video_summary', {}).get('custom_prompt', '')
+        
+        if not prompt:
+            raise ValueError("未找到有效的提示词配置")
+        
+        # 构建消息列表
+        messages = [
+            {"role": "system", "content": prompt},
+            {"role": "user", "content": subtitle_content}
+        ]
+        
+        # 调用DeepSeek API
+        start_time = time.time()
+        response = await chat_completion(
+            request=ChatRequest(
+                messages=[ChatMessage(**msg) for msg in messages],
+                model=model,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                top_p=top_p,
+                stream=stream,
+                json_mode=json_mode
+            ),
+            background_tasks=background_tasks
+        )
+        processing_time = time.time() - start_time
+        
+        # 构造符合 UsageInfo 模型的 tokens_used 数据
+        usage = response.get("usage", {})
+        tokens_used = {
+            "prompt_tokens": usage.get("prompt_tokens", 0),
+            "completion_tokens": usage.get("completion_tokens", 0),
+            "total_tokens": usage.get("total_tokens", 0),
+            "prompt_tokens_details": {
+                "cached_tokens": usage.get("prompt_tokens_details", {}).get("cached_tokens", 0)
+            } if usage.get("prompt_tokens_details") else None
+        }
+        
+        return {
+            "success": True,
+            "summary": response["content"],
+            "tokens_used": tokens_used,
+            "processing_time": processing_time
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "message": f"生成摘要失败: {str(e)}"
+        }
+
+@router.post("/custom_summary", summary="使用DeepSeek生成自定义视频摘要", response_model=CustomSummaryResponse)
+async def create_custom_summary(request: CustomSummaryRequest, background_tasks: BackgroundTasks):
+    """
+    使用DeepSeek API生成自定义视频摘要
+    
+    - **bvid**: 视频的BVID
+    - **cid**: 视频的CID
+    - **up_mid**: UP主的MID
+    - **subtitle_content**: 视频字幕内容
+    - **model**: DeepSeek模型名称，默认为deepseek-chat
+    - **temperature**: 生成温度，控制创造性，默认为0.7
+    - **max_tokens**: 最大生成标记数，默认为1000
+    """
+    try:
+        # 生成自定义摘要
+        result = await generate_custom_summary(
+            subtitle_content=request.subtitle_content,
+            model=request.model,
+            temperature=request.temperature,
+            max_tokens=request.max_tokens,
+            background_tasks=background_tasks
+        )
+        
+        # 如果生成成功且配置允许，保存到数据库
+        if result["success"] and result["summary"] and CACHE_EMPTY_SUMMARY:
+            try:
+                # 保存到数据库
+                save_success = save_video_summary_to_db(
+                    bvid=request.bvid,
+                    cid=request.cid,
+                    up_mid=request.up_mid,
+                    stid="custom_deepseek",  # 使用特殊标识表示这是自定义摘要
+                    summary=result["summary"],
+                    outline=None,  # 自定义摘要暂不支持提纲
+                    result_type=1  # 使用1表示有摘要但无提纲
+                )
+                if not save_success:
+                    print(f"警告: 保存自定义视频摘要到数据库失败: {request.bvid}, {request.cid}")
+            except Exception as e:
+                print(f"保存自定义摘要到数据库时出错: {str(e)}")
+        
+        # 构建并返回响应
+        return {
+            "bvid": request.bvid,
+            "cid": request.cid,
+            "up_mid": request.up_mid,
+            "summary": result["summary"],
+            "success": result["success"],
+            "message": result.get("message", ""),
+            "from_deepseek": True,
+            "tokens_used": result.get("tokens_used"),
+            "processing_time": result.get("processing_time")
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"生成自定义摘要时发生错误: {str(e)}"
+        )
+
+# 从字幕文件生成摘要的请求模型
+class SubtitleFileRequest(BaseModel):
+    bvid: str
+    cid: int
+    up_mid: int
+    subtitle_file: str = Field(..., description="字幕文件路径，支持SRT或JSON格式")
+    model: Optional[str] = Field("deepseek-chat", description="DeepSeek模型名称")
+    temperature: Optional[float] = Field(0.7, description="生成温度，控制创造性")
+    max_tokens: Optional[int] = Field(1000, description="最大生成标记数")
+
+@router.post("/summarize_from_subtitle", summary="从字幕文件生成视频摘要", response_model=CustomSummaryResponse)
+async def summarize_from_subtitle(request: SubtitleFileRequest, background_tasks: BackgroundTasks):
+    """
+    从字幕文件生成视频摘要
+    
+    - **bvid**: 视频的BVID
+    - **cid**: 视频的CID
+    - **up_mid**: UP主的MID
+    - **subtitle_file**: 字幕文件路径，支持SRT或JSON格式
+    - **model**: DeepSeek模型名称，默认为deepseek-chat
+    - **temperature**: 生成温度，控制创造性，默认为0.7
+    - **max_tokens**: 最大生成标记数，默认为1000
+    """
+    try:
+        # 检查字幕文件是否存在
+        if not os.path.exists(request.subtitle_file):
+            raise HTTPException(
+                status_code=400,
+                detail=f"字幕文件不存在: {request.subtitle_file}"
+            )
+        
+        # 读取字幕文件内容
+        subtitle_content = ""
+        file_ext = os.path.splitext(request.subtitle_file)[1].lower()
+        
+        if file_ext == '.srt':
+            # 处理SRT格式
+            with open(request.subtitle_file, 'r', encoding='utf-8') as f:
+                lines = f.readlines()
+            
+            # 提取字幕文本，忽略时间戳和序号
+            current_text = ""
+            for line in lines:
+                line = line.strip()
+                # 跳过空行、序号行和时间戳行
+                if not line or line.isdigit() or '-->' in line:
+                    continue
+                current_text += line + " "
+            
+            subtitle_content = current_text
+            
+        elif file_ext == '.json':
+            # 处理JSON格式
+            with open(request.subtitle_file, 'r', encoding='utf-8') as f:
+                subtitle_data = json.load(f)
+            
+            # 根据JSON结构提取字幕文本
+            if isinstance(subtitle_data, list):
+                # 假设是包含字幕段落的列表
+                for item in subtitle_data:
+                    if isinstance(item, dict) and 'content' in item:
+                        subtitle_content += item['content'] + " "
+            elif isinstance(subtitle_data, dict) and 'body' in subtitle_data:
+                # B站字幕格式
+                for item in subtitle_data['body']:
+                    if 'content' in item:
+                        subtitle_content += item['content'] + " "
+        else:
+            raise HTTPException(
+                status_code=400,
+                detail=f"不支持的字幕文件格式: {file_ext}，仅支持.srt和.json"
+            )
+        
+        if not subtitle_content:
+            raise HTTPException(
+                status_code=400,
+                detail="无法从字幕文件中提取文本内容"
+            )
+        
+        # 创建自定义摘要请求
+        summary_request = CustomSummaryRequest(
+            bvid=request.bvid,
+            cid=request.cid,
+            up_mid=request.up_mid,
+            subtitle_content=subtitle_content,
+            model=request.model,
+            temperature=request.temperature,
+            max_tokens=request.max_tokens
+        )
+        
+        # 调用自定义摘要生成函数
+        return await create_custom_summary(summary_request, background_tasks)
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"从字幕文件生成摘要时发生错误: {str(e)}"
+        )
+
+@router.get("/prompt", summary="获取视频摘要提示词配置", response_model=VideoSummaryPrompt)
+async def get_summary_prompt():
+    """获取视频摘要提示词配置"""
+    try:
+        config = load_config()
+        prompt_config = config.get('deepseek', {}).get('video_summary', {})
+        return VideoSummaryPrompt(
+            default_prompt=prompt_config.get('default_prompt', ''),
+            custom_prompt=prompt_config.get('custom_prompt', '')
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"获取提示词配置失败: {str(e)}"
+        )
+
+@router.post("/prompt", summary="更新视频摘要提示词", response_model=VideoSummaryPrompt)
+async def update_summary_prompt(prompt: str = Body(..., description="新的提示词")):
+    """更新视频摘要提示词配置"""
+    try:
+        config = load_config()
+        
+        # 将多行文本转换为单行（替换换行符为\n）
+        prompt = prompt.replace('\r\n', '\n').replace('\r', '\n')
+        prompt = prompt.replace('\n', '\\n')
+        
+        # 更新配置
+        if 'deepseek' not in config:
+            config['deepseek'] = {}
+        if 'video_summary' not in config['deepseek']:
+            config['deepseek']['video_summary'] = {}
+            
+        # 保持默认提示词不变，只更新自定义提示词
+        config['deepseek']['video_summary']['custom_prompt'] = prompt
+        
+        # 保存配置
+        if not save_config(config):
+            raise HTTPException(
+                status_code=500,
+                detail="保存配置失败"
+            )
+        
+        return VideoSummaryPrompt(
+            default_prompt=config['deepseek']['video_summary']['default_prompt'],
+            custom_prompt=prompt
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"更新提示词配置失败: {str(e)}"
+        )
+
+@router.post("/prompt/reset", summary="重置视频摘要提示词到默认值", response_model=VideoSummaryPrompt)
+async def reset_summary_prompt():
+    """重置视频摘要提示词到默认值"""
+    try:
+        config = load_config()
+        
+        if 'deepseek' not in config:
+            config['deepseek'] = {}
+        if 'video_summary' not in config['deepseek']:
+            config['deepseek']['video_summary'] = {}
+            
+        # 将自定义提示词重置为默认提示词
+        default_prompt = config['deepseek']['video_summary']['default_prompt']
+        config['deepseek']['video_summary']['custom_prompt'] = default_prompt
+        
+        # 保存配置
+        if not save_config(config):
+            raise HTTPException(
+                status_code=500,
+                detail="保存配置失败"
+            )
+        
+        return VideoSummaryPrompt(
+            default_prompt=default_prompt,
+            custom_prompt=default_prompt
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"重置提示词配置失败: {str(e)}"
+        )
+
+# 添加新的请求模型
+class CidSummaryRequest(BaseModel):
+    cid: int = Field(..., description="视频的CID")
+    model: Optional[str] = Field(config.get('deepseek', {}).get('default_model', 'deepseek-chat'), description="DeepSeek模型名称")
+    temperature: Optional[float] = Field(config.get('deepseek', {}).get('default_settings', {}).get('temperature', 1.0), description="生成温度，控制创造性")
+    max_tokens: Optional[int] = Field(config.get('deepseek', {}).get('default_settings', {}).get('max_tokens', 1000), description="最大生成标记数")
+    top_p: Optional[float] = Field(config.get('deepseek', {}).get('default_settings', {}).get('top_p', 1.0), description="核采样阈值，控制输出的多样性")
+    stream: Optional[bool] = Field(False, description="是否使用流式输出")
+    json_mode: Optional[bool] = Field(False, description="是否使用JSON模式输出")
+    frequency_penalty: Optional[float] = Field(config.get('deepseek', {}).get('default_settings', {}).get('frequency_penalty', 0.0), description="频率惩罚，避免重复")
+    presence_penalty: Optional[float] = Field(config.get('deepseek', {}).get('default_settings', {}).get('presence_penalty', 0.0), description="存在惩罚，增加话题多样性")
+
+@router.post("/summarize_by_cid", summary="根据CID生成视频摘要", response_model=CustomSummaryResponse)
+async def summarize_by_cid(request: CidSummaryRequest, background_tasks: BackgroundTasks):
+    """根据CID生成视频摘要
+    
+    参数:
+    - **cid**: 视频的CID
+    - **model**: DeepSeek模型名称，默认为deepseek-chat
+    - **temperature**: 生成温度，控制创造性，默认为0.7
+    - **max_tokens**: 最大生成标记数，默认为1000
+    """
+    # 构建字幕文件路径
+    stt_dir = os.path.join("output", "stt", str(request.cid))
+    json_path = os.path.join(stt_dir, f"{request.cid}.json")
+
+    # 检查字幕文件是否存在
+    if not os.path.exists(json_path):
+        raise HTTPException(
+            status_code=404,
+            detail=f"未找到CID {request.cid} 的字幕文件"
+        )
+
+    # 读取字幕文件
+    with open(json_path, 'r', encoding='utf-8') as f:
+        subtitle_data = json.load(f)
+
+    # 提取字幕内容
+    subtitle_content = subtitle_data.get('content', '')
+    if not subtitle_content:
+        raise HTTPException(
+            status_code=400,
+            detail="字幕文件内容为空"
+        )
+
+    # 生成摘要
+    result = await generate_custom_summary(
+        subtitle_content=subtitle_content,
+        model=request.model,
+        temperature=request.temperature,
+        max_tokens=request.max_tokens,
+        top_p=request.top_p,
+        stream=request.stream,
+        json_mode=request.json_mode,
+        frequency_penalty=request.frequency_penalty,
+        presence_penalty=request.presence_penalty,
+        background_tasks=background_tasks
         )
     
     return {
-        "cache_empty_summary": CACHE_EMPTY_SUMMARY
+            "bvid": subtitle_data.get('bvid', ''),
+            "cid": request.cid,
+            "up_mid": subtitle_data.get('up_mid', 0),
+            "summary": result.get('summary', ''),
+            "success": result.get('success', False),
+            "message": result.get('message', ''),
+            "from_deepseek": True,
+            "tokens_used": result.get('tokens_used'),
+            "processing_time": result.get('processing_time')
     } 

@@ -19,6 +19,7 @@ class DownloadRequest(BaseModel):
     sessdata: Optional[str] = Field(None, description="用户的 SESSDATA")
     download_cover: Optional[bool] = Field(True, description="是否下载视频封面")
     only_audio: Optional[bool] = Field(False, description="是否仅下载音频")
+    cid: int = Field(..., description="视频的 CID，用于分类存储和音频文件命名前缀")
 
 async def stream_process_output(process: subprocess.Popen):
     """实时流式输出进程的输出"""
@@ -168,7 +169,7 @@ async def download_video(request: DownloadRequest):
             request.url,
             '--dir', download_dir,
             '--tmp-dir', tmp_dir,
-            '--subpath-template', '{title}_{username}_{download_date@%Y%m%d_%H%M%S}/{title}',
+            '--subpath-template', f'{{title}}_{{username}}_{{download_date@%Y%m%d_%H%M%S}}_{request.cid}/{{title}}_{request.cid}'
         ]
         
         # 根据用户选择决定是否下载封面

@@ -2,6 +2,7 @@ import asyncio
 import logging
 import os
 import sys
+import traceback
 from contextlib import asynccontextmanager
 from datetime import datetime
 
@@ -27,7 +28,9 @@ from routers import (
     delete_history,
     image_downloader,
     scheduler,
-    video_summary
+    video_summary,
+    deepseek,
+    audio_to_text
 )
 from scripts.scheduler_manager import SchedulerManager
 from scripts.scheduler_db_enhanced import EnhancedSchedulerDB
@@ -178,29 +181,39 @@ async def lifespan(app: FastAPI):
         # 创建异步任务运行调度器
         scheduler_task = asyncio.create_task(scheduler_manager.run_scheduler())
         
-        print("应用启动完成")
+        print("=== 应用启动完成 ===")
+        print(f"启动时间: {datetime.now().isoformat()}")
         
         yield
         
         # 关闭时
-        print("正在关闭应用...")
+        print("\n=== 应用关闭阶段 ===")
+        print(f"开始时间: {datetime.now().isoformat()}")
+        
         if scheduler_manager:
+            print("正在停止调度器...")
             scheduler_manager.stop_scheduler()
             # 取消调度器任务
             scheduler_task.cancel()
             try:
+                print("等待调度器任务完成...")
                 await scheduler_task
             except asyncio.CancelledError:
-                pass
+                print("调度器任务已取消")
         
         # 恢复原始的 stdout
         if hasattr(sys.stdout, 'stdout'):
+            print("正在恢复标准输出...")
             sys.stdout = sys.stdout.stdout
             
-        print("应用已关闭")
+        print("=== 应用关闭完成 ===")
+        print(f"结束时间: {datetime.now().isoformat()}")
         
     except Exception as e:
-        print(f"应用启动/关闭过程中出错: {e}")
+        print(f"\n=== 应用生命周期出错 ===")
+        print(f"错误信息: {str(e)}")
+        print(f"错误类型: {type(e).__name__}")
+        print(f"错误堆栈:\n{traceback.format_exc()}")
         raise
 
 # 创建 FastAPI 应用实例
@@ -250,6 +263,8 @@ app.include_router(delete_history.router, prefix="/delete", tags=["删除历史�
 app.include_router(image_downloader.router, prefix="/images", tags=["图片下载管理"])
 app.include_router(scheduler.router, prefix="/scheduler", tags=["计划任务管理"])
 app.include_router(video_summary.router, prefix="/summary", tags=["视频摘要"])
+app.include_router(deepseek.router, prefix="/deepseek", tags=["DeepSeek AI"])
+app.include_router(audio_to_text.router, prefix="/audio_to_text", tags=["音频转文字"])
 
 # 入口点，启动应用
 if __name__ == "__main__":
