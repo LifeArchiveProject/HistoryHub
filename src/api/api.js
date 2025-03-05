@@ -524,3 +524,30 @@ export const setTaskEnabled = (taskId, enabled) => {
     enabled
   })
 }
+
+// 邮件配置相关接口
+// 获取邮件配置
+export const getEmailConfig = () => {
+  return instance.get('/config/email-config')
+    .then(response => {
+      console.log('邮件配置API响应成功:', response)
+      return response
+    })
+    .catch(error => {
+      console.error('邮件配置API错误:', error)
+      throw error
+    })
+}
+
+// 更新邮件配置
+export const updateEmailConfig = (config) => {
+  return instance.post('/config/email-config', config)
+    .then(response => {
+      console.log('更新邮件配置API响应成功:', response)
+      return response
+    })
+    .catch(error => {
+      console.error('更新邮件配置API错误:', error)
+      throw error
+    })
+}
