@@ -30,7 +30,8 @@ from routers import (
     scheduler,
     video_summary,
     deepseek,
-    audio_to_text
+    audio_to_text,
+    email_config
 )
 from scripts.scheduler_manager import SchedulerManager
 from scripts.scheduler_db_enhanced import EnhancedSchedulerDB
@@ -265,6 +266,7 @@ app.include_router(scheduler.router, prefix="/scheduler", tags=["计划任务管
 app.include_router(video_summary.router, prefix="/summary", tags=["视频摘要"])
 app.include_router(deepseek.router, prefix="/deepseek", tags=["DeepSeek AI"])
 app.include_router(audio_to_text.router, prefix="/audio_to_text", tags=["音频转文字"])
+app.include_router(email_config.router, prefix="/config", tags=["配置管理"])
 
 # 入口点，启动应用
 if __name__ == "__main__":
