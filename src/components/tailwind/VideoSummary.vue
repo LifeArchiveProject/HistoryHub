@@ -99,7 +99,7 @@
     </div>
     
     <!-- 错误状态 -->
-    <div v-if="error && !loading" class="py-4">
+    <div v-if="error && !loading" class="py-8 flex flex-col items-center justify-center">
       <h3 class="text-sm font-medium text-gray-900 dark:text-white flex items-center">
         <svg v-if="errorIsWarning" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-amber-500 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -112,21 +112,23 @@
         </svg>
         <span>{{ errorTitle }}</span>
       </h3>
-      <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ error }}</p>
-      <button 
-        v-if="shouldShowRetryButton"
-        @click="() => fetchSummary(false)" 
-        class="mt-2 text-xs bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded px-3 py-1.5"
-      >
-        重试
-      </button>
-      <button 
-        v-if="isGenerating"
-        @click="() => fetchSummary(false)" 
-        class="mt-2 text-xs bg-[#fb7299] hover:bg-[#fc8bad] text-white rounded px-3 py-1.5"
-      >
-        查看进度
-      </button>
+      <p class="text-xs text-gray-500 dark:text-gray-400 mt-2 text-center">{{ error }}</p>
+      <div class="mt-4 flex items-center space-x-3">
+        <button 
+          v-if="shouldShowRetryButton"
+          @click="() => fetchSummary(false)" 
+          class="text-xs bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded px-3 py-1.5"
+        >
+          重试
+        </button>
+        <button 
+          v-if="isGenerating"
+          @click="() => fetchSummary(false)" 
+          class="text-xs bg-[#fb7299] hover:bg-[#fc8bad] text-white rounded px-3 py-1.5"
+        >
+          查看进度
+        </button>
+      </div>
     </div>
   </div>
 </template>
@@ -198,38 +200,36 @@ const fetchSummary = async (forceRefresh = false) => {
     // 保存stid
     stid.value = data.stid || ''
     
-    // 直接使用has_summary字段判断是否有摘要
-    if (data && data.has_summary === true) {
+    // 根据has_summary和result_type判断状态
+    if (data.has_summary) {
       // 有摘要内容
       summary.value = data.summary || ''
       outline.value = data.outline || null
       fromCache.value = data.from_cache !== undefined ? data.from_cache : false
-    } else if (data) {
-      // 根据result_type判断状态
-      if (data.result_type === 0) {
-        // 没有摘要
-        error.value = '该视频暂无摘要，可能正在生成中'
-      } else if (data.result_type === 1) {
-        // 仅存在摘要总结
-        summary.value = data.summary || ''
-        outline.value = null
-        fromCache.value = data.from_cache !== undefined ? data.from_cache : false
-      } else if (data.result_type === 2) {
-        // 存在摘要以及提纲
-        summary.value = data.summary || ''
-        outline.value = data.outline || null
-        fromCache.value = data.from_cache !== undefined ? data.from_cache : false
-      } else if (data.result_type === -1) {
-        // 不支持AI摘要
-        error.value = '该视频不支持AI摘要（可能包含敏感内容）'
-      } else {
-        // 其他错误情况
-        error.value = data.status_message || '获取摘要失败'
-      }
-      loading.value = false
-      return
     } else {
-      throw new Error('获取摘要失败，服务器未返回有效数据')
+      // 根据result_type判断状态
+      switch (data.result_type) {
+        case -1:
+          error.value = '该视频不支持AI摘要（可能包含敏感内容）'
+          break
+        case 0:
+          error.value = data.status_message || '该视频没有摘要'
+          break
+        case 1:
+          // 仅存在摘要总结
+          summary.value = data.summary || ''
+          outline.value = null
+          fromCache.value = data.from_cache !== undefined ? data.from_cache : false
+          break
+        case 2:
+          // 存在摘要以及提纲
+          summary.value = data.summary || ''
+          outline.value = data.outline || null
+          fromCache.value = data.from_cache !== undefined ? data.from_cache : false
+          break
+        default:
+          error.value = data.status_message || '获取摘要失败'
+      }
     }
   } catch (err) {
     error.value = err.response?.data?.detail || err.message || '网络错误，请稍后重试'

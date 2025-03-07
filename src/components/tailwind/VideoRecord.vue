@@ -313,7 +313,8 @@
           title: record.title,
           author: record.author_name,
           bvid: record.bvid,
-          cover: record.cover || record.covers?.[0]
+          cover: record.cover || record.covers?.[0],
+          cid: record.cid
         }"
       />
     </Teleport>
@@ -613,8 +614,6 @@ const handleRemarkBlur = async () => {
     remarkContent.value = originalRemark.value // 恢复原始值
   }
 }
-
-
 
 // 组件挂载时初始化备注
 onMounted(() => {

@@ -116,18 +116,28 @@
                 <p class="text-sm text-gray-500">UP主：{{ videoInfo.author }}</p>
                 <p class="text-sm text-gray-500">BV号：{{ videoInfo.bvid }}</p>
                 <!-- 下载选项 -->
-                <div class="space-y-2 text-sm text-gray-600">
+                <div class="flex gap-8 items-start text-sm text-gray-600">
+                  <div class="space-y-1">
+                    <label class="flex items-center space-x-2 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        v-model="downloadCover"
+                        class="w-4 h-4 text-[#fb7299] border-gray-300 rounded focus:ring-[#fb7299]"
+                      >
+                      <span>下载并合成视频封面</span>
+                    </label>
+                    <div class="text-xs text-gray-500">
+                      提示：FFmpeg版本过低时可能导致封面合成失败
+                    </div>
+                  </div>
                   <label class="flex items-center space-x-2 cursor-pointer select-none">
                     <input
                       type="checkbox"
-                      v-model="downloadCover"
+                      v-model="onlyAudio"
                       class="w-4 h-4 text-[#fb7299] border-gray-300 rounded focus:ring-[#fb7299]"
                     >
-                    <span>下载并合成视频封面</span>
+                    <span>仅下载音频</span>
                   </label>
-                  <div class="text-xs text-gray-500 pl-6">
-                    FFmpeg 版本过低时会导致合成封面到视频时失败，进而导致视频下载为0kb，此为兼容选项，去掉封面合成即可成功下载
-                  </div>
                 </div>
               </div>
             </div>
@@ -202,12 +212,13 @@ const props = defineProps({
       title: '',
       author: '',
       bvid: '',
-      cover: ''
+      cover: '',
+      cid: 0
     })
   }
 })
 
-const emit = defineEmits(['update:show'])
+const emit = defineEmits(['update:show', 'download-complete'])
 
 // 下载相关状态
 const downloadStarted = ref(false)
@@ -247,10 +258,10 @@ const checkFFmpegStatus = async () => {
   }
 }
 
-
-
 // 下载封面选项
 const downloadCover = ref(true)
+// 仅下载音频选项
+const onlyAudio = ref(false)
 
 // 开始下载
 const startDownload = async () => {
@@ -276,6 +287,7 @@ const startDownload = async () => {
       // 检查下载状态
       if (content.includes('下载完成')) {
         isDownloading.value = false
+        emit('download-complete')
       } else if (content.includes('ERROR')) {
         downloadError.value = true
         isDownloading.value = false
@@ -285,7 +297,7 @@ const startDownload = async () => {
       nextTick(() => {
         scrollToBottom()
       })
-    }, downloadCover.value)
+    }, downloadCover.value, onlyAudio.value, props.videoInfo.cid)
   } catch (error) {
     console.error('下载失败:', error)
     downloadError.value = true

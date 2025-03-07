@@ -341,7 +341,7 @@ export const clearImages = () => {
 }
 
 // 下载视频
-export const downloadVideo = async (bvid, sessdata = null, onMessage, downloadCover = true) => {
+export const downloadVideo = async (bvid, sessdata = null, onMessage, downloadCover = true, onlyAudio = false, cid = 0) => {
   console.log('调用下载API, bvid:', bvid)
 
   const response = await fetch(`${BASE_URL}/download/download_video`, {
@@ -352,7 +352,9 @@ export const downloadVideo = async (bvid, sessdata = null, onMessage, downloadCo
     body: JSON.stringify({
       url: bvid,
       sessdata,
-      download_cover: downloadCover
+      download_cover: downloadCover,
+      only_audio: onlyAudio,
+      cid
     })
   })
 
@@ -550,4 +552,87 @@ export const updateEmailConfig = (config) => {
       console.error('更新邮件配置API错误:', error)
       throw error
     })
+}
+
+// 音频转文字相关接口
+export const checkAudioToTextEnvironment = () => {
+  return instance.get('/audio_to_text/check_environment')
+}
+
+// 检查系统资源
+export const checkSystemResources = () => {
+  return instance.get('/audio_to_text/resource_check')
+}
+
+// 获取可用的 Whisper 模型列表
+export const getWhisperModels = () => {
+  return instance.get('/audio_to_text/models')
+}
+
+// 查找音频文件路径
+export const findAudioPath = (cid) => {
+  return instance.get('/audio_to_text/find_audio', {
+    params: { cid }
+  })
+}
+
+// 检查语音转文字文件是否存在
+export const checkSttFile = (cid) => {
+  return instance.get('/audio_to_text/check_stt_file', {
+    params: { cid }
+  })
+}
+
+// 转录音频文件
+export const transcribeAudio = (params) => {
+  return instance.post('/audio_to_text/transcribe', params)
+}
+
+// 根据CID生成视频摘要
+export const summarizeByCid = (cid) => {
+  return instance.post('/summary/summarize_by_cid', {
+    cid
+  })
+}
+
+// 检查本地摘要文件
+export const checkLocalSummary = (cid, includeContent = true) => {
+  return instance.get(`/summary/check_local_summary/${cid}`, {
+    params: {
+      include_content: includeContent
+    }
+  })
+}
+
+// 下载指定的Whisper模型
+export const downloadWhisperModel = (modelSize) => {
+  return instance.post('/audio_to_text/download_model', null, {
+    params: {
+      model_size: modelSize
+    }
+  })
+}
+
+// 删除指定的Whisper模型
+export const deleteWhisperModel = (modelSize) => {
+  return instance.delete('/audio_to_text/models', {
+    data: {
+      model_size: modelSize
+    }
+  })
+}
+
+// DeepSeek相关接口
+export const checkDeepSeekApiKey = () => {
+  return instance.get('/deepseek/check_api_key')
+}
+
+export const setDeepSeekApiKey = (apiKey) => {
+  return instance.post('/deepseek/set_api_key', {
+    api_key: apiKey
+  })
+}
+
+export const getDeepSeekBalance = () => {
+  return instance.get('/deepseek/balance')
 }
