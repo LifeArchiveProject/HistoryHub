@@ -271,15 +271,19 @@ class SchedulerManager:
             
         return False
     
-    def add_sub_task(self, parent_id, sub_task_data):
+    def add_sub_task(self, parent_id, task_id, sub_task_data):
         """添加子任务"""
         if not self.db.is_main_task(parent_id):
             logger.warning(f"父任务 {parent_id} 不存在或不是主任务，无法添加子任务")
             return False
         
+        # 确保子任务数据中包含task_id
+        if 'task_id' not in sub_task_data:
+            sub_task_data['task_id'] = task_id
+        
         result = self.db.create_sub_task(parent_id, sub_task_data)
         if result:
-            logger.info(f"成功为主任务 {parent_id} 添加子任务")
+            logger.info(f"成功为主任务 {parent_id} 添加子任务 {task_id}")
             return True
         
         return False

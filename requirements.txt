@@ -1,11 +1,10 @@
-asyncio~=3.4.3
 uvicorn~=0.32.1
 fastapi~=0.115.8
 qrcode~=8.0
 requests~=2.32.3
 jieba~=0.42.1
 pydantic~=2.10.6
-numpy~=2.1.3
+numpy~=1.26.4
 scikit-learn~=1.5.2
 snownlp~=0.12.3
 PyYAML~=6.0.2
@@ -22,10 +21,5 @@ Pillow~=10.2.0
 yutto~=2.0.0
 python-dateutil>=2.8.2
 psutil>=5.9.0
-torch>=2.0.0; platform_system == "windows"
-torchvision>=0.15.0; platform_system == "windows"
-torchaudio>=2.0.0; platform_system == "windows"
-faster-whisper>=0.9.0; platform_system == "windows"
-huggingface-hub>=0.19.0; platform_system == "windows"
 tqdm>=4.66.0
 email-validator>=2.1.0

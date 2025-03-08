@@ -55,24 +55,67 @@
    - 错误重试机制
    - 邮件通知功能
 
-7. **API接口**
+7. **本地摘要功能**
+   - DeepSeek AI 集成
+   - 使用faster whisper 将音频转换为字幕
+   - 视频摘要获取与保存
+
+8. **API接口**
    - RESTful API设计
    - 完整的接口文档
    - 支持多种查询方式
 
 ## 系统要求
 
-- Python 3.8+
+- Python 3.10+
 - SQLite 3
 - FFmpeg（用于视频下载）
 - 必要的Python包（见requirements.txt）
+- NVIDIA GPU（可选，用于加速音频转文字）
+  - 支持CUDA 9.0 及以上版本
+  - 建议使用CUDA 11.8 或更高版本以获得最佳性能
+  - 如果没有GPU，将自动使用CPU模式运行
 
 ## 快速开始
 
 1. **安装依赖**
+
+项目提供了自动化的依赖安装脚本，可以自动检测您的系统环境并安装合适的依赖：
+
 ```bash
-pip install -r requirements.txt
+python install_dependencies.py
 ```
+
+该脚本会：
+- 安装基本依赖（requirements.txt中的包）
+- 检测系统CUDA环境
+- 安装适配您系统的PyTorch版本
+- 安装音频转文字所需的依赖（faster-whisper等）
+
+您也可以使用以下选项：
+```bash
+# 查看系统环境信息和CUDA兼容性
+python install_dependencies.py --info
+
+# 强制使用CPU版本（不使用GPU加速）
+python install_dependencies.py --force-cpu
+
+# 指定CUDA版本安装
+python install_dependencies.py --force-cuda 12.7
+
+# 跳过PyTorch相关依赖安装
+python install_dependencies.py --skip-torch
+```
+
+音频转文字功能依赖说明：
+- 如果您的系统有NVIDIA GPU，脚本会自动安装GPU加速版本的依赖
+- 如果没有检测到GPU，会安装CPU版本（性能较低但仍可使用）
+- 所需的主要依赖包括：
+  - PyTorch：深度学习框架
+  - faster-whisper：优化版语音识别模型
+  - huggingface-hub：模型下载和管理
+
+详细的CUDA和PyTorch版本对应关系请参考 [CUDA_SETUP.md](CUDA_SETUP.md)
 
 2. **配置文件**
 
@@ -89,6 +132,12 @@ email:
   password: "邮箱授权码"
   receiver: "收件人邮箱"
 
+# DeepSeek AI API配置
+deepseek:
+  api_key: "你的DeepSeek API密钥"
+  api_base: "https://api.deepseek.com/v1"
+  default_model: "deepseek-reasoner"
+
 # 服务器配置
 server:
   host: "localhost"
@@ -103,17 +152,6 @@ python main.py
 ## API接口
 
 基础URL: `http://localhost:8899`
-
-### 部分主要接口
-- `/BiliHistory2024/all`: 获取历史记录
-- `/BiliHistory2024/search`: 搜索历史记录
-- `/analysis/analyze`: 分析数据
-- `/heatmap/generate_heatmap`: 生成热力图
-- `/log/send-email`: 发送日志邮件
-- `/download_video`: 下载B站视频
-- `/images/BiliHistory2024/start`: 开始下载图片
-- `/images/BiliHistory2024/status`: 获取图片下载状态
-- `/images/local/{image_type}/{file_hash}`: 获取本地图片
 
 完整API文档访问：`http://localhost:8899/docs`
 
@@ -138,11 +176,17 @@ tasks:
 
 ```
 output/
+├── BSummary/            # b站视频摘要
+├── database/            # 计划任务SQLite数据库
+├── download_video/      # 视频下载目录
 ├── history_by_date/     # 原始历史数据
 │   └── YYYY/MM/DD.json
+├── images/              # 图片
+├── logs/                # 运行日志
+├── stt/                 # 转换后的字幕
+├── summary/             # 视频摘要
 ├── cleaned_history/     # 清理后的数据
-├── heatmap/            # 热力图输出
-└── logs/               # 运行日志
+├── heatmap/             # 热力图输出
 ```
 
 ## 安全说明
@@ -174,6 +218,12 @@ output/
    - 尝试清理并重新下载
    - 检查图片目录权限
 
+4. **音频转文字问题**
+   - 确保已正确安装PyTorch和相关依赖
+   - 检查CUDA版本是否兼容（GPU用户）
+   - 确保系统内存充足（建议至少4GB可用内存）
+   - 如遇性能问题，可尝试使用`--force-cuda`指定其他CUDA版本
+
 ## 贡献指南
 
 1. Fork 项目
@@ -189,6 +239,8 @@ MIT License
 
 - [bilibili-API-collect](https://github.com/SocialSisterYi/bilibili-API-collect) - 没有它就没有这个项目
 - [Yutto](https://yutto.nyakku.moe/) - 可爱的B站视频下载工具
+- [FasterWhisper](https://github.com/SYSTRAN/faster-whisper) - 音频转文字
+- [DeepSeek](https://github.com/deepseek-ai/DeepSeek-R1) - DeepSeek AI API
 - 所有贡献者
 
 ## Star History

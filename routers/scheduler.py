@@ -524,7 +524,12 @@ async def add_sub_task(
             "depends_on": sub_task_data.get('depends_on')  # 添加依赖关系
         }
         
-        result = scheduler.add_sub_task(task_id, sub_task_config)
+        # 获取子任务ID
+        sub_task_id = sub_task_data.get('task_id')
+        if not sub_task_id:
+            return {"status": "error", "message": "子任务ID不能为空"}
+            
+        result = scheduler.add_sub_task(task_id, sub_task_id, sub_task_config)
         
         if not result:
             return {"status": "error", "message": "添加子任务失败"}

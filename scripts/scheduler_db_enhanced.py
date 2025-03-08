@@ -253,9 +253,9 @@ class EnhancedSchedulerDB(SchedulerDB):
                     task_data.get('endpoint', ''),
                     task_data.get('method', 'GET'),
                     json.dumps(task_data.get('params', {})),
-                    task_data.get('schedule_type', 'daily'),
-                    task_data.get('schedule_time'),
-                    task_data.get('schedule_delay'),
+                    schedule_info.get('type', 'daily'),
+                    schedule_info.get('time'),
+                    schedule_info.get('delay'),
                     task_data.get('enabled', 1),
                     'main',
                     datetime.now().isoformat()
@@ -440,7 +440,18 @@ class EnhancedSchedulerDB(SchedulerDB):
                 return False
             
             # 准备任务数据
-            params = json.dumps(task_data.get('params', {})) if task_data.get('params') else None
+            params = task_data.get('params', {})
+            
+            # 如果是发送邮件任务，确保params包含必要的内容
+            if task_data.get('endpoint') == '/log/send-email' and not params:
+                params = {
+                    "content": None,
+                    "mode": "simple",
+                    "subject": "B站历史记录日报 - {current_time}"
+                }
+                logger.info(f"为发送邮件任务 '{task_id}' 自动添加默认参数")
+            
+            params_json = json.dumps(params) if params else None
             tags = json.dumps(task_data.get('tags', [])) if task_data.get('tags') else '[]'
             
             # 插入主任务
@@ -454,7 +465,7 @@ class EnhancedSchedulerDB(SchedulerDB):
                 task_data.get('name', task_id),
                 task_data.get('endpoint', ''),
                 task_data.get('method', 'GET'),
-                params,
+                params_json,
                 task_data.get('schedule_type', 'daily'),
                 task_data.get('schedule_time'),
                 task_data.get('schedule_delay'),
@@ -498,27 +509,47 @@ class EnhancedSchedulerDB(SchedulerDB):
                     fields.append(f"{key} = ?")
                     values.append(value)
                 elif key == 'params':
+                    # 如果是发送邮件任务，确保params包含必要的内容
+                    if 'endpoint' in task_data and task_data['endpoint'] == '/log/send-email':
+                        if not value:
+                            value = {
+                                "content": None,
+                                "mode": "simple",
+                                "subject": "B站历史记录日报 - {current_time}"
+                            }
+                            logger.info(f"为发送邮件任务 '{task_id}' 自动添加默认参数")
                     fields.append("params = ?")
                     values.append(json.dumps(value))
                 elif key == 'tags':
-                    fields.append("tags = ?")
-                    values.append(json.dumps(value))
+                    # 更新任务状态表中的标签
+                    try:
+                        cursor.execute("""
+                        UPDATE task_status
+                        SET tags = ?
+                        WHERE task_id = ?
+                        """, (json.dumps(value), task_id))
+                    except Exception as e:
+                        logger.error(f"更新任务标签失败: {str(e)}")
             
             # 添加最后修改时间
-            fields.append("last_modified = datetime('now', 'localtime')")
+            fields.append("last_modified = ?")
+            values.append(datetime.now().isoformat())
             
-            # 构建并执行更新查询
+            # 添加任务ID
+            values.append(task_id)
+            
             if fields:
-                values.append(task_id)
-                query = f"UPDATE main_tasks SET {', '.join(fields)} WHERE task_id = ?"
-                cursor.execute(query, values)
+                # 构建更新SQL
+                sql = f"UPDATE main_tasks SET {', '.join(fields)} WHERE task_id = ?"
+                cursor.execute(sql, values)
                 
                 self.conn.commit()
                 logger.info(f"成功更新主任务 '{task_id}'")
                 return True
             else:
-                logger.warning(f"没有提供任何有效的更新字段")
+                logger.warning(f"没有提供有效的更新字段")
                 return False
+                
         except Exception as e:
             self.conn.rollback()
             logger.error(f"更新主任务失败: {str(e)}")
@@ -551,6 +582,10 @@ class EnhancedSchedulerDB(SchedulerDB):
             for subtask_id in subtask_ids:
                 cursor.execute("DELETE FROM sub_task_status WHERE task_id = ?", (subtask_id,))
             
+            # 删除子任务执行历史记录
+            for subtask_id in subtask_ids:
+                cursor.execute("DELETE FROM sub_task_executions WHERE task_id = ?", (subtask_id,))
+            
             # 删除子任务
             cursor.execute("DELETE FROM sub_tasks WHERE parent_id = ?", (task_id,))
             
@@ -560,6 +595,9 @@ class EnhancedSchedulerDB(SchedulerDB):
             
             # 删除主任务状态
             cursor.execute("DELETE FROM task_status WHERE task_id = ?", (task_id,))
+            
+            # 删除主任务执行历史记录
+            cursor.execute("DELETE FROM task_executions WHERE task_id = ?", (task_id,))
             
             # 删除主任务
             cursor.execute("DELETE FROM main_tasks WHERE task_id = ?", (task_id,))
@@ -729,7 +767,18 @@ class EnhancedSchedulerDB(SchedulerDB):
                 logger.error(f"子任务ID '{task_id}' 已存在")
                 return False
             
-            params = json.dumps(task_data.get('params', {})) if task_data.get('params') else None
+            params = task_data.get('params', {})
+            
+            # 如果是发送邮件任务，确保params包含必要的内容
+            if task_data.get('endpoint') == '/log/send-email' and not params:
+                params = {
+                    "content": None,
+                    "mode": "simple",
+                    "subject": "B站历史记录日报 - {current_time}"
+                }
+                logger.info(f"为发送邮件子任务 '{task_id}' 自动添加默认参数")
+            
+            params_json = json.dumps(params) if params else None
             tags = json.dumps(task_data.get('tags', [])) if task_data.get('tags') else '[]'
             
             # 插入子任务
@@ -746,7 +795,7 @@ class EnhancedSchedulerDB(SchedulerDB):
                 max_sequence + 1,
                 task_data.get('endpoint', ''),
                 task_data.get('method', 'GET'),
-                params,
+                params_json,
                 task_data.get('schedule_type', 'daily'),
                 task_data.get('enabled', 1)
             ))
@@ -807,18 +856,35 @@ class EnhancedSchedulerDB(SchedulerDB):
             values = []
             
             for key, value in task_data.items():
-                if key in ['name', 'endpoint', 'method', 'enabled', 'schedule_type']:
+                if key in ['name', 'endpoint', 'method', 'schedule_type', 'enabled']:
                     fields.append(f"{key} = ?")
                     values.append(value)
                 elif key == 'params':
+                    # 如果是发送邮件任务，确保params包含必要的内容
+                    if 'endpoint' in task_data and task_data['endpoint'] == '/log/send-email':
+                        if not value:
+                            value = {
+                                "content": None,
+                                "mode": "simple",
+                                "subject": "B站历史记录日报 - {current_time}"
+                            }
+                            logger.info(f"为发送邮件子任务 '{task_id}' 自动添加默认参数")
                     fields.append("params = ?")
                     values.append(json.dumps(value))
                 elif key == 'tags':
-                    fields.append("tags = ?")
-                    values.append(json.dumps(value))
+                    # 更新子任务状态表中的标签
+                    try:
+                        cursor.execute("""
+                        UPDATE sub_task_status
+                        SET tags = ?
+                        WHERE task_id = ?
+                        """, (json.dumps(value), task_id))
+                    except Exception as e:
+                        logger.error(f"更新子任务标签失败: {str(e)}")
             
             # 添加最后修改时间
-            fields.append("last_modified = datetime('now', 'localtime')")
+            fields.append("last_modified = ?")
+            values.append(datetime.now().isoformat())
             
             # 更新依赖关系
             if 'depends_on' in task_data:
@@ -826,24 +892,32 @@ class EnhancedSchedulerDB(SchedulerDB):
                 cursor.execute("DELETE FROM task_dependencies WHERE task_id = ?", (task_id,))
                 
                 # 添加新依赖
-                if task_data['depends_on']:
-                    cursor.execute("""
-                    INSERT INTO task_dependencies (task_id, depends_on)
-                    VALUES (?, ?)
-                    """, (task_id, task_data['depends_on']))
+                if task_data['depends_on'] and isinstance(task_data['depends_on'], dict):
+                    depends_on_id = task_data['depends_on'].get('task_id')
+                    if depends_on_id:
+                        try:
+                            cursor.execute("""
+                            INSERT INTO task_dependencies (task_id, depends_on)
+                            VALUES (?, ?)
+                            """, (task_id, depends_on_id))
+                        except Exception as e:
+                            logger.error(f"更新依赖关系失败: {str(e)}")
             
-            # 构建并执行更新查询
+            # 添加任务ID
+            values.append(task_id)
+            
             if fields:
-                values.append(task_id)
-                query = f"UPDATE sub_tasks SET {', '.join(fields)} WHERE task_id = ?"
-                cursor.execute(query, values)
+                # 构建更新SQL
+                sql = f"UPDATE sub_tasks SET {', '.join(fields)} WHERE task_id = ?"
+                cursor.execute(sql, values)
                 
                 self.conn.commit()
                 logger.info(f"成功更新子任务 '{task_id}'")
                 return True
             else:
-                logger.warning(f"没有提供任何有效的更新字段")
+                logger.warning(f"没有提供有效的更新字段")
                 return False
+                
         except Exception as e:
             self.conn.rollback()
             logger.error(f"更新子任务失败: {str(e)}")
@@ -869,6 +943,9 @@ class EnhancedSchedulerDB(SchedulerDB):
             
             # 删除子任务状态
             cursor.execute("DELETE FROM sub_task_status WHERE task_id = ?", (task_id,))
+            
+            # 删除子任务执行历史记录
+            cursor.execute("DELETE FROM sub_task_executions WHERE task_id = ?", (task_id,))
             
             # 删除子任务
             cursor.execute("DELETE FROM sub_tasks WHERE task_id = ?", (task_id,))

@@ -4,9 +4,45 @@ from datetime import datetime, timedelta
 from email.header import Header
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from typing import Optional
+from typing import Optional, List
 
 from scripts.utils import load_config, get_logs_path
+
+
+def get_task_execution_logs() -> str:
+    """
+    获取任务执行期间的日志
+    
+    通过查找日志文件中的任务执行标记，提取出任务执行期间的日志内容
+    
+    Returns:
+        str: 任务执行期间的日志内容
+    """
+    log_file = get_logs_path()
+    if not os.path.exists(log_file):
+        return "今日暂无日志记录"
+    
+    with open(log_file, 'r', encoding='utf-8') as f:
+        log_lines = f.readlines()
+    
+    # 查找最近一次任务执行的开始和结束位置
+    start_index = -1
+    end_index = len(log_lines)
+    
+    # 从后向前查找最近的任务执行开始标记
+    for i in range(len(log_lines) - 1, -1, -1):
+        line = log_lines[i]
+        if "=== 执行任务链:" in line or "=== 执行任务:" in line:
+            start_index = i
+            break
+    
+    # 如果找不到任务执行标记，则返回空字符串
+    if start_index == -1:
+        return "未找到任务执行记录"
+    
+    # 提取任务执行期间的日志
+    task_logs = log_lines[start_index:end_index]
+    return "".join(task_logs)
 
 
 async def send_email(subject: str, content: Optional[str] = None, to_email: Optional[str] = None):
@@ -15,7 +51,7 @@ async def send_email(subject: str, content: Optional[str] = None, to_email: Opti
     
     Args:
         subject: 邮件主题
-        content: 邮件内容，如果为None则发送当天的日志内容
+        content: 邮件内容，如果为None则发送当天的任务执行日志
         to_email: 收件人邮箱，如果为None则使用配置文件中的默认收件人
     
     Returns:
@@ -32,14 +68,9 @@ async def send_email(subject: str, content: Optional[str] = None, to_email: Opti
         if not all([sender_email, sender_password, receiver_email]):
             raise ValueError("邮件配置不完整，请检查配置文件")
         
-        # 如果没有提供内容，则读取当天的日志文件
+        # 如果没有提供内容，则获取任务执行期间的日志
         if content is None:
-            log_file = get_logs_path()
-            if os.path.exists(log_file):
-                with open(log_file, 'r', encoding='utf-8') as f:
-                    content = f.read()
-            else:
-                content = "今日暂无日志记录"
+            content = get_task_execution_logs()
 
         # 格式化主题（替换时间占位符）
         current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
