@@ -62,7 +62,6 @@
                     <p class="font-medium">FFmpeg 未安装</p>
                   </div>
                   <div class="text-sm text-gray-600">
-                    <p>由于 B 站视频需要混流合并（将视频流和音频流合并为完整视频），因此需要 FFmpeg 的帮助。</p>
                     <p class="mt-1">
                       <a href="https://yutto.nyakku.moe/guide/quick-start#ffmpeg-%E4%B8%8B%E8%BD%BD%E4%B8%8E%E9%85%8D%E7%BD%AE"
                          target="_blank"

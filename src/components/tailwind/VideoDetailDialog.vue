@@ -178,8 +178,35 @@
               </div>
             </div>
             
-            <!-- 只有在系统资源足够时才显示以下内容 -->
-            <template v-else>
+            <!-- CUDA不可用提示 -->
+            <div v-if="!cudaAvailable && cudaSetupGuide && showCudaGuide" class="flex flex-col p-6 bg-yellow-50 text-yellow-800 rounded-lg">
+              <div class="flex items-center mb-4">
+                <svg class="w-8 h-8 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div>
+                  <h3 class="font-medium text-lg">CUDA 不可用</h3>
+                  <p class="text-sm">本地摘要功能可以使用，但速度会较慢。安装CUDA可以显著提升处理速度。</p>
+                </div>
+              </div>
+              
+              <div class="mt-2">
+                <h4 class="font-medium mb-2">CUDA 安装指南</h4>
+                <pre class="text-xs bg-gray-100 p-3 rounded-md overflow-auto max-h-60 whitespace-pre-wrap">{{ cudaSetupGuide }}</pre>
+              </div>
+              
+              <div class="mt-4 flex justify-end">
+                <button 
+                  @click="showCudaGuide = false" 
+                  class="px-4 py-2 bg-yellow-600 text-white rounded-md text-sm hover:bg-yellow-700 transition-colors"
+                >
+                  我已了解，继续使用
+                </button>
+              </div>
+            </div>
+            
+            <!-- 只有在系统资源足够且CUDA可用或用户已确认时才显示以下内容 -->
+            <template v-else-if="canRunSpeechToText && (!cudaAvailable ? !showCudaGuide : true)">
               <!-- 本地摘要显示部分 -->
               <div v-if="hasLocalSummary" class="bg-white rounded-lg border border-gray-200 p-4">
                 <div class="flex items-center justify-between mb-4">
@@ -933,14 +960,21 @@ watch(currentTab, async (newTab) => {
     // 首先检查环境
     isCheckingEnvironment.value = true;
     canRunSpeechToText.value = false;
+    cudaSetupGuide.value = '';
     
     try {
+      // 1. 检查系统资源
       const resourceResponse = await checkSystemResources();
       canRunSpeechToText.value = resourceResponse.data.can_run_speech_to_text;
       systemLimitationReason.value = resourceResponse.data.limitation_reason;
       
-      // 只有在系统资源足够时才加载其他内容
+      // 2. 如果系统资源足够，再检查CUDA
       if (canRunSpeechToText.value) {
+        const cudaResponse = await checkAudioToTextEnvironment();
+        cudaAvailable.value = cudaResponse.data.system_info.cuda_available;
+        cudaSetupGuide.value = cudaResponse.data.system_info.cuda_setup_guide || '';
+        
+        // 只有在系统资源足够时才加载其他内容
         fetchWhisperModels();
         await checkAudioFile();
         await checkExistingStt();
@@ -1087,6 +1121,9 @@ const environmentCheck = ref(null)
 const isCheckingEnvironment = ref(true)
 const canRunSpeechToText = ref(false)
 const systemLimitationReason = ref('')
+const cudaAvailable = ref(false)
+const cudaSetupGuide = ref('')
+const showCudaGuide = ref(true)  // 默认显示CUDA安装指南
 
 // 处理环境检查结果
 const handleEnvironmentCheck = (result) => {

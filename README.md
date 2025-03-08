@@ -255,6 +255,44 @@
 
 #### 6.12 标题分析（TitleAnalysisPage）
 
+### 7. 本地摘要功能
+
+本地摘要功能允许用户在本地生成视频内容摘要，无需依赖B站官方AI摘要：
+
+#### 7.1 系统要求
+- **硬件要求**：
+  - 至少4GB可用内存
+  - 足够的磁盘空间用于存储模型和音频文件
+  - 推荐使用支持CUDA的NVIDIA显卡（可加速处理）
+
+#### 7.2 主要功能
+- **音频转文字**：
+  - 支持多种Whisper模型（tiny、base、small、medium、large）
+  - 自动下载并管理模型文件
+  - 支持中文和英文语音识别
+  - 智能语言检测
+
+- **AI摘要生成**：
+  - 基于转录文本生成视频内容摘要
+  - 支持DeepSeek API和其他AI模型
+  - 显示Token使用统计
+  - 自动缓存结果，避免重复处理
+
+#### 7.3 使用流程
+1. 下载视频音频文件
+2. 选择合适的语音识别模型
+3. 执行音频转文字操作
+4. 生成视频内容摘要
+5. 查看带有时间戳的摘要内容
+
+#### 7.4 特色功能
+- **时间戳跳转**：点击摘要中的时间戳可直接跳转到B站对应时间点
+- **资源监控**：自动检测系统资源是否满足运行要求
+- **模型管理**：支持下载、删除和切换不同大小的模型
+- **DeepSeek集成**：显示API余额，支持一键刷新
+
+> **注意**：如果系统资源不足，本地摘要功能将无法使用，系统会给出明确提示。
+
 ## 技术栈
 
 - **前端框架**：Vue 3
@@ -340,6 +378,8 @@ BilibiliHistoryFrontend/
 
 - [bilibili-API-collect](https://github.com/SocialSisterYi/bilibili-API-collect) - 没有它就没有这个项目
 - [Yutto](https://yutto.nyakku.moe/) - 可爱的B站视频下载工具
+- [FasterWhisper](https://github.com/SYSTRAN/faster-whisper) - 音频转文字
+- [DeepSeek](https://github.com/deepseek-ai/DeepSeek-R1) - DeepSeek AI API
 - 所有贡献者
 
 ## Star History
