@@ -389,6 +389,21 @@
                   </p>
                 </div>
                 
+                <!-- 长视频警告 -->
+                <div v-if="video && video.duration > 1800" class="mb-4 p-3 bg-yellow-50 border border-yellow-100 rounded-lg">
+                  <div class="flex items-start">
+                    <svg class="w-5 h-5 text-yellow-600 mt-0.5 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <div>
+                      <p class="text-sm font-medium text-yellow-800">长视频警告</p>
+                      <p class="text-sm text-yellow-700 mt-1">
+                        该视频时长超过30分钟，音频转文字后可能产生大量文本。这可能导致上下文过长，使AI无法接受请求。请谨慎操作
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                
                 <!-- 语言选择 -->
                 <div class="mb-4">
                   <label class="block text-sm font-medium text-gray-700 mb-2">选择语言</label>
@@ -1012,6 +1027,19 @@ const startTranscription = async () => {
     }
   }
 
+  // 检查视频时长，如果超过30分钟，显示额外确认
+  if (props.video && props.video.duration > 1800) {
+    const result = await showDialog({
+      title: '长视频警告',
+      message: '该视频时长超过30分钟，转录后可能产生大量文本，导致AI无法处理。是否继续？',
+      showCancelButton: true
+    })
+    
+    if (!result) {
+      return
+    }
+  }
+
   if (hasExistingStt.value) {
     const result = await showDialog({
       title: '提示',
@@ -1083,6 +1111,19 @@ const handleTranscriptionComplete = async (response) => {
 // 添加生成摘要的函数
 const startGeneratingSummary = async () => {
   try {
+    // 检查视频时长，如果超过30分钟，显示额外确认
+    if (props.video && props.video.duration > 1800) {
+      const result = await showDialog({
+        title: '长视频警告',
+        message: '该视频时长超过30分钟，转录文本可能过长，导致AI无法处理摘要请求。是否继续？',
+        showCancelButton: true
+      })
+      
+      if (!result) {
+        return
+      }
+    }
+    
     isSummarizing.value = true
     summaryStatus.value = '正在生成摘要...'
     

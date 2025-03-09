@@ -108,7 +108,7 @@
                 v-model="form.schedule_type" 
                 class="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#fb7299] focus:ring-[#fb7299] text-xs py-1 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
                 required
-                :disabled="props.parentTaskId"
+                :disabled="props.parentTaskId || props.isEditing"
               >
                 <option v-if="!props.parentTaskId" value="daily">每日</option>
                 <option value="chain">链式</option>
@@ -155,11 +155,11 @@
               <button 
                 type="button"
                 @click="showDependencySelector = true"
-                :disabled="props.parentTaskId"
+                :disabled="props.parentTaskId || props.isEditing"
                 class="block w-full text-left rounded-md border border-gray-300 shadow-sm focus:border-[#fb7299] focus:ring-[#fb7299] text-xs py-1.5 px-2 min-h-[2rem] disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
               >
                 <div v-if="form.depends_on.length === 0" class="text-gray-500">
-                  {{ props.parentTaskId ? '子任务依赖关系由系统自动设置' : '选择依赖任务' }}
+                  {{ props.parentTaskId ? '子任务依赖关系由系统自动设置' : (props.isEditing ? '编辑时不可修改依赖任务' : '选择依赖任务') }}
                 </div>
                 <div v-else class="flex flex-wrap gap-1">
                   <div 
@@ -172,7 +172,7 @@
                       type="button"
                       @click.stop="removeTask(taskId)" 
                       class="ml-1 hover:text-[#fb7299]/70"
-                      v-if="!props.parentTaskId"
+                      v-if="!props.parentTaskId && !props.isEditing"
                     >
                       <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -648,14 +648,25 @@ const submitForm = async () => {
       endpoint: form.endpoint,
       method: form.method,
       params: form.params,
-      schedule_type: form.schedule_type,
-      schedule_time: form.schedule_type === 'daily' ? form.schedule_time : undefined,
-      schedule_delay: form.schedule_type === 'once' ? form.schedule_delay : undefined,
-      depends_on: form.depends_on.length > 0 ? {
-        task_id: form.depends_on[0],
-        name: getTaskName(form.depends_on[0])
-      } : undefined,
       enabled: form.enabled
+    }
+
+    // 只有在创建新任务时才设置调度类型和依赖任务
+    if (!props.isEditing) {
+      taskData.schedule_type = form.schedule_type
+      
+      if (form.schedule_type === 'daily') {
+        taskData.schedule_time = form.schedule_time
+      } else if (form.schedule_type === 'once') {
+        taskData.schedule_delay = form.schedule_delay
+      }
+      
+      if (form.depends_on.length > 0) {
+        taskData.depends_on = {
+          task_id: form.depends_on[0],
+          name: getTaskName(form.depends_on[0])
+        }
+      }
     }
 
     let response
