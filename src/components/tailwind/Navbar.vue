@@ -161,47 +161,22 @@
           </div>
         </div>
 
-        <!-- 筛选栏位 -->
-        <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md dark:border-gray-700">
-          <div class="mx-auto max-w-4xl">
-            <div class="p-2 grid grid-cols-3 gap-4 text-lg text-gray-700 dark:text-gray-300 lm:text-sm">
-              <!-- 日期区间 -->
-              <div class="flex items-center justify-start space-x-1 cursor-pointer hover:text-[#fb7299] transition-colors duration-200" @click="$emit('click-date')">
-                <span>日期区间:</span>
-                <span class="text-xs text-[#FF6699]">{{ date || '全部' }}</span>
-                <button
-                  v-if="date"
-                  @click.stop="clearDate"
-                  class="text-gray-400 hover:text-[#fb7299] transition-colors duration-200"
-                >
-                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-
-              <!-- 视频分区 -->
-              <div class="flex items-center justify-center space-x-1 cursor-pointer hover:text-[#fb7299] transition-colors duration-200" @click="$emit('click-category')">
-                <span>视频分区:</span>
-                <span class="text-xs text-[#FF6699]">{{ category || '全部' }}</span>
-                <button
-                  v-if="category"
-                  @click.stop="clearCategory"
-                  class="text-gray-400 hover:text-[#fb7299] transition-colors duration-200"
-                >
-                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-
-              <!-- 总计视频数量显示 -->
-              <div class="flex items-center justify-end space-x-1 text-lg text-gray-700 dark:text-gray-300 lm:text-sm">
-                <span>总视频数:</span>
-                <span class="text-xs text-[#FF6699]">{{ total }}</span>
-              </div>
-            </div>
-          </div>
+        <!-- 筛选区域 -->
+        <div class="mx-auto max-w-4xl px-2">
+          <FilterDropdown
+            :business="business"
+            :businessLabel="businessLabel"
+            :date="date"
+            :category="category"
+            :total="total"
+            @update:business="$emit('update:business', $event)"
+            @update:businessLabel="$emit('update:businessLabel', $event)"
+            @update:date="$emit('update:date', $event)"
+            @update:category="$emit('update:category', $event)"
+            @click-date="$emit('click-date')"
+            @click-category="$emit('click-category')"
+            @refresh-data="$emit('refresh-data')"
+          />
         </div>
       </div>
     </nav>
@@ -210,6 +185,7 @@
 
 <script setup>
 import SearchBar from './SearchBar.vue'
+import FilterDropdown from './FilterDropdown.vue'
 import { ref } from 'vue'
 import { updateBiliHistoryRealtime } from '../../api/api'
 import { showNotify } from 'vant'
@@ -238,15 +214,26 @@ const props = defineProps({
   isBatchMode: {
     type: Boolean,
     default: false
+  },
+  businessLabel: {
+    type: String,
+    default: ''
+  },
+  business: {
+    type: String,
+    default: ''
   }
 })
 
 const emit = defineEmits([
   'click-date',
   'click-category',
+  'click-business',
   'change-layout',
   'update:date',
   'update:category',
+  'update:business',
+  'update:businessLabel',
   'refresh-data',
   'toggle-batch-mode'
 ])
@@ -264,6 +251,14 @@ const clearDate = (event) => {
 const clearCategory = (event) => {
   event.stopPropagation()
   emit('update:category', '')
+  emit('refresh-data')
+}
+
+// 清除条目类型筛选
+const clearBusiness = (event) => {
+  event.stopPropagation()
+  emit('update:business', '')
+  emit('update:businessLabel', '')
   emit('refresh-data')
 }
 

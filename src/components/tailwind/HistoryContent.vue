@@ -236,13 +236,6 @@
       @update:show="(val) => emit('update:show', val)"
     />
 
-    <!-- 分类选择 -->
-    <VideoCategories
-      :showBottom="showBottom"
-      @update:showBottom="(val) => emit('update:showBottom', val)"
-      @selectSubCategory="onSubCategorySelected"
-    />
-
     <!-- 批量删除按钮 -->
     <div v-if="isBatchMode && selectedRecords.size > 0"
          class="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50">
@@ -297,7 +290,6 @@ import {
 import { showNotify, showDialog } from 'vant'
 import 'vant/es/dialog/style'
 import VideoRecord from './VideoRecord.vue'
-import VideoCategories from './VideoCategories.vue'
 import { usePrivacyStore } from '../../store/privacy'
 import VideoDetailDialog from './VideoDetailDialog.vue'
 
@@ -306,19 +298,19 @@ const { isPrivacyMode } = usePrivacyStore()
 const props = defineProps({
   selectedYear: {
     type: Number,
-    required: true,
+    default: new Date().getFullYear()
   },
   page: {
     type: Number,
-    required: true,
+    default: 1
   },
   show: {
     type: Boolean,
-    required: true,
+    default: false
   },
   showBottom: {
     type: Boolean,
-    required: true,
+    default: false
   },
   layout: {
     type: String,
@@ -333,6 +325,10 @@ const props = defineProps({
     default: ''
   },
   category: {
+    type: String,
+    default: ''
+  },
+  business: {
     type: String,
     default: ''
   },
@@ -482,6 +478,15 @@ const onSubCategorySelected = ({ name, type }) => {
     mainCategory.value = ''
   }
 
+  console.log('onSubCategorySelected - 选择分区:', {
+    name,
+    type,
+    categoryText,
+    isMainName,
+    mainCategory: mainCategory.value,
+    tagName: tagName.value
+  })
+
   emit('update:category', categoryText)
   fetchHistoryByDateRange()
 }
@@ -525,8 +530,10 @@ const fetchHistoryByDateRange = async () => {
     sortOrder: sortOrder.value,
     tagName: tagName.value,
     mainCategory: mainCategory.value,
+    category: props.category,
     dateRange: dateRange.value,
-    useLocalImages: localStorage.getItem('useLocalImages') === 'true'
+    useLocalImages: localStorage.getItem('useLocalImages') === 'true',
+    business: props.business
   })
 
   try {
@@ -538,7 +545,8 @@ const fetchHistoryByDateRange = async () => {
       tagName.value,
       mainCategory.value,
       dateRange.value || '',
-      localStorage.getItem('useLocalImages') === 'true'
+      localStorage.getItem('useLocalImages') === 'true',
+      props.business
     )
 
     console.log('API 响应:', response.data)
@@ -587,6 +595,21 @@ watch(
     if (!newDate) {
       dateRange.value = ''
       fetchHistoryByDateRange()
+    } else {
+      // 解析日期区间格式 "YYYY/MM/DD 至 YYYY/MM/DD"
+      const dates = newDate.split(' 至 ')
+      if (dates.length === 2) {
+        const startParts = dates[0].split('/')
+        const endParts = dates[1].split('/')
+        
+        if (startParts.length === 3 && endParts.length === 3) {
+          const startDate = `${startParts[0]}${startParts[1].padStart(2, '0')}${startParts[2].padStart(2, '0')}`
+          const endDate = `${endParts[0]}${endParts[1].padStart(2, '0')}${endParts[2].padStart(2, '0')}`
+          dateRange.value = `${startDate}-${endDate}`
+          console.log('设置日期区间参数:', dateRange.value)
+          fetchHistoryByDateRange()
+        }
+      }
     }
   }
 )
@@ -599,8 +622,23 @@ watch(
     if (!newCategory) {
       tagName.value = ''
       mainCategory.value = ''
-      fetchHistoryByDateRange()
+    } else {
+      // 根据分区名称判断是主分区还是子分区
+      // 由于我们无法确定是主分区还是子分区，所以统一赋值给mainCategory
+      mainCategory.value = newCategory
+      tagName.value = ''
     }
+    // 这里会触发数据获取
+    fetchHistoryByDateRange()
+  }
+)
+
+// 监听父组件的 business 变化
+watch(
+  () => props.business,
+  (newBusiness) => {
+    console.log('HistoryContent - business prop 变化:', newBusiness)
+    fetchHistoryByDateRange()
   }
 )
 

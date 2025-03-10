@@ -7,9 +7,10 @@
       @refresh-data="refreshData"
       v-model:date="date"
       v-model:category="category"
+      v-model:business="business"
+      v-model:businessLabel="businessLabel"
       :total="total"
       @click-date="show = true"
-      @click-category="showBottom = true"
       :layout="layout"
       @change-layout="layout = $event"
       :is-batch-mode="isBatchMode"
@@ -37,6 +38,7 @@
             :layout="layout"
             :date="date"
             :category="category"
+            :business="business"
             :is-batch-mode="isBatchMode"
           />
 
@@ -92,6 +94,8 @@ const category = ref('')
 const layout = ref('list')
 const isBatchMode = ref(false)
 const showRemarks = ref(false)
+const business = ref('')
+const businessLabel = ref('')
 
 // 组件引用
 const historyContentRef = ref(null)
@@ -101,6 +105,7 @@ const refreshData = async () => {
   console.log('History - refreshData 被调用')
   console.log('当前日期:', date.value)
   console.log('当前分区:', category.value)
+  console.log('当前业务类型:', business.value)
   try {
     if (historyContentRef.value && typeof historyContentRef.value.fetchHistoryByDateRange === 'function') {
       await historyContentRef.value.fetchHistoryByDateRange()
@@ -177,7 +182,6 @@ watch(
   },
   { immediate: true }
 )
-
 </script>
 
 <style scoped>
