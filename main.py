@@ -293,10 +293,49 @@ if __name__ == "__main__":
     config = load_config()
     server_config = config.get('server', {})
     
-    uvicorn.run(
-        "main:app",
-        host=server_config.get('host', "127.0.0.1"),
-        port=server_config.get('port', 8000),
-        log_level="info",
-        reload=False  # 禁用热重载以避免多个调度器实例
-    )
+    # 检查是否启用SSL
+    ssl_enabled = server_config.get('ssl_enabled', False)
+    ssl_certfile = server_config.get('ssl_certfile', None)
+    ssl_keyfile = server_config.get('ssl_keyfile', None)
+    
+    # 使用SSL证书启动应用（如果启用）
+    if ssl_enabled and ssl_certfile and ssl_keyfile:
+        print(f"使用HTTPS启动服务，端口: {server_config.get('port', 8899)}")
+        print(f"SSL证书路径: {ssl_certfile}")
+        print(f"SSL密钥路径: {ssl_keyfile}")
+        try:
+            # 检查证书文件是否存在
+            if not os.path.exists(ssl_certfile):
+                print(f"错误: SSL证书文件不存在: {ssl_certfile}")
+                sys.exit(1)
+            
+            if not os.path.exists(ssl_keyfile):
+                print(f"错误: SSL密钥文件不存在: {ssl_keyfile}")
+                sys.exit(1)
+            
+            # 检查文件权限
+            print(f"证书文件权限: {oct(os.stat(ssl_certfile).st_mode)[-3:]}")
+            print(f"密钥文件权限: {oct(os.stat(ssl_keyfile).st_mode)[-3:]}")
+            
+            uvicorn.run(
+                "main:app",
+                host=server_config.get('host', "127.0.0.1"),
+                port=server_config.get('port', 8899),
+                log_level="debug",  # 修改为debug级别
+                reload=False,  # 禁用热重载以避免多个调度器实例
+                ssl_certfile=ssl_certfile,
+                ssl_keyfile=ssl_keyfile
+            )
+        except Exception as e:
+            print(f"启动服务时出错: {e}")
+            import traceback
+            traceback.print_exc()
+    else:
+        print(f"使用HTTP启动服务，端口: {server_config.get('port', 8899)}")
+        uvicorn.run(
+            "main:app",
+            host=server_config.get('host', "127.0.0.1"),
+            port=server_config.get('port', 8899),
+            log_level="info",
+            reload=False  # 禁用热重载以避免多个调度器实例
+        )

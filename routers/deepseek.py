@@ -102,6 +102,7 @@ deepseek_config = config.get('deepseek', {})
 API_KEY = os.environ.get("DEEPSEEK_API_KEY", deepseek_config.get('api_key', ''))
 API_BASE = deepseek_config.get('api_base', 'https://api.deepseek.com/v1')
 DEFAULT_MODEL = deepseek_config.get('default_model', 'deepseek-chat')
+SSL_VERIFY = deepseek_config.get('ssl_verify', False)  # 默认关闭SSL验证
 
 # 辅助函数，用于记录API调用日志
 async def log_api_call(model: str, prompt_tokens: int, completion_tokens: int):
@@ -276,7 +277,7 @@ async def chat_completion(
     
     try:
         # 发送请求
-        response = requests.post(url, headers=headers, json=data)
+        response = requests.post(url, headers=headers, json=data, verify=SSL_VERIFY)
         response.raise_for_status()  # 抛出HTTP错误，如果有的话
         
         # 获取响应
@@ -364,7 +365,7 @@ async def stream_completion(request: ChatRequest):
         # 创建一个异步生成器函数处理流式响应
         async def generate():
             # 使用同步请求获取流式响应
-            with requests.post(url, headers=headers, json=data, stream=True) as response:
+            with requests.post(url, headers=headers, json=data, stream=True, verify=SSL_VERIFY) as response:
                 response.raise_for_status()  # 抛出HTTP错误，如果有的话
                 
                 # 返回SSE格式的流式响应
@@ -410,7 +411,7 @@ async def list_models():
             
         api_base = config.get('deepseek', {}).get('api_base', 'https://api.deepseek.com/v1')
         
-        async with aiohttp.ClientSession() as session:
+        async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=SSL_VERIFY)) as session:
             async with session.get(
                 f"{api_base}/models",
                 headers={
@@ -467,7 +468,7 @@ async def get_user_balance():
         # 构造余额查询URL
         balance_url = f"{api_base}/user/balance"
         
-        async with aiohttp.ClientSession() as session:
+        async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=SSL_VERIFY)) as session:
             async with session.get(
                 balance_url,
                 headers={
@@ -530,7 +531,7 @@ async def check_api_key():
         api_base = config.get('deepseek', {}).get('api_base', 'https://api.deepseek.com/v1')
         test_url = f"{api_base}/models"  # 使用模型列表API来测试
         
-        async with aiohttp.ClientSession() as session:
+        async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=SSL_VERIFY)) as session:
             async with session.get(
                 test_url,
                 headers={
@@ -591,7 +592,7 @@ async def set_api_key(request: ApiKeyRequest):
         api_base = config.get('deepseek', {}).get('api_base', 'https://api.deepseek.com/v1')
         test_url = f"{api_base}/models"  # 使用模型列表API来测试
         
-        async with aiohttp.ClientSession() as session:
+        async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=SSL_VERIFY)) as session:
             async with session.get(
                 test_url,
                 headers={
