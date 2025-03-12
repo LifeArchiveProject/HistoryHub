@@ -272,7 +272,7 @@ export const updateSummaryConfig = (config) => {
 
 // 批量删除历史记录
 export const batchDeleteHistory = (items) => {
-  return instance.delete('/history/batch-delete', {
+  return instance.delete('/delete/batch-delete', {
     data: items  // 直接发送数组，不要包装在 items 对象中
   })
 }
@@ -399,11 +399,6 @@ export const downloadVideo = async (bvid, sessdata = null, onMessage, downloadCo
   }
 }
 
-// 获取下载进度事件流 URL
-export const getDownloadProgressUrl = (bvid) => {
-  return `${BASE_URL}/download/download_video/stream?bvid=${bvid}`
-}
-
 // 检查 FFmpeg 安装状态
 export const checkFFmpeg = () => {
   return instance.get('/download/check_ffmpeg')
@@ -487,10 +482,6 @@ export const deleteSubTask = (taskId, subTaskId) => {
 
 export const updateSubTaskSequence = (taskId, subTaskId, sequence) => {
   return instance.put(`/scheduler/tasks/${taskId}/subtasks/${subTaskId}/sequence`, { sequence })
-}
-
-export const setSubTaskEnabled = (taskId, subTaskId, enabled) => {
-  return instance.post(`/scheduler/tasks/${taskId}/subtasks/${subTaskId}/enable`, { enabled })
 }
 
 // 获取任务历史记录
