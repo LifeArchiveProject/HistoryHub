@@ -1,8 +1,12 @@
 <template>
   <!-- 每条记录的容器 -->
   <div
-    class="mx-auto max-w-2xl cursor-pointer border-b border-gray-200 transition-all duration-200 ease-in-out hover:scale-[1.01] hover:border-[#FF6699] hover:bg-[#f5f5f5] hover:shadow-md sm:px-4 lg:max-w-4xl lg:px-0 relative"
-    :class="{ 'group': !showDownloadDialog }"
+    class="mx-auto max-w-2xl cursor-pointer border-b border-gray-200 transition-all duration-200 ease-in-out sm:px-4 lg:max-w-4xl lg:px-0 relative"
+    :class="{
+      'group': !showDownloadDialog,
+      'border-[#fb7299] bg-[#fff9fb] ring-1 ring-[#fb7299]/20': isBatchMode && isSelected,
+      'hover:border-[#fb7299] hover:bg-[#f5f5f5] hover:shadow-md': !isBatchMode || !isSelected
+    }"
     @click="handleClick"
   >
     <!-- 内层容器 -->
@@ -21,32 +25,34 @@
         <div class="relative h-28 w-full overflow-hidden rounded-lg">
           <!-- 删除按钮 -->
           <div v-if="!isBatchMode"
-               class="absolute right-2 top-2 z-20 hidden group-hover:flex items-center space-x-2">
-            <!-- 下载按钮 - 只对视频类型显示 -->
-            <div v-if="record.business === 'archive'"
-                 class="flex items-center justify-center w-8 h-8 bg-black/50 hover:bg-[#fb7299] rounded-full cursor-pointer transition-all duration-200"
-                 @click.stop.prevent="handleDownload"
-                 title="下载视频">
-              <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-              </svg>
-            </div>
-            <!-- 删除按钮 -->
-            <div class="flex items-center justify-center w-8 h-8 bg-black/50 hover:bg-[#fb7299] rounded-full cursor-pointer transition-all duration-200"
-                 @click.stop="handleDelete"
-                 title="删除记录">
-              <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-              </svg>
-            </div>
-            <!-- 详情按钮 - 只对视频类型显示 -->
-            <div v-if="record.business === 'archive'"
-                 class="flex items-center justify-center w-8 h-8 bg-black/50 hover:bg-[#fb7299] rounded-full cursor-pointer transition-all duration-200"
-                 @click.stop="showDetailDialog = true"
-                 title="查看详情">
-              <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
+               class="absolute right-0 top-0 z-20 hidden group-hover:flex flex-row items-center justify-end pt-1 pr-1">
+            <div class="flex items-center space-x-2">
+              <!-- 下载按钮 - 只对视频类型显示 -->
+              <div v-if="record.business === 'archive'"
+                   class="flex items-center justify-center w-7 h-7 bg-[#7d7c75]/60 backdrop-blur-sm hover:bg-[#7d7c75]/80 rounded-md cursor-pointer transition-all duration-200"
+                   @click.stop.prevent="handleDownload"
+                   title="下载视频">
+                <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+              </div>
+              <!-- 删除按钮 -->
+              <div class="flex items-center justify-center w-7 h-7 bg-[#7d7c75]/60 backdrop-blur-sm hover:bg-[#7d7c75]/80 rounded-md cursor-pointer transition-all duration-200"
+                   @click.stop="handleDelete"
+                   title="删除记录">
+                <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </div>
+              <!-- 详情按钮 - 只对视频类型显示 -->
+              <div v-if="record.business === 'archive'"
+                   class="flex items-center justify-center w-7 h-7 bg-[#7d7c75]/60 backdrop-blur-sm hover:bg-[#7d7c75]/80 rounded-md cursor-pointer transition-all duration-200"
+                   @click.stop="showDetailDialog = true"
+                   title="查看详情">
+                <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
             </div>
           </div>
           <!-- 多选框 -->
@@ -191,32 +197,34 @@
         <div class="ml-2 flex flex-1 flex-col justify-between lm:text-sm lg:font-semibold relative">
           <!-- 删除按钮 -->
           <div v-if="!isBatchMode"
-               class="absolute right-2 top-2 z-20 hidden group-hover:flex items-center space-x-2">
-            <!-- 下载按钮 - 只对视频类型显示 -->
-            <div v-if="record.business === 'archive'"
-                 class="flex items-center justify-center w-8 h-8 bg-black/50 hover:bg-[#fb7299] rounded-full cursor-pointer transition-all duration-200"
-                 @click.stop.prevent="handleDownload"
-                 title="下载视频">
-              <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-              </svg>
-            </div>
-            <!-- 删除按钮 -->
-            <div class="flex items-center justify-center w-8 h-8 bg-black/50 hover:bg-[#fb7299] rounded-full cursor-pointer transition-all duration-200"
-                 @click.stop="handleDelete"
-                 title="删除记录">
-              <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-              </svg>
-            </div>
-            <!-- 详情按钮 - 只对视频类型显示 -->
-            <div v-if="record.business === 'archive'"
-                 class="flex items-center justify-center w-8 h-8 bg-black/50 hover:bg-[#fb7299] rounded-full cursor-pointer transition-all duration-200"
-                 @click.stop="showDetailDialog = true"
-                 title="查看详情">
-              <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
+               class="absolute right-0 top-0 z-20 hidden group-hover:flex flex-row items-center justify-end pt-1 pr-1">
+            <div class="flex items-center space-x-2">
+              <!-- 下载按钮 - 只对视频类型显示 -->
+              <div v-if="record.business === 'archive'"
+                   class="flex items-center justify-center w-7 h-7 bg-[#7d7c75]/60 backdrop-blur-sm hover:bg-[#7d7c75]/80 rounded-md cursor-pointer transition-all duration-200"
+                   @click.stop.prevent="handleDownload"
+                   title="下载视频">
+                <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+              </div>
+              <!-- 删除按钮 -->
+              <div class="flex items-center justify-center w-7 h-7 bg-[#7d7c75]/60 backdrop-blur-sm hover:bg-[#7d7c75]/80 rounded-md cursor-pointer transition-all duration-200"
+                   @click.stop="handleDelete"
+                   title="删除记录">
+                <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </div>
+              <!-- 详情按钮 - 只对视频类型显示 -->
+              <div v-if="record.business === 'archive'"
+                   class="flex items-center justify-center w-7 h-7 bg-[#7d7c75]/60 backdrop-blur-sm hover:bg-[#7d7c75]/80 rounded-md cursor-pointer transition-all duration-200"
+                   @click.stop="showDetailDialog = true"
+                   title="查看详情">
+                <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
             </div>
           </div>
           <div class="items-center justify-between lg:flex">
@@ -643,6 +651,7 @@ const handleDownload = () => {
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 1;
+  line-clamp: 1;
   overflow: hidden;
   text-overflow: ellipsis;
 }

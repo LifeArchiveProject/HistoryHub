@@ -16,7 +16,7 @@
         </div>
 
         <!-- 备注列表 -->
-        <div class="grid grid-cols-1 gap-6">
+        <div v-if="remarkRecords.length > 0" class="grid grid-cols-1 gap-6">
           <div v-for="record in remarkRecords"
                :key="record.bvid + record.view_at"
                class="bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300">
@@ -98,8 +98,25 @@
           </div>
         </div>
 
+        <!-- 空状态显示 -->
+        <div v-else class="flex flex-col items-center justify-center py-16 bg-white rounded-lg">
+          <svg class="w-20 h-20 text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+          </svg>
+          <h3 class="text-xl font-medium text-gray-600 mb-2">暂无备注</h3>
+          <p class="text-gray-500 mb-6">当你添加备注后，将在这里显示</p>
+          <button 
+            class="px-4 py-2 bg-[#fb7299] text-white rounded-md hover:bg-[#fb7299]/90 transition-colors duration-200 flex items-center space-x-2"
+            @click="$router.push('/')">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+            <span>返回视频列表</span>
+          </button>
+        </div>
+
         <!-- 分页组件 -->
-        <div class="mt-8">
+        <div v-if="remarkRecords.length > 0" class="mt-8">
           <Pagination
             :current-page="page"
             :total-pages="totalPages"

@@ -1,10 +1,10 @@
 <template>
-  <div>
+  <div class="transition-all duration-300 ease-in-out">
     <!-- 年度总结横幅 -->
     <div class="mt-1 mb-3 sm:hidden">
       <router-link
         to="/analytics"
-        class="flex h-10 items-center justify-between px-2 bg-gradient-to-r from-[#FF6699] to-[#FF9966] text-white"
+        class="flex h-10 items-center justify-between px-2 bg-gradient-to-r from-[#fb7299] to-[#FF9966] text-white"
       >
         <div class="flex items-center space-x-2">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -19,209 +19,260 @@
       </router-link>
     </div>
 
+    <!-- 加载状态 -->
+    <div v-if="isLoading" class="flex flex-col items-center justify-center py-16 bg-white rounded-lg">
+      <div class="w-16 h-16 border-4 border-[#fb7299] border-t-transparent rounded-full animate-spin mb-4"></div>
+      <h3 class="text-xl font-medium text-gray-600 mb-2">加载中</h3>
+      <p class="text-gray-500">正在获取历史记录数据...</p>
+    </div>
+    
+    <!-- 登录状态空状态 -->
+    <div v-else-if="!isLoggedIn" class="flex flex-col items-center justify-center py-16 bg-white rounded-lg shadow-sm">
+      <svg class="w-24 h-24 text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+      </svg>
+      <h3 class="text-xl font-medium text-gray-600 mb-2">请先登录</h3>
+      <p class="text-gray-500 mb-6">登录B站账号后才能查看您的历史记录</p>
+      <button 
+        class="px-4 py-2 bg-[#fb7299] text-white rounded-md hover:bg-[#fb7299]/90 transition-colors duration-200 flex items-center space-x-2"
+        @click="openLoginDialog">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+        </svg>
+        <span>点击登录</span>
+      </button>
+    </div>
+
+    <!-- 数据为空状态 -->
+    <div v-else-if="isLoggedIn && records.length === 0" class="flex flex-col items-center justify-center py-16 bg-white rounded-lg">
+      <svg class="w-24 h-24 text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <h3 class="text-xl font-medium text-gray-600 mb-2">暂无历史记录</h3>
+      <p class="text-gray-500 mb-6">点击下方按钮从B站获取您的历史记录</p>
+      <button 
+        class="px-4 py-2 bg-[#fb7299] text-white rounded-md hover:bg-[#fb7299]/90 transition-colors duration-200 flex items-center space-x-2"
+        @click="refreshData">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        </svg>
+        <span>获取历史记录</span>
+      </button>
+    </div>
+
     <!-- 视频记录列表 -->
-    <div>
-      <!-- 网格布局（仅PC端） -->
-      <div v-if="layout === 'grid'" class="hidden sm:grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 px-4">
-        <template v-for="(record, index) in records" :key="`grid-${record.id}-${record.view_at}`">
-          <!-- 日期分割线和视频数量 -->
-          <div v-if="shouldShowDivider(index)" class="col-span-full relative py-1">
-            <div class="px-2">
-              <div class="relative">
-                <div class="absolute inset-0 flex items-center" aria-hidden="true">
-                  <div class="w-full border-t border-gray-300" />
-                </div>
-                <div class="relative flex items-center justify-between">
-                  <div class="bg-white dark:bg-gray-800 pr-3 flex items-center space-x-2">
-                    <!-- 添加当天记录的勾选框 -->
-                    <div v-if="isBatchMode"
-                         class="flex items-center justify-center cursor-pointer"
-                         @click.stop="toggleDaySelection(record.view_at)">
-                      <div class="w-5 h-5 rounded border-2 flex items-center justify-center"
-                           :class="isDaySelected(record.view_at) ? 'bg-[#fb7299] border-[#fb7299]' : 'border-gray-300 bg-white'">
-                        <svg v-if="isDaySelected(record.view_at)" class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
-                        </svg>
+    <div v-else class="overflow-hidden">
+      <transition name="float" mode="out-in">
+        <!-- 网格布局（仅PC端） -->
+        <div v-if="layout === 'grid'" class="hidden sm:grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 px-4 mx-auto transition-all duration-300 ease-in-out transform-gpu" style="max-width: 1152px;" key="grid-layout">
+          <template v-for="(record, index) in records" :key="`grid-${record.id}-${record.view_at}`">
+            <!-- 日期分割线和视频数量 -->
+            <div v-if="shouldShowDivider(index)" class="col-span-full relative py-1">
+              <div>
+                <div class="relative">
+                  <div class="absolute inset-0 flex items-center" aria-hidden="true">
+                    <div class="w-full border-t border-gray-300" />
+                  </div>
+                  <div class="relative flex items-center justify-between">
+                    <div class="bg-white dark:bg-gray-800 pr-3 flex items-center space-x-2">
+                      <!-- 添加当天记录的勾选框 -->
+                      <div v-if="isBatchMode"
+                           class="flex items-center justify-center cursor-pointer"
+                           @click.stop="toggleDaySelection(record.view_at)">
+                        <div class="w-5 h-5 rounded border-2 flex items-center justify-center"
+                             :class="isDaySelected(record.view_at) ? 'bg-[#fb7299] border-[#fb7299]' : 'border-gray-300 bg-white'">
+                          <svg v-if="isDaySelected(record.view_at)" class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                          </svg>
+                        </div>
                       </div>
+                      <span class="lm:text-xs">
+                        {{ formatDividerDate(record.view_at) }}
+                      </span>
                     </div>
-                    <span class="lm:text-xs">
-                      {{ formatDividerDate(record.view_at) }}
-                    </span>
-                  </div>
-                  <div class="bg-white dark:bg-gray-800 pl-3">
-                    <span class="lm:text-xs text-[#FF6699]">
-                      {{ getDailyStatsForDate(record.view_at) }}条数据
-                    </span>
+                    <div class="bg-white dark:bg-gray-800 pl-3">
+                      <span class="lm:text-xs text-[#FF6699]">
+                        {{ getDailyStatsForDate(record.view_at) }}条数据
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- 网格布局的视频卡片 -->
-          <div class="bg-white/50 dark:bg-white/5 backdrop-blur-sm rounded-lg overflow-hidden border border-gray-200/50 hover:border-[#FF6699] hover:shadow-md transition-all duration-200 relative group"
-               :class="{ 'ring-2 ring-[#fb7299]': selectedRecords.has(`${record.bvid}_${record.view_at}`) }">
-            <!-- 多选框 -->
-            <div v-if="isBatchMode"
-                 class="absolute top-2 left-2 z-10"
-                 @click.stop="toggleRecordSelection(record)">
-              <div class="w-5 h-5 rounded border-2 flex items-center justify-center"
-                   :class="selectedRecords.has(`${record.bvid}_${record.view_at}`) ? 'bg-[#fb7299] border-[#fb7299]' : 'border-white bg-black/20'">
-                <svg v-if="selectedRecords.has(`${record.bvid}_${record.view_at}`)" class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
-                </svg>
               </div>
             </div>
 
-            <!-- 封面图片 -->
-            <div class="relative aspect-video cursor-pointer" @click="handleVideoClick(record)">
-              <!-- 删除按钮 -->
-              <div v-if="!isBatchMode"
-                   class="absolute right-2 top-2 z-20 hidden group-hover:flex items-center justify-center w-8 h-8 bg-black/50 hover:bg-[#fb7299] rounded-full cursor-pointer transition-all duration-200"
-                   @click.stop="handleDelete(record)">
-                <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-              </div>
-              <!-- 详情按钮 -->
-              <div v-if="!isBatchMode"
-                   class="absolute right-12 top-2 z-20 hidden group-hover:flex items-center justify-center w-8 h-8 bg-black/50 hover:bg-[#fb7299] rounded-full cursor-pointer transition-all duration-200"
-                   @click.stop="openVideoDetail(record)">
-                <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <img
-                :src="record.cover || record.covers?.[0]"
-                class="w-full h-full object-cover transition-all duration-300"
-                :class="{ 'blur-md': isPrivacyMode }"
-                alt=""
-              />
-              <!-- 视频进度条 -->
-              <div v-if="record.business !== 'article-list' && record.business !== 'article' && record.business !== 'live'"
-                   class="absolute bottom-0 left-0 w-full">
-                <div class="absolute bottom-1 right-1 rounded bg-black/50 px-1 py-1 text-[10px] font-semibold text-white">
-                  <span>{{ formatDuration(record.progress) }}</span>
-                  <span>/</span>
-                  <span>{{ formatDuration(record.duration) }}</span>
+            <!-- 网格布局的视频卡片 -->
+            <div class="bg-white/50 dark:bg-white/5 backdrop-blur-sm rounded-lg overflow-hidden border border-gray-200/50 hover:border-[#FF6699] hover:shadow-md transition-all duration-200 relative group"
+                 :class="{ 'ring-2 ring-[#fb7299]': selectedRecords.has(`${record.bvid}_${record.view_at}`) }">
+              <!-- 多选框 -->
+              <div v-if="isBatchMode"
+                   class="absolute top-2 left-2 z-10"
+                   @click.stop="toggleRecordSelection(record)">
+                <div class="w-5 h-5 rounded border-2 flex items-center justify-center"
+                     :class="selectedRecords.has(`${record.bvid}_${record.view_at}`) ? 'bg-[#fb7299] border-[#fb7299]' : 'border-white bg-black/20'">
+                  <svg v-if="selectedRecords.has(`${record.bvid}_${record.view_at}`)" class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                  </svg>
                 </div>
-                <div class="absolute bottom-0 left-0 h-0.5 w-full bg-black">
-                  <div class="h-full bg-[#FF6699]"
-                       :style="{ width: getProgressWidth(record.progress, record.duration) }">
+              </div>
+
+              <!-- 封面图片 -->
+              <div class="relative aspect-video cursor-pointer" @click="handleVideoClick(record)">
+                <!-- 删除按钮 -->
+                <div v-if="!isBatchMode"
+                     class="absolute right-2 top-2 z-20 hidden group-hover:flex items-center justify-center w-7 h-7 bg-[#7d7c75]/60 backdrop-blur-sm hover:bg-[#7d7c75]/80 rounded-md cursor-pointer transition-all duration-200"
+                     @click.stop="handleDelete(record)">
+                  <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </div>
+                <!-- 详情按钮 -->
+                <div v-if="!isBatchMode"
+                     class="absolute right-11 top-2 z-20 hidden group-hover:flex items-center justify-center w-7 h-7 bg-[#7d7c75]/60 backdrop-blur-sm hover:bg-[#7d7c75]/80 rounded-md cursor-pointer transition-all duration-200"
+                     @click.stop="openVideoDetail(record)">
+                  <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <!-- 下载按钮 - 只对视频类型显示 -->
+                <div v-if="!isBatchMode && record.business === 'archive'"
+                     class="absolute right-20 top-2 z-20 hidden group-hover:flex items-center justify-center w-7 h-7 bg-[#7d7c75]/60 backdrop-blur-sm hover:bg-[#7d7c75]/80 rounded-md cursor-pointer transition-all duration-200"
+                     @click.stop.prevent="handleDownloadGrid(record)">
+                  <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                </div>
+                <img
+                  :src="record.cover || record.covers?.[0]"
+                  class="w-full h-full object-cover transition-all duration-300"
+                  :class="{ 'blur-md': isPrivacyMode }"
+                  alt=""
+                />
+                <!-- 视频进度条 -->
+                <div v-if="record.business !== 'article-list' && record.business !== 'article' && record.business !== 'live'"
+                     class="absolute bottom-0 left-0 w-full">
+                  <div class="absolute bottom-1 right-1 rounded bg-black/50 px-1 py-1 text-[10px] font-semibold text-white">
+                    <span>{{ formatDuration(record.progress) }}</span>
+                    <span>/</span>
+                    <span>{{ formatDuration(record.duration) }}</span>
+                  </div>
+                  <div class="absolute bottom-0 left-0 h-0.5 w-full bg-black">
+                    <div class="h-full bg-[#FF6699]"
+                         :style="{ width: getProgressWidth(record.progress, record.duration) }">
+                    </div>
                   </div>
                 </div>
+                <!-- 右上角的类型角标 -->
+                <div
+                  v-if="record.badge"
+                  class="absolute right-1 top-1 rounded bg-[#FF6699] px-1 py-0.5 text-[10px] text-white"
+                >
+                  {{ record.badge }}
+                </div>
               </div>
-              <!-- 右上角的类型角标 -->
-              <div
-                v-if="record.badge"
-                class="absolute right-1 top-1 rounded bg-[#FF6699] px-1 py-0.5 text-[10px] text-white"
-              >
-                {{ record.badge }}
-              </div>
-            </div>
-            <!-- 视频信息 -->
-            <div class="p-3 flex flex-col space-y-1">
-              <!-- 标题 - 单行显示 -->
-              <div class="line-clamp-1 text-sm text-gray-900 cursor-pointer"
-                   v-html="isPrivacyMode ? '******' : highlightText(record.title)"
-                   :class="{ 'blur-sm': isPrivacyMode }"
-                   @click="handleVideoClick(record)">
-              </div>
-              <!-- 分区标签 - 单行显示 -->
-              <div class="text-xs text-gray-500 truncate flex items-center space-x-1">
-                <span class="inline-flex items-center rounded-md bg-[#f1f2f3] px-2 py-1 text-xs text-[#71767d]">
-                  {{ record.business === 'archive' ? record.tag_name : getBusinessType(record.business) }}
-                </span>
-                <span v-if="record.business === 'archive'" class="text-gray-400">·</span>
-                <span v-if="record.business === 'archive' && record.name" class="text-[#71767d]">{{ record.name }}</span>
-              </div>
-              <!-- UP主和时间信息 - 单行显示 -->
-              <div class="flex items-center justify-between text-xs text-gray-600">
-                <div class="flex items-center space-x-2 min-w-0 flex-1">
-                  <img v-if="record.business !== 'cheese' && record.business !== 'pgc'"
-                       :src="record.author_face"
-                       :class="{ 'blur-md': isPrivacyMode }"
-                       class="w-4 h-4 rounded-full flex-shrink-0 cursor-pointer"
-                       @click="handleAuthorClick(record)"
-                       :title="isPrivacyMode ? '隐私模式已开启' : `访问 ${record.author_name} 的个人空间`"
-                  />
-                  <span v-html="isPrivacyMode ? '******' : highlightText(record.author_name)"
-                        :class="{ 'blur-sm': isPrivacyMode }"
-                        class="cursor-pointer hover:text-[#fb7299] transition-colors duration-200 truncate"
-                        @click="handleAuthorClick(record)">
+              <!-- 视频信息 -->
+              <div class="p-3 flex flex-col space-y-1">
+                <!-- 标题 - 单行显示 -->
+                <div class="line-clamp-1 text-sm text-gray-900 cursor-pointer"
+                     v-html="isPrivacyMode ? '******' : highlightText(record.title)"
+                     :class="{ 'blur-sm': isPrivacyMode }"
+                     @click="handleVideoClick(record)">
+                </div>
+                <!-- 分区标签 - 单行显示 -->
+                <div class="text-xs text-gray-500 truncate flex items-center space-x-1">
+                  <span class="inline-flex items-center rounded-md bg-[#f1f2f3] px-2 py-1 text-xs text-[#71767d]">
+                    {{ record.business === 'archive' ? record.tag_name : getBusinessType(record.business) }}
                   </span>
+                  <span v-if="record.business === 'archive'" class="text-gray-400">·</span>
+                  <span v-if="record.business === 'archive' && record.name" class="text-[#71767d]">{{ record.name }}</span>
                 </div>
-                <div class="flex items-center space-x-2 flex-shrink-0">
-                  <img v-if="record.dt === 1 || record.dt === 3 || record.dt === 5 || record.dt === 7"
-                       src="/Mobile.svg"
-                       alt="Mobile"
-                       class="h-4 w-4"
-                  />
-                  <img v-else-if="record.dt === 2 || record.dt === 33"
-                       src="/PC.svg"
-                       alt="PC"
-                       class="h-4 w-4"
-                  />
-                  <img v-else-if="record.dt === 4 || record.dt === 6"
-                       src="/Pad.svg"
-                       alt="Pad"
-                       class="h-4 w-4"
-                  />
-                  <span>{{ formatTimestamp(record.view_at) }}</span>
+                <!-- UP主和时间信息 - 单行显示 -->
+                <div class="flex items-center justify-between text-xs text-gray-600">
+                  <div class="flex items-center space-x-2 min-w-0 flex-1">
+                    <img v-if="record.business !== 'cheese' && record.business !== 'pgc'"
+                         :src="record.author_face"
+                         :class="{ 'blur-md': isPrivacyMode }"
+                         class="w-4 h-4 rounded-full flex-shrink-0 cursor-pointer"
+                         @click="handleAuthorClick(record)"
+                         :title="isPrivacyMode ? '隐私模式已开启' : `访问 ${record.author_name} 的个人空间`"
+                    />
+                    <span v-html="isPrivacyMode ? '******' : highlightText(record.author_name)"
+                          :class="{ 'blur-sm': isPrivacyMode }"
+                          class="cursor-pointer hover:text-[#fb7299] transition-colors duration-200 truncate"
+                          @click="handleAuthorClick(record)">
+                    </span>
+                  </div>
+                  <div class="flex items-center space-x-2 flex-shrink-0">
+                    <img v-if="record.dt === 1 || record.dt === 3 || record.dt === 5 || record.dt === 7"
+                         src="/Mobile.svg"
+                         alt="Mobile"
+                         class="h-4 w-4"
+                    />
+                    <img v-else-if="record.dt === 2 || record.dt === 33"
+                         src="/PC.svg"
+                         alt="PC"
+                         class="h-4 w-4"
+                    />
+                    <img v-else-if="record.dt === 4 || record.dt === 6"
+                         src="/Pad.svg"
+                         alt="Pad"
+                         class="h-4 w-4"
+                    />
+                    <span>{{ formatTimestamp(record.view_at) }}</span>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </template>
-      </div>
+          </template>
+        </div>
 
-      <!-- 列表布局（移动端始终显示，PC端在list模式下显示） -->
-      <div :class="{'sm:hidden': layout === 'grid'}">
-        <template v-for="(record, index) in records" :key="`list-${record.id}-${record.view_at}`">
-          <!-- 日期分割线和视频数量 -->
-          <div v-if="shouldShowDivider(index)" class="relative py-1 max-w-4xl mx-auto">
-            <div class="px-2">
-              <div class="relative">
-                <div class="absolute inset-0 flex items-center" aria-hidden="true">
-                  <div class="w-full border-t border-gray-300" />
-                </div>
-                <div class="relative flex items-center justify-between">
-                  <div class="bg-white dark:bg-gray-800 pr-3 flex items-center space-x-2">
-                    <!-- 添加当天记录的勾选框 -->
-                    <div v-if="isBatchMode"
-                         class="flex items-center justify-center cursor-pointer"
-                         @click.stop="toggleDaySelection(record.view_at)">
-                      <div class="w-5 h-5 rounded border-2 flex items-center justify-center"
-                           :class="isDaySelected(record.view_at) ? 'bg-[#fb7299] border-[#fb7299]' : 'border-gray-300 bg-white'">
-                        <svg v-if="isDaySelected(record.view_at)" class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
-                        </svg>
-                      </div>
-                    </div>
-                    <span class="lm:text-xs">
-                      {{ formatDividerDate(record.view_at) }}
-                    </span>
+        <!-- 列表布局（移动端始终显示，PC端在list模式下显示） -->
+        <div v-else :class="{'sm:hidden': layout === 'grid'}" class="transition-all duration-300 ease-in-out transform-gpu" key="list-layout">
+          <template v-for="(record, index) in records" :key="`list-${record.id}-${record.view_at}`">
+            <!-- 日期分割线和视频数量 -->
+            <div v-if="shouldShowDivider(index)" class="relative py-1 max-w-4xl mx-auto">
+              <div class="px-2">
+                <div class="relative">
+                  <div class="absolute inset-0 flex items-center" aria-hidden="true">
+                    <div class="w-full border-t border-gray-300" />
                   </div>
-                  <div class="bg-white dark:bg-gray-800 pl-3">
-                    <span class="lm:text-xs text-[#FF6699]">
-                      {{ getDailyStatsForDate(record.view_at) }}条数据
-                    </span>
+                  <div class="relative flex items-center justify-between">
+                    <div class="bg-white dark:bg-gray-800 pr-3 flex items-center space-x-2">
+                      <!-- 添加当天记录的勾选框 -->
+                      <div v-if="isBatchMode"
+                           class="flex items-center justify-center cursor-pointer"
+                           @click.stop="toggleDaySelection(record.view_at)">
+                        <div class="w-5 h-5 rounded border-2 flex items-center justify-center"
+                             :class="isDaySelected(record.view_at) ? 'bg-[#fb7299] border-[#fb7299]' : 'border-gray-300 bg-white'">
+                          <svg v-if="isDaySelected(record.view_at)" class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                          </svg>
+                        </div>
+                      </div>
+                      <span class="lm:text-xs">
+                        {{ formatDividerDate(record.view_at) }}
+                      </span>
+                    </div>
+                    <div class="bg-white dark:bg-gray-800 pl-3">
+                      <span class="lm:text-xs text-[#FF6699]">
+                        {{ getDailyStatsForDate(record.view_at) }}条数据
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-          <VideoRecord
-            :record="record"
-            :is-batch-mode="isBatchMode"
-            :is-selected="selectedRecords.has(`${record.bvid}_${record.view_at}`)"
-            :remark-data="remarkData"
-            @toggle-selection="toggleRecordSelection"
-            @refresh-data="fetchHistoryByDateRange"
-            @remark-updated="handleRemarkUpdate"
-          />
-        </template>
-      </div>
+            <VideoRecord
+              :record="record"
+              :is-batch-mode="isBatchMode"
+              :is-selected="selectedRecords.has(`${record.bvid}_${record.view_at}`)"
+              :remark-data="remarkData"
+              @toggle-selection="toggleRecordSelection"
+              @refresh-data="fetchHistoryByDateRange"
+              @remark-updated="handleRemarkUpdate"
+            />
+          </template>
+        </div>
+      </transition>
     </div>
 
     <!-- 日期选择日历 -->
@@ -261,6 +312,28 @@
       @remark-updated="handleRemarkUpdate"
     />
   </Teleport>
+
+  <!-- 下载弹窗 -->
+  <Teleport to="body">
+    <DownloadDialog
+      v-model:show="showDownloadDialog"
+      :video-info="{
+        title: selectedRecord?.title || '',
+        author: selectedRecord?.author_name || '',
+        bvid: selectedRecord?.bvid || '',
+        cover: selectedRecord?.cover || selectedRecord?.covers?.[0] || '',
+        cid: selectedRecord?.cid || ''
+      }"
+    />
+  </Teleport>
+
+  <!-- 登录对话框 -->
+  <Teleport to="body">
+    <LoginDialog
+      v-model:show="showLoginDialog"
+      @login-success="handleLoginSuccess"
+    />
+  </Teleport>
 </template>
 
 <style scoped>
@@ -276,6 +349,21 @@
 .animate-bounce-x {
   animation: bounce-x 1s infinite;
 }
+
+.float-enter-active,
+.float-leave-active {
+  transition: all 0.3s ease;
+}
+
+.float-enter-from {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.float-leave-to {
+  opacity: 0;
+  transform: translateY(-20px);
+}
 </style>
 
 <script setup>
@@ -285,13 +373,17 @@ import {
   getMainCategories,
   getDailyStats,
   batchDeleteHistory,
-  batchGetRemarks
+  batchGetRemarks,
+  getLoginStatus,
+  updateBiliHistoryRealtime
 } from '../../api/api.js'
 import { showNotify, showDialog } from 'vant'
 import 'vant/es/dialog/style'
 import VideoRecord from './VideoRecord.vue'
 import { usePrivacyStore } from '../../store/privacy'
 import VideoDetailDialog from './VideoDetailDialog.vue'
+import LoginDialog from './LoginDialog.vue'
+import DownloadDialog from './DownloadDialog.vue'
 
 const { isPrivacyMode } = usePrivacyStore()
 
@@ -370,6 +462,12 @@ const selectedRecords = ref(new Set())
 // 在data区域添加
 const selectedRecord = ref(null)
 const showDetailDialog = ref(false)
+const showDownloadDialog = ref(false)
+
+// 登录相关
+const isLoggedIn = ref(false)
+const isLoading = ref(false)
+const showLoginDialog = ref(false)
 
 // 选择/取消选择记录
 const toggleRecordSelection = (record) => {
@@ -537,6 +635,7 @@ const fetchHistoryByDateRange = async () => {
   })
 
   try {
+    isLoading.value = true
     records.value = []
     const response = await getBiliHistory2024(
       props.page,
@@ -575,6 +674,8 @@ const fetchHistoryByDateRange = async () => {
     total.value = 0
     emit('update:total-pages', 0)
     emit('update:total', 0)
+  } finally {
+    isLoading.value = false
   }
 }
 
@@ -693,14 +794,76 @@ const getDailyStatsForDate = (timestamp) => {
   return dailyStats.value[dateKey]?.total_count || 0
 }
 
+// 打开登录对话框
+const openLoginDialog = () => {
+  showLoginDialog.value = true
+}
+
+// 处理登录成功
+const handleLoginSuccess = () => {
+  checkLoginStatus()
+  if (isLoggedIn.value) {
+    fetchHistoryByDateRange()
+  }
+}
+
+// 检查登录状态
+const checkLoginStatus = async () => {
+  try {
+    const response = await getLoginStatus()
+    isLoggedIn.value = response.data && response.data.data && response.data.data.is_logged_in
+    console.log('登录状态检查结果:', isLoggedIn.value, response.data)
+  } catch (error) {
+    console.error('获取登录状态失败:', error)
+    isLoggedIn.value = false
+  }
+}
+
+// 刷新数据
+const refreshData = async () => {
+  try {
+    isLoading.value = true
+    showNotify({ type: 'info', message: '正在从B站获取历史记录...' })
+    
+    const response = await updateBiliHistoryRealtime()
+    if (response.data.status === 'success') {
+      showNotify({ type: 'success', message: response.data.message || '数据获取成功' })
+      fetchHistoryByDateRange()
+    } else {
+      throw new Error(response.data.message || '获取失败')
+    }
+  } catch (error) {
+    console.error('刷新数据失败:', error)
+    showNotify({
+      type: 'danger',
+      message: error.response?.data?.message || error.message || '获取历史记录失败'
+    })
+  } finally {
+    isLoading.value = false
+  }
+}
+
 onMounted(async () => {
-  await fetchMainCategories()
-  fetchHistoryByDateRange()
+  isLoading.value = true
+  try {
+    await checkLoginStatus()
+    await fetchMainCategories()
+    if (isLoggedIn.value) {
+      await fetchHistoryByDateRange()
+    } else {
+      isLoading.value = false
+    }
+  } catch (error) {
+    console.error('初始化失败:', error)
+    isLoading.value = false
+  }
 })
 
 // 暴露方法给父组件
 defineExpose({
   fetchHistoryByDateRange,
+  refreshData,
+  checkLoginStatus
 })
 
 // 格式化分割线日期
@@ -930,4 +1093,10 @@ const openVideoDetail = (record) => {
   showDetailDialog.value = true
 }
 
+// 处理网格视图下载按钮点击
+const handleDownloadGrid = (record) => {
+  console.log('handleDownloadGrid - 处理网格视图下载按钮点击')
+  selectedRecord.value = record
+  showDownloadDialog.value = true
+}
 </script>

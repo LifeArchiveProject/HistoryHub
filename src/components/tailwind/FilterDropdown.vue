@@ -1,7 +1,7 @@
 <template>
   <div class="relative">
     <!-- 筛选头部 - 所有元素在同一行 -->
-    <div class="flex items-center justify-between flex-wrap py-2">
+    <div class="flex items-center justify-between flex-wrap py-2 px-3">
       <!-- 条目类型快速切换区域 -->
       <div class="flex flex-1 flex-wrap gap-1 sm:gap-2">
         <button
@@ -282,11 +282,11 @@ const selectVideoCategory = (item) => {
     isMainName
   })
   
-  // 先更新分类，然后再刷新数据，避免重复刷新
+  // 先更新分类，然后重置页码
   emit('update:category', categoryText)
   
-  // 最后刷新数据
-  emit('refresh-data')
+  // 重置页码到第一页，而不是触发实时更新
+  emit('update:page', 1)
   
   showNotify({
     type: 'success',
@@ -348,7 +348,8 @@ const businessTypeMap = {
 const selectBusiness = (type) => {
   emit('update:business', type)
   emit('update:businessLabel', businessTypeMap[type])
-  emit('refresh-data')
+  // 移除实时更新触发，改为只更新当前数据
+  emit('update:page', 1) // 重置页码到第一页
   
   showNotify({
     type: 'success',
@@ -361,7 +362,8 @@ const selectBusiness = (type) => {
 const selectBusinessFromPopup = (type) => {
   emit('update:business', type)
   emit('update:businessLabel', businessTypeMap[type])
-  emit('refresh-data')
+  // 移除实时更新触发，改为只更新当前数据
+  emit('update:page', 1) // 重置页码到第一页
   
   showNotify({
     type: 'success',
@@ -380,7 +382,8 @@ const applyDateFilter = () => {
       const dateRange = `${formattedStartDate} 至 ${formattedEndDate}`
       console.log('设置日期区间:', dateRange)
       emit('update:date', dateRange)
-      emit('refresh-data')
+      emit('update:page', 1) // 重置页码到第一页，而不是触发实时更新
+      
       showNotify({
         type: 'success',
         message: `已筛选日期: ${dateRange}`,
@@ -397,7 +400,7 @@ const applyDateFilter = () => {
   } else if (!startDate.value && !endDate.value) {
     // 如果两个日期都为空，清除筛选
     emit('update:date', '')
-    emit('refresh-data')
+    emit('update:page', 1) // 重置页码到第一页，而不是触发实时更新
   } else {
     // 如果只有一个日期，显示提示
     showNotify({
@@ -417,9 +420,10 @@ const onDateChange = () => {
 // 清除分区
 const clearCategory = () => {
   console.log('清除分区筛选')
-  // 先更新分类，然后再刷新数据，避免重复刷新
+  // 先更新分类，然后重置页码
   emit('update:category', '')
-  emit('refresh-data')
+  emit('update:page', 1) // 重置页码到第一页，而不是触发实时更新
+  
   showNotify({
     type: 'success',
     message: '已清除分区筛选',
@@ -430,9 +434,10 @@ const clearCategory = () => {
 // 清除日期
 const clearDate = () => {
   console.log('清除日期筛选')
-  // 先更新日期，然后再刷新数据，避免重复刷新
+  // 先更新日期，然后重置页码
   emit('update:date', '')
-  emit('refresh-data')
+  emit('update:page', 1) // 重置页码到第一页，而不是触发实时更新
+  
   showNotify({
     type: 'success',
     message: '已清除日期筛选',
@@ -443,10 +448,11 @@ const clearDate = () => {
 // 清除业务类型
 const clearBusiness = () => {
   console.log('清除业务类型筛选')
-  // 先更新业务类型，然后再刷新数据，避免重复刷新
+  // 先更新业务类型，然后重置页码
   emit('update:business', '')
   emit('update:businessLabel', '')
-  emit('refresh-data')
+  emit('update:page', 1) // 重置页码到第一页，而不是触发实时更新
+  
   showNotify({
     type: 'success',
     message: '已清除业务类型筛选',

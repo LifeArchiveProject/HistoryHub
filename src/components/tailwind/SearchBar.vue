@@ -3,11 +3,18 @@
     <!-- 搜索区域容器 -->
     <div class="relative">
       <!-- 搜索框容器 -->
-      <div class="flex w-full h-8 sm:h-10 items-center rounded-lg border border-gray-300 bg-[#edf2fa] hover:bg-[#e1e6ed] focus-within:border-[#FF6699]">
+      <div class="flex w-full h-8 sm:h-10 items-center rounded-md border border-gray-300 bg-white focus-within:border-[#FF6699] transition-colors duration-200">
+        <!-- 搜索图标 -->
+        <div class="pl-2 sm:pl-3 text-gray-400">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 sm:h-4 sm:w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
+        
         <!-- 搜索类型选择器 -->
         <select
           v-model="searchType"
-          class="h-full appearance-none border-none bg-transparent pl-2 text-[#FF6699] focus:outline-none focus:ring-0 lm:text-xs leading-none flex items-center"
+          class="h-full appearance-none border-none bg-transparent pl-1 sm:pl-2 text-[#FF6699] focus:outline-none focus:ring-0 text-xs sm:text-sm leading-none flex items-center"
         >
           <option value="all">全部</option>
           <option value="title">标题</option>
@@ -17,7 +24,7 @@
         </select>
 
         <!-- 分隔线 -->
-        <div class="h-5 sm:h-6 w-px bg-gray-300 mx-1"></div>
+        <div class="h-4 sm:h-5 w-px bg-gray-200 mx-1"></div>
 
         <!-- 输入框 -->
         <input
@@ -25,7 +32,7 @@
           @keyup.enter="handleSearch"
           type="search"
           :placeholder="getPlaceholder"
-          class="h-full w-full border-none bg-transparent px-2 text-gray-900 focus:outline-none focus:ring-0 text-sm leading-none"
+          class="h-full w-full border-none bg-transparent px-1 sm:px-2 pr-2 sm:pr-3 text-gray-700 focus:outline-none focus:ring-0 text-xs sm:text-sm leading-none"
         />
       </div>
     </div>
@@ -199,12 +206,5 @@ select:focus-visible {
 input:focus {
   box-shadow: none !important;
   outline: none !important;
-  -webkit-appearance: none !important;
-}
-
-/* 移除输入框的默认focus-visible样式 */
-input:focus-visible {
-  outline: none !important;
-  box-shadow: none !important;
 }
 </style>

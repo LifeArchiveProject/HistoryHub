@@ -50,7 +50,7 @@
         </div>
 
         <!-- 分页组件 -->
-        <div v-if="currentContent === 'history' && !showRemarks" class="mx-auto mb-5 mt-8 max-w-4xl">
+        <div v-if="currentContent === 'history' && !showRemarks && total > 0" class="mx-auto mb-5 mt-8 max-w-4xl">
           <Pagination :current-page="page" :total-pages="totalPages" :use-routing="true" />
         </div>
       </div>
@@ -107,10 +107,12 @@ const refreshData = async () => {
   console.log('当前分区:', category.value)
   console.log('当前业务类型:', business.value)
   try {
-    if (historyContentRef.value && typeof historyContentRef.value.fetchHistoryByDateRange === 'function') {
+    if (historyContentRef.value && typeof historyContentRef.value.refreshData === 'function') {
+      await historyContentRef.value.refreshData()
+    } else if (historyContentRef.value && typeof historyContentRef.value.fetchHistoryByDateRange === 'function') {
       await historyContentRef.value.fetchHistoryByDateRange()
     } else {
-      console.error('刷新数据失败: HistoryContent 组件的 fetchHistoryByDateRange 方法不可用')
+      console.error('刷新数据失败: HistoryContent 组件的 refreshData 方法不可用')
     }
   } catch (error) {
     console.error('刷新数据失败:', error)

@@ -1,11 +1,11 @@
 <template>
   <div class="sticky top-0 z-50">
     <nav class="bg-white lg:pt-4">
-      <div class="mx-auto max-w-4xl">
+      <div class="mx-auto transition-all duration-300 ease-in-out" :class="{'max-w-4xl': layout === 'list', 'max-w-6xl': layout === 'grid'}">
         <!-- 导航栏主要内容 -->
         <div class="flex items-center justify-between px-2 py-2">
           <!-- 左侧图标 -->
-          <div class="flex items-center space-x-6 sm:space-x-6 space-x-3">
+          <div class="flex items-center space-x-6">
             <!-- 实时更新按钮 -->
             <button
               @click="handleUpdate"
@@ -114,7 +114,7 @@
             <!-- 布局切换按钮 -->
             <button
               @click="$emit('change-layout', layout === 'list' ? 'grid' : 'list')"
-              class="flex sm:flex-col items-center text-gray-700 hover:text-[#fb7299] transition-colors duration-200 hidden sm:flex"
+              class="hidden sm:flex sm:flex-col items-center text-gray-700 hover:text-[#fb7299] transition-colors duration-200"
               :class="{ 'text-[#fb7299]': layout === 'grid' }"
             >
               <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -162,7 +162,7 @@
         </div>
 
         <!-- 筛选区域 -->
-        <div class="mx-auto max-w-4xl px-2">
+        <div class="mx-auto transition-all duration-300 ease-in-out" :class="{'max-w-4xl': layout === 'list', 'max-w-6xl': layout === 'grid'}">
           <FilterDropdown
             :business="business"
             :businessLabel="businessLabel"
