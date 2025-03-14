@@ -1067,3 +1067,260 @@ async def get_viewing_analytics(
     finally:
         if conn:
             conn.close()
+
+def analyze_viewing_details(cursor, table_name: str) -> dict:
+    """分析更详细的观看行为，包括设备、总观看时长等
+    
+    Args:
+        cursor: 数据库游标
+        table_name: 表名
+    
+    Returns:
+        dict: 详细观看行为分析结果
+    """
+    # 1. 计算总观看时长（根据progress字段）
+    cursor.execute(f"""
+        SELECT SUM(progress) as total_watch_seconds
+        FROM {table_name}
+        WHERE progress IS NOT NULL
+    """)
+    total_seconds = cursor.fetchone()[0] or 0
+    total_hours = round(total_seconds / 3600, 1)
+    
+    # 2. 计算观看B站的总天数
+    cursor.execute(f"""
+        SELECT COUNT(DISTINCT strftime('%Y-%m-%d', datetime(view_at + 28800, 'unixepoch'))) as total_days
+        FROM {table_name}
+    """)
+    total_days = cursor.fetchone()[0] or 0
+    
+    # 3. 分析分区观看数据前10
+    cursor.execute(f"""
+        SELECT 
+            main_category, 
+            COUNT(*) as view_count,
+            SUM(progress) as total_progress
+        FROM {table_name}
+        WHERE main_category IS NOT NULL AND main_category != ''
+        GROUP BY main_category
+        ORDER BY view_count DESC
+        LIMIT 10
+    """)
+    category_stats = [
+        {
+            "category": row[0],
+            "view_count": row[1],
+            "watch_hours": round((row[2] or 0) / 3600, 1)
+        } for row in cursor.fetchall()
+    ]
+    
+    # 4. 年度挚爱UP主
+    cursor.execute(f"""
+        SELECT 
+            author_mid, 
+            author_name,
+            COUNT(*) as view_count,
+            SUM(progress) as total_progress
+        FROM {table_name}
+        WHERE author_mid IS NOT NULL
+        GROUP BY author_mid
+        ORDER BY view_count DESC
+        LIMIT 10
+    """)
+    favorite_up_stats = [
+        {
+            "mid": row[0],
+            "name": row[1],
+            "view_count": row[2],
+            "watch_hours": round((row[3] or 0) / 3600, 1)
+        } for row in cursor.fetchall()
+    ]
+    
+    # 5. 寻找深夜观看记录
+    cursor.execute(f"""
+        SELECT 
+            strftime('%Y-%m-%d', datetime(view_at + 28800, 'unixepoch')) as date,
+            strftime('%H:%M', datetime(view_at + 28800, 'unixepoch')) as time,
+            author_name,
+            title
+        FROM {table_name}
+        WHERE 
+            strftime('%H', datetime(view_at + 28800, 'unixepoch')) >= '23' OR 
+            strftime('%H', datetime(view_at + 28800, 'unixepoch')) < '05'
+        ORDER BY view_at DESC
+        LIMIT 10
+    """)
+    late_night_views = [
+        {
+            "date": row[0],
+            "time": row[1],
+            "author": row[2],
+            "title": row[3]
+        } for row in cursor.fetchall()
+    ]
+    
+    # 6. 各时间段的活跃天数百分比
+    cursor.execute(f"""
+        SELECT 
+            CASE 
+                WHEN strftime('%H', datetime(view_at + 28800, 'unixepoch')) BETWEEN '05' AND '11' THEN '上午'
+                WHEN strftime('%H', datetime(view_at + 28800, 'unixepoch')) BETWEEN '12' AND '17' THEN '下午'
+                WHEN strftime('%H', datetime(view_at + 28800, 'unixepoch')) BETWEEN '18' AND '22' THEN '晚上'
+                ELSE '深夜'
+            END as time_slot,
+            COUNT(DISTINCT strftime('%Y-%m-%d', datetime(view_at + 28800, 'unixepoch'))) as active_days
+        FROM {table_name}
+        GROUP BY time_slot
+    """)
+    time_slot_days = {}
+    for row in cursor.fetchall():
+        time_slot_days[row[0]] = {
+            "days": row[1],
+            "percentage": round(row[1] / total_days * 100, 1) if total_days > 0 else 0
+        }
+    
+    # 7. 查询最常用的设备信息（如果有）
+    cursor.execute(f"""
+        SELECT 
+            CASE 
+                WHEN dt IN (1, 3, 5, 7) THEN '手机'
+                WHEN dt = 2 THEN '网页'
+                WHEN dt IN (4, 6) THEN '平板'
+                WHEN dt = 33 THEN '电视'
+                ELSE '其他'
+            END as platform,
+            COUNT(*) as count
+        FROM {table_name}
+        GROUP BY platform
+        ORDER BY count DESC
+        LIMIT 3
+    """)
+    devices = [{"name": row[0], "count": row[1]} for row in cursor.fetchall()]
+        
+    return {
+        "total_watch_hours": total_hours,
+        "total_days": total_days,
+        "top_categories": category_stats,
+        "favorite_up_users": favorite_up_stats,
+        "late_night_views": late_night_views,
+        "time_slot_activity": time_slot_days,
+        "devices": devices
+    }
+
+def generate_viewing_report(viewing_details: dict) -> dict:
+    """根据观看数据生成综合报告和亮点
+    
+    Args:
+        viewing_details: 观看详细数据
+    
+    Returns:
+        dict: 包含各种总结语句的报告
+    """
+    report = {}
+    
+    # 1. 总观看时长和天数总结
+    report["total_summary"] = f"和B站共度的{viewing_details['total_days']}天里，你观看超过{viewing_details['total_watch_hours']}小时的内容"
+    
+    # 2. 时间段访问情况
+    time_slots = viewing_details["time_slot_activity"]
+    max_slot = max(time_slots.items(), key=lambda x: x[1]["percentage"]) if time_slots else None
+    
+    if max_slot:
+        report["time_slot_summary"] = f"{max_slot[0]}时段访问B站天数超过{max_slot[1]['percentage']}%"
+    
+    # 3. 深夜观看记录
+    if viewing_details["late_night_views"]:
+        latest_view = viewing_details["late_night_views"][0]
+        report["late_night_summary"] = f"{latest_view['date']}你迟迟不肯入睡，{latest_view['time']}还在看{latest_view['author']}的《{latest_view['title']}》"
+    
+    # 4. 分区观看总结
+    if viewing_details["top_categories"]:
+        top_category = viewing_details["top_categories"][0]
+        report["category_summary"] = f"你最喜欢的分区是{top_category['category']}，共观看{top_category['view_count']}个视频，时长{top_category['watch_hours']}小时"
+    
+    # 5. 年度挚爱UP总结
+    if viewing_details["favorite_up_users"]:
+        top_up = viewing_details["favorite_up_users"][0]
+        report["up_summary"] = f"年度挚爱UP主是{top_up['name']}，共观看{top_up['view_count']}个视频，时长{top_up['watch_hours']}小时"
+    
+    # 6. 设备使用总结
+    if viewing_details["devices"]:
+        top_device = viewing_details["devices"][0]
+        report["device_summary"] = f"你最常用的观看设备是{top_device['name']}，共使用{top_device['count']}次"
+    
+    return report
+
+@router.get("/viewing/", summary="获取观看行为数据分析")
+async def get_viewing_details(
+    year: Optional[int] = Query(None, description="要分析的年份，不传则使用当前年份"),
+    use_cache: bool = Query(True, description="是否使用缓存，默认为True。如果为False则重新分析数据")
+):
+    """获取观看行为数据分析
+    
+    Args:
+        year: 要分析的年份，不传则使用当前年份
+        use_cache: 是否使用缓存，默认为True。如果为False则重新分析数据
+    
+    Returns:
+        dict: 包含观看行为分析的详细数据和总结报告
+    """
+    conn = get_db()
+    try:
+        cursor = conn.cursor()
+        
+        # 获取可用年份列表
+        available_years = get_available_years()
+        if not available_years:
+            return {
+                "status": "error",
+                "message": "未找到任何历史记录数据"
+            }
+        
+        # 如果未指定年份，使用最新的年份
+        target_year = year if year is not None else available_years[0]
+        
+        # 检查指定的年份是否可用
+        if year is not None and year not in available_years:
+            return {
+                "status": "error",
+                "message": f"未找到 {year} 年的历史记录数据。可用的年份有：{', '.join(map(str, available_years))}"
+            }
+        
+        table_name = f"bilibili_history_{target_year}"
+        
+        # 如果启用缓存，尝试从缓存获取完整响应
+        if use_cache:
+            from .title_pattern_discovery import pattern_cache
+            cached_response = pattern_cache.get_cached_patterns(table_name, 'viewing_details')
+            if cached_response:
+                print(f"从缓存获取 {target_year} 年的观看行为分析数据")
+                return cached_response
+        
+        print(f"开始分析 {target_year} 年的观看行为数据")
+        
+        # 获取详细观看数据
+        viewing_details = analyze_viewing_details(cursor, table_name)
+        
+        # 生成综合报告
+        viewing_report = generate_viewing_report(viewing_details)
+        
+        # 构建完整响应
+        response = {
+            "status": "success",
+            "data": {
+                "details": viewing_details,
+                "report": viewing_report,
+                "year": target_year,
+                "available_years": available_years
+            }
+        }
+        
+        # 无论是否启用缓存，都更新缓存数据
+        from .title_pattern_discovery import pattern_cache
+        print(f"更新 {target_year} 年的观看行为分析数据缓存")
+        pattern_cache.cache_patterns(table_name, 'viewing_details', response)
+        
+        return response
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
