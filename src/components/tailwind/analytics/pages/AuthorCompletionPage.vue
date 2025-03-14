@@ -9,11 +9,9 @@
           </h3>
 
           <div class="text-sm text-center text-gray-600 dark:text-gray-300 mb-2 space-y-2 px-4">
-            <div v-if="viewingData?.insights?.most_watched_author">
-              {{ viewingData.insights.most_watched_author }}
+            <div v-if="viewingData?.insights?.most_watched_author" v-html="formatInsightText(viewingData.insights.most_watched_author)">
             </div>
-            <div v-if="viewingData?.insights?.highest_completion_author">
-              {{ viewingData.insights.highest_completion_author }}
+            <div v-if="viewingData?.insights?.highest_completion_author" v-html="formatInsightText(viewingData.insights.highest_completion_author)">
             </div>
           </div>
 
@@ -402,6 +400,12 @@ onMounted(() => {
     })
   }
 })
+
+// 格式化洞察文本，为数字添加颜色
+const formatInsightText = (text) => {
+  if (!text) return '';
+  return text.replace(/(\d+(\.\d+)?)/g, '<span class="text-[#fb7299]">$1</span>')
+}
 </script>
 
 <style scoped>

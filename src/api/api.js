@@ -86,6 +86,16 @@ export const getViewingAnalytics = async (year, useCache = true) => {
   })
 }
 
+// 获取观看行为数据分析
+export const getViewingBehavior = async (year, useCache = true) => {
+  return instance.get(`/viewing/viewing/`, {
+    params: {
+      year,
+      use_cache: useCache
+    }
+  })
+}
+
 // 获取每年每天的观看数合集
 export const getYearlyAnalysis = async (year) => {
   return instance.post(`/analysis/analyze`, null, {

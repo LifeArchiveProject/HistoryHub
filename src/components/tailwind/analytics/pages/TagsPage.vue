@@ -6,11 +6,9 @@
     </h3>
 
     <div class="text-lg text-center text-gray-600 dark:text-gray-300 mb-8 space-y-2">
-      <div v-if="viewingData?.insights?.tag_preference">
-        {{ viewingData.insights.tag_preference }}
+      <div v-if="viewingData?.insights?.tag_preference" v-html="formatInsightText(viewingData.insights.tag_preference)">
       </div>
-      <div v-if="viewingData?.insights?.tag_completion">
-        {{ viewingData.insights.tag_completion }}
+      <div v-if="viewingData?.insights?.tag_completion" v-html="formatInsightText(viewingData.insights.tag_completion)">
       </div>
     </div>
 
@@ -190,4 +188,10 @@ onMounted(() => {
     })
   }
 })
+
+// 格式化洞察文本，为数字添加颜色
+const formatInsightText = (text) => {
+  if (!text) return '';
+  return text.replace(/(\d+(\.\d+)?)/g, '<span class="text-[#fb7299]">$1</span>')
+}
 </script> 

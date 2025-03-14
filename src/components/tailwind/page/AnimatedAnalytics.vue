@@ -114,7 +114,7 @@
             <OverviewPage v-else-if="currentPage === 1" key="overview" :viewing-data="viewingData" />
 
             <!-- 时间分析页 -->
-            <TimeAnalysisPage v-else-if="currentPage === 2" key="time-analysis" :viewing-data="viewingData" />
+            <TimeAnalysisPage v-else-if="currentPage === 2" key="time-analysis" :viewing-data="viewingData" :selected-year="selectedYear" />
 
             <!-- 时间分布分析页 -->
             <TimeDistributionPage v-else-if="currentPage === 3" key="time-distribution" :viewing-data="viewingData" />
@@ -123,7 +123,7 @@
             <MonthlyPage v-else-if="currentPage === 4" key="monthly" :viewing-data="viewingData" />
 
             <!-- 连续观看页 -->
-            <StreakPage v-else-if="currentPage === 5" key="streak" :viewing-data="viewingData" />
+            <StreakPage v-else-if="currentPage === 5" key="streak" :viewing-data="viewingData" :selected-year="selectedYear" />
 
             <!-- 最爱重温页 -->
             <RewatchPage v-else-if="currentPage === 6" key="rewatch" :viewing-data="viewingData" />

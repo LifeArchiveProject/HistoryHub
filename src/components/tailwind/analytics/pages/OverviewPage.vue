@@ -5,10 +5,21 @@
       年度观看数据
     </h3>
     
-    <div v-if="viewingData?.insights?.overall_activity" 
-      class="text-base text-center text-gray-600 dark:text-gray-300"
-      v-html="formatInsightText(viewingData.insights.overall_activity)"
-    >
+    <div class="text-base text-center text-gray-600 dark:text-gray-300 space-y-3">
+      <!-- 合并三个总结到一行，用逗号分隔 -->
+      <div>
+        <span v-if="viewingBehaviorData?.report?.total_summary" v-html="formatInsightText(viewingBehaviorData.report.total_summary)"></span>
+        <span v-if="viewingBehaviorData?.report?.total_summary && viewingBehaviorData?.report?.device_summary">, </span>
+        <span v-if="viewingBehaviorData?.report?.device_summary" v-html="formatInsightText(viewingBehaviorData.report.device_summary)"></span>
+        <span v-if="(viewingBehaviorData?.report?.total_summary || viewingBehaviorData?.report?.device_summary) && viewingBehaviorData?.report?.time_slot_summary">, </span>
+        <span v-if="viewingBehaviorData?.report?.time_slot_summary" v-html="formatInsightText(viewingBehaviorData.report.time_slot_summary)"></span>
+      </div>
+      
+      <!-- 整体活动总结 -->
+      <div v-if="viewingData?.insights?.overall_activity" 
+        v-html="formatInsightText(viewingData.insights.overall_activity)"
+      >
+      </div>
     </div>
 
     <!-- 年度观看热力图 -->
@@ -43,7 +54,7 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue'
 import * as echarts from 'echarts'
-import { getYearlyAnalysis } from '../../../../api/api'
+import { getYearlyAnalysis, getViewingBehavior } from '../../../../api/api'
 
 const props = defineProps({
   viewingData: {
@@ -55,9 +66,11 @@ const props = defineProps({
 const heatmapChartRef = ref(null)
 let heatmapChart = null
 const yearlyData = ref(null)
+const viewingBehaviorData = ref(null)
 
 // 格式化洞察文本，为数字添加颜色
 const formatInsightText = (text) => {
+  if (!text) return '';
   return text.replace(/(\d+(\.\d+)?)/g, '<span class="text-[#fb7299]">$1</span>')
 }
 
@@ -91,6 +104,20 @@ const fetchYearlyData = async (year) => {
     }
   } catch (error) {
     console.error('获取年度数据出错:', error)
+  }
+}
+
+// 获取观看行为数据
+const fetchViewingBehavior = async (year) => {
+  if (!year) return
+  
+  try {
+    const response = await getViewingBehavior(year, true)
+    if (response.data && response.data.status === 'success') {
+      viewingBehaviorData.value = response.data.data
+    }
+  } catch (error) {
+    console.error('获取观看行为数据失败:', error)
   }
 }
 
@@ -192,6 +219,7 @@ const initHeatmapChart = () => {
 onMounted(() => {
   if (props.viewingData?.year) {
     fetchYearlyData(props.viewingData.year)
+    fetchViewingBehavior(props.viewingData.year)
   }
   
   // 监听窗口大小变化
@@ -211,6 +239,7 @@ watch(() => yearlyData.value, () => {
 watch(() => props.viewingData?.year, (newYear) => {
   if (newYear) {
     fetchYearlyData(newYear)
+    fetchViewingBehavior(newYear)
   }
 }, { immediate: true })
 </script>

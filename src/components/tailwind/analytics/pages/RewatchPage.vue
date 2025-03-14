@@ -10,8 +10,8 @@
 
           <div v-if="viewingData?.insights?.most_watched_videos"
             class="text-sm text-center text-gray-600 dark:text-gray-300 mb-2 px-4"
+            v-html="formatInsightText(viewingData.insights.most_watched_videos)"
           >
-            {{ viewingData.insights.most_watched_videos }}
           </div>
 
           <!-- 第一名 -->
@@ -132,6 +132,12 @@ onMounted(() => {
   videoList.value = props.viewingData?.watch_counts?.most_watched_videos || []
   initAnimation()
 })
+
+// 格式化洞察文本，为数字添加颜色
+const formatInsightText = (text) => {
+  if (!text) return '';
+  return text.replace(/(\d+(\.\d+)?)/g, '<span class="text-[#fb7299]">$1</span>')
+}
 </script>
 
 <style scoped>

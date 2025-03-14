@@ -1,6 +1,6 @@
 # BilibiliHistoryFrontend
 
-这是一个基于 Vue 3 + Electron 开发的B站历史记录分析工具的前端项目，为用户提供丰富的B站观看历史数据分析功能。
+这是一个基于 Vue 3 开发的B站历史记录分析工具的前端项目，为用户提供丰富的B站观看历史数据分析功能。
 
 ## 该项目需要配合 [BilibiliHistoryFetcher](https://github.com/LifeArchiveProject/HistoryHub) 后端项目一起使用
 
@@ -297,7 +297,6 @@
 
 - **前端框架**：Vue 3
 - **构建工具**：Vite
-- **桌面端框架**：Electron
 - **UI 框架**：
   - Tailwind CSS
   - Vant
@@ -330,18 +329,12 @@ npm install
 ```bash
 # 网页版开发
 npm run dev
-
-# Electron版本开发
-npm run electron:dev
 ```
 
 4. 构建应用
 ```bash
 # 网页版构建
 npm run build
-
-# Electron版本构建
-npm run electron:build
 ```
 
 ## 项目结构
@@ -354,7 +347,6 @@ BilibiliHistoryFrontend/
 │   │   └── tailwind/     # Tailwind 样式组件
 │   ├── router/           # 路由配置
 │   └── style.css         # 全局样式
-├── electron/              # Electron 相关代码
 ├── public/               # 静态资源
 └── vite.config.js        # Vite 配置
 ```

@@ -6,8 +6,8 @@
     </h3>
 
     <div class="text-lg text-center text-gray-600 dark:text-gray-300 mb-8 space-y-2">
-      <div v-if="viewingData?.insights?.weekly_pattern">{{ viewingData.insights.weekly_pattern }}</div>
-      <div v-if="viewingData?.insights?.seasonal_pattern">{{ viewingData.insights.seasonal_pattern }}</div>
+      <div v-if="viewingData?.insights?.weekly_pattern" v-html="formatInsightText(viewingData.insights.weekly_pattern)"></div>
+      <div v-if="viewingData?.insights?.seasonal_pattern" v-html="formatInsightText(viewingData.insights.seasonal_pattern)"></div>
     </div>
 
     <!-- 图表容器 -->
@@ -184,4 +184,10 @@ onMounted(() => {
     })
   }
 })
+
+// 格式化洞察文本，为数字添加颜色
+const formatInsightText = (text) => {
+  if (!text) return '';
+  return text.replace(/(\d+(\.\d+)?)/g, '<span class="text-[#fb7299]">$1</span>')
+}
 </script> 
