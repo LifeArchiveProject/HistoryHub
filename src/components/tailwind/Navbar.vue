@@ -268,33 +268,8 @@ const handleUpdate = async () => {
 
   isUpdating.value = true
   try {
-    console.log('开始请求实时更新')
-    const response = await updateBiliHistoryRealtime()
-    console.log('实时更新响应:', response)
-
-    if (response?.data) {
-      if (response.data.status === 'success') {
-        const message = response.data.message
-        const importMatch = message.match(/成功导入\s*(\d+)\s*条记录到SQLite数据库/)
-        const importCount = importMatch ? importMatch[1] : '0'
-
-        showNotify({
-          type: 'success',
-          message: '成功导入 ' + importCount + ' 条记录到SQLite数据库',
-          duration: 3500,
-        })
-        console.log('触发 refresh-data 事件')
-        emit('refresh-data')
-      } else {
-        showNotify({
-          type: 'warning',
-          message: response.data.message || '更新未完成',
-          duration: 3500,
-        })
-      }
-    } else {
-      throw new Error('响应格式错误')
-    }
+    console.log('触发 refresh-data 事件')
+    emit('refresh-data')
   } catch (error) {
     console.error('更新失败详细信息:', error)
 
@@ -312,7 +287,9 @@ const handleUpdate = async () => {
     })
   } finally {
     console.log('更新流程结束')
-    isUpdating.value = false
+    setTimeout(() => {
+      isUpdating.value = false
+    }, 2000) // 添加一个短暂延迟，提供更好的视觉反馈
   }
 }
 </script>

@@ -2,7 +2,7 @@ import axios from 'axios'
 
 // 你的服务器地址
 const getBaseUrl = () => {
-  return localStorage.getItem('baseUrl') || 'http://localhost:8899'
+  return localStorage.getItem('baseUrl') || 'http://0.0.0.0:8899'
 }
 
 const BASE_URL = getBaseUrl()

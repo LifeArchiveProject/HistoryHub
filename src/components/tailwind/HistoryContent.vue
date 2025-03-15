@@ -823,7 +823,7 @@ const checkLoginStatus = async () => {
 const refreshData = async () => {
   try {
     isLoading.value = true
-    showNotify({ type: 'info', message: '正在从B站获取历史记录...' })
+    showNotify({ type: 'success', message: '正在从B站获取历史记录...' })
     
     const response = await updateBiliHistoryRealtime()
     if (response.data.status === 'success') {
