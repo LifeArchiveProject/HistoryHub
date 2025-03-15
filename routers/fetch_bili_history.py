@@ -82,7 +82,10 @@ async def get_bili_history_realtime():
         result = import_all_history_files()
         
         if result["status"] == "success":
-            message = f"实时更新成功，获取到 {len(new_records)} 条新记录，成功导入 {result['inserted_count']} 条记录到SQLite数据库"
+            if result['inserted_count'] > 0:
+                message = f"实时更新成功，获取到 {len(new_records)} 条新记录，成功导入 {result['inserted_count']} 条记录到SQLite数据库"
+            else:
+                message = "暂无新数据"  # 当导入记录为0时，显示暂无新数据
             return {"status": "success", "message": message, "data": new_records}
         else:
             return {"status": "error", "message": f"更新SQLite数据库失败: {result['message']}"}

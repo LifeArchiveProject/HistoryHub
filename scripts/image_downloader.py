@@ -843,30 +843,44 @@ class ImageDownloader:
             cursor = conn.cursor()
             table_name = f"bilibili_history_{year}"
             
-            # 获取封面URL
+            # 获取封面URL和头像URL，明确包含covers字段
             cursor.execute(f"""
-                SELECT DISTINCT cover, author_face
+                SELECT DISTINCT cover, covers, author_face
                 FROM {table_name}
-                WHERE cover IS NOT NULL OR author_face IS NOT NULL
+                WHERE cover IS NOT NULL OR covers IS NOT NULL OR author_face IS NOT NULL
             """)
             
             cover_urls = set()
             avatar_urls = set()
             
             for row in cursor.fetchall():
-                cover, avatar = row
+                cover, covers_json, avatar = row
                 
                 # 处理封面URL
                 if cover:
                     cover_urls.add(cover)
-                    
-                    # 处理JSON格式的covers字段
+                
+                # 处理JSON格式的covers字段
+                if covers_json:
                     try:
-                        covers = json.loads(cover)
+                        # 先检查covers_json是否已经是JSON对象
+                        if isinstance(covers_json, str):
+                            covers = json.loads(covers_json)
+                        else:
+                            covers = covers_json
+                            
+                        # 如果covers是列表，添加所有URL
                         if isinstance(covers, list):
-                            cover_urls.update(covers)
-                    except (json.JSONDecodeError, TypeError):
-                        pass
+                            for url in covers:
+                                if url and isinstance(url, str):
+                                    cover_urls.add(url)
+                        # 如果covers是字典，提取其中的所有URL
+                        elif isinstance(covers, dict):
+                            for key, value in covers.items():
+                                if isinstance(value, str) and ('http://' in value or 'https://' in value):
+                                    cover_urls.add(value)
+                    except (json.JSONDecodeError, TypeError) as e:
+                        print(f"解析covers字段失败: {e} - 值: {covers_json}")
                 
                 # 处理头像URL
                 if avatar:
