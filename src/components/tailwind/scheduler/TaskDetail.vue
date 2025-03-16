@@ -318,7 +318,18 @@ export default {
 }
 </script>
 
-<style scoped>
+<style>
+/* 确保弹窗在X轴和Y轴都居中 */
+.task-detail-dialog .van-dialog {
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  margin: 0 !important;
+  max-height: 80vh !important;
+  overflow-y: auto !important;
+}
+
 .task-detail-dialog :deep(.van-dialog__content) {
   max-height: 70vh;
   overflow-y: auto;
@@ -336,4 +347,4 @@ export default {
   padding: 12px 16px;
   font-size: 14px;
 }
-</style> 
+</style>

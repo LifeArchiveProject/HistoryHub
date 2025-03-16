@@ -87,7 +87,7 @@ export const getViewingAnalytics = async (year, useCache = true) => {
 }
 
 // 获取观看行为数据分析
-export const getViewingBehavior = async (year, useCache = true) => {
+export const getViewingBehavior = async (year, useCache = false) => {
   return instance.get(`/viewing/viewing/`, {
     params: {
       year,

@@ -6,13 +6,19 @@
     </h3>
     
     <div class="text-base text-center text-gray-600 dark:text-gray-300 space-y-3">
-      <!-- 合并三个总结到一行，用逗号分隔 -->
+      <!-- 按指定顺序合并所有总结，用逗号分隔 -->
       <div>
         <span v-if="viewingBehaviorData?.report?.total_summary" v-html="formatInsightText(viewingBehaviorData.report.total_summary)"></span>
-        <span v-if="viewingBehaviorData?.report?.total_summary && viewingBehaviorData?.report?.device_summary">, </span>
+        <span v-if="viewingBehaviorData?.report?.total_summary && viewingBehaviorData?.report?.category_summary">, </span>
+        <span v-if="viewingBehaviorData?.report?.category_summary" v-html="formatInsightText(viewingBehaviorData.report.category_summary)"></span>
+        <span v-if="(viewingBehaviorData?.report?.total_summary || viewingBehaviorData?.report?.category_summary) && viewingBehaviorData?.report?.device_summary">, </span>
         <span v-if="viewingBehaviorData?.report?.device_summary" v-html="formatInsightText(viewingBehaviorData.report.device_summary)"></span>
-        <span v-if="(viewingBehaviorData?.report?.total_summary || viewingBehaviorData?.report?.device_summary) && viewingBehaviorData?.report?.time_slot_summary">, </span>
+        <span v-if="(viewingBehaviorData?.report?.total_summary || viewingBehaviorData?.report?.category_summary || viewingBehaviorData?.report?.device_summary) && viewingBehaviorData?.report?.up_summary">, </span>
+        <span v-if="viewingBehaviorData?.report?.up_summary" v-html="formatInsightText(viewingBehaviorData.report.up_summary)"></span>
+        <span v-if="(viewingBehaviorData?.report?.total_summary || viewingBehaviorData?.report?.category_summary || viewingBehaviorData?.report?.device_summary || viewingBehaviorData?.report?.up_summary) && viewingBehaviorData?.report?.time_slot_summary">, </span>
         <span v-if="viewingBehaviorData?.report?.time_slot_summary" v-html="formatInsightText(viewingBehaviorData.report.time_slot_summary)"></span>
+        <span v-if="(viewingBehaviorData?.report?.total_summary || viewingBehaviorData?.report?.category_summary || viewingBehaviorData?.report?.device_summary || viewingBehaviorData?.report?.up_summary || viewingBehaviorData?.report?.time_slot_summary) && viewingBehaviorData?.report?.late_night_summary">, </span>
+        <span v-if="viewingBehaviorData?.report?.late_night_summary" v-html="formatInsightText(viewingBehaviorData.report.late_night_summary)"></span>
       </div>
       
       <!-- 整体活动总结 -->
@@ -248,4 +254,4 @@ watch(() => props.viewingData?.year, (newYear) => {
 .dark .echarts {
   filter: brightness(0.9);
 }
-</style> 
+</style>

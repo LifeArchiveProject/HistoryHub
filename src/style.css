@@ -4,3 +4,20 @@
 :root:root {
   --van-primary-color: #ff6699; /* 修改Vant主颜色 */
 }
+
+/* 计算弹窗管理样式 */
+.van-dialog {
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  margin: 0 !important;
+  max-height: 95vh !important;
+  overflow-y: auto !important;
+}
+
+/* 弹窗内容滚动样式 */
+.van-dialog__content {
+  max-height: 85vh;
+  overflow-y: auto;
+}
