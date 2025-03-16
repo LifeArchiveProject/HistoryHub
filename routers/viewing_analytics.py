@@ -1137,27 +1137,78 @@ def analyze_viewing_details(cursor, table_name: str) -> dict:
     ]
     
     # 5. 寻找深夜观看记录
+    # 第一步：创建临时表存储深夜观看记录
     cursor.execute(f"""
+        CREATE TEMPORARY TABLE IF NOT EXISTS temp_night_views AS
         SELECT 
-            strftime('%Y-%m-%d', datetime(view_at + 28800, 'unixepoch')) as date,
-            strftime('%H:%M', datetime(view_at + 28800, 'unixepoch')) as time,
+            view_at,
             author_name,
-            title
+            title,
+            strftime('%H', datetime(view_at + 28800, 'unixepoch')) as hour,
+            strftime('%M', datetime(view_at + 28800, 'unixepoch')) as minute,
+            -- 将凌晨时间(00:00-05:00)的日期调整为前一天
+            CASE 
+                WHEN strftime('%H', datetime(view_at + 28800, 'unixepoch')) < '05' THEN 
+                    date(datetime(view_at + 28800 - 86400, 'unixepoch'))
+                ELSE 
+                    date(datetime(view_at + 28800, 'unixepoch'))
+            END as adjusted_date,
+            -- 计算小时+分钟的浮点数时间
+            CASE 
+                WHEN strftime('%H', datetime(view_at + 28800, 'unixepoch')) < '05' THEN 
+                    CAST(strftime('%H', datetime(view_at + 28800, 'unixepoch')) AS REAL) + 24 
+                ELSE 
+                    CAST(strftime('%H', datetime(view_at + 28800, 'unixepoch')) AS REAL)
+            END + CAST(strftime('%M', datetime(view_at + 28800, 'unixepoch')) AS REAL)/100.0 as hour_with_minute
         FROM {table_name}
         WHERE 
             strftime('%H', datetime(view_at + 28800, 'unixepoch')) >= '23' OR 
             strftime('%H', datetime(view_at + 28800, 'unixepoch')) < '05'
-        ORDER BY view_at DESC
+    """)
+    
+    # 第二步：创建临时表存储每天最晚的观看时间
+    cursor.execute("""
+        CREATE TEMPORARY TABLE IF NOT EXISTS temp_latest_per_day AS
+        SELECT 
+            adjusted_date,
+            MAX(hour_with_minute) as latest_hour_with_minute
+        FROM temp_night_views
+        GROUP BY adjusted_date
+    """)
+    
+    # 第三步：查询每天最晚的观看记录
+    cursor.execute("""
+        SELECT 
+            t.adjusted_date as date,
+            strftime('%H:%M', datetime(t.view_at + 28800, 'unixepoch')) as time,
+            t.author_name,
+            t.title,
+            t.hour,
+            t.minute,
+            t.hour_with_minute
+        FROM temp_night_views t
+        JOIN temp_latest_per_day l ON 
+            t.adjusted_date = l.adjusted_date AND 
+            t.hour_with_minute = l.latest_hour_with_minute
+        ORDER BY t.hour_with_minute DESC
         LIMIT 10
     """)
+    
     late_night_views = [
         {
             "date": row[0],
             "time": row[1],
             "author": row[2],
-            "title": row[3]
+            "title": row[3],
+            "hour": int(row[4]),
+            "minute": row[5],
+            "hour_with_minute": float(row[6])
         } for row in cursor.fetchall()
     ]
+    
+    # 清理临时表
+    cursor.execute("DROP TABLE IF EXISTS temp_night_views")
+    cursor.execute("DROP TABLE IF EXISTS temp_latest_per_day")
     
     # 6. 各时间段的活跃天数百分比
     cursor.execute(f"""
@@ -1230,6 +1281,7 @@ def generate_viewing_report(viewing_details: dict) -> dict:
     
     # 3. 深夜观看记录
     if viewing_details["late_night_views"]:
+        # late_night_views已按照最晚时间排序，首条记录是最晚的
         latest_view = viewing_details["late_night_views"][0]
         report["late_night_summary"] = f"{latest_view['date']}你迟迟不肯入睡，{latest_view['time']}还在看{latest_view['author']}的《{latest_view['title']}》"
     

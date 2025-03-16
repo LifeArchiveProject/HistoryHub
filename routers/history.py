@@ -120,7 +120,6 @@ def _process_image_url(url: str, image_type: str, use_local: bool) -> str:
     try:
         # 计算URL的哈希值
         file_hash = hashlib.md5(url.encode()).hexdigest()
-        print(f"URL哈希值: {file_hash}")
         
         # 检查图片类型是否有效
         if image_type not in ('covers', 'avatars'):
@@ -130,7 +129,6 @@ def _process_image_url(url: str, image_type: str, use_local: bool) -> str:
         # 构建本地图片URL
         base_url = "http://localhost:8899/images/local"
         local_url = f"{base_url}/{image_type}/{file_hash}"
-        print(f"生成本地URL: {local_url}")
         
         return local_url
         
