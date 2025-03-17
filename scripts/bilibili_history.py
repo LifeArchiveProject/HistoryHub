@@ -11,8 +11,10 @@ config = load_config()
 def load_cookie():
     """从配置文件读取 SESSDATA"""
     print("\n=== 读取 Cookie 配置 ===")
-    print(f"配置内容: {config}")
-    sessdata = config.get('SESSDATA', '')
+    # 重新加载配置文件，确保获取最新的SESSDATA
+    current_config = load_config()
+    print(f"配置内容: {current_config}")
+    sessdata = current_config.get('SESSDATA', '')
     if not sessdata:
         print("警告: 配置文件中未找到 SESSDATA")
         return ''
@@ -279,6 +281,9 @@ def fetch_and_compare_history(cookie, latest_date):
 async def fetch_history(output_dir: str = "history_by_date") -> dict:
     """主函数：获取B站历史记录"""
     try:
+        # 重新加载配置文件，确保获取最新的SESSDATA
+        current_config = load_config()
+        
         # 修改这里：直接使用 output_dir 而不是拼接 output 路径
         full_output_dir = get_output_path(output_dir)  # 这里 get_output_path 已经会添加 output 前缀
         
@@ -286,7 +291,7 @@ async def fetch_history(output_dir: str = "history_by_date") -> dict:
         print(f"输出目录: {full_output_dir}")
         print(f"目录存在: {os.path.exists(full_output_dir)}")
         
-        cookie = config.get('SESSDATA', '')
+        cookie = current_config.get('SESSDATA', '')
         if not cookie:
             return {"status": "error", "message": "未找到SESSDATA配置"}
 

@@ -30,9 +30,11 @@ class ResponseModel(BaseModel):
 
 def get_headers():
     """获取请求头"""
+    # 动态读取配置文件，获取最新的SESSDATA
+    current_config = load_config()
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-        'Cookie': f'SESSDATA={config["SESSDATA"]}'
+        'Cookie': f'SESSDATA={current_config["SESSDATA"]}'
     }
     return headers
 
