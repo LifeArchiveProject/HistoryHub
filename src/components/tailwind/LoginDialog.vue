@@ -62,7 +62,8 @@ import { showNotify } from 'vant'
 import { 
   generateLoginQRCode,
   getQRCodeImageURL,
-  pollQRCodeStatus
+  pollQRCodeStatus,
+  getLoginStatus
 } from '../../api/api'
 
 const props = defineProps({
@@ -156,8 +157,24 @@ const startPolling = () => {
             type: 'success',
             message: '登录成功'
           })
-          // 发送登录成功事件
-          emit('login-success')
+          
+          // 获取用户信息并发送登录成功事件
+          try {
+            const userResponse = await getLoginStatus()
+            if (userResponse.data && userResponse.data.status === 'success') {
+              console.log('登录对话框获取到用户信息:', userResponse.data)
+              // 发送登录成功事件，并传递用户信息
+              emit('login-success', userResponse.data.data)
+            } else {
+              // 如果获取用户信息失败，仍然发送登录成功事件
+              emit('login-success')
+            }
+          } catch (error) {
+            console.error('获取用户信息失败:', error)
+            // 如果出错，仍然发送登录成功事件
+            emit('login-success')
+          }
+          
           // 关闭弹窗
           setTimeout(() => {
             handleClose()

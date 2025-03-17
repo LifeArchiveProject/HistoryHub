@@ -227,7 +227,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { usePrivacyStore } from '../../store/privacy'
 import { importSqliteData, getLoginStatus, logout, getSqliteVersion } from '../../api/api'
@@ -454,5 +454,33 @@ const fetchSqliteVersion = async () => {
 onMounted(async () => {
   checkLoginStatus()
   await fetchSqliteVersion()
+  
+  // 添加全局事件监听器，当登录状态变化时更新侧边栏的登录状态
+  window.addEventListener('login-status-changed', handleLoginStatusChange)
+})
+
+// 处理登录状态变化事件
+const handleLoginStatusChange = (event) => {
+  console.log('侧边栏收到登录状态变化事件，正在更新登录状态...', event.detail)
+  
+  // 如果事件中包含用户信息，直接使用
+  if (event.detail && event.detail.isLoggedIn) {
+    isLoggedIn.value = true
+    if (event.detail.userInfo) {
+      userInfo.value = event.detail.userInfo
+      console.log('从事件中获取到用户信息:', userInfo.value)
+    } else {
+      // 如果没有用户信息，则调用API获取
+      checkLoginStatus()
+    }
+  } else {
+    // 如果事件中没有登录状态信息，则调用API获取
+    checkLoginStatus()
+  }
+}
+
+// 组件卸载时移除事件监听器
+onUnmounted(() => {
+  window.removeEventListener('login-status-changed', handleLoginStatusChange)
 })
 </script>

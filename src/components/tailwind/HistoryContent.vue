@@ -800,10 +800,43 @@ const openLoginDialog = () => {
 }
 
 // 处理登录成功
-const handleLoginSuccess = () => {
-  checkLoginStatus()
-  if (isLoggedIn.value) {
-    fetchHistoryByDateRange()
+const handleLoginSuccess = async (userData) => {
+  try {
+    // 如果登录对话框传递了用户数据，直接使用
+    if (userData && userData.is_logged_in) {
+      isLoggedIn.value = userData.is_logged_in
+      console.log('登录成功，从对话框获取到的用户信息:', userData)
+      
+      // 触发全局事件，通知侧边栏更新登录状态，并传递用户信息
+      window.dispatchEvent(new CustomEvent('login-status-changed', { 
+        detail: { 
+          isLoggedIn: true,
+          userInfo: userData.user_info
+        } 
+      }))
+    } else {
+      // 如果没有传递用户数据，则调用API获取
+      const response = await getLoginStatus()
+      if (response.data && response.data.status === 'success') {
+        isLoggedIn.value = response.data.data.is_logged_in
+        console.log('登录成功，通过API获取到的用户信息:', response.data.data)
+        
+        // 触发全局事件，通知侧边栏更新登录状态，并传递用户信息
+        window.dispatchEvent(new CustomEvent('login-status-changed', { 
+          detail: { 
+            isLoggedIn: true,
+            userInfo: response.data.data.user_info
+          } 
+        }))
+      }
+    }
+    
+    // 刷新历史记录数据
+    if (isLoggedIn.value) {
+      fetchHistoryByDateRange()
+    }
+  } catch (error) {
+    console.error('登录成功后获取状态失败:', error)
   }
 }
 
