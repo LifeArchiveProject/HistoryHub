@@ -145,6 +145,61 @@
                   </div>
                 </div>
               </div>
+
+              <!-- 隐私模式 -->
+              <div class="p-2 m-1 transition-colors duration-200 hover:bg-gray-100 rounded-lg">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <h3 class="text-base font-medium text-gray-900">隐私模式</h3>
+                    <p class="text-sm text-gray-500">开启后将模糊显示标题、封面、UP主名称等敏感信息</p>
+                  </div>
+                  <van-switch v-model="privacyMode" size="24" />
+                </div>
+              </div>
+
+              <!-- 首页默认布局设置 -->
+              <div class="p-2 m-1 transition-colors duration-200 hover:bg-gray-100 rounded-lg">
+                <div class="flex flex-col space-y-2">
+                  <div class="flex items-center justify-between mb-1">
+                    <div>
+                      <h3 class="text-base font-medium text-gray-900">首页默认布局</h3>
+                      <p class="text-sm text-gray-500">设置历史记录页面的默认展示方式</p>
+                    </div>
+                  </div>
+                  <div class="flex items-center space-x-4">
+                    <div 
+                      class="flex flex-col items-center cursor-pointer"
+                      @click="setDefaultLayout('grid')"
+                    >
+                      <div class="w-24 h-20 border rounded-lg p-2 flex items-center justify-center mb-1"
+                           :class="defaultLayout === 'grid' ? 'border-[#fb7299] bg-[#fb7299]/5' : 'border-gray-200 bg-white'">
+                        <div class="grid grid-cols-3 gap-1 w-full">
+                          <div v-for="i in 6" :key="i" 
+                               class="aspect-video rounded-sm"
+                               :class="defaultLayout === 'grid' ? 'bg-[#fb7299]/20' : 'bg-gray-200'"></div>
+                        </div>
+                      </div>
+                      <div class="text-sm" :class="defaultLayout === 'grid' ? 'text-[#fb7299]' : 'text-gray-500'">网格视图</div>
+                    </div>
+                    <div 
+                      class="flex flex-col items-center cursor-pointer"
+                      @click="setDefaultLayout('list')"
+                    >
+                      <div class="w-24 h-20 border rounded-lg p-2 flex flex-col justify-center space-y-1 mb-1"
+                           :class="defaultLayout === 'list' ? 'border-[#fb7299] bg-[#fb7299]/5' : 'border-gray-200 bg-white'">
+                        <div v-for="i in 4" :key="i" 
+                             class="flex w-full h-3 space-x-1">
+                          <div class="w-1/3 rounded-sm" 
+                               :class="defaultLayout === 'list' ? 'bg-[#fb7299]/20' : 'bg-gray-200'"></div>
+                          <div class="w-2/3 rounded-sm" 
+                               :class="defaultLayout === 'list' ? 'bg-[#fb7299]/20' : 'bg-gray-200'"></div>
+                        </div>
+                      </div>
+                      <div class="text-sm" :class="defaultLayout === 'list' ? 'text-[#fb7299]' : 'text-gray-500'">列表视图</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </section>
 
@@ -356,11 +411,30 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { showDialog, showNotify } from 'vant'
-import { getCurrentBaseUrl, setBaseUrl, resetDatabase, getAvailableYears, importSqliteData, exportHistory, downloadExcelFile, downloadDatabase, getEmailConfig, updateEmailConfig, setDeepSeekApiKey, getDeepSeekBalance, checkDeepSeekApiKey } from '../../api/api'
-import 'vant/es/dialog/style'
+import { ref, computed, onMounted, watch } from 'vue'
+import { showNotify, showToast } from 'vant'
 import 'vant/es/notify/style'
+import 'vant/es/toast/style'
+import 'vant/es/dialog/style'
+import { 
+  exportHistory, 
+  downloadExcelFile, 
+  downloadDatabase,
+  getSqliteVersion,
+  resetDatabase,
+  updateSummaryConfig,
+  getSummaryConfig,
+  getAvailableYears,
+  importSqliteData,
+  getEmailConfig,
+  updateEmailConfig,
+  checkDeepSeekApiKey,
+  setDeepSeekApiKey,
+  getDeepSeekBalance
+} from '../../api/api'
+import { setBaseUrl, getCurrentBaseUrl } from '../../api/api'
+import { usePrivacyStore } from '../../store/privacy'
+import { showDialog } from 'vant'
 import SummaryConfig from './SummaryConfig.vue'
 
 const selectedYear = ref(new Date().getFullYear())
@@ -389,6 +463,28 @@ const deepseekBalance = ref({
   balance_infos: []
 })
 const deepseekBalanceMessage = ref('')
+
+// 隐私模式
+const { isPrivacyMode, setPrivacyMode } = usePrivacyStore()
+const privacyMode = ref(isPrivacyMode.value)
+
+// 默认布局设置
+const defaultLayout = ref(localStorage.getItem('defaultLayout') || 'grid')
+
+// 设置默认布局
+const setDefaultLayout = (layout) => {
+  defaultLayout.value = layout
+  localStorage.setItem('defaultLayout', layout)
+  showNotify({
+    type: 'success',
+    message: '默认布局已保存'
+  })
+}
+
+// 监听隐私模式变化
+watch(privacyMode, (newVal) => {
+  setPrivacyMode(newVal)
+})
 
 // 初始化服务器地址
 onMounted(async () => {

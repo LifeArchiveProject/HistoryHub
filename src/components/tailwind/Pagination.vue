@@ -1,16 +1,18 @@
 <template>
   <div class="mx-auto mb-5 mt-8 max-w-4xl lm:text-xs">
-    <div class="flex justify-between space-x-4 lm:mx-5">
+    <div class="flex justify-between items-center space-x-4 lm:mx-5">
       <button
         @click="handlePageChange(currentPage - 1)"
         :disabled="currentPage === 1"
-        class="rounded-md bg-[#00A1D6] px-1 py-2 text-white disabled:cursor-not-allowed disabled:opacity-50 lm:px-1 lm:py-2 lm:text-xs"
+        class="flex items-center text-gray-500 hover:text-[#fb7299] disabled:opacity-40 disabled:cursor-not-allowed transition-colors px-3 py-2"
       >
-        上一页
+        <svg class="w-5 h-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+        <span class="hidden sm:inline">上一页</span>
       </button>
 
       <div class="flex items-center text-gray-700 lm:text-xs">
-        <span>第</span>
         <div class="relative mx-1 inline-block">
           <input
             ref="pageInput"
@@ -21,18 +23,21 @@
             @focus="handleFocus"
             min="1"
             :max="totalPages"
-            class="h-8 w-16 cursor-pointer rounded border border-gray-300 px-1 text-center transition-colors [appearance:textfield] hover:border-[#00A1D6] focus:border-[#00A1D6] focus:outline-none focus:ring-1 focus:ring-[#00A1D6] lm:h-6 lm:w-12 lm:text-xs [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+            class="h-8 w-12 rounded border border-gray-200 px-2 text-center text-gray-700 transition-colors [appearance:textfield] hover:border-[#fb7299] focus:border-[#fb7299] focus:outline-none focus:ring-1 focus:ring-[#fb7299]/30 lm:h-6 lm:w-10 lm:text-xs [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
           />
         </div>
-        <span>页 / 共 {{ totalPages }} 页</span>
+        <span class="text-gray-500 mx-1">/ {{ totalPages }}</span>
       </div>
 
       <button
         @click="handlePageChange(currentPage + 1)"
         :disabled="currentPage === totalPages"
-        class="rounded-md bg-[#00A1D6] px-1 py-2 text-white disabled:cursor-not-allowed disabled:opacity-50 lm:px-1 lm:py-2 lm:text-xs"
+        class="flex items-center text-gray-500 hover:text-[#fb7299] disabled:opacity-40 disabled:cursor-not-allowed transition-colors px-3 py-2"
       >
-        下一页
+        <span class="hidden sm:inline">下一页</span>
+        <svg class="w-5 h-5 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+        </svg>
       </button>
     </div>
   </div>
@@ -58,7 +63,7 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['update:currentPage'])
+const emit = defineEmits(['page-change'])
 const router = useRouter()
 const route = useRoute()
 
@@ -93,7 +98,7 @@ const handlePageChange = (newPage) => {
         }
       }
     } else {
-      emit('update:currentPage', newPage)
+      emit('page-change', newPage)
     }
   }
 }
@@ -118,10 +123,6 @@ const handleJumpPage = () => {
 
 <style scoped>
 button {
-  transition: background-color 0.3s ease;
-}
-
-button:hover {
-  background-color: #008ec1;
+  transition: color 0.3s ease;
 }
 </style>

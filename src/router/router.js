@@ -6,6 +6,7 @@ import Settings from '../components/tailwind/Settings.vue'
 import MainLayout from '../components/tailwind/layout/MainLayout.vue'
 import Images from '../components/tailwind/page/Images.vue'
 import SchedulerTasks from '../components/tailwind/page/SchedulerTasks.vue'
+import Downloads from '../components/tailwind/page/Downloads.vue'
 
 const routes = [
   {
@@ -55,6 +56,11 @@ const routes = [
         path: 'scheduler',
         name: 'SchedulerTasks',
         component: SchedulerTasks
+      },
+      {
+        path: 'downloads',
+        name: 'Downloads',
+        component: Downloads
       }
     ]
   }

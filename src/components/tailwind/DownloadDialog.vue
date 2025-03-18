@@ -322,13 +322,19 @@ watch(() => downloadLogs.value.length, () => {
   })
 })
 
-// 关闭弹窗
+// 处理关闭弹窗
 const handleClose = () => {
   if (isDownloading.value) {
     if (!confirm('下载正在进行中，确定要关闭吗？')) {
       return
     }
   }
+  
+  // 如果下载已完成且没有错误，触发下载完成事件
+  if (downloadStarted.value && !isDownloading.value && !downloadError.value) {
+    emit('download-complete')
+  }
+  
   emit('update:show', false)
   // 重置状态
   downloadStarted.value = false

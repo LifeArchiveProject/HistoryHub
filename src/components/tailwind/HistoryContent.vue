@@ -117,6 +117,17 @@
 
               <!-- 封面图片 -->
               <div class="relative aspect-video cursor-pointer" @click="handleVideoClick(record)">
+                <!-- 下载状态标识 -->
+                <div v-if="isVideoDownloaded(record.cid) && record.business === 'archive'"
+                     class="absolute left-0 top-0 z-20">
+                  <div class="bg-gradient-to-r from-[#fb7299] to-[#fc9b7a] text-white font-semibold px-2 py-0.5 text-xs flex items-center space-x-1.5 rounded-br-md shadow-md">
+                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    <span>已下载</span>
+                  </div>
+                </div>
+                
                 <!-- 删除按钮 -->
                 <div v-if="!isBatchMode"
                      class="absolute right-2 top-2 z-20 hidden group-hover:flex items-center justify-center w-7 h-7 bg-[#7d7c75]/60 backdrop-blur-sm hover:bg-[#7d7c75]/80 rounded-md cursor-pointer transition-all duration-200"
@@ -266,6 +277,7 @@
               :is-batch-mode="isBatchMode"
               :is-selected="selectedRecords.has(`${record.bvid}_${record.view_at}`)"
               :remark-data="remarkData"
+              :is-downloaded="isVideoDownloaded(record.cid)"
               @toggle-selection="toggleRecordSelection"
               @refresh-data="fetchHistoryByDateRange"
               @remark-updated="handleRemarkUpdate"
@@ -324,6 +336,7 @@
         cover: selectedRecord?.cover || selectedRecord?.covers?.[0] || '',
         cid: selectedRecord?.cid || ''
       }"
+      @download-complete="handleDownloadComplete"
     />
   </Teleport>
 
@@ -375,7 +388,8 @@ import {
   batchDeleteHistory,
   batchGetRemarks,
   getLoginStatus,
-  updateBiliHistoryRealtime
+  updateBiliHistoryRealtime,
+  checkVideoDownload
 } from '../../api/api.js'
 import { showNotify, showDialog } from 'vant'
 import 'vant/es/dialog/style'
@@ -445,6 +459,7 @@ const total = ref(0)
 const sortOrder = ref(0)
 const size = ref(30)
 const remarkData = ref({}) // 存储备注数据
+const downloadedVideos = ref(new Set()) // 存储已下载视频的CID集合
 
 const date = ref('')
 const dateRange = ref('')
@@ -619,6 +634,52 @@ const onConfirm = (values) => {
   fetchHistoryByDateRange()
 }
 
+// 批量检查视频下载状态
+const batchCheckDownloadStatus = async () => {
+  try {
+    if (records.value.length === 0) return
+    
+    // 筛选出视频类型的记录
+    const videoRecords = records.value.filter(record => record.business === 'archive')
+    if (videoRecords.length === 0) return
+    
+    // 获取所有视频的CID
+    const cids = videoRecords.map(record => record.cid).filter(cid => cid)
+    if (cids.length === 0) return
+    
+    console.log('批量检查下载状态:', cids)
+    const response = await checkVideoDownload(cids)
+    
+    // 打印完整的API响应
+    console.log('检查下载状态API响应:', JSON.stringify(response.data, null, 2))
+    
+    if (response.data && response.data.status === 'success') {
+      // 清空已有集合
+      downloadedVideos.value.clear()
+      
+      // 处理返回结果，将已下载视频的CID添加到集合中
+      const results = response.data.results || {}
+      
+      // 遍历results对象的每个键值对
+      Object.entries(results).forEach(([cid, info]) => {
+        if (info.downloaded) {
+          downloadedVideos.value.add(cid.toString())
+        }
+      })
+      
+      console.log('已下载视频数量:', downloadedVideos.value.size)
+      console.log('已下载视频CID:', [...downloadedVideos.value])
+    }
+  } catch (error) {
+    console.error('批量检查下载状态失败:', error)
+  }
+}
+
+// 检查视频是否已下载
+const isVideoDownloaded = (cid) => {
+  return cid && downloadedVideos.value.has(cid.toString())
+}
+
 // 数据获取函数
 const fetchHistoryByDateRange = async () => {
   console.log('HistoryContent - fetchHistoryByDateRange 被调用')
@@ -666,6 +727,12 @@ const fetchHistoryByDateRange = async () => {
         if (remarksResponse.data.status === 'success') {
           remarkData.value = remarksResponse.data.data
         }
+        
+        // 批量检查下载状态
+        await batchCheckDownloadStatus()
+        
+        // 调用调试函数
+        debugVideoCids()
       }
     }
   } catch (error) {
@@ -1131,5 +1198,30 @@ const handleDownloadGrid = (record) => {
   console.log('handleDownloadGrid - 处理网格视图下载按钮点击')
   selectedRecord.value = record
   showDownloadDialog.value = true
+}
+
+// 处理下载完成
+const handleDownloadComplete = async () => {
+  // 下载完成后重新检查下载状态
+  await batchCheckDownloadStatus()
+}
+
+// 调试函数，在控制台显示所有视频的CID和下载状态
+const debugVideoCids = () => {
+  const videoRecords = records.value.filter(record => record.business === 'archive')
+  console.log('视频记录数量:', videoRecords.length)
+  
+  if (videoRecords.length > 0) {
+    console.log('前5个视频记录的CID:')
+    videoRecords.slice(0, 5).forEach(record => {
+      console.log({
+        title: record.title,
+        cid: record.cid,
+        downloaded: isVideoDownloaded(record.cid)
+      })
+    })
+  }
+  
+  console.log('已下载视频集合:', [...downloadedVideos.value])
 }
 </script>

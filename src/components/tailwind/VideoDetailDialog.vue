@@ -24,7 +24,7 @@
             <div class="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
               {{ formatDuration(video.duration) }}
             </div>
-            
+
             <!-- 进度条 -->
             <div v-if="video.business !== 'article-list' && video.business !== 'article' && video.business !== 'live'"
                  class="absolute bottom-0 left-0 w-full h-1 bg-gray-700/50">
@@ -34,21 +34,48 @@
               </div>
             </div>
           </div>
-          
+
           <!-- 操作按钮 -->
           <div class="mt-4 flex space-x-2">
             <button
               @click="openInBilibili"
-              class="w-full px-4 py-2 bg-[#fb7299] hover:bg-[#fc8bad] text-white text-sm rounded-lg flex items-center justify-center space-x-1"
+              class="flex-1 px-4 py-2 bg-[#fb7299] hover:bg-[#fc8bad] text-white text-sm rounded-lg flex items-center justify-center space-x-1"
             >
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
               </svg>
               <span>在B站打开</span>
             </button>
+
+            <button
+              @click="handleShowDownload"
+              class="flex-1 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 text-sm rounded-lg flex items-center justify-center space-x-1"
+              :class="{ 'bg-pink-50 text-[#fb7299] hover:bg-pink-100': isVideoDownloaded }"
+            >
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path v-if="isVideoDownloaded" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                <path v-else stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              <span>{{ isVideoDownloaded ? '已下载' : '下载' }}</span>
+            </button>
+          </div>
+
+          <!-- 视频下载信息 -->
+          <div v-if="isVideoDownloaded && downloadedFiles.length > 0" class="mt-3">
+            <div class="text-xs text-gray-500 p-2 bg-pink-50 rounded-lg">
+              <div class="flex items-center mb-1">
+                <svg class="w-3 h-3 text-[#fb7299] mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                <span class="font-medium text-[#fb7299]">视频已下载</span>
+              </div>
+              <div v-for="(file, index) in downloadedFiles" :key="index" class="ml-4 truncate" :title="file.file_path">
+                {{ file.file_name }} ({{ file.size_mb.toFixed(1) }} MB)
+              </div>
+            </div>
           </div>
         </div>
-        
+
         <!-- 右侧：视频详情 -->
         <div class="md:w-2/3">
           <!-- 视频标题 -->
@@ -59,7 +86,7 @@
             </h3>
             <EnvironmentCheck class="ml-4 flex-shrink-0" />
           </div>
-          
+
           <!-- 视频信息 -->
           <div class="space-y-3 text-sm">
             <!-- UP主信息 -->
@@ -86,7 +113,7 @@
                 <p class="text-xs text-gray-500">UP主</p>
               </div>
             </div>
-            
+
             <!-- 视频分区和时间 -->
             <div class="flex flex-wrap gap-2">
               <div class="rounded-md bg-[#f1f2f3] dark:bg-gray-700 px-2 py-1 text-xs text-gray-700 dark:text-gray-300">
@@ -104,7 +131,7 @@
                 {{ video.badge }}
               </div>
             </div>
-            
+
             <!-- 备注 -->
             <div class="mt-3">
               <label class="text-sm text-gray-700 dark:text-gray-300 mb-1 block">备注</label>
@@ -124,7 +151,7 @@
           </div>
         </div>
       </div>
-      
+
       <!-- 视频摘要 -->
       <div v-if="video.business === 'archive'" class="mt-6">
         <!-- 标签页 -->
@@ -150,9 +177,9 @@
         <div class="mt-4">
           <!-- B站AI摘要 -->
           <div v-show="currentTab === 'bilibili'" class="space-y-4">
-            <VideoSummary 
-              :bvid="video.bvid" 
-              :cid="String(video.cid)" 
+            <VideoSummary
+              :bvid="video.bvid"
+              :cid="String(video.cid)"
               :upMid="String(video.author_mid)"
             />
           </div>
@@ -166,7 +193,7 @@
                 <span class="text-gray-600">正在检查系统环境...</span>
               </div>
             </div>
-            
+
             <!-- 系统资源不足提示 -->
             <div v-else-if="!canRunSpeechToText" class="flex items-center justify-center p-6 bg-red-50 text-red-700 rounded-lg">
               <div class="flex flex-col items-center text-center">
@@ -177,7 +204,7 @@
                 <span class="text-sm">{{ systemLimitationReason || '系统资源不足，无法运行语音转文字功能' }}</span>
               </div>
             </div>
-            
+
             <!-- CUDA不可用提示 -->
             <div v-if="!cudaAvailable && cudaSetupGuide && showCudaGuide" class="flex flex-col p-6 bg-yellow-50 text-yellow-800 rounded-lg">
               <div class="flex items-center mb-4">
@@ -189,22 +216,22 @@
                   <p class="text-sm">本地摘要功能可以使用，但速度会较慢。安装CUDA可以显著提升处理速度。</p>
                 </div>
               </div>
-              
+
               <div class="mt-2">
                 <h4 class="font-medium mb-2">CUDA 安装指南</h4>
                 <pre class="text-xs bg-gray-100 p-3 rounded-md overflow-auto max-h-60 whitespace-pre-wrap">{{ cudaSetupGuide }}</pre>
               </div>
-              
+
               <div class="mt-4 flex justify-end">
-                <button 
-                  @click="showCudaGuide = false" 
+                <button
+                  @click="showCudaGuide = false"
                   class="px-4 py-2 bg-yellow-600 text-white rounded-md text-sm hover:bg-yellow-700 transition-colors"
                 >
                   我已了解，继续使用
                 </button>
               </div>
             </div>
-            
+
             <!-- 只有在系统资源足够且CUDA可用或用户已确认时才显示以下内容 -->
             <template v-else-if="canRunSpeechToText && (!cudaAvailable ? !showCudaGuide : true)">
               <!-- 本地摘要显示部分 -->
@@ -232,7 +259,7 @@
                     </button>
                   </div>
                 </div>
-                
+
                 <!-- 处理信息和Token信息 -->
                 <div class="mb-4 p-3 bg-gray-50 rounded-lg">
                   <div class="text-xs text-gray-500 space-y-2">
@@ -254,8 +281,8 @@
                 <div class="text-sm text-gray-700 whitespace-pre-line">
                   <div v-if="localSummaryData?.summary" class="space-y-4">
                     <template v-for="(section, index) in localSummaryData.summary.split('\n')" :key="index">
-                      <div v-if="hasTimeStamp(section)" 
-                           class="cursor-pointer hover:bg-[#fb7299]/10 hover:text-[#fb7299] transition-colors duration-200 px-2 py-1 rounded" 
+                      <div v-if="hasTimeStamp(section)"
+                           class="cursor-pointer hover:bg-[#fb7299]/10 hover:text-[#fb7299] transition-colors duration-200 px-2 py-1 rounded"
                            @click="handleTimeClick(section)">
                         <span class="text-[#fb7299]">{{ extractTimeStamp(section) }}</span>
                         <span>{{ section.replace(extractTimeStamp(section), '') }}</span>
@@ -341,7 +368,7 @@
                       'text-green-700': transcriptionResult && !isTranscribing,
                       'text-gray-700': !transcriptionResult && !isTranscribing
                     }">{{ transcriptionStatus }}</p>
-                    
+
                     <div v-if="transcriptionResult && !isTranscribing" class="mt-2 grid grid-cols-3 gap-4">
                       <div class="text-xs text-gray-600">
                         <span class="font-medium">视频时长：</span>
@@ -381,14 +408,14 @@
               <!-- 模型选择部分 -->
               <div class="bg-white rounded-lg border border-gray-200 p-4">
                 <h4 class="text-base font-medium text-gray-900 mb-2">选择语音识别模型</h4>
-                
+
                 <!-- 添加推荐说明 -->
                 <div class="mb-4 p-3 bg-blue-50 border border-blue-100 rounded-lg">
                   <p class="text-sm text-blue-700">
                     <span class="font-medium">推荐使用极小型多语言模型(tiny)</span>: 虽然转换后的字幕有错字或同音字，但是由于大模型的加持，在最后生成摘要的时候也可以被忽略和矫正，所以推荐选择最小模型以获得更快的转换速度。
                   </p>
                 </div>
-                
+
                 <!-- 长视频警告 -->
                 <div v-if="video && video.duration > 1800" class="mb-4 p-3 bg-yellow-50 border border-yellow-100 rounded-lg">
                   <div class="flex items-start">
@@ -403,7 +430,7 @@
                     </div>
                   </div>
                 </div>
-                
+
                 <!-- 语言选择 -->
                 <div class="mb-4">
                   <label class="block text-sm font-medium text-gray-700 mb-2">选择语言</label>
@@ -432,10 +459,10 @@
                     </button>
                   </div>
                 </div>
-                
+
                 <!-- 模型列表 -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div v-for="model in whisperModels" 
+                  <div v-for="model in whisperModels"
                        :key="model.name"
                        @click="selectModel(model)"
                        @mouseenter="hoveredModel = model"
@@ -454,41 +481,41 @@
                           {{ model.path }}
                         </p>
                       </div>
-                      <div v-if="model.is_downloaded" 
+                      <div v-if="model.is_downloaded"
                            class="flex-shrink-0 text-green-600">
                         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                         </svg>
                       </div>
                     </div>
-                    
+
                     <p class="mt-2 text-xs text-gray-600">{{ model.recommended_use }}</p>
-                    
+
                     <!-- 已下载模型的删除按钮 -->
-                    <div v-if="model.is_downloaded && hoveredModel && hoveredModel.name === model.name && !isDeletingModel" 
+                    <div v-if="model.is_downloaded && hoveredModel && hoveredModel.name === model.name && !isDeletingModel"
                          class="absolute top-2 right-2 z-10">
-                      <button @click.stop="showModelDeleteConfirm(model)" 
+                      <button @click.stop="showModelDeleteConfirm(model)"
                               class="p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors duration-200">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                         </svg>
                       </button>
                     </div>
-                    
+
                     <!-- 删除模型中状态 -->
-                    <div v-if="isDeletingModel && modelToDelete && modelToDelete.name === model.name" 
+                    <div v-if="isDeletingModel && modelToDelete && modelToDelete.name === model.name"
                          class="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center rounded-lg">
                       <div class="flex flex-col items-center space-y-2">
                         <div class="animate-spin h-6 w-6 border-2 border-red-500 border-t-transparent rounded-full"></div>
                         <span class="text-sm text-red-500">删除中...</span>
                       </div>
                     </div>
-                    
+
                     <!-- 未下载提示 -->
-                    <div v-if="!model.is_downloaded" 
+                    <div v-if="!model.is_downloaded"
                          class="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center rounded-lg">
                       <!-- 下载按钮 -->
-                      <div v-if="hoveredModel && hoveredModel.name === model.name && !isDownloadingModel" 
+                      <div v-if="hoveredModel && hoveredModel.name === model.name && !isDownloadingModel"
                            class="flex flex-col items-center space-y-2"
                            @click.stop="showModelDownloadConfirm(model)">
                         <button class="px-3 py-1.5 bg-[#fb7299] text-white rounded-md text-sm hover:bg-[#fb7299]/90 transition-colors duration-200">
@@ -497,7 +524,7 @@
                         <span class="text-xs text-gray-500">{{ model.params_size }}</span>
                       </div>
                       <!-- 下载中状态 -->
-                      <div v-else-if="isDownloadingModel && downloadingModel && downloadingModel.name === model.name" 
+                      <div v-else-if="isDownloadingModel && downloadingModel && downloadingModel.name === model.name"
                            class="flex flex-col items-center space-y-2">
                         <div class="animate-spin h-6 w-6 border-2 border-[#fb7299] border-t-transparent rounded-full"></div>
                         <span class="text-sm text-[#fb7299]">下载中...</span>
@@ -532,7 +559,7 @@
         </div>
       </div>
     </div>
-    
+
     <!-- 加载中 -->
     <div v-else class="p-6 flex justify-center">
       <div class="animate-spin h-8 w-8 border-4 border-[#fb7299] border-t-transparent rounded-full"></div>
@@ -550,7 +577,7 @@
       }"
       @download-complete="handleDownloadComplete"
     />
-    
+
     <!-- 下载模型确认对话框 -->
     <van-dialog
       v-model:show="showDownloadConfirm"
@@ -568,7 +595,7 @@
         <p class="mt-3 text-sm text-gray-500">下载模型将占用一定的磁盘空间</p>
       </div>
     </van-dialog>
-    
+
     <!-- 模型删除确认对话框 -->
     <van-dialog
       v-model:show="showDeleteConfirm"
@@ -587,18 +614,32 @@
       </div>
     </van-dialog>
   </van-dialog>
+
+  <!-- 视频下载对话框 -->
+  <DownloadDialog
+    v-model:show="showDownloadDialog"
+    :video-info="{
+      title: video?.title || '',
+      author: video?.author || '',
+      bvid: video?.bvid || '',
+      cover: video?.cover || video?.covers?.[0] || '',
+      cid: video?.cid || 0
+    }"
+    @download-complete="handleDownloadComplete"
+  />
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { showNotify, showDialog } from 'vant'
 import { usePrivacyStore } from '../../store/privacy'
 import 'vant/es/notify/style'
 import 'vant/es/dialog/style'
-import { updateVideoRemark, getWhisperModels, findAudioPath, transcribeAudio, checkSttFile, summarizeByCid, checkLocalSummary, downloadWhisperModel, deleteWhisperModel, checkAudioToTextEnvironment, getDeepSeekBalance, checkSystemResources } from '../../api/api'
+import { updateVideoRemark, getWhisperModels, findAudioPath, transcribeAudio, checkSttFile, summarizeByCid, checkLocalSummary, downloadWhisperModel, deleteWhisperModel, checkAudioToTextEnvironment, getDeepSeekBalance, checkSystemResources, checkVideoDownload } from '../../api/api'
 import VideoSummary from './VideoSummary.vue'
 import EnvironmentCheck from './EnvironmentCheck.vue'
 import DownloadDialog from './DownloadDialog.vue'
+import 'vant/es/dialog/style'
 
 const props = defineProps({
   modelValue: {
@@ -633,7 +674,7 @@ const remarkTime = ref(null)
 // 格式化时间戳
 const formatTimestamp = (timestamp) => {
   if (!timestamp) return '时间未知'
-  
+
   try {
     const date = new Date(timestamp * 1000)
     return date.toLocaleString('zh-CN', {
@@ -700,10 +741,10 @@ const getBusinessType = (business) => {
 // 初始化备注内容
 const initRemark = () => {
   if (!props.video) return
-  
+
   const key = `${props.video.bvid}_${props.video.view_at}`
   const data = props.remarkData[key]
-  
+
   if (data) {
     remarkContent.value = data.remark || ''
     remarkTime.value = data.remark_time || null
@@ -728,7 +769,7 @@ const handleRemarkBlur = async () => {
       props.video.view_at,
       remarkContent.value
     )
-    
+
     if (response.data.success || response.data.status === 'success') {
       if (remarkContent.value) { // 只在有内容时显示提示
         showNotify({
@@ -736,10 +777,10 @@ const handleRemarkBlur = async () => {
           message: '备注已保存'
         })
       }
-      
+
       originalRemark.value = remarkContent.value // 更新原始值
       remarkTime.value = response.data.data.remark_time // 更新备注时间
-      
+
       // 通知父组件备注已更新
       emit('remark-updated', {
         bvid: props.video.bvid,
@@ -760,9 +801,9 @@ const handleRemarkBlur = async () => {
 // 在B站打开视频
 const openInBilibili = () => {
   if (!props.video) return
-  
+
   let url = ''
-  
+
   switch (props.video.business) {
     case 'archive':
       url = `https://www.bilibili.com/video/${props.video.bvid}`
@@ -862,14 +903,14 @@ const fetchWhisperModels = async () => {
       const bBaseName = b.name.replace('.en', '')
       return sizeOrder.indexOf(aBaseName) - sizeOrder.indexOf(bBaseName)
     })
-    
+
     // 选择推荐的模型
     if (whisperModels.value.length > 0) {
       // 选择tiny模型
-      const tinyModel = whisperModels.value.find(model => 
+      const tinyModel = whisperModels.value.find(model =>
         model.name === 'tiny' && model.is_downloaded
       )
-      
+
       // 如果找到tiny模型，选择它
       if (tinyModel) {
         selectModel(tinyModel)
@@ -934,12 +975,12 @@ const sttFilePath = ref(null)
 const checkExistingStt = async () => {
   try {
     if (!props.video?.cid) return
-    
+
     const response = await checkSttFile(props.video.cid)
     if (response.data.success) {
       hasExistingStt.value = response.data.exists
       sttFilePath.value = response.data.file_path
-      
+
       if (response.data.exists) {
         transcriptionStatus.value = '已存在转换后的文件'
       }
@@ -957,7 +998,7 @@ const hasLocalSummary = ref(false)
 const checkLocalSummaryFile = async () => {
   try {
     if (!props.video?.cid) return
-    
+
     const response = await checkLocalSummary(props.video.cid)
     if (response.data.exists) {
       hasLocalSummary.value = true
@@ -976,19 +1017,19 @@ watch(currentTab, async (newTab) => {
     isCheckingEnvironment.value = true;
     canRunSpeechToText.value = false;
     cudaSetupGuide.value = '';
-    
+
     try {
       // 1. 检查系统资源
       const resourceResponse = await checkSystemResources();
       canRunSpeechToText.value = resourceResponse.data.can_run_speech_to_text;
       systemLimitationReason.value = resourceResponse.data.limitation_reason;
-      
+
       // 2. 如果系统资源足够，再检查CUDA
       if (canRunSpeechToText.value) {
         const cudaResponse = await checkAudioToTextEnvironment();
         cudaAvailable.value = cudaResponse.data.system_info.cuda_available;
         cudaSetupGuide.value = cudaResponse.data.system_info.cuda_setup_guide || '';
-        
+
         // 只有在系统资源足够时才加载其他内容
         fetchWhisperModels();
         await checkAudioFile();
@@ -1034,7 +1075,7 @@ const startTranscription = async () => {
       message: '该视频时长超过30分钟，转录后可能产生大量文本，导致AI无法处理。是否继续？',
       showCancelButton: true
     })
-    
+
     if (!result) {
       return
     }
@@ -1046,7 +1087,7 @@ const startTranscription = async () => {
       message: '已存在转换后的文件，是否重新转换？',
       showCancelButton: true
     })
-    
+
     if (!result) {
       return
     }
@@ -1061,7 +1102,7 @@ const startTranscription = async () => {
       language: selectedLanguage.value,
       cid: props.video.cid
     })
-    
+
     if (response.data.success || response.data.status === 'success') {
       transcriptionStatus.value = '转录任务已开始，正在处理中...'
       showNotify({
@@ -1092,7 +1133,7 @@ const handleTranscriptionComplete = async (response) => {
     processingTime: response.processing_time,
     languageDetected: response.language_detected
   }
-  
+
   showNotify({
     type: 'success',
     message: '转录完成'
@@ -1102,7 +1143,7 @@ const handleTranscriptionComplete = async (response) => {
   summaryStatus.value = ''
   summaryResult.value = null
   isSummarizing.value = false
-  
+
   // 转录完成后，刷新标签内容
   await checkExistingStt()
   await checkLocalSummaryFile()
@@ -1118,15 +1159,15 @@ const startGeneratingSummary = async () => {
         message: '该视频时长超过30分钟，转录文本可能过长，导致AI无法处理摘要请求。是否继续？',
         showCancelButton: true
       })
-      
+
       if (!result) {
         return
       }
     }
-    
+
     isSummarizing.value = true
     summaryStatus.value = '正在生成摘要...'
-    
+
     const response = await summarizeByCid(props.video.cid)
     if (response.data.success || response.data.status === 'success') {
       summaryStatus.value = '摘要生成完成'
@@ -1135,7 +1176,7 @@ const startGeneratingSummary = async () => {
         type: 'success',
         message: '摘要生成完成'
       })
-      
+
       // 摘要生成完成后，刷新标签内容
       await checkLocalSummaryFile()
     } else {
@@ -1184,7 +1225,7 @@ const handleTimeClick = (section) => {
     const startMinutes = parseInt(timeMatch[1])
     const startSeconds = parseInt(timeMatch[2])
     const startTime = startMinutes * 60 + startSeconds
-    
+
     // 构建B站视频URL并跳转
     const url = `https://www.bilibili.com/video/${props.video.bvid}?t=${startTime}`
     window.open(url, '_blank')
@@ -1198,11 +1239,20 @@ const extractTimeStamp = (text) => {
 }
 
 // 处理下载完成事件
-const handleDownloadComplete = () => {
+const handleDownloadComplete = async () => {
   // 下载完成后，刷新标签内容
   checkAudioFile()
   checkExistingStt()
   checkLocalSummaryFile()
+
+  // 重新检查视频下载状态
+  await checkIsVideoDownloaded()
+
+  showNotify({
+    type: 'success',
+    message: '下载完成',
+    duration: 2000
+  })
 }
 
 // 下载模型确认对话框相关
@@ -1213,7 +1263,7 @@ const showModelDownloadConfirm = (model) => {
 
 const startDownloadModel = async () => {
   if (!modelToDownload.value) return
-  
+
   try {
     isDownloadingModel.value = true
     downloadingModel.value = modelToDownload.value
@@ -1251,7 +1301,7 @@ const showModelDeleteConfirm = (model) => {
 
 const startDeleteModel = async () => {
   if (!modelToDelete.value) return
-  
+
   try {
     isDeletingModel.value = true
     const response = await deleteWhisperModel(modelToDelete.value.name)
@@ -1296,6 +1346,43 @@ const refreshDeepSeekBalance = async () => {
     deepseekBalance.value = { is_available: false }
   }
 }
+
+// 下载相关
+const isVideoDownloaded = ref(false)
+const downloadedFiles = ref([])
+
+// 检查视频是否已下载
+const checkIsVideoDownloaded = async () => {
+  try {
+    // 如果没有CID，则无法检查
+    if (!props.video?.cid) return
+
+    const response = await checkVideoDownload(props.video.cid)
+    if (response.data && response.data.status === 'success') {
+      isVideoDownloaded.value = response.data.downloaded
+
+      if (isVideoDownloaded.value && response.data.files) {
+        downloadedFiles.value = response.data.files
+      } else {
+        downloadedFiles.value = []
+      }
+    }
+  } catch (error) {
+    console.error('检查视频下载状态出错:', error)
+    isVideoDownloaded.value = false
+    downloadedFiles.value = []
+  }
+}
+
+// 监听视频变化，检查下载状态
+watch(() => props.video?.cid, (newCid) => {
+  if (newCid) {
+    checkIsVideoDownloaded()
+  } else {
+    isVideoDownloaded.value = false
+    downloadedFiles.value = []
+  }
+})
 </script>
 
 <style>

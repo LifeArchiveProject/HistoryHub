@@ -106,6 +106,24 @@
             <span v-show="!isCollapsed" class="truncate">计划任务</span>
           </router-link>
 
+          <!-- 视频下载 -->
+          <router-link
+            to="/downloads"
+            :title="isCollapsed ? '视频下载' : ''"
+            class="flex items-center py-2 text-gray-700 transition-all duration-300 ease-in-out"
+            :class="[
+              { 'bg-[#fb7299]/10 text-[#fb7299]': currentContent === 'downloads' },
+              { 'justify-center': isCollapsed },
+              isCollapsed ? 'px-2' : 'px-3 rounded-lg'
+            ]"
+            @click="currentContent = 'downloads'"
+          >
+            <svg class="w-6 h-6 flex-shrink-0" :class="{ 'mr-3': !isCollapsed }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            <span v-show="!isCollapsed" class="truncate">视频下载</span>
+          </router-link>
+
           <!-- 设置 -->
           <button
             @click="changeContent('settings')"
@@ -254,6 +272,8 @@ const currentContent = ref((() => {
     return 'analytics'
   } else if (path === '/scheduler') {
     return 'scheduler'
+  } else if (path === '/downloads') {
+    return 'downloads'
   } else if (path === '/' || path.startsWith('/page/')) {
     return 'history'
   }
@@ -281,6 +301,8 @@ watch(
       currentContent.value = 'analytics'
     } else if (path === '/scheduler') {
       currentContent.value = 'scheduler'
+    } else if (path === '/downloads') {
+      currentContent.value = 'downloads'
     } else if (path === '/' || path.startsWith('/page/')) {
       currentContent.value = 'history'
     }

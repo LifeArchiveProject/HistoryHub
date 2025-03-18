@@ -66,6 +66,16 @@
               </svg>
             </div>
           </div>
+          <!-- 已下载标识 -->
+          <div v-if="isDownloaded && record.business === 'archive'"
+               class="absolute left-0 top-0 z-10">
+            <div class="bg-gradient-to-r from-[#fb7299] to-[#fc9b7a] text-white font-semibold px-2 py-0.5 text-xs flex items-center space-x-1.5 rounded-br-md shadow-md">
+              <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              <span>已下载</span>
+            </div>
+          </div>
           <img
             :src="record.cover || record.covers[0]"
             class="h-full w-full object-cover transition-all duration-300"
@@ -143,6 +153,16 @@
               <svg v-if="isSelected" class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
               </svg>
+            </div>
+          </div>
+          <!-- 已下载标识 -->
+          <div v-if="isDownloaded && record.business === 'archive'"
+               class="absolute left-0 top-0 z-10">
+            <div class="bg-gradient-to-r from-[#fb7299] to-[#fc9b7a] text-white font-semibold px-2 py-0.5 text-xs flex items-center space-x-1.5 rounded-br-md shadow-md">
+              <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              <span>已下载</span>
             </div>
           </div>
           <img
@@ -241,6 +261,7 @@
             >
               {{ record.tag_name }}
             </span>
+            
             <!-- 备注输入框 -->
             <div class="flex-1 relative group" @click.stop>
               <div class="flex items-center space-x-1">
@@ -381,6 +402,10 @@ const props = defineProps({
   remarkData: {
     type: Object,
     default: () => ({})
+  },
+  isDownloaded: {
+    type: Boolean,
+    default: false
   }
 })
 

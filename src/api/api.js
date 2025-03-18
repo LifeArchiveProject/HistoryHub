@@ -638,3 +638,37 @@ export const setDeepSeekApiKey = (apiKey) => {
 export const getDeepSeekBalance = () => {
   return instance.get('/deepseek/balance')
 }
+
+// 检查视频是否已下载
+export const checkVideoDownload = (cids) => {
+  return instance.get(`/download/check_video_download`, {
+    params: {
+      cids: Array.isArray(cids) ? cids.join(',') : cids
+    }
+  })
+}
+
+// 获取已下载视频列表
+export const getDownloadedVideos = (searchTerm = '', page = 1, limit = 20) => {
+  return instance.get(`/download/list_downloaded_videos`, {
+    params: {
+      search_term: searchTerm,
+      page,
+      limit
+    }
+  })
+}
+
+// 删除已下载的视频
+export const deleteDownloadedVideo = (cid, deleteDirectory = false, directory = null) => {
+  return instance.delete(`/download/delete_downloaded_video`, {
+    params: {
+      cid,
+      delete_directory: deleteDirectory,
+      directory: directory
+    }
+  })
+}
+
+// 导入通知组件
+import 'vant/es/notify/style'

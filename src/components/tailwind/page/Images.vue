@@ -77,7 +77,7 @@
             <div class="text-sm text-gray-500">计划下载</div>
           </div>
           <div class="bg-white/50 rounded-lg p-4 border border-gray-200/50">
-            <div class="text-2xl font-bold text-green-500">{{ status?.covers?.downloaded || 0 }}</div>
+            <div class="text-2xl font-bold text-[#fb7299]">{{ status?.covers?.downloaded || 0 }}</div>
             <div class="text-sm text-gray-500">已下载</div>
           </div>
           <div class="bg-white/50 rounded-lg p-4 border border-gray-200/50">
@@ -136,7 +136,7 @@
             <div class="text-sm text-gray-500">计划下载</div>
           </div>
           <div class="bg-white/50 rounded-lg p-4 border border-gray-200/50">
-            <div class="text-2xl font-bold text-green-500">{{ status?.avatars?.downloaded || 0 }}</div>
+            <div class="text-2xl font-bold text-[#fb7299]">{{ status?.avatars?.downloaded || 0 }}</div>
             <div class="text-sm text-gray-500">已下载</div>
           </div>
           <div class="bg-white/50 rounded-lg p-4 border border-gray-200/50">
