@@ -2,17 +2,77 @@ import asyncio
 import os
 import subprocess
 import sys
+import re
+from datetime import datetime
 from typing import Optional
 
 import requests
 from fastapi import APIRouter, HTTPException
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, FileResponse
 from pydantic import BaseModel, Field
 
 from scripts.utils import load_config
 
 router = APIRouter()
 config = load_config()
+
+def extract_datetime_from_string(text):
+    """
+    从字符串中提取日期时间
+    
+    支持的格式:
+    1. YYYYMMDD_HHMMSS
+    2. YYYYMMDD_HHMM
+    3. YYYYMMDD
+    4. Unix时间戳
+    
+    Args:
+        text: 要检查的字符串
+    
+    Returns:
+        格式化的日期时间字符串或None
+    """
+    # 调试信息
+    print(f"【时间提取】尝试从'{text}'中提取日期时间")
+    
+    # 尝试匹配YYYYMMDD_HHMMSS格式
+    match1 = re.match(r'.*?(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2}).*', text)
+    if match1:
+        year, month, day, hour, minute, second = match1.groups()
+        result = f"{year}-{month}-{day} {hour}:{minute}:{second}"
+        print(f"【时间提取】匹配YYYYMMDD_HHMMSS格式: {result}")
+        return result
+    
+    # 尝试匹配YYYYMMDD_HHMM格式
+    match2 = re.match(r'.*?(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2}).*', text)
+    if match2:
+        year, month, day, hour, minute = match2.groups()
+        result = f"{year}-{month}-{day} {hour}:{minute}:00"
+        print(f"【时间提取】匹配YYYYMMDD_HHMM格式: {result}")
+        return result
+    
+    # 尝试匹配纯YYYYMMDD格式
+    match3 = re.match(r'.*?(\d{4})(\d{2})(\d{2}).*', text)
+    if match3:
+        year, month, day = match3.groups()
+        result = f"{year}-{month}-{day} 00:00:00"
+        print(f"【时间提取】匹配YYYYMMDD格式: {result}")
+        return result
+    
+    # 尝试匹配Unix时间戳（最后10位数字）
+    match4 = re.match(r'^(\d{10})$', text)
+    if match4:
+        try:
+            timestamp = int(match4.group(1))
+            dt = datetime.fromtimestamp(timestamp)
+            result = dt.strftime("%Y-%m-%d %H:%M:%S")
+            print(f"【时间提取】匹配Unix时间戳: {result}")
+            return result
+        except:
+            pass
+    
+    print(f"【时间提取】未能从'{text}'中提取日期时间")
+    return None
 
 class DownloadRequest(BaseModel):
     url: str
@@ -487,4 +547,464 @@ async def check_ffmpeg():
                 "release": platform.release(),
                 "platform": platform.platform()
             }
+        } 
+
+@router.get("/check_video_download", summary="检查视频是否已下载")
+async def check_video_download(cids: str):
+    """
+    检查指定CID的视频是否已下载，如果已下载则返回保存路径
+    支持批量检查多个CID，使用逗号分隔
+    
+    Args:
+        cids: 视频的CID，多个CID用逗号分隔，如"12345,67890"
+    
+    Returns:
+        dict: 包含检查结果和视频保存信息的字典
+    """
+    try:
+        # 解析CID列表
+        cid_list = [int(cid.strip()) for cid in cids.split(",") if cid.strip()]
+        
+        if not cid_list:
+            return {
+                "status": "error",
+                "message": "未提供有效的CID"
+            }
+        
+        # 获取下载目录路径
+        download_dir = os.path.normpath(config['yutto']['basic']['dir'])
+        
+        # 确保下载目录存在
+        if not os.path.exists(download_dir):
+            return {
+                "status": "success",
+                "results": {cid: {"downloaded": False, "message": "下载目录不存在，视频尚未下载"} for cid in cid_list}
+            }
+        
+        # 存储每个CID的检查结果
+        result_dict = {}
+        
+        # 递归遍历下载目录查找匹配的视频文件
+        for cid in cid_list:
+            found_files = []
+            found_directory = None
+            download_time = None
+            
+            for root, dirs, files in os.walk(download_dir):
+                # 检查目录名是否包含CID
+                dir_name = os.path.basename(root)
+                if f"_{cid}" in dir_name:
+                    found_directory = root
+                    
+                    # 从目录名中提取下载时间
+                    try:
+                        # 首先尝试从目录名中直接提取
+                        download_time = extract_datetime_from_string(dir_name)
+                        
+                        # 如果没找到，尝试从目录名的各个部分提取
+                        if not download_time:
+                            dir_parts = dir_name.split('_')
+                            for part in dir_parts:
+                                extracted_time = extract_datetime_from_string(part)
+                                if extracted_time:
+                                    download_time = extracted_time
+                                    break
+                        
+                        # 如果仍然没找到，尝试使用文件的创建时间
+                        if not download_time and files:  # 确保有文件存在
+                            # 使用第一个文件的创建时间
+                            first_file_path = os.path.join(root, files[0])
+                            if os.path.exists(first_file_path):
+                                creation_time = os.path.getctime(first_file_path)
+                                download_time = datetime.fromtimestamp(creation_time).strftime("%Y-%m-%d %H:%M:%S")
+                                print(f"【调试】使用文件创建时间作为下载时间: {download_time}")
+                        
+                        # 额外记录调试信息
+                        if not download_time:
+                            print(f"【调试】无法从目录名提取日期时间: {dir_name}")
+                            print(f"【调试】目录名各部分: {dir_name.split('_')}")
+                    except Exception as e:
+                        print(f"提取下载时间出错: {str(e)}")
+                    
+                    # 检查目录中的文件
+                    for file in files:
+                        # 检查文件名是否包含CID
+                        if f"_{cid}" in file:
+                            # 检查是否为视频或音频文件
+                            if file.endswith(('.mp4', '.flv', '.m4a', '.mp3')):
+                                file_path = os.path.join(root, file)
+                                file_size = os.path.getsize(file_path)
+                                file_size_mb = round(file_size / (1024 * 1024), 2)
+                                
+                                found_files.append({
+                                    "file_name": file,
+                                    "file_path": file_path,
+                                    "size_bytes": file_size,
+                                    "size_mb": file_size_mb,
+                                    "created_time": os.path.getctime(file_path),
+                                    "modified_time": os.path.getmtime(file_path)
+                                })
+            
+            if found_files:
+                result_dict[cid] = {
+                    "downloaded": True,
+                    "message": f"已找到{len(found_files)}个匹配的视频文件",
+                    "files": found_files,
+                    "directory": found_directory,
+                    "download_time": download_time
+                }
+            else:
+                result_dict[cid] = {
+                    "downloaded": False,
+                    "message": "未找到已下载的视频文件"
+                }
+        
+        return {
+            "status": "success",
+            "results": result_dict
+        }
+            
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": f"检查视频下载状态时出错: {str(e)}"
+        }
+
+@router.get("/list_downloaded_videos", summary="获取或搜索已下载视频列表")
+async def list_downloaded_videos(search_term: Optional[str] = None, limit: int = 100, page: int = 1):
+    """
+    获取已下载的视频列表，支持通过标题搜索
+    
+    Args:
+        search_term: 可选，搜索关键词，会在文件名和目录名中查找
+        limit: 每页返回的结果数量，默认100
+        page: 页码，从1开始，默认为第1页
+    
+    Returns:
+        dict: 包含已下载视频列表的字典
+    """
+    try:
+        # 获取下载目录路径
+        download_dir = os.path.normpath(config['yutto']['basic']['dir'])
+        
+        # 确保下载目录存在
+        if not os.path.exists(download_dir):
+            return {
+                "status": "success",
+                "message": "下载目录不存在，尚未下载任何视频",
+                "videos": [],
+                "total": 0,
+                "page": page,
+                "limit": limit,
+                "pages": 0
+            }
+        
+        # 递归遍历下载目录查找视频文件
+        videos = []
+        
+        for root, dirs, files in os.walk(download_dir):
+            # 过滤仅包含视频文件的目录
+            video_files = []
+            dir_name = os.path.basename(root)
+            
+            # 如果指定了搜索关键词，检查目录名
+            if search_term and search_term.lower() not in dir_name.lower():
+                # 跳过不匹配的目录，除非发现其中的文件名匹配
+                file_match = False
+                for file in files:
+                    if search_term.lower() in file.lower() and file.endswith(('.mp4', '.flv', '.m4a', '.mp3')):
+                        file_match = True
+                        break
+                
+                if not file_match:
+                    continue
+            
+            for file in files:
+                # 检查是否为视频或音频文件
+                if file.endswith(('.mp4', '.flv', '.m4a', '.mp3')):
+                    # 如果指定了搜索关键词，检查文件名
+                    if search_term and search_term.lower() not in file.lower() and search_term.lower() not in dir_name.lower():
+                        continue
+                        
+                    file_path = os.path.join(root, file)
+                    file_size = os.path.getsize(file_path)
+                    file_size_mb = round(file_size / (1024 * 1024), 2)
+                    
+                    # 从目录名和文件名中提取信息
+                    dir_parts = dir_name.split('_')
+                    file_parts = file.split('_')
+                    
+                    # 尝试提取CID
+                    cid = None
+                    try:
+                        if len(dir_parts) > 3:
+                            cid = dir_parts[-1]  # 最后一部分应该是CID
+                        elif len(file_parts) > 1:
+                            cid = file_parts[-1].split('.')[0]  # 文件名最后一部分的.前部分
+                    except:
+                        pass
+                    
+                    # 尝试从目录名提取标题
+                    title = None
+                    try:
+                        if len(dir_parts) > 0:
+                            # 除去最后3个部分（用户名_日期_CID），剩下的应该是标题
+                            title = '_'.join(dir_parts[:-3]) if len(dir_parts) > 3 else dir_name
+                    except:
+                        title = dir_name
+                    
+                    # 尝试提取日期时间
+                    date_time = None
+                    try:
+                        print(f"【调试】处理目录: {dir_name}")
+                        
+                        # 首先尝试从完整目录名中直接提取
+                        date_time = extract_datetime_from_string(dir_name)
+                        
+                        # 如果没找到，尝试从目录名的各个部分提取
+                        if not date_time:
+                            dir_parts = dir_name.split('_')
+                            print(f"【调试】目录名各部分: {dir_parts}")
+                            for part in dir_parts:
+                                print(f"【调试】检查部分: {part}")
+                                extracted_time = extract_datetime_from_string(part)
+                                if extracted_time:
+                                    date_time = extracted_time
+                                    print(f"【调试】从部分'{part}'提取到时间: {date_time}")
+                                    break
+                        
+                        # 如果仍然没找到，尝试使用文件的创建时间
+                        if not date_time:
+                            # 使用即将添加到video_files的文件创建时间
+                            creation_time = os.path.getctime(file_path)
+                            date_time = datetime.fromtimestamp(creation_time).strftime("%Y-%m-%d %H:%M:%S")
+                            print(f"【调试】使用文件创建时间作为下载时间: {date_time}")
+                            
+                            # 额外记录调试信息
+                            print(f"【调试】无法从目录名提取日期时间: {dir_name}")
+                    except Exception as e:
+                        print(f"提取下载时间出错: {str(e)}")
+                    
+                    video_files.append({
+                        "file_name": file,
+                        "file_path": file_path,
+                        "size_bytes": file_size,
+                        "size_mb": file_size_mb,
+                        "created_time": os.path.getctime(file_path),
+                        "modified_time": os.path.getmtime(file_path),
+                        "is_audio_only": file.endswith(('.m4a', '.mp3'))
+                    })
+            
+            if video_files:
+                videos.append({
+                    "directory": root,
+                    "dir_name": dir_name,
+                    "title": title,
+                    "cid": cid,
+                    "download_date": date_time,
+                    "files": video_files
+                })
+        
+        # 计算分页
+        total_videos = len(videos)
+        total_pages = (total_videos + limit - 1) // limit if total_videos > 0 else 0
+        
+        # 根据修改时间排序，最新的在前面
+        videos.sort(key=lambda x: max([f["modified_time"] for f in x["files"]]) if x["files"] else 0, reverse=True)
+        
+        # 分页
+        start_idx = (page - 1) * limit
+        end_idx = min(start_idx + limit, total_videos)
+        paginated_videos = videos[start_idx:end_idx] if start_idx < total_videos else []
+        
+        return {
+            "status": "success",
+            "message": f"找到{total_videos}个视频" + (f"，匹配'{search_term}'" if search_term else ""),
+            "videos": paginated_videos,
+            "total": total_videos,
+            "page": page,
+            "limit": limit,
+            "pages": total_pages
+        }
+            
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": f"获取已下载视频列表时出错: {str(e)}"
+        } 
+
+@router.get("/stream_video", summary="获取已下载视频的流媒体数据")
+async def stream_video(file_path: str):
+    """
+    返回已下载视频的流媒体数据，用于在线播放
+    
+    Args:
+        file_path: 视频文件的完整路径
+    
+    Returns:
+        StreamingResponse: 视频流响应
+    """
+    try:
+        # 检查文件是否存在
+        if not os.path.exists(file_path):
+            raise HTTPException(
+                status_code=404,
+                detail=f"文件不存在: {file_path}"
+            )
+        
+        # 检查是否是支持的媒体文件
+        if not file_path.endswith(('.mp4', '.flv', '.m4a', '.mp3')):
+            raise HTTPException(
+                status_code=400,
+                detail="不支持的媒体文件格式，仅支持mp4、flv、m4a、mp3格式"
+            )
+        
+        # 获取文件大小
+        file_size = os.path.getsize(file_path)
+        
+        # 获取文件名
+        file_name = os.path.basename(file_path)
+        
+        # 设置适当的媒体类型
+        if file_path.endswith('.mp4'):
+            media_type = 'video/mp4'
+        elif file_path.endswith('.flv'):
+            media_type = 'video/x-flv'
+        elif file_path.endswith('.m4a'):
+            media_type = 'audio/mp4'
+        elif file_path.endswith('.mp3'):
+            media_type = 'audio/mpeg'
+        else:
+            media_type = 'application/octet-stream'
+        
+        # 返回文件响应
+        return FileResponse(
+            file_path,
+            media_type=media_type,
+            filename=file_name
+        )
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"获取视频流时出错: {str(e)}"
+        ) 
+
+@router.delete("/delete_downloaded_video", summary="删除已下载的视频")
+async def delete_downloaded_video(cid: int, delete_directory: bool = False, directory: Optional[str] = None):
+    """
+    删除指定CID的已下载视频文件
+    
+    Args:
+        cid: 视频的CID
+        delete_directory: 是否删除整个目录，默认为False（只删除视频文件）
+        directory: 可选，指定要删除文件的目录路径，如果提供则只在该目录中查找和删除文件
+    
+    Returns:
+        dict: 包含删除结果信息的字典
+    """
+    try:
+        # 获取下载目录路径
+        download_dir = os.path.normpath(config['yutto']['basic']['dir'])
+        
+        # 确保下载目录存在
+        if not os.path.exists(download_dir):
+            return {
+                "status": "error",
+                "message": "下载目录不存在"
+            }
+        
+        # 查找匹配CID的视频文件和目录
+        found_files = []
+        found_directory = directory  # 如果提供了目录，则使用它
+        
+        # 如果提供了directory参数，并且它确实存在，只在该目录中查找文件
+        if directory and os.path.exists(directory):
+            # 检查目录名是否匹配CID
+            if f"_{cid}" in os.path.basename(directory):
+                # 列出该目录中的所有文件
+                for file in os.listdir(directory):
+                    # 检查文件名是否包含CID
+                    if f"_{cid}" in file:
+                        # 检查是否为视频或音频文件
+                        if file.endswith(('.mp4', '.flv', '.m4a', '.mp3')):
+                            file_path = os.path.join(directory, file)
+                            found_files.append({
+                                "file_name": file,
+                                "file_path": file_path
+                            })
+        else:
+            # 如果没有提供directory参数，执行原来的逻辑
+            for root, dirs, files in os.walk(download_dir):
+                # 检查目录名是否包含CID
+                if f"_{cid}" in os.path.basename(root):
+                    # 如果没有指定目录，保存找到的第一个匹配目录
+                    if not found_directory:
+                        found_directory = root
+                    
+                    # 如果没有提供特定目录，或者当前遍历到的目录就是指定目录，则处理
+                    if not directory or root == directory:
+                        # 检查目录中的文件
+                        for file in files:
+                            # 检查文件名是否包含CID
+                            if f"_{cid}" in file:
+                                # 检查是否为视频或音频文件
+                                if file.endswith(('.mp4', '.flv', '.m4a', '.mp3')):
+                                    file_path = os.path.join(root, file)
+                                    found_files.append({
+                                        "file_name": file,
+                                        "file_path": file_path
+                                    })
+        
+        if not found_files and not found_directory:
+            return {
+                "status": "error",
+                "message": f"未找到CID为{cid}的已下载视频" + (f" 在指定目录: {directory}" if directory else "")
+            }
+        
+        # 执行删除操作
+        deleted_files = []
+        
+        if delete_directory and found_directory:
+            # 删除整个目录
+            import shutil
+            try:
+                shutil.rmtree(found_directory)
+                return {
+                    "status": "success",
+                    "message": f"已删除目录: {found_directory}",
+                    "deleted_directory": found_directory
+                }
+            except Exception as e:
+                return {
+                    "status": "error",
+                    "message": f"删除目录时出错: {str(e)}",
+                    "directory": found_directory
+                }
+        else:
+            # 只删除视频文件
+            for file_info in found_files:
+                try:
+                    os.remove(file_info["file_path"])
+                    deleted_files.append(file_info)
+                except Exception as e:
+                    return {
+                        "status": "error",
+                        "message": f"删除文件时出错: {str(e)}",
+                        "file": file_info["file_path"]
+                    }
+            
+            return {
+                "status": "success",
+                "message": f"已删除{len(deleted_files)}个文件",
+                "deleted_files": deleted_files,
+                "directory": found_directory
+            }
+    
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": f"删除视频文件时出错: {str(e)}"
         } 
