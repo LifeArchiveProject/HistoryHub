@@ -6,9 +6,21 @@
         <div class="bg-white/5 backdrop-blur-md border-b border-white/10 dark:bg-black/5 dark:border-gray-800/50">
           <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
-              <h1 class="text-2xl font-bold bg-gradient-to-r from-[#fb7299] to-[#fc9b7a] bg-clip-text text-transparent">
-                {{ selectedYear }}年度回顾
-              </h1>
+              <!-- 添加返回按钮 -->
+              <div class="flex items-center">
+                <button 
+                  @click="goToHome" 
+                  class="mr-3 p-1 rounded-full hover:bg-white/20 dark:hover:bg-black/20 transition-colors"
+                  title="返回首页"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-[#fb7299] dark:text-[#fc9b7a]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                  </svg>
+                </button>
+                <h1 class="text-2xl font-bold bg-gradient-to-r from-[#fb7299] to-[#fc9b7a] bg-clip-text text-transparent">
+                  {{ selectedYear }}年度回顾
+                </h1>
+              </div>
               <div class="flex items-center space-x-4">
                 <select
                   v-model="selectedYear"
@@ -207,7 +219,7 @@ use([
 // 状态
 const router = useRouter()
 const route = useRoute()
-const selectedYear = ref(new Date().getFullYear() - 1)
+const selectedYear = ref(new Date().getFullYear())
 const availableYears = ref([])
 const loading = ref(true)
 const analyticsData = ref(null)
@@ -412,6 +424,11 @@ onUnmounted(() => {
   window.removeEventListener('touchmove', handleTouchMove)
   window.removeEventListener('touchend', handleTouchEnd)
 })
+
+// 添加返回首页的方法
+const goToHome = () => {
+  router.push('/')
+}
 </script>
 
 <style>

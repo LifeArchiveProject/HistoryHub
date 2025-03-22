@@ -8,14 +8,37 @@ import Vant from 'vant'
 // 引入Vant组件样式
 import 'vant/lib/index.css'
 
-// 判断是否在 Electron 环境中
-const isElectron = window && window.process && window.process.type
+// 判断是否在 Tauri 环境中
+const isTauri = window && window.__TAURI__
 
-// 添加日志以确认 isElectron 是否正确检测
-console.log('是否为 Electron 环境:', isElectron)
+// 添加日志以确认环境检测
+console.log('是否为 Tauri 环境:', isTauri)
+
+// 在 Tauri 环境中设置所有链接在当前窗口打开
+if (isTauri) {
+  // 重写默认的链接打开行为
+  document.addEventListener('click', function(e) {
+    // 查找点击事件中是否包含链接元素
+    let target = e.target;
+    while (target && target !== document) {
+      if (target.tagName === 'A' && target.getAttribute('href')) {
+        // 获取链接地址
+        const href = target.getAttribute('href');
+        
+        // 如果是外部链接或绝对路径，则在当前窗口打开
+        if (href.startsWith('http') || href.startsWith('//') || href.startsWith('/')) {
+          e.preventDefault();
+          window.location.href = href;
+        }
+        break;
+      }
+      target = target.parentNode;
+    }
+  }, true);
+}
 
 // 根据环境创建适当的路由实例
-const router = createMyRouter(isElectron ? 'hash' : 'history')
+const router = createMyRouter(isTauri ? 'hash' : 'history')
 
 const app = createApp(App)
 app.use(router)

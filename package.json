@@ -3,15 +3,17 @@
   "version": "1.0.0",
   "description": "获取Bili历史记录应用",
   "author": "46",
-  "main": "electron/main.cjs",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "electron:dev": "cross-env NODE_ENV=development concurrently \"vite\" \"wait-on http://localhost:5173 && electron .\"",
-    "electron:build": "cross-env NODE_ENV=production vite build && electron-builder",
-    "format": "prettier --write \"**/*.*\" --ignore-unknown"
+    "format": "prettier --write \"**/*.*\" --ignore-unknown",
+    "tauri:dev": "tauri dev",
+    "tauri:build": "tauri build",
+    "tauri:build:windows": "tauri build --target x86_64-pc-windows-msvc",
+    "tauri:build:exe": "npm run tauri:build:windows && powershell -c \"Copy-Item ./src-tauri/target/x86_64-pc-windows-msvc/release/bilibili-history-frontend.exe ./BiliBili-History-Frontend.exe -Force\"",
+    "tauri:clean": "powershell -c \"if (Test-Path ./src-tauri/target) { Remove-Item -Recurse -Force ./src-tauri/target }\""
   },
   "dependencies": {
     "@headlessui/vue": "^1.7.23",
@@ -27,7 +29,6 @@
     "crypto-js": "^4.2.0",
     "echarts": "^5.6.0",
     "echarts-wordcloud": "^2.1.0",
-    "electron-log": "^5.2.0",
     "gsap": "^3.12.5",
     "jsencrypt": "^3.3.2",
     "lottie-web": "^5.12.2",
@@ -40,62 +41,18 @@
     "vue3-lottie": "^3.3.1"
   },
   "devDependencies": {
+    "@tauri-apps/api": "^2.4.0",
+    "@tauri-apps/cli": "^2.4.0",
     "@types/node": "^20.17.6",
     "@vitejs/plugin-vue": "^5.1.4",
     "@vue/runtime-core": "^3.5.13",
     "autoprefixer": "^10.4.20",
-    "concurrently": "^8.0.1",
     "cross-env": "^7.0.3",
-    "electron": "^33.0.1",
-    "electron-builder": "^25.1.8",
     "postcss": "^8.4.47",
     "prettier": "^3.3.3",
     "prettier-plugin-tailwindcss": "^0.6.8",
     "tailwindcss": "^3.4.13",
     "vite": "^5.4.8",
-    "vite-plugin-vue-inspector": "^5.3.1",
-    "wait-on": "^7.0.1"
-  },
-  "build": {
-    "appId": "com.yourcompany.bilibilihistoryfrontend",
-    "productName": "BiliBili History Frontend",
-    "files": [
-      "dist/**/*",
-      "electron/**/*",
-      "package.json"
-    ],
-    "directories": {
-      "buildResources": "public"
-    },
-    "win": {
-      "target": [
-        {
-          "target": "nsis",
-          "arch": [
-            "x64"
-          ]
-        }
-      ],
-      "icon": "./public/logo.ico"
-    },
-    "mac": {
-      "target": "dmg",
-      "icon": "assets/logo.icns"
-    },
-    "linux": {
-      "target": "AppImage",
-      "icon": "assets/logo.png"
-    },
-    "nsis": {
-      "oneClick": false,
-      "allowToChangeInstallationDirectory": true,
-      "createDesktopShortcut": true,
-      "createStartMenuShortcut": true,
-      "shortcutName": "BiliBili History",
-      "installerIcon": "./public/logo.ico",
-      "uninstallerIcon": "./public/logo.ico",
-      "installerHeaderIcon": "./public/logo.ico",
-      "include": "installer.nsh"
-    }
+    "vite-plugin-vue-inspector": "^5.3.1"
   }
 }

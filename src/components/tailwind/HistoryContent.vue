@@ -591,14 +591,6 @@ const onSubCategorySelected = ({ name, type }) => {
     mainCategory.value = ''
   }
 
-  console.log('onSubCategorySelected - 选择分区:', {
-    name,
-    type,
-    categoryText,
-    isMainName,
-    mainCategory: mainCategory.value,
-    tagName: tagName.value
-  })
 
   emit('update:category', categoryText)
   fetchHistoryByDateRange()
@@ -647,11 +639,7 @@ const batchCheckDownloadStatus = async () => {
     const cids = videoRecords.map(record => record.cid).filter(cid => cid)
     if (cids.length === 0) return
     
-    console.log('批量检查下载状态:', cids)
     const response = await checkVideoDownload(cids)
-    
-    // 打印完整的API响应
-    console.log('检查下载状态API响应:', JSON.stringify(response.data, null, 2))
     
     if (response.data && response.data.status === 'success') {
       // 清空已有集合
@@ -666,9 +654,6 @@ const batchCheckDownloadStatus = async () => {
           downloadedVideos.value.add(cid.toString())
         }
       })
-      
-      console.log('已下载视频数量:', downloadedVideos.value.size)
-      console.log('已下载视频CID:', [...downloadedVideos.value])
     }
   } catch (error) {
     console.error('批量检查下载状态失败:', error)
@@ -682,18 +667,6 @@ const isVideoDownloaded = (cid) => {
 
 // 数据获取函数
 const fetchHistoryByDateRange = async () => {
-  console.log('HistoryContent - fetchHistoryByDateRange 被调用')
-  console.log('参数:', {
-    page: props.page,
-    size: size.value,
-    sortOrder: sortOrder.value,
-    tagName: tagName.value,
-    mainCategory: mainCategory.value,
-    category: props.category,
-    dateRange: dateRange.value,
-    useLocalImages: localStorage.getItem('useLocalImages') === 'true',
-    business: props.business
-  })
 
   try {
     isLoading.value = true
@@ -708,8 +681,6 @@ const fetchHistoryByDateRange = async () => {
       localStorage.getItem('useLocalImages') === 'true',
       props.business
     )
-
-    console.log('API 响应:', response.data)
 
     if (response.data && response.data.data) {
       total.value = response.data.data.total
@@ -730,9 +701,6 @@ const fetchHistoryByDateRange = async () => {
         
         // 批量检查下载状态
         await batchCheckDownloadStatus()
-        
-        // 调用调试函数
-        debugVideoCids()
       }
     }
   } catch (error) {
@@ -750,7 +718,6 @@ const fetchHistoryByDateRange = async () => {
 watch(
   () => [props.selectedYear, props.page],
   () => {
-    console.log('HistoryContent - 年份或页码变化')
     fetchHistoryByDateRange()
   },
 )
@@ -759,7 +726,6 @@ watch(
 watch(
   () => props.date,
   (newDate) => {
-    console.log('HistoryContent - date prop 变化:', newDate)
     if (!newDate) {
       dateRange.value = ''
       fetchHistoryByDateRange()
@@ -774,7 +740,6 @@ watch(
           const startDate = `${startParts[0]}${startParts[1].padStart(2, '0')}${startParts[2].padStart(2, '0')}`
           const endDate = `${endParts[0]}${endParts[1].padStart(2, '0')}${endParts[2].padStart(2, '0')}`
           dateRange.value = `${startDate}-${endDate}`
-          console.log('设置日期区间参数:', dateRange.value)
           fetchHistoryByDateRange()
         }
       }
@@ -786,7 +751,6 @@ watch(
 watch(
   () => props.category,
   (newCategory) => {
-    console.log('HistoryContent - category prop 变化:', newCategory)
     if (!newCategory) {
       tagName.value = ''
       mainCategory.value = ''
@@ -805,7 +769,6 @@ watch(
 watch(
   () => props.business,
   (newBusiness) => {
-    console.log('HistoryContent - business prop 变化:', newBusiness)
     fetchHistoryByDateRange()
   }
 )
@@ -872,7 +835,6 @@ const handleLoginSuccess = async (userData) => {
     // 如果登录对话框传递了用户数据，直接使用
     if (userData && userData.is_logged_in) {
       isLoggedIn.value = userData.is_logged_in
-      console.log('登录成功，从对话框获取到的用户信息:', userData)
       
       // 触发全局事件，通知侧边栏更新登录状态，并传递用户信息
       window.dispatchEvent(new CustomEvent('login-status-changed', { 
@@ -886,7 +848,6 @@ const handleLoginSuccess = async (userData) => {
       const response = await getLoginStatus()
       if (response.data && response.data.status === 'success') {
         isLoggedIn.value = response.data.data.is_logged_in
-        console.log('登录成功，通过API获取到的用户信息:', response.data.data)
         
         // 触发全局事件，通知侧边栏更新登录状态，并传递用户信息
         window.dispatchEvent(new CustomEvent('login-status-changed', { 
@@ -912,7 +873,6 @@ const checkLoginStatus = async () => {
   try {
     const response = await getLoginStatus()
     isLoggedIn.value = response.data && response.data.data && response.data.data.is_logged_in
-    console.log('登录状态检查结果:', isLoggedIn.value, response.data)
   } catch (error) {
     console.error('获取登录状态失败:', error)
     isLoggedIn.value = false

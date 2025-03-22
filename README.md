@@ -22,6 +22,48 @@
    - 每次打开页面时，建议点击"实时更新"以获取最新记录
    - 实时更新只会获取新增的记录，速度很快
 
+## 使用 Tauri 构建桌面应用
+
+本项目使用 [Tauri](https://tauri.app/) 构建跨平台桌面应用，相比 Electron 具有更小的体积和更高的性能。
+
+### 环境准备
+
+1. **安装 Rust 开发环境**
+   - 按照 [Rust 官方指南](https://www.rust-lang.org/tools/install) 安装 Rust
+   - Windows 用户还需安装 [Visual Studio C++ 构建工具](https://visualstudio.microsoft.com/visual-cpp-build-tools/)
+
+2. **安装 Node.js 依赖**
+   ```bash
+   npm install
+   ```
+
+### 开发与构建
+
+1. **开发模式**
+   ```bash
+   npm run tauri:dev
+   ```
+   这将启动一个开发服务器，并自动打开应用窗口，支持热重载。
+
+2. **构建可执行文件**
+   ```bash
+   npm run tauri:build:exe
+   ```
+   构建完成后，将在项目根目录生成 `BiliBili-History-Frontend.exe` 可执行文件。
+
+3. **清理构建文件**
+   ```bash
+   npm run tauri:clean
+   ```
+   清理 `src-tauri/target` 目录中的构建产物，释放磁盘空间。
+
+### 构建特点
+
+- **小体积**：生成的可执行文件约 11MB，远小于 Electron 构建的应用
+- **高性能**：使用 Rust 后端和系统 WebView，运行更流畅
+- **无需安装**：生成的是独立可执行文件，无需安装即可使用
+- **本地化**：所有链接在应用内部打开，提供更好的用户体验
+
 ## 功能特点
 
 - 🎯 **观看数据总览**：展示用户的观看历史统计数据

@@ -132,15 +132,14 @@ const handleSearch = () => {
         type: searchType.value
       })
     } else {
-      // 如果在其他页面，打开新标签页
-      const newUrl = router.resolve({
+      // 修改为在当前窗口打开搜索结果页面
+      router.push({
         name: 'Search',
         params: { keyword: searchQuery.value.trim() },
         query: { 
           type: searchType.value
         }
-      }).href
-      window.open(newUrl, '_blank')
+      })
       searchQuery.value = ''
     }
   } else {
