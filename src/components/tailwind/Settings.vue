@@ -90,6 +90,16 @@
                     >
                       保存
                     </button>
+                    <button
+                      @click="testEmailConfig"
+                      class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-[#fb7299] rounded-lg hover:bg-[#fb7299]/90"
+                      :disabled="!isEmailConfigComplete"
+                    >
+                      <svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 19v-8.93a2 2 0 01.89-1.664l7-4.666a2 2 0 012.22 0l7 4.666A2 2 0 0121 10.07V19M3 19a2 2 0 002 2h14a2 2 0 002-2M3 19l6.75-4.5M21 19l-6.75-4.5M3 10l6.75 4.5M21 10l-6.75 4.5m0 0l-1.14.76a2 2 0 01-2.22 0l-1.14-.76" />
+                      </svg>
+                      发送测试邮件
+                    </button>
                   </div>
                 </div>
 
@@ -428,6 +438,7 @@ import {
   importSqliteData,
   getEmailConfig,
   updateEmailConfig,
+  testEmailConfig as testEmailApi,
   checkDeepSeekApiKey,
   setDeepSeekApiKey,
   getDeepSeekBalance
@@ -846,6 +857,62 @@ const refreshDeepSeekBalance = async () => {
     console.error('获取DeepSeek余额失败:', error)
     deepseekBalance.value = { is_available: false }
     deepseekBalanceMessage.value = error.response?.data?.message || '获取余额失败，请检查API密钥是否正确'
+  }
+}
+
+// 检查邮件配置是否完整
+const isEmailConfigComplete = computed(() => {
+  return emailConfig.value.smtp_server &&
+         emailConfig.value.smtp_port &&
+         emailConfig.value.sender &&
+         emailConfig.value.password &&
+         emailConfig.value.receiver
+})
+
+// 测试邮件配置
+const testEmailConfig = async () => {
+  try {
+    if (!isEmailConfigComplete.value) {
+      showNotify({
+        type: 'warning',
+        message: '请先完善邮件配置'
+      })
+      return
+    }
+
+    // 先保存邮件配置
+    try {
+      await saveEmailConfig()
+    } catch (error) {
+      // 如果保存配置失败，则终止测试
+      return
+    }
+
+    showNotify({
+      type: 'primary',
+      message: '正在发送测试邮件...'
+    })
+
+    const testData = {
+      to_email: emailConfig.value.receiver,
+      subject: '测试邮件',
+      content: '这是一封测试邮件，用于验证邮箱配置是否有效。'
+    }
+
+    const response = await testEmailApi(testData)
+    if (response.data.status === 'success') {
+      showNotify({
+        type: 'success',
+        message: '测试邮件发送成功'
+      })
+    } else {
+      throw new Error(response.data.message || '发送失败')
+    }
+  } catch (error) {
+    showNotify({
+      type: 'danger',
+      message: `发送失败：${error.message || '未知错误'}`
+    })
   }
 }
 </script>

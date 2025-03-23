@@ -2,7 +2,7 @@ import axios from 'axios'
 
 // 你的服务器地址
 const getBaseUrl = () => {
-  return localStorage.getItem('baseUrl') || 'http://0.0.0.0:8899'
+  return localStorage.getItem('baseUrl') || 'http://localhost:8899'
 }
 
 const BASE_URL = getBaseUrl()
@@ -552,6 +552,19 @@ export const updateEmailConfig = (config) => {
     })
     .catch(error => {
       console.error('更新邮件配置API错误:', error)
+      throw error
+    })
+}
+
+// 测试邮件配置
+export const testEmailConfig = (testData) => {
+  return instance.post('/config/test-email', testData)
+    .then(response => {
+      console.log('测试邮件API响应成功:', response)
+      return response
+    })
+    .catch(error => {
+      console.error('测试邮件API错误:', error)
       throw error
     })
 }
