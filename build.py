@@ -162,7 +162,10 @@ def build(build_type):
                 else:
                     print(f"\n警告: 无法复制yutto.exe - 目标目录 {lite_dist_dir} 不存在")
                 
+                # 复制配置文件到应用根目录
                 if os.path.exists(lite_dist_dir):
+                    print("\n===== 复制配置文件到Lite版本根目录 =====")
+                    post_build_copy(lite_dist_dir)
                     print(f"\nLite版本打包完成！程序位于 {lite_dist_dir} 文件夹中")
                     print(f"{os.listdir(lite_dist_dir)[:10]}..." if len(os.listdir(lite_dist_dir)) > 10 else os.listdir(lite_dist_dir))
                 else:
@@ -198,7 +201,10 @@ def build(build_type):
                 else:
                     print(f"\n警告: 无法复制yutto.exe - 目标目录 {full_dist_dir} 不存在")
                 
+                # 复制配置文件到应用根目录
                 if os.path.exists(full_dist_dir):
+                    print("\n===== 复制配置文件到Full版本根目录 =====")
+                    post_build_copy(full_dist_dir)
                     print(f"\n完整版打包完成！程序位于 {full_dist_dir} 文件夹中")
                     print(f"{os.listdir(full_dist_dir)[:10]}..." if len(os.listdir(full_dist_dir)) > 10 else os.listdir(full_dist_dir))
                 else:
@@ -572,6 +578,44 @@ def modify_spec_config_path(spec_file, original_path, new_path):
         return True
     except Exception as e:
         print(f"\n修改spec文件配置路径时出错: {e}")
+        import traceback
+        print(traceback.format_exc())
+        return False
+
+def post_build_copy(dist_dir):
+    """构建后复制配置文件到根目录，解决配置文件路径问题
+    
+    Args:
+        dist_dir: 构建输出目录的路径，如 dist/BilibiliHistoryAnalyzer_Full
+    """
+    try:
+        # 检查_internal/config目录是否存在
+        internal_config = os.path.join(dist_dir, '_internal', 'config')
+        if not os.path.exists(internal_config):
+            print(f"\n警告: 找不到内部配置目录: {internal_config}")
+            return False
+        
+        # 创建根目录的config文件夹
+        root_config = os.path.join(dist_dir, 'config')
+        if not os.path.exists(root_config):
+            os.makedirs(root_config, exist_ok=True)
+            print(f"\n已创建根目录配置文件夹: {root_config}")
+        
+        # 复制所有配置文件
+        copy_count = 0
+        import shutil
+        for file in os.listdir(internal_config):
+            source = os.path.join(internal_config, file)
+            target = os.path.join(root_config, file)
+            if os.path.isfile(source):
+                shutil.copy2(source, target)
+                copy_count += 1
+                print(f"已复制配置文件: {file}")
+        
+        print(f"\n配置文件复制完成: 已复制 {copy_count} 个文件到 {root_config}")
+        return True
+    except Exception as e:
+        print(f"\n复制配置文件时出错: {e}")
         import traceback
         print(traceback.format_exc())
         return False

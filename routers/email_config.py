@@ -5,6 +5,7 @@ import yaml
 import os
 import re
 from scripts.utils import load_config
+from scripts.send_log_email import send_email
 
 router = APIRouter()
 
@@ -46,6 +47,12 @@ class EmailConfig(BaseModel):
     sender: Optional[EmailStr] = None
     password: Optional[str] = None
     receiver: Optional[EmailStr] = None
+
+class TestEmailRequest(BaseModel):
+    """测试邮件请求模型"""
+    to_email: Optional[EmailStr] = None  # 可选，如果为空则使用配置中的接收者邮箱
+    subject: str = "测试邮件"
+    content: str = "这是一封测试邮件，用于验证邮箱配置是否有效。"
 
 @router.get("/email-config", summary="获取邮件配置")
 async def get_email_config():
@@ -138,4 +145,52 @@ async def update_email_config(
         raise HTTPException(
             status_code=500,
             detail=f"更新邮件配置失败: {str(e)}"
+        )
+
+@router.post("/test-email", summary="发送测试邮件")
+async def send_test_email(request: TestEmailRequest):
+    """
+    发送测试邮件以验证邮箱配置是否有效
+    
+    - **to_email**: 收件人邮箱，可选，如果为空则使用配置中的收件人
+    - **subject**: 邮件主题，默认为"测试邮件"
+    - **content**: 邮件内容，默认为"这是一封测试邮件，用于验证邮箱配置是否有效。"
+    
+    返回:
+    - **status**: 发送状态，"success"或"error"
+    - **message**: 状态描述信息
+    """
+    try:
+        # 获取当前邮件配置
+        config = load_config()
+        email_config = config.get('email', {})
+        
+        # 检查邮件配置是否完整
+        if not all([
+            email_config.get('smtp_server'),
+            email_config.get('smtp_port'),
+            email_config.get('sender'),
+            email_config.get('password'),
+            request.to_email or email_config.get('receiver')
+        ]):
+            raise ValueError("邮件配置不完整，请先完善邮件配置")
+        
+        # 发送测试邮件
+        result = await send_email(
+            subject=request.subject,
+            content=request.content,
+            to_email=request.to_email
+        )
+        
+        return result
+    
+    except ValueError as e:
+        raise HTTPException(
+            status_code=400,
+            detail=str(e)
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"发送测试邮件失败: {str(e)}"
         ) 
