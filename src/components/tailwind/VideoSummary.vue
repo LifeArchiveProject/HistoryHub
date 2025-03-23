@@ -134,7 +134,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { getVideoSummary } from '../../api/api'
 import { showNotify } from 'vant'
 import 'vant/es/notify/style'
@@ -160,6 +160,36 @@ const loading = ref(false)
 const error = ref(null)
 const fromCache = ref(false)
 const stid = ref('')
+
+// 当props变化时，清除旧数据并重新获取摘要
+watch(
+  () => [props.bvid, props.cid, props.upMid],
+  (newValues, oldValues) => {
+    // 如果是组件首次加载，不需要处理
+    if (!oldValues[0]) return
+    
+    // 如果有任一值变化，说明是新的视频，清除旧数据并重新获取
+    if (
+      newValues[0] !== oldValues[0] || 
+      newValues[1] !== oldValues[1] || 
+      newValues[2] !== oldValues[2]
+    ) {
+      // 清除旧数据
+      clearSummaryData()
+      // 获取新数据
+      fetchSummary()
+    }
+  }
+)
+
+// 清除摘要数据
+const clearSummaryData = () => {
+  summary.value = ''
+  outline.value = null
+  error.value = null
+  fromCache.value = false
+  stid.value = ''
+}
 
 // 将秒数格式化为时分秒
 const formatTime = (seconds) => {
@@ -252,7 +282,13 @@ const refreshSummary = async (event) => {
 // 组件挂载时获取摘要
 onMounted(() => {
   if (props.bvid && props.cid && props.upMid) {
-    fetchSummary()
+    // 先清除数据以显示加载状态
+    clearSummaryData()
+    loading.value = true
+    // 延迟一下再获取，确保加载状态能够显示
+    setTimeout(() => {
+      fetchSummary()
+    }, 100)
   }
 })
 

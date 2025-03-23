@@ -178,6 +178,7 @@
           <!-- B站AI摘要 -->
           <div v-show="currentTab === 'bilibili'" class="space-y-4">
             <VideoSummary
+              :key="videoSummaryKey"
               :bvid="video.bvid"
               :cid="String(video.cid)"
               :upMid="String(video.author_mid)"
@@ -658,10 +659,40 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue', 'remark-updated'])
 
+// 在脚本顶部导入部分之后加入这个ref
+const videoSummaryKey = ref(0)
+
 // 使用计算属性处理dialog可见性
 const dialogVisible = computed(() => props.modelValue)
 const updateVisible = (value) => {
   emit('update:modelValue', value)
+  
+  // 当对话框关闭时重置状态
+  if (!value) {
+    // 重置标签页到默认的B站摘要tab
+    currentTab.value = 'bilibili'
+    
+    // 重置摘要相关状态
+    isCheckingEnvironment.value = false;
+    canRunSpeechToText.value = false;
+    cudaAvailable.value = false;
+    cudaSetupGuide.value = '';
+    showCudaGuide.value = true;
+    audioPath.value = null;
+    isCheckingAudio.value = false;
+    isTranscribing.value = false;
+    transcriptionResult.value = null;
+    isSummarizing.value = false;
+    summaryStatus.value = '';
+    summaryResult.value = null;
+    hasExistingStt.value = false;
+    sttFilePath.value = null;
+    hasLocalSummary.value = false;
+    localSummaryData.value = null;
+    
+    // 通过改变key值强制重新创建摘要组件
+    videoSummaryKey.value += 1;
+  }
 }
 
 const { isPrivacyMode } = usePrivacyStore()
