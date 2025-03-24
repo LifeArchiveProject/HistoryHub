@@ -208,6 +208,19 @@
             <div class="text-gray-500">
               数据库大小: {{ sqliteVersion?.database_file?.size_mb?.toFixed(2) || '0' }} MB
             </div>
+            <!-- 服务器状态显示 -->
+            <div class="flex items-center text-gray-500 mt-1">
+              <div class="mr-1">服务器状态:</div>
+              <div class="flex items-center">
+                <span
+                  class="w-2 h-2 rounded-full mr-1"
+                  :class="serverStatus.isRunning ? 'bg-green-500' : 'bg-red-500'"
+                ></span>
+                <span :class="serverStatus.isRunning ? 'text-green-600' : 'text-red-600'">
+                  {{ serverStatus.isRunning ? '运行中' : '未连接' }}
+                </span>
+              </div>
+            </div>
           </div>
 
           <!-- 收缩按钮 -->
@@ -248,7 +261,7 @@
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { usePrivacyStore } from '../../store/privacy'
-import { importSqliteData, getLoginStatus, logout, getSqliteVersion } from '../../api/api'
+import { importSqliteData, getLoginStatus, logout, getSqliteVersion, checkServerHealth } from '../../api/api'
 import { showNotify } from 'vant'
 import { showDialog } from 'vant'
 import 'vant/es/notify/style'
@@ -473,10 +486,71 @@ const fetchSqliteVersion = async () => {
   }
 }
 
+// 服务器状态相关
+const serverStatus = ref({
+  isRunning: false,
+  timestamp: '',
+  schedulerStatus: ''
+})
+
+// 检查服务器健康状态
+const checkServerHealthStatus = async () => {
+  try {
+    const response = await checkServerHealth()
+    if (response.data && response.data.status === 'running') {
+      serverStatus.value = {
+        isRunning: true,
+        timestamp: response.data.timestamp,
+        schedulerStatus: response.data.scheduler_status
+      }
+      return true
+    } else {
+      serverStatus.value.isRunning = false
+      showNotify({
+        type: 'danger',
+        message: '服务器未运行，请检查后端服务'
+      })
+      return false
+    }
+  } catch (error) {
+    console.error('服务器健康检查失败:', error)
+    serverStatus.value.isRunning = false
+    showNotify({
+      type: 'danger',
+      message: '无法连接到服务器，请检查网络或服务器状态'
+    })
+    return false
+  }
+}
+
+// 定时器引用
+const healthCheckTimer = ref(null)
+
+// 设置定期健康检查
+const setupPeriodicHealthCheck = () => {
+  // 先清除可能存在的定时器
+  if (healthCheckTimer.value) {
+    clearInterval(healthCheckTimer.value)
+  }
+
+  // 每30秒检查一次服务器状态
+  healthCheckTimer.value = setInterval(async () => {
+    await checkServerHealthStatus()
+  }, 30000) // 30秒
+}
+
 onMounted(async () => {
-  checkLoginStatus()
-  await fetchSqliteVersion()
-  
+  // 先检查服务器健康状态
+  const isServerRunning = await checkServerHealthStatus()
+
+  // 只有当服务器正常运行时，才进行后续操作
+  if (isServerRunning) {
+    checkLoginStatus()
+    await fetchSqliteVersion()
+    // 设置定期健康检查
+    setupPeriodicHealthCheck()
+  }
+
   // 添加全局事件监听器，当登录状态变化时更新侧边栏的登录状态
   window.addEventListener('login-status-changed', handleLoginStatusChange)
 })
@@ -484,7 +558,7 @@ onMounted(async () => {
 // 处理登录状态变化事件
 const handleLoginStatusChange = (event) => {
   console.log('侧边栏收到登录状态变化事件，正在更新登录状态...', event.detail)
-  
+
   // 如果事件中包含用户信息，直接使用
   if (event.detail && event.detail.isLoggedIn) {
     isLoggedIn.value = true
@@ -501,8 +575,14 @@ const handleLoginStatusChange = (event) => {
   }
 }
 
-// 组件卸载时移除事件监听器
+// 组件卸载时移除事件监听器和清除定时器
 onUnmounted(() => {
   window.removeEventListener('login-status-changed', handleLoginStatusChange)
+
+  // 清除定时器
+  if (healthCheckTimer.value) {
+    clearInterval(healthCheckTimer.value)
+    healthCheckTimer.value = null
+  }
 })
 </script>

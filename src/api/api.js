@@ -7,9 +7,55 @@ const getBaseUrl = () => {
 
 const BASE_URL = getBaseUrl()
 
+// 服务器地址列表
+const SERVER_URLS = [
+  'http://127.0.0.1:8899',
+  'http://localhost:8899',
+  'http://0.0.0.0:8899'
+]
+
+// 尝试连接多个服务器地址，返回第一个可用的
+export const tryConnectServers = async () => {
+  // 如果已经存储了服务器地址，先尝试这个地址
+  const savedUrl = localStorage.getItem('baseUrl')
+  if (savedUrl) {
+    try {
+      const response = await axios.get(`${savedUrl}/health`, { timeout: 3000 })
+      if (response.data && response.data.status === 'running') {
+        // 更新 axios 实例的 baseURL
+        updateInstanceBaseUrl(savedUrl)
+        return { success: true, url: savedUrl }
+      }
+    } catch (error) {
+      console.warn(`尝试连接已保存的服务器 ${savedUrl} 失败:`, error.message)
+    }
+  }
+
+  // 尝试所有预定义服务器
+  for (const url of SERVER_URLS) {
+    try {
+      console.log(`尝试连接服务器: ${url}`)
+      const response = await axios.get(`${url}/health`, { timeout: 3000 })
+      if (response.data && response.data.status === 'running') {
+        // 保存可用的服务器地址
+        localStorage.setItem('baseUrl', url)
+        // 更新 axios 实例的 baseURL
+        updateInstanceBaseUrl(url)
+        return { success: true, url }
+      }
+    } catch (error) {
+      console.warn(`尝试连接服务器 ${url} 失败:`, error.message)
+    }
+  }
+
+  return { success: false, url: null }
+}
+
 // 设置服务器地址
 export const setBaseUrl = (url) => {
   localStorage.setItem('baseUrl', url)
+  // 更新 axios 实例的 baseURL
+  updateInstanceBaseUrl(url)
   window.location.reload() // 刷新页面以应用新的baseUrl
 }
 
@@ -22,6 +68,11 @@ export const getCurrentBaseUrl = () => {
 const instance = axios.create({
   baseURL: BASE_URL,
 })
+
+// 更新 axios 实例的 baseURL
+export const updateInstanceBaseUrl = (newBaseUrl) => {
+  instance.defaults.baseURL = newBaseUrl
+}
 
 // 历史记录相关接口
 export const getBiliHistory2024 = (page, size, sortOrder, tagName, mainCategory, dateRange, useLocalImages = false, business = '') => {
@@ -685,3 +736,8 @@ export const deleteDownloadedVideo = (cid, deleteDirectory = false, directory = 
 
 // 导入通知组件
 import 'vant/es/notify/style'
+
+// 服务器健康检查
+export const checkServerHealth = () => {
+  return instance.get('/health')
+}
