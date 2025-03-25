@@ -4,17 +4,17 @@
     <!-- 左侧导航栏 -->
     <div :class="[
       'transition-all duration-300 ease-in-out bg-white/10 backdrop-blur-lg border-r border-gray-200/50 hidden sm:block',
-      isCollapsed ? 'w-12' : 'w-48'
+      isCollapsed ? 'w-10' : 'w-40'
     ]">
       <!-- 侧边栏内容 -->
       <div class="h-full flex flex-col">
         <!-- 顶部 Logo -->
-        <div class="p-4 border-b border-gray-200/50">
-          <router-link to="/" class="flex items-center space-x-3" :class="{ 'justify-center': isCollapsed }">
-            <svg class="h-8 w-8 text-gray-900 flex-shrink-0" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
+        <div class="p-3 border-b border-gray-200/50">
+          <router-link to="/" class="flex items-center space-x-2" :class="{ 'justify-center': isCollapsed }">
+            <svg class="h-6 w-6 text-gray-900 flex-shrink-0" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
               <path fill="currentColor" d="M306.005333 117.632L444.330667 256h135.296l138.368-138.325333a42.666667 42.666667 0 0 1 60.373333 60.373333L700.330667 256H789.333333A149.333333 149.333333 0 0 1 938.666667 405.333333v341.333334a149.333333 149.333333 0 0 1-149.333334 149.333333h-554.666666A149.333333 149.333333 0 0 1 85.333333 746.666667v-341.333334A149.333333 149.333333 0 0 1 234.666667 256h88.96L245.632 177.962667a42.666667 42.666667 0 0 1 60.373333-60.373334zM789.333333 341.333333h-554.666666a64 64 0 0 0-63.701334 57.856L170.666667 405.333333v341.333334a64 64 0 0 0 57.856 63.701333L234.666667 810.666667h554.666666a64 64 0 0 0 63.701334-57.856L853.333333 746.666667v-341.333334A64 64 0 0 0 789.333333 341.333333zM341.333333 469.333333a42.666667 42.666667 0 0 1 42.666667 42.666667v85.333333a42.666667 42.666667 0 0 1-85.333333 0v-85.333333a42.666667 42.666667 0 0 1 42.666666-42.666667z m341.333334 0a42.666667 42.666667 0 0 1 42.666666 42.666667v85.333333a42.666667 42.666667 0 0 1-85.333333 0v-85.333333a42.666667 42.666667 0 0 1 42.666667-42.666667z" />
             </svg>
-            <span v-show="!isCollapsed" class="text-lg font-semibold bg-gradient-to-r from-[#fb7299] to-[#fc9b7a] bg-clip-text text-transparent whitespace-nowrap">B站历史记录</span>
+            <span v-show="!isCollapsed" class="text-base font-semibold bg-gradient-to-r from-[#fb7299] to-[#fc9b7a] bg-clip-text text-transparent whitespace-nowrap">B站历史记录</span>
           </router-link>
         </div>
 
@@ -24,14 +24,14 @@
           <button
             @click="changeContent('history')"
             :title="isCollapsed ? '历史记录' : ''"
-            class="w-full flex items-center py-2 text-gray-700 transition-all duration-300 ease-in-out"
+            class="w-full flex items-center py-1.5 text-gray-700 transition-all duration-300 ease-in-out text-sm"
             :class="[
               { 'bg-[#fb7299]/10 text-[#fb7299]': currentContent === 'history' && !showRemarks },
               { 'justify-center': isCollapsed },
               isCollapsed ? 'px-2' : 'px-3 rounded-lg'
             ]"
           >
-            <svg class="w-6 h-6 flex-shrink-0" :class="{ 'mr-3': !isCollapsed }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg class="w-5 h-5 flex-shrink-0" :class="{ 'mr-3': !isCollapsed }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <span v-show="!isCollapsed" class="truncate">历史记录</span>
@@ -41,31 +41,50 @@
           <button
             @click="changeContent('remarks')"
             :title="isCollapsed ? '我的备注' : ''"
-            class="w-full flex items-center py-2 text-gray-700 transition-all duration-300 ease-in-out"
+            class="w-full flex items-center py-1.5 text-gray-700 transition-all duration-300 ease-in-out text-sm"
             :class="[
               { 'bg-[#fb7299]/10 text-[#fb7299]': currentContent === 'remarks' || (currentContent === 'history' && showRemarks) },
               { 'justify-center': isCollapsed },
               isCollapsed ? 'px-2' : 'px-3 rounded-lg'
             ]"
           >
-            <svg class="w-6 h-6 flex-shrink-0" :class="{ 'mr-3': !isCollapsed }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg class="w-5 h-5 flex-shrink-0" :class="{ 'mr-3': !isCollapsed }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
             </svg>
             <span v-show="!isCollapsed" class="truncate">我的备注</span>
           </button>
 
+          <!-- 我的评论 -->
+          <router-link
+            to="/comments"
+            :title="isCollapsed ? '我的评论' : ''"
+            class="flex items-center py-1.5 text-gray-700 transition-all duration-300 ease-in-out text-sm"
+            :class="[
+              { 'bg-[#fb7299]/10 text-[#fb7299]': currentContent === 'comments' },
+              { 'justify-center': isCollapsed },
+              isCollapsed ? 'px-2' : 'px-3 rounded-lg'
+            ]"
+            @click="currentContent = 'comments'"
+          >
+            <svg class="w-5 h-5 flex-shrink-0" :class="{ 'mr-3': !isCollapsed }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+            </svg>
+            <span v-show="!isCollapsed" class="truncate">我的评论</span>
+          </router-link>
+
           <!-- 年度总结 -->
           <router-link
             to="/analytics"
             :title="isCollapsed ? '年度总结' : ''"
-            class="flex items-center py-2 text-gray-700 transition-all duration-300 ease-in-out"
+            class="flex items-center py-1.5 text-gray-700 transition-all duration-300 ease-in-out text-sm"
             :class="[
               { 'bg-[#fb7299]/10 text-[#fb7299]': currentContent === 'analytics' },
               { 'justify-center': isCollapsed },
               isCollapsed ? 'px-2' : 'px-3 rounded-lg'
             ]"
+            @click="currentContent = 'analytics'"
           >
-            <svg class="w-6 h-6 flex-shrink-0" :class="{ 'mr-3': !isCollapsed }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg class="w-5 h-5 flex-shrink-0" :class="{ 'mr-3': !isCollapsed }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
             </svg>
             <span v-show="!isCollapsed" class="truncate">年度总结</span>
@@ -75,14 +94,15 @@
           <router-link
             to="/images"
             :title="isCollapsed ? '图片管理' : ''"
-            class="flex items-center py-2 text-gray-700 transition-all duration-300 ease-in-out"
+            class="flex items-center py-1.5 text-gray-700 transition-all duration-300 ease-in-out text-sm"
             :class="[
               { 'bg-[#fb7299]/10 text-[#fb7299]': currentContent === 'images' },
               { 'justify-center': isCollapsed },
               isCollapsed ? 'px-2' : 'px-3 rounded-lg'
             ]"
+            @click="currentContent = 'images'"
           >
-            <svg class="w-6 h-6 flex-shrink-0" :class="{ 'mr-3': !isCollapsed }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg class="w-5 h-5 flex-shrink-0" :class="{ 'mr-3': !isCollapsed }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
             <span v-show="!isCollapsed" class="truncate">图片管理</span>
@@ -92,7 +112,7 @@
           <router-link
             to="/scheduler"
             :title="isCollapsed ? '计划任务' : ''"
-            class="flex items-center py-2 text-gray-700 transition-all duration-300 ease-in-out"
+            class="flex items-center py-1.5 text-gray-700 transition-all duration-300 ease-in-out text-sm"
             :class="[
               { 'bg-[#fb7299]/10 text-[#fb7299]': currentContent === 'scheduler' },
               { 'justify-center': isCollapsed },
@@ -100,7 +120,7 @@
             ]"
             @click="currentContent = 'scheduler'"
           >
-            <svg class="w-6 h-6 flex-shrink-0" :class="{ 'mr-3': !isCollapsed }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg class="w-5 h-5 flex-shrink-0" :class="{ 'mr-3': !isCollapsed }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <span v-show="!isCollapsed" class="truncate">计划任务</span>
@@ -110,7 +130,7 @@
           <router-link
             to="/downloads"
             :title="isCollapsed ? '视频下载' : ''"
-            class="flex items-center py-2 text-gray-700 transition-all duration-300 ease-in-out"
+            class="flex items-center py-1.5 text-gray-700 transition-all duration-300 ease-in-out text-sm"
             :class="[
               { 'bg-[#fb7299]/10 text-[#fb7299]': currentContent === 'downloads' },
               { 'justify-center': isCollapsed },
@@ -118,7 +138,7 @@
             ]"
             @click="currentContent = 'downloads'"
           >
-            <svg class="w-6 h-6 flex-shrink-0" :class="{ 'mr-3': !isCollapsed }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg class="w-5 h-5 flex-shrink-0" :class="{ 'mr-3': !isCollapsed }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
             </svg>
             <span v-show="!isCollapsed" class="truncate">视频下载</span>
@@ -128,32 +148,31 @@
           <button
             @click="changeContent('settings')"
             :title="isCollapsed ? '设置' : ''"
-            class="w-full flex items-center py-2 text-gray-700 transition-all duration-300 ease-in-out"
+            class="w-full flex items-center py-1.5 text-gray-700 transition-all duration-300 ease-in-out text-sm"
             :class="[
               { 'bg-[#fb7299]/10 text-[#fb7299]': currentContent === 'settings' },
               { 'justify-center': isCollapsed },
               isCollapsed ? 'px-2' : 'px-3 rounded-lg'
             ]"
           >
-            <svg class="w-6 h-6 flex-shrink-0" :class="{ 'mr-3': !isCollapsed }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg class="w-5 h-5 flex-shrink-0" :class="{ 'mr-3': !isCollapsed }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
             <span v-show="!isCollapsed" class="truncate">设置</span>
           </button>
 
-
           <!-- 登录状态显示 -->
           <div
             @click="handleLoginClick"
-            class="w-full flex items-center py-2 text-gray-700 transition-all duration-300 ease-in-out cursor-pointer hover:text-[#fb7299]"
+            class="w-full flex items-center py-1.5 text-gray-700 transition-all duration-300 ease-in-out cursor-pointer hover:text-[#fb7299] text-sm"
             :class="[
               { 'justify-center': isCollapsed },
               isCollapsed ? 'px-2' : 'px-3 rounded-lg'
             ]"
           >
             <svg
-              class="w-6 h-6 flex-shrink-0"
+              class="w-5 h-5 flex-shrink-0"
               :class="{ 'mr-3': !isCollapsed }"
               fill="none"
               viewBox="0 0 24 24"
@@ -182,26 +201,26 @@
         </nav>
 
         <!-- 底部设置区域 -->
-        <div class="p-4 border-t border-gray-200/50">
+        <div class="p-3 border-t border-gray-200/50">
           <!-- 导入SQLite数据 -->
           <button
             @click="importToSqlite"
             :disabled="isImporting"
             :title="isCollapsed ? (isImporting ? '导入中...' : '导入SQLite') : ''"
-            class="w-full flex items-center px-2 py-2 text-gray-700 hover:text-[#fb7299] rounded-lg transition-colors duration-200"
+            class="w-full flex items-center px-2 py-1.5 text-gray-700 hover:text-[#fb7299] rounded-lg transition-colors duration-200 text-sm"
             :class="[
               { 'justify-center': isCollapsed },
               { 'opacity-50 cursor-not-allowed': isImporting }
             ]"
           >
-            <svg class="w-6 h-6 flex-shrink-0" :class="{ 'mr-3': !isCollapsed }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg class="w-5 h-5 flex-shrink-0" :class="{ 'mr-3': !isCollapsed }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
             </svg>
             <span v-show="!isCollapsed" class="truncate">{{ isImporting ? '导入中...' : '导入SQLite' }}</span>
           </button>
 
           <!-- SQLite版本显示 -->
-          <div v-if="!isCollapsed" class="mt-2 text-xs space-y-1 px-2">
+          <div v-if="!isCollapsed" class="mt-2 text-xs space-y-1 px-2 text-[11px]">
             <div class="text-gray-500">
               SQLite版本: {{ sqliteVersion?.sqlite_version || '加载中...' }}
             </div>
@@ -213,7 +232,7 @@
               <div class="mr-1">服务器状态:</div>
               <div class="flex items-center">
                 <span
-                  class="w-2 h-2 rounded-full mr-1"
+                  class="w-1.5 h-1.5 rounded-full mr-1"
                   :class="serverStatus.isRunning ? 'bg-green-500' : 'bg-red-500'"
                 ></span>
                 <span :class="serverStatus.isRunning ? 'text-green-600' : 'text-red-600'">
@@ -227,10 +246,10 @@
           <button
             @click="toggleCollapse"
             :title="isCollapsed ? '展开侧边栏' : '收起侧边栏'"
-            class="mt-4 w-full flex items-center justify-center px-2 py-2 text-gray-700 hover:text-[#fb7299] transition-colors duration-200"
+            class="mt-3 w-full flex items-center justify-center px-2 py-1.5 text-gray-700 hover:text-[#fb7299] transition-colors duration-200 text-sm"
           >
             <svg
-              class="w-6 h-6 flex-shrink-0 transform transition-transform duration-300"
+              class="w-5 h-5 flex-shrink-0 transform transition-transform duration-300"
               :class="{ 'rotate-180': isCollapsed }"
               fill="none"
               viewBox="0 0 24 24"
@@ -287,6 +306,8 @@ const currentContent = ref((() => {
     return 'scheduler'
   } else if (path === '/downloads') {
     return 'downloads'
+  } else if (path === '/comments') {
+    return 'comments'
   } else if (path === '/' || path.startsWith('/page/')) {
     return 'history'
   }
@@ -316,6 +337,8 @@ watch(
       currentContent.value = 'scheduler'
     } else if (path === '/downloads') {
       currentContent.value = 'downloads'
+    } else if (path === '/comments') {
+      currentContent.value = 'comments'
     } else if (path === '/' || path.startsWith('/page/')) {
       currentContent.value = 'history'
     }

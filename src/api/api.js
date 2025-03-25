@@ -734,6 +734,24 @@ export const deleteDownloadedVideo = (cid, deleteDirectory = false, directory = 
   })
 }
 
+// 获取评论列表
+export const getComments = (uid, page = 1, pageSize = 20, commentType = 'all', keyword = '', typeFilter = '') => {
+  // 确保 typeFilter 为有效整数或不传递
+  const params = {
+    page,
+    page_size: pageSize,
+    comment_type: commentType,
+    keyword
+  }
+  
+  // 只有当 typeFilter 有值且不为 '0' 时才添加到参数中
+  if (typeFilter && typeFilter !== '0') {
+    params.type_filter = parseInt(typeFilter)
+  }
+  
+  return instance.get(`/comment/query/${uid}`, { params })
+}
+
 // 导入通知组件
 import 'vant/es/notify/style'
 

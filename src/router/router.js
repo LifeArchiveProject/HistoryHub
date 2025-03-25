@@ -7,6 +7,7 @@ import MainLayout from '../components/tailwind/layout/MainLayout.vue'
 import Images from '../components/tailwind/page/Images.vue'
 import SchedulerTasks from '../components/tailwind/page/SchedulerTasks.vue'
 import Downloads from '../components/tailwind/page/Downloads.vue'
+import Comments from '../components/tailwind/page/Comments.vue'
 
 const routes = [
   {
@@ -61,6 +62,11 @@ const routes = [
         path: 'downloads',
         name: 'Downloads',
         component: Downloads
+      },
+      {
+        path: 'comments',
+        name: 'Comments',
+        component: Comments
       }
     ]
   }
