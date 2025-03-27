@@ -90,22 +90,22 @@
             <span v-show="!isCollapsed" class="truncate">年度总结</span>
           </router-link>
 
-          <!-- 图片管理 -->
+          <!-- 媒体管理（整合图片管理和视频下载） -->
           <router-link
-            to="/images"
-            :title="isCollapsed ? '图片管理' : ''"
+            to="/media"
+            :title="isCollapsed ? '媒体管理' : ''"
             class="flex items-center py-1.5 text-gray-700 transition-all duration-300 ease-in-out text-sm"
             :class="[
-              { 'bg-[#fb7299]/10 text-[#fb7299]': currentContent === 'images' },
+              { 'bg-[#fb7299]/10 text-[#fb7299]': currentContent === 'media' },
               { 'justify-center': isCollapsed },
               isCollapsed ? 'px-2' : 'px-3 rounded-lg'
             ]"
-            @click="currentContent = 'images'"
+            @click="currentContent = 'media'"
           >
             <svg class="w-5 h-5 flex-shrink-0" :class="{ 'mr-3': !isCollapsed }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
             </svg>
-            <span v-show="!isCollapsed" class="truncate">图片管理</span>
+            <span v-show="!isCollapsed" class="truncate">媒体管理</span>
           </router-link>
 
           <!-- 计划任务 -->
@@ -126,22 +126,22 @@
             <span v-show="!isCollapsed" class="truncate">计划任务</span>
           </router-link>
 
-          <!-- 视频下载 -->
+          <!-- 关于页面 -->
           <router-link
-            to="/downloads"
-            :title="isCollapsed ? '视频下载' : ''"
+            to="/about"
+            :title="isCollapsed ? '关于' : ''"
             class="flex items-center py-1.5 text-gray-700 transition-all duration-300 ease-in-out text-sm"
             :class="[
-              { 'bg-[#fb7299]/10 text-[#fb7299]': currentContent === 'downloads' },
+              { 'bg-[#fb7299]/10 text-[#fb7299]': currentContent === 'about' },
               { 'justify-center': isCollapsed },
               isCollapsed ? 'px-2' : 'px-3 rounded-lg'
             ]"
-            @click="currentContent = 'downloads'"
+            @click="currentContent = 'about'"
           >
             <svg class="w-5 h-5 flex-shrink-0" :class="{ 'mr-3': !isCollapsed }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <span v-show="!isCollapsed" class="truncate">视频下载</span>
+            <span v-show="!isCollapsed" class="truncate">关于</span>
           </router-link>
 
           <!-- 设置 -->
@@ -298,16 +298,16 @@ const currentContent = ref((() => {
     return 'settings'
   } else if (path === '/remarks') {
     return 'remarks'
-  } else if (path === '/images') {
-    return 'images'
+  } else if (path === '/media') {
+    return 'media'
   } else if (path === '/analytics') {
     return 'analytics'
   } else if (path === '/scheduler') {
     return 'scheduler'
-  } else if (path === '/downloads') {
-    return 'downloads'
   } else if (path === '/comments') {
     return 'comments'
+  } else if (path === '/about') {
+    return 'about'
   } else if (path === '/' || path.startsWith('/page/')) {
     return 'history'
   }
@@ -329,16 +329,16 @@ watch(
       currentContent.value = 'settings'
     } else if (path === '/remarks') {
       currentContent.value = 'remarks'
-    } else if (path === '/images') {
-      currentContent.value = 'images'
+    } else if (path === '/media') {
+      currentContent.value = 'media'
     } else if (path === '/analytics') {
       currentContent.value = 'analytics'
     } else if (path === '/scheduler') {
       currentContent.value = 'scheduler'
-    } else if (path === '/downloads') {
-      currentContent.value = 'downloads'
     } else if (path === '/comments') {
       currentContent.value = 'comments'
+    } else if (path === '/about') {
+      currentContent.value = 'about'
     } else if (path === '/' || path.startsWith('/page/')) {
       currentContent.value = 'history'
     }

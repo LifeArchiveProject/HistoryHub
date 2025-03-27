@@ -8,6 +8,8 @@ import Images from '../components/tailwind/page/Images.vue'
 import SchedulerTasks from '../components/tailwind/page/SchedulerTasks.vue'
 import Downloads from '../components/tailwind/page/Downloads.vue'
 import Comments from '../components/tailwind/page/Comments.vue'
+import MediaManager from '../components/tailwind/page/MediaManager.vue'
+import About from '../components/tailwind/page/About.vue'
 
 const routes = [
   {
@@ -67,6 +69,16 @@ const routes = [
         path: 'comments',
         name: 'Comments',
         component: Comments
+      },
+      {
+        path: 'media',
+        name: 'MediaManager',
+        component: MediaManager
+      },
+      {
+        path: 'about',
+        name: 'About',
+        component: About
       }
     ]
   }

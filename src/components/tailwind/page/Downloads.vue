@@ -1,33 +1,28 @@
 <template>
-  <div class="min-h-screen overflow-y-auto">
-    <!-- 页面标题 -->
-    <div class="bg-white/5 backdrop-blur-sm px-6 py-4 border-b border-gray-200/50">
-      <div class="flex items-center justify-between">
-        <h1 class="text-xl font-semibold text-gray-900">我的下载</h1>
-        <div class="space-x-2">
-          <div class="relative">
-            <input
-              type="text"
-              v-model="searchTerm"
-              @keyup.enter="loadDownloadedVideos"
-              placeholder="搜索已下载的视频..."
-              class="w-64 pr-10 pl-3 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#fb7299] focus:border-transparent"
-            />
-            <button
-              @click="loadDownloadedVideos"
-              class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-[#fb7299]"
-            >
-              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </button>
-          </div>
-        </div>
+  <div class="overflow-y-auto">
+    <!-- 搜索框 -->
+    <div class="mb-6">
+      <div class="relative w-full">
+        <input
+          type="text"
+          v-model="searchTerm"
+          @keyup.enter="loadDownloadedVideos"
+          placeholder="搜索已下载的视频..."
+          class="w-full pr-10 pl-3 py-2.5 text-sm rounded-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#fb7299] focus:border-[#fb7299] shadow-sm"
+        />
+        <button
+          @click="loadDownloadedVideos"
+          class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-[#fb7299]"
+        >
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </button>
       </div>
     </div>
 
     <!-- 主要内容 -->
-    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+    <div>
       <!-- 下载数据加载中的占位 -->
       <div v-if="isLoading" class="flex flex-col items-center justify-center py-12">
         <svg class="animate-spin h-8 w-8 text-[#fb7299] mb-4" fill="none" viewBox="0 0 24 24">

@@ -759,3 +759,37 @@ import 'vant/es/notify/style'
 export const checkServerHealth = () => {
   return instance.get('/health')
 }
+
+/**
+ * 获取视频流地址
+ * @param {string} file_path 视频文件路径
+ * @returns {string} 视频流URL
+ */
+export const getVideoStream = (file_path) => {
+  if (!file_path) return ''
+  const baseUrl = instance.defaults.baseURL
+  return `${baseUrl}/download/stream_video?file_path=${encodeURIComponent(file_path)}&t=${Date.now()}`
+}
+
+/**
+ * 获取弹幕文件内容
+ * @param {string} cid 弹幕ID
+ * @param {string} file_path 弹幕文件路径
+ * @returns {Promise<Object>} 响应对象
+ */
+export const getDanmakuFile = async (cid = '', file_path = '') => {
+  try {
+    const params = {};
+    if (cid) params.cid = cid;
+    if (file_path) params.file_path = file_path;
+    
+    const response = await instance.get(`/download/stream_danmaku`, { 
+      params,
+      responseType: 'text' // 获取纯文本格式的弹幕文件
+    });
+    return response;
+  } catch (error) {
+    console.error('获取弹幕文件失败:', error);
+    throw error;
+  }
+}

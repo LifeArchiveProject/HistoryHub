@@ -1,14 +1,12 @@
 <!-- 图片管理页面 -->
 <template>
-  <div class="container mx-auto px-4 py-8 max-w-4xl">
-    <h1 class="text-2xl font-bold mb-8 bg-gradient-to-r from-[#fb7299] to-[#fc9b7a] bg-clip-text text-transparent">图片管理</h1>
-
+  <div class="container mx-auto max-w-full">
     <!-- 操作按钮 -->
-    <div class="mb-8 flex space-x-4">
+    <div class="mb-6 flex space-x-4">
       <button
         @click="handleDownloadClick"
         :disabled="isLoading || isStoppingDownload"
-        class="px-4 py-2 bg-[#fb7299] text-white rounded-lg hover:bg-[#fb7299]/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+        class="px-4 py-2 bg-[#fb7299] text-white rounded-md hover:bg-[#fb7299]/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm"
       >
         <div class="flex items-center space-x-2">
           <svg v-if="isDownloading" class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -25,7 +23,7 @@
       <button
         @click="handleClear"
         :disabled="isDownloading || isLoading || isStoppingDownload"
-        class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+        class="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm"
       >
         <div class="flex items-center space-x-2">
           <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

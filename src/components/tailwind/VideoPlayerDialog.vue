@@ -21,35 +21,30 @@
           <h3 class="text-white text-lg font-medium truncate">
             {{ getFileName(videoPath) }}
           </h3>
+          <div v-if="danmakuFile" class="text-green-400 text-xs mt-1 flex items-center">
+            <svg class="w-3.5 h-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            <span>已加载弹幕</span>
+          </div>
         </div>
 
         <!-- 视频播放器 -->
         <div class="w-full h-full aspect-video max-h-[80vh] relative">
-          <!-- 加载指示器 -->
-          <div v-if="isLoading" class="absolute inset-0 flex items-center justify-center bg-black/60 z-10">
-            <div class="text-center">
-              <svg class="w-12 h-12 text-[#fb7299] mx-auto animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              <p class="text-white mt-3">视频加载中...</p>
-            </div>
+          <!-- ArtPlayer播放器 -->
+          <div v-show="activeVideo" class="w-full h-full">
+            <ArtPlayerWithDanmaku
+              v-if="activeVideo"
+              ref="artPlayerRef"
+              :videoSrc="videoSrc"
+              :cid="currentCid"
+              :danmakuFilePath="danmakuFile"
+              :title="getFileName(videoPath)"
+              :autoplay="true"
+              :width="'100%'"
+              :height="'100%'"
+            />
           </div>
-          
-          <video 
-            v-if="activeVideo"
-            ref="videoElement" 
-            controls 
-            class="w-full h-full"
-            :src="videoSrc"
-            preload="auto"
-            @error="handleVideoError"
-            @loadstart="isLoading = true"
-            @loadeddata="isLoading = false"
-            @canplay="isLoading = false"
-          >
-            您的浏览器不支持 HTML5 视频播放
-          </video>
         </div>
 
         <!-- 错误提示 -->
@@ -75,7 +70,8 @@
 
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
-import { getCurrentBaseUrl } from '../../api/api'
+import { getVideoStream, getDanmakuFile } from '../../api/api'
+import ArtPlayerWithDanmaku from './ArtPlayerWithDanmaku.vue'
 
 defineOptions({
   name: 'VideoPlayerDialog'
@@ -94,22 +90,17 @@ const props = defineProps({
 
 const emit = defineEmits(['update:show'])
 
-// 视频元素引用
-const videoElement = ref(null)
+// 播放器引用
+const artPlayerRef = ref(null)
 const isLoading = ref(false)
 const activeVideo = ref(false)
 const videoSrc = ref('')
+const danmakuFile = ref('')
+const currentCid = ref('')
 
 // 错误状态
 const error = ref(false)
 const errorMessage = ref('')
-
-// 生成视频流URL
-const getVideoUrl = (path) => {
-  if (!path) return ''
-  const baseUrl = getCurrentBaseUrl()
-  return `${baseUrl}/download/stream_video?file_path=${encodeURIComponent(path)}&t=${Date.now()}`
-}
 
 // 获取文件名
 const getFileName = (path) => {
@@ -117,40 +108,57 @@ const getFileName = (path) => {
   return path.split('\\').pop().split('/').pop() || '未知文件'
 }
 
-// 处理视频错误
-const handleVideoError = (e) => {
-  console.error('视频播放错误:', e)
-  isLoading.value = false
-  error.value = true
-  errorMessage.value = `无法播放视频，错误信息: ${e.target.error ? e.target.error.message : '未知错误'}`
+// 从视频路径中提取CID
+const extractCid = (path) => {
+  if (!path) return ''
+  
+  // 尝试从文件名中提取CID
+  const fileName = getFileName(path)
+  const cidMatch = fileName.match(/_(\d+)\.mp4$/) || fileName.match(/_(\d+)\.flv$/) || fileName.match(/_(\d+)\.m4a$/)
+  
+  if (cidMatch && cidMatch[1]) {
+    return cidMatch[1]
+  }
+  
+  // 如果文件名中没有CID，尝试从目录路径中提取
+  const dirMatch = path.match(/(\d{8,})/)
+  return dirMatch ? dirMatch[1] : ''
 }
 
-// 完全销毁视频元素
-const destroyVideo = () => {
-  if (videoElement.value) {
-    // 暂停播放
-    videoElement.value.pause()
-    
-    // 移除所有事件监听器
-    videoElement.value.onloadeddata = null
-    videoElement.value.onloadstart = null
-    videoElement.value.oncanplay = null
-    videoElement.value.onerror = null
-    
-    // 清空src（添加空白src并加载以释放资源）
-    videoElement.value.removeAttribute('src')
-    videoElement.value.load()
+// 获取弹幕文件路径
+const findDanmakuFile = (videoPath) => {
+  if (!videoPath) return ''
+  
+  // 根据视频文件路径推断弹幕文件路径
+  const fileNameWithoutExt = videoPath.replace(/\.(mp4|flv|m4a)$/i, '')
+  return `${fileNameWithoutExt}.ass`
+}
+
+// 处理播放错误
+const handlePlayError = (error) => {
+  console.error('视频播放错误:', error)
+  isLoading.value = false
+  error.value = true
+  errorMessage.value = `无法播放视频，错误信息: ${error?.message || '未知错误'}`
+}
+
+// 销毁播放器
+const destroyPlayer = () => {
+  if (artPlayerRef.value && artPlayerRef.value.player) {
+    artPlayerRef.value.player.destroy()
   }
   
   // 重置变量
   videoSrc.value = ''
+  danmakuFile.value = ''
+  currentCid.value = ''
   activeVideo.value = false
 }
 
 // 关闭对话框
 const handleClose = () => {
-  // 销毁视频元素
-  destroyVideo()
+  // 销毁播放器
+  destroyPlayer()
   
   // 重置错误状态
   error.value = false
@@ -165,27 +173,21 @@ const handleClose = () => {
 const loadVideo = () => {
   if (!props.videoPath) return
   
-  // 确保之前的视频已被销毁
-  destroyVideo()
+  // 确保之前的播放器已被销毁
+  destroyPlayer()
   
-  // 设置加载状态
-  isLoading.value = true
+  // 提取CID
+  currentCid.value = extractCid(props.videoPath)
   
-  // 生成带有时间戳的URL避免缓存问题
-  videoSrc.value = getVideoUrl(props.videoPath)
+  // 查找弹幕文件
+  danmakuFile.value = findDanmakuFile(props.videoPath)
+  
+  // 使用api生成视频流URL
+  videoSrc.value = getVideoStream(props.videoPath)
   
   // 激活视频元素
   nextTick(() => {
     activeVideo.value = true
-    
-    // 确保视频开始播放
-    setTimeout(() => {
-      if (videoElement.value) {
-        videoElement.value.play().catch(err => {
-          console.warn('无法自动播放视频:', err)
-        })
-      }
-    }, 100)
   })
 }
 
@@ -195,34 +197,29 @@ watch(() => props.show, (newVal) => {
     // 对话框打开时加载视频
     loadVideo()
   } else {
-    // 对话框关闭时销毁视频
-    destroyVideo()
+    // 对话框关闭时销毁播放器
+    destroyPlayer()
   }
 })
 
 // 监听videoPath变化
-watch(() => props.videoPath, (newVal, oldVal) => {
-  if (newVal && newVal !== oldVal && props.show) {
-    // 当视频路径变化且对话框已打开时重新加载视频
+watch(() => props.videoPath, (newVal) => {
+  if (props.show && newVal) {
+    // 如果对话框已打开并且视频路径变化，重新加载视频
     loadVideo()
   }
 })
 
-// 监听键盘事件
-const handleKeyDown = (e) => {
-  if (e.key === 'Escape' && props.show) {
-    handleClose()
-  }
-}
-
-// 挂载和卸载时的事件监听
+// 组件挂载时初始化
 onMounted(() => {
-  window.addEventListener('keydown', handleKeyDown)
+  if (props.show && props.videoPath) {
+    loadVideo()
+  }
 })
 
+// 组件卸载时清理资源
 onUnmounted(() => {
-  window.removeEventListener('keydown', handleKeyDown)
-  destroyVideo() // 确保在组件卸载时清理资源
+  destroyPlayer()
 })
 </script>
 
