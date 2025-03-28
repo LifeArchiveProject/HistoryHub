@@ -56,6 +56,14 @@ export const setBaseUrl = (url) => {
   localStorage.setItem('baseUrl', url)
   // 更新 axios 实例的 baseURL
   updateInstanceBaseUrl(url)
+  // 触发API BASE URL更新事件，供其他API模块使用
+  try {
+    const event = new CustomEvent('api-baseurl-updated', { detail: { url } })
+    window.dispatchEvent(event)
+    console.log('已触发API BaseURL更新事件:', url)
+  } catch (error) {
+    console.error('触发API BaseURL更新事件失败:', error)
+  }
   window.location.reload() // 刷新页面以应用新的baseUrl
 }
 
@@ -792,4 +800,51 @@ export const getDanmakuFile = async (cid = '', file_path = '') => {
     console.error('获取弹幕文件失败:', error);
     throw error;
   }
+}
+
+// 数据同步相关接口
+/**
+ * 数据同步API
+ * @param {string} db_path - 数据库文件路径
+ * @param {string} json_path - JSON文件根目录
+ * @param {boolean} async_mode - 是否异步执行
+ * @returns {Promise} - API响应
+ */
+export const syncData = (db_path = 'output/bilibili_history.db', json_path = 'output/history_by_date', async_mode = false) => {
+  return instance.post('/data_sync/sync', {
+    db_path,
+    json_path,
+    async_mode
+  })
+}
+
+/**
+ * 获取最新同步结果API
+ * @returns {Promise} - API响应
+ */
+export const getSyncResult = () => {
+  return instance.get('/data_sync/sync/result')
+}
+
+/**
+ * 检查数据完整性API
+ * @param {string} db_path - 数据库文件路径
+ * @param {string} json_path - JSON文件根目录
+ * @param {boolean} async_mode - 是否异步执行
+ * @returns {Promise} - API响应
+ */
+export const checkDataIntegrity = (db_path = 'output/bilibili_history.db', json_path = 'output/history_by_date', async_mode = false) => {
+  return instance.post('/data_sync/check', {
+    db_path,
+    json_path,
+    async_mode
+  })
+}
+
+/**
+ * 获取数据完整性报告API
+ * @returns {Promise} - API响应
+ */
+export const getIntegrityReport = () => {
+  return instance.get('/data_sync/report')
 }

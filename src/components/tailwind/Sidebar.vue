@@ -202,33 +202,10 @@
 
         <!-- 底部设置区域 -->
         <div class="p-3 border-t border-gray-200/50">
-          <!-- 导入SQLite数据 -->
-          <button
-            @click="importToSqlite"
-            :disabled="isImporting"
-            :title="isCollapsed ? (isImporting ? '导入中...' : '导入SQLite') : ''"
-            class="w-full flex items-center px-2 py-1.5 text-gray-700 hover:text-[#fb7299] rounded-lg transition-colors duration-200 text-sm"
-            :class="[
-              { 'justify-center': isCollapsed },
-              { 'opacity-50 cursor-not-allowed': isImporting }
-            ]"
-          >
-            <svg class="w-5 h-5 flex-shrink-0" :class="{ 'mr-3': !isCollapsed }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-            </svg>
-            <span v-show="!isCollapsed" class="truncate">{{ isImporting ? '导入中...' : '导入SQLite' }}</span>
-          </button>
-
-          <!-- SQLite版本显示 -->
-          <div v-if="!isCollapsed" class="mt-2 text-xs space-y-1 px-2 text-[11px]">
-            <div class="text-gray-500">
-              SQLite版本: {{ sqliteVersion?.sqlite_version || '加载中...' }}
-            </div>
-            <div class="text-gray-500">
-              数据库大小: {{ sqliteVersion?.database_file?.size_mb?.toFixed(2) || '0' }} MB
-            </div>
+          <!-- 服务器状态和数据完整性放在一个容器中，与SQLite版本信息保持一致的边距 -->
+          <div v-if="!isCollapsed" class="mt-1 text-[11px] space-y-1 px-2">
             <!-- 服务器状态显示 -->
-            <div class="flex items-center text-gray-500 mt-1">
+            <div class="flex items-center text-gray-500">
               <div class="mr-1">服务器状态:</div>
               <div class="flex items-center">
                 <span
@@ -239,6 +216,37 @@
                   {{ serverStatus.isRunning ? '运行中' : '未连接' }}
                 </span>
               </div>
+            </div>
+            
+            <!-- 数据完整性状态 -->
+            <div class="flex items-center text-gray-500">
+              <div class="mr-1">数据完整性:</div>
+              <div class="flex items-center">
+                <span 
+                  class="w-1.5 h-1.5 rounded-full mr-1" 
+                  :class="integrityStatus.status === 'consistent' ? 'bg-green-500' : 
+                        integrityStatus.status === 'inconsistent' ? 'bg-yellow-500' : 'bg-gray-400'"
+                ></span>
+                <span 
+                  class="cursor-pointer hover:underline" 
+                  :class="integrityStatus.status === 'consistent' ? 'text-green-600' : 
+                        integrityStatus.status === 'inconsistent' ? 'text-yellow-600' : 'text-gray-400'"
+                  @click="openDataSyncManager('integrity')"
+                >
+                  {{ integrityStatus.status === 'consistent' ? '一致' : 
+                    integrityStatus.status === 'inconsistent' ? '不一致' : '未检查' }}
+                </span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- SQLite版本显示 -->
+          <div v-if="!isCollapsed" class="mt-3 text-xs space-y-1 px-2 text-[11px]">
+            <div class="text-gray-500">
+              SQLite版本: {{ sqliteVersion?.sqlite_version || '加载中...' }}
+            </div>
+            <div class="text-gray-500">
+              数据库大小: {{ sqliteVersion?.database_file?.size_mb?.toFixed(2) || '0' }} MB
             </div>
           </div>
 
@@ -280,7 +288,7 @@
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { usePrivacyStore } from '../../store/privacy'
-import { importSqliteData, getLoginStatus, logout, getSqliteVersion, checkServerHealth } from '../../api/api'
+import { importSqliteData, getLoginStatus, logout, getSqliteVersion, checkServerHealth, checkDataIntegrity } from '../../api/api'
 import { showNotify } from 'vant'
 import { showDialog } from 'vant'
 import 'vant/es/notify/style'
@@ -379,8 +387,7 @@ const toggleCollapse = () => {
   isCollapsed.value = !isCollapsed.value
 }
 
-// 导入SQLite数据
-const isImporting = ref(false)
+// SQLite版本信息
 const sqliteVersion = ref({
   sqlite_version: '',
   user_version: 0,
@@ -396,33 +403,6 @@ const sqliteVersion = ref({
     path: ''
   }
 })
-const importToSqlite = async () => {
-  if (isImporting.value) return
-
-  try {
-    isImporting.value = true
-    const response = await importSqliteData()
-    if (response.data.status === 'success') {
-      showNotify({
-        type: 'success',
-        message: response.data.message
-      })
-      // 导入成功后等待1秒再刷新页面，让用户看到成功提示
-      setTimeout(() => {
-        window.location.reload()
-      }, 1000)
-    } else {
-      throw new Error(response.data.message)
-    }
-  } catch (error) {
-    showNotify({
-      type: 'danger',
-      message: `导入失败：${error.message}`
-    })
-  } finally {
-    isImporting.value = false
-  }
-}
 
 // 登录相关状态
 const isLoggedIn = ref(false)
@@ -516,7 +496,14 @@ const serverStatus = ref({
   schedulerStatus: ''
 })
 
-// 检查服务器健康状态
+// 数据完整性状态
+const integrityStatus = ref({
+  status: 'unknown', // 'consistent', 'inconsistent', 'unknown'
+  difference: 0,
+  lastCheck: null
+})
+
+// 开始服务器健康检查
 const checkServerHealthStatus = async () => {
   try {
     const response = await checkServerHealth()
@@ -546,6 +533,32 @@ const checkServerHealthStatus = async () => {
   }
 }
 
+// 获取数据完整性状态
+const fetchIntegrityStatus = async () => {
+  try {
+    const response = await checkDataIntegrity('output/bilibili_history.db', 'output/history_by_date', false)
+    if (response.data && response.data.success) {
+      integrityStatus.value = {
+        status: response.data.difference === 0 ? 'consistent' : 'inconsistent',
+        difference: response.data.difference || 0,
+        lastCheck: response.data.timestamp
+      }
+      console.log('完整性状态:', integrityStatus.value)
+    }
+  } catch (error) {
+    console.error('获取完整性状态失败:', error)
+  }
+}
+
+// 打开数据同步管理器
+const openDataSyncManager = (tab = null) => {
+  // 使用自定义事件触发全局弹窗
+  const event = new CustomEvent('open-data-sync-manager', {
+    detail: { tab: tab || 'integrity' }
+  })
+  window.dispatchEvent(event)
+}
+
 // 定时器引用
 const healthCheckTimer = ref(null)
 
@@ -563,17 +576,17 @@ const setupPeriodicHealthCheck = () => {
 }
 
 onMounted(async () => {
-  // 先检查服务器健康状态
-  const isServerRunning = await checkServerHealthStatus()
-
-  // 只有当服务器正常运行时，才进行后续操作
-  if (isServerRunning) {
-    checkLoginStatus()
-    await fetchSqliteVersion()
-    // 设置定期健康检查
-    setupPeriodicHealthCheck()
-  }
-
+  // 初始时检查登录状态
+  checkLoginStatus()
+  await fetchSqliteVersion()
+  
+  // 设置定期健康检查
+  setupPeriodicHealthCheck()
+  checkServerHealthStatus()
+  
+  // 添加获取数据完整性状态
+  await fetchIntegrityStatus()
+  
   // 添加全局事件监听器，当登录状态变化时更新侧边栏的登录状态
   window.addEventListener('login-status-changed', handleLoginStatusChange)
 })
@@ -601,7 +614,7 @@ const handleLoginStatusChange = (event) => {
 // 组件卸载时移除事件监听器和清除定时器
 onUnmounted(() => {
   window.removeEventListener('login-status-changed', handleLoginStatusChange)
-
+  
   // 清除定时器
   if (healthCheckTimer.value) {
     clearInterval(healthCheckTimer.value)

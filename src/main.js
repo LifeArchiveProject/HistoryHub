@@ -8,6 +8,11 @@ import Vant from 'vant'
 // 引入Vant组件样式
 import 'vant/lib/index.css'
 
+// 初始化custom event用于API模块间通信
+window.addEventListener('api-baseurl-updated', (event) => {
+  console.log('API BaseURL 已更新:', event.detail?.url)
+})
+
 // 判断是否在 Tauri 环境中
 const isTauri = window && window.__TAURI__
 

@@ -1,6 +1,7 @@
 <script setup>
-import { ref, onMounted } from 'vue'
-import { tryConnectServers, setBaseUrl } from './api/api'
+import { ref, onMounted, provide } from 'vue'
+import { useRouter } from 'vue-router'
+import { tryConnectServers, setBaseUrl, updateInstanceBaseUrl } from './api/api'
 import { showNotify, showDialog } from 'vant'
 import 'vant/es/notify/style'
 import 'vant/es/dialog/style'
@@ -8,46 +9,60 @@ import 'vant/es/dialog/style'
 const isLoading = ref(true)
 const serverConnected = ref(false)
 const connectionChecked = ref(false)
+const baseUrl = ref('')
+const router = useRouter()
+
+provide('baseUrl', baseUrl)
 
 // 检查服务器连接
 const checkServerConnection = async () => {
-  isLoading.value = true
   try {
+    isLoading.value = true
     const result = await tryConnectServers()
-    serverConnected.value = result.success
     
     if (result.success) {
+      // 确保数据同步API也使用相同的baseUrl
+      updateInstanceBaseUrl(result.url)
       showNotify({
         type: 'success',
-        message: `服务器连接成功: ${result.url}`,
-        duration: 3000
+        message: `已连接到服务器: ${result.url}`,
+        duration: 2000,
       })
+      serverConnected.value = true
     } else {
-      showDialog({
-        title: '服务器连接失败',
-        message: '无法连接到服务器，请检查服务器是否已启动，或手动设置服务器地址',
-        showCancelButton: true,
-        confirmButtonText: '设置服务器地址',
-        cancelButtonText: '继续尝试',
-        confirmButtonColor: '#fb7299'
-      }).then(() => {
-        // 用户点击设置服务器地址
-        const url = window.prompt('请输入服务器地址', 'http://localhost:8899')
-        if (url) {
-          setBaseUrl(url)
-        }
-      }).catch(() => {
-        // 用户点击继续尝试，重新检查连接
-        checkServerConnection()
-      })
+      // 显示服务器连接失败提示
+      showServerConnectionError()
+      serverConnected.value = false
     }
   } catch (error) {
-    console.error('服务器连接检查失败:', error)
+    console.error('连接服务器出错:', error)
+    showServerConnectionError()
     serverConnected.value = false
   } finally {
     isLoading.value = false
     connectionChecked.value = true
   }
+}
+
+// 显示服务器连接失败提示
+const showServerConnectionError = () => {
+  showDialog({
+    title: '服务器连接失败',
+    message: '无法连接到服务器，请检查服务器是否已启动，或手动设置服务器地址',
+    showCancelButton: true,
+    confirmButtonText: '设置服务器地址',
+    cancelButtonText: '继续尝试',
+    confirmButtonColor: '#fb7299'
+  }).then(() => {
+    // 用户点击设置服务器地址
+    const url = window.prompt('请输入服务器地址', 'http://localhost:8899')
+    if (url) {
+      setBaseUrl(url)
+    }
+  }).catch(() => {
+    // 用户点击继续尝试，重新检查连接
+    checkServerConnection()
+  })
 }
 
 onMounted(() => {
