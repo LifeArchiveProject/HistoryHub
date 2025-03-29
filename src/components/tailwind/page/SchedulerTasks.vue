@@ -2,282 +2,179 @@
   <div class="min-h-screen bg-gray-50/30">
     <div class="py-4">
       <div class="max-w-7xl mx-auto px-3">
-        <!-- 页面标题 -->
-        <div class="flex items-center space-x-2 text-gray-900 mb-4">
-          <div class="p-1.5 bg-[#fb7299]/5 rounded-lg">
-            <svg class="w-6 h-6 text-[#fb7299]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        <!-- 任务列表包装层 - 添加相对定位以便放置新建按钮 -->
+        <div class="relative mb-6">
+          <!-- 任务列表 -->
+          <div v-if="loading" class="flex justify-center items-center py-20">
+            <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#fb7299]"></div>
+          </div>
+
+          <div v-else-if="tasks.length === 0" class="bg-white border border-gray-200 rounded-lg p-6 text-center">
+            <!-- 在空状态页面添加标题和新建按钮 -->
+            <div class="flex justify-between items-center mb-6">
+              <h3 class="text-base font-medium text-gray-900">计划任务</h3>
+              <button 
+                @click="openCreateTaskModal" 
+                class="text-[#fb7299] hover:text-[#fb7299]/80 transition-colors text-sm font-medium"
+              >
+                新建任务
+              </button>
+            </div>
+            
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
             </svg>
+            <h3 class="mt-2 text-sm font-medium text-gray-900">暂无计划任务</h3>
+            <p class="mt-1 text-sm text-gray-500">点击"新建任务"按钮创建您的第一个计划任务</p>
           </div>
-          <h1 class="text-2xl font-medium bg-gradient-to-r from-[#fb7299] to-[#fc9b7a] bg-clip-text text-transparent">计划任务管理</h1>
-        </div>
 
-        <!-- 操作按钮 -->
-        <div class="mb-4 flex justify-between items-center">
-          <div class="flex space-x-2">
-            <button 
-              @click="refreshTasks" 
-              class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-[#fb7299] hover:bg-[#fb7299]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#fb7299]"
-            >
-              <svg class="mr-2 -ml-1 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
-              刷新
-            </button>
-          </div>
-          <button 
-            @click="openCreateTaskModal" 
-            class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-[#fb7299] hover:bg-[#fb7299]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#fb7299]"
-          >
-            <svg class="mr-2 -ml-1 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-            </svg>
-            新建主任务
-          </button>
-        </div>
-
-        <!-- 任务列表 -->
-        <div v-if="loading" class="flex justify-center items-center py-20">
-          <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#fb7299]"></div>
-        </div>
-
-        <div v-else-if="tasks.length === 0" class="bg-white border border-gray-200 rounded-lg shadow-sm p-6 text-center">
-          <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-          </svg>
-          <h3 class="mt-2 text-sm font-medium text-gray-900">暂无计划任务</h3>
-          <p class="mt-1 text-sm text-gray-500">点击"新建任务"按钮创建您的第一个计划任务</p>
-          <div class="mt-6">
-            <button
-              @click="openCreateTaskModal"
-              class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-[#fb7299] hover:bg-[#fb7299]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#fb7299]"
-            >
-              <svg class="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-              </svg>
-              新建任务
-            </button>
-          </div>
-        </div>
-
-        <div v-else class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
-          <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-              <thead class="bg-gray-50">
-                <tr>
-                  <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">任务ID</th>
-                  <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">名称</th>
-                  <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">调度类型</th>
-                  <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">调度时间</th>
-                  <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">成功率</th>
-                  <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">最后执行</th>
-                  <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">状态</th>
-                  <th scope="col" class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
-                </tr>
-              </thead>
-              <tbody class="bg-white divide-y divide-gray-200">
-                <template v-for="task in tasks" :key="task.task_id">
-                  <!-- 主任务行 -->
-                  <tr class="hover:bg-gray-50 border-t-2 border-gray-100">
-                    <td class="px-4 py-3 whitespace-nowrap text-xs font-medium text-gray-900">
-                      <div class="flex items-center space-x-1">
-                        <button 
-                          v-if="task.sub_tasks && task.sub_tasks.length > 0"
-                          @click="task.isExpanded = !task.isExpanded"
-                          class="p-0.5 rounded hover:bg-gray-200 transition-colors"
-                        >
-                          <svg 
-                            class="w-3.5 h-3.5 text-gray-500 transform transition-transform"
-                            :class="{'rotate-90': task.isExpanded}"
-                            fill="none" 
-                            viewBox="0 0 24 24" 
-                            stroke="currentColor"
-                          >
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                          </svg>
-                        </button>
-                        {{ task.task_id }}
-                      </div>
-                    </td>
-                    <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-500">
-                      <div class="flex items-center">
-                        {{ task.config?.name || task.task_id }}
-                        <span v-if="task.sub_tasks && task.sub_tasks.length > 0" 
-                              class="ml-2 px-1.5 py-0.5 text-xs rounded-full bg-gray-100 text-gray-600">
-                          {{ task.sub_tasks.length }}个子任务
-                        </span>
-                      </div>
-                    </td>
-                    <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-500">
-                      <span 
-                        :class="{
-                          'bg-blue-100 text-blue-800': task.config?.schedule_type === 'daily',
-                          'bg-purple-100 text-purple-800': task.config?.schedule_type === 'chain',
-                          'bg-green-100 text-green-800': task.config?.schedule_type === 'once'
-                        }" 
-                        class="px-1.5 inline-flex text-xs leading-5 font-semibold rounded-full"
-                      >
-                        {{ 
-                          task.config?.schedule_type === 'daily' ? '每日' : 
-                          task.config?.schedule_type === 'chain' ? '链式' : 
-                          task.config?.schedule_type === 'once' ? '一次性' : task.config?.schedule_type 
-                        }}
-                      </span>
-                    </td>
-                    <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-500">
-                      {{ task.config?.schedule_type === 'chain' ? '依赖主任务' : task.config?.schedule_time || '-' }}
-                    </td>
-                    <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-500">
-                      <span v-if="task.execution?.success_rate !== undefined" class="inline-flex items-center">
-                        {{ Math.round(task.execution.success_rate) }}%
-                        <div class="ml-1.5 h-1 w-12 bg-gray-200 rounded-full overflow-hidden">
-                          <div 
-                            class="h-full rounded-full" 
-                            :class="{
-                              'bg-green-500': task.execution.success_rate >= 90,
-                              'bg-yellow-500': task.execution.success_rate >= 60 && task.execution.success_rate < 90,
-                              'bg-red-500': task.execution.success_rate < 60
-                            }"
-                            :style="{width: `${task.execution.success_rate}%`}"
-                          ></div>
-                        </div>
-                      </span>
-                      <span v-else>-</span>
-                    </td>
-                    <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-500">
-                      {{ task.execution?.last_run || '未记录' }}
-                    </td>
-                    <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-500">
-                      <span 
-                        :class="{
-                          'bg-green-100 text-green-800': task.config?.enabled === true,
-                          'bg-red-100 text-red-800': task.config?.enabled === false
-                        }" 
-                        class="px-1.5 inline-flex text-xs leading-5 font-semibold rounded-full"
-                      >
-                        {{ task.config?.enabled ? '已启用' : '已禁用' }}
-                      </span>
-                    </td>
-                    <td class="px-4 py-3 whitespace-nowrap text-right text-xs font-medium">
-                      <div class="flex justify-end space-x-1.5">
-                        <button 
-                          @click="openTaskDetailModal(task.task_id)" 
-                          class="text-indigo-600 hover:text-indigo-900"
-                        >
-                          详情
-                        </button>
-                        <button 
-                          @click="openEditTaskModal(task.task_id)" 
-                          class="text-blue-600 hover:text-blue-900"
-                        >
-                          编辑
-                        </button>
-                        <button 
-                          @click="openCreateSubTaskModal(task.task_id)" 
-                          class="text-purple-600 hover:text-purple-900"
-                        >
-                          添加子任务
-                        </button>
-                        <button 
-                          @click="executeTask(task.task_id)" 
-                          class="text-green-600 hover:text-green-900"
-                        >
-                          执行
-                        </button>
-                        <button 
-                          v-if="task.config?.enabled !== undefined"
-                          @click="toggleTaskEnabled(task.task_id, !task.config.enabled)" 
-                          :class="task.config.enabled ? 'text-orange-600 hover:text-orange-900' : 'text-teal-600 hover:text-teal-900'"
-                        >
-                          {{ task.config.enabled ? '禁用' : '启用' }}
-                        </button>
-                        <button 
-                          @click="confirmDeleteTask(task.task_id)" 
-                          class="text-red-600 hover:text-red-900"
-                        >
-                          删除
-                        </button>
-                      </div>
-                    </td>
+          <div v-else class="bg-white border border-gray-200 rounded-lg overflow-hidden">
+            <!-- 添加表格标题 -->
+            <div class="px-4 py-3 flex justify-between items-center border-b border-gray-200">
+              <h3 class="text-base font-medium text-gray-900">计划任务</h3>
+              <button 
+                @click="openCreateTaskModal" 
+                class="text-[#fb7299] hover:text-[#fb7299]/80 transition-colors text-sm font-medium"
+              >
+                新建任务
+              </button>
+            </div>
+            
+            <div class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                  <tr>
+                    <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">任务ID</th>
+                    <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">名称</th>
+                    <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">调度类型</th>
+                    <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">调度时间</th>
+                    <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">成功率</th>
+                    <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">最后执行</th>
+                    <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">状态</th>
+                    <th scope="col" class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <!-- 移除这里的新建任务按钮，因为已经添加到标题中 -->
+                      操作
+                    </th>
                   </tr>
-                  <!-- 子任务行 -->
-                  <template v-if="task.sub_tasks && task.sub_tasks.length > 0 && task.isExpanded">
-                    <tr v-for="subTask in task.sub_tasks" 
-                        :key="subTask.task_id" 
-                        class="bg-[#fff8fa] hover:bg-[#fff2f6] border-l-4 border-[#fb7299]/30">
-                      <td class="pl-12 pr-4 py-2.5 whitespace-nowrap text-xs font-medium text-gray-900">
-                        <div class="flex items-center">
-                          <svg class="w-3.5 h-3.5 text-gray-400 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                          </svg>
-                          {{ subTask.task_id }}
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                  <template v-for="task in tasks" :key="task.task_id">
+                    <!-- 主任务行 -->
+                    <tr class="hover:bg-gray-50 border-t-2 border-gray-100">
+                      <td class="px-4 py-3 whitespace-nowrap text-xs font-medium text-gray-900">
+                        <div class="flex items-center space-x-1">
+                          <button 
+                            v-if="task.sub_tasks && task.sub_tasks.length > 0"
+                            @click="task.isExpanded = !task.isExpanded"
+                            class="p-0.5 rounded hover:bg-gray-200 transition-colors"
+                          >
+                            <svg 
+                              class="w-3.5 h-3.5 text-gray-500 transform transition-transform"
+                              :class="{'rotate-90': task.isExpanded}"
+                              fill="none" 
+                              viewBox="0 0 24 24" 
+                              stroke="currentColor"
+                            >
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                            </svg>
+                          </button>
+                          {{ task.task_id }}
                         </div>
                       </td>
                       <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-500">
-                        {{ subTask.config?.name || subTask.task_id }}
+                        <div class="flex items-center">
+                          {{ task.config?.name || task.task_id }}
+                          <span v-if="task.sub_tasks && task.sub_tasks.length > 0" 
+                                class="ml-2 px-1.5 py-0.5 text-xs rounded-full bg-gray-100 text-gray-600">
+                            {{ task.sub_tasks.length }}个子任务
+                          </span>
+                        </div>
                       </td>
                       <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-500">
-                        <span class="px-1.5 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">
-                          链式
+                        <span 
+                          :class="{
+                            'bg-blue-100 text-blue-800': task.config?.schedule_type === 'daily',
+                            'bg-purple-100 text-purple-800': task.config?.schedule_type === 'chain',
+                            'bg-green-100 text-green-800': task.config?.schedule_type === 'once'
+                          }" 
+                          class="px-1.5 inline-flex text-xs leading-5 font-semibold rounded-full"
+                        >
+                          {{ 
+                            task.config?.schedule_type === 'daily' ? '每日' : 
+                            task.config?.schedule_type === 'chain' ? '链式' : 
+                            task.config?.schedule_type === 'once' ? '一次性' : task.config?.schedule_type 
+                          }}
                         </span>
                       </td>
                       <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-500">
-                        依赖主任务
+                        {{ task.config?.schedule_type === 'chain' ? '依赖主任务' : task.config?.schedule_time || '-' }}
                       </td>
                       <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-500">
-                        <span v-if="subTask.execution?.success_rate !== undefined" class="inline-flex items-center">
-                          {{ Math.round(subTask.execution.success_rate) }}%
+                        <span v-if="task.execution?.success_rate !== undefined" class="inline-flex items-center">
+                          {{ Math.round(task.execution.success_rate) }}%
                           <div class="ml-1.5 h-1 w-12 bg-gray-200 rounded-full overflow-hidden">
                             <div 
                               class="h-full rounded-full" 
                               :class="{
-                                'bg-green-500': subTask.execution.success_rate >= 90,
-                                'bg-yellow-500': subTask.execution.success_rate >= 60 && subTask.execution.success_rate < 90,
-                                'bg-red-500': subTask.execution.success_rate < 60
+                                'bg-green-500': task.execution.success_rate >= 90,
+                                'bg-yellow-500': task.execution.success_rate >= 60 && task.execution.success_rate < 90,
+                                'bg-red-500': task.execution.success_rate < 60
                               }"
-                              :style="{width: `${subTask.execution.success_rate}%`}"
+                              :style="{width: `${task.execution.success_rate}%`}"
                             ></div>
                           </div>
                         </span>
                         <span v-else>-</span>
                       </td>
                       <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-500">
-                        {{ subTask.execution?.last_run || '未记录' }}
+                        {{ task.execution?.last_run || '未记录' }}
                       </td>
                       <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-500">
                         <span 
                           :class="{
-                            'bg-green-100 text-green-800': subTask.config?.enabled === true,
-                            'bg-red-100 text-red-800': subTask.config?.enabled === false
+                            'bg-green-100 text-green-800': task.config?.enabled === true,
+                            'bg-red-100 text-red-800': task.config?.enabled === false
                           }" 
                           class="px-1.5 inline-flex text-xs leading-5 font-semibold rounded-full"
                         >
-                          {{ subTask.config?.enabled ? '已启用' : '已禁用' }}
+                          {{ task.config?.enabled ? '已启用' : '已禁用' }}
                         </span>
                       </td>
                       <td class="px-4 py-3 whitespace-nowrap text-right text-xs font-medium">
                         <div class="flex justify-end space-x-1.5">
                           <button 
-                            @click="openTaskDetailModal(subTask.task_id)" 
+                            @click="openTaskDetailModal(task.task_id)" 
                             class="text-indigo-600 hover:text-indigo-900"
                           >
                             详情
                           </button>
                           <button 
-                            @click="openEditTaskModal(subTask.task_id)" 
+                            @click="openEditTaskModal(task.task_id)" 
                             class="text-blue-600 hover:text-blue-900"
                           >
                             编辑
                           </button>
                           <button 
-                            v-if="subTask.config?.enabled !== undefined"
-                            @click="toggleTaskEnabled(subTask.task_id, !subTask.config.enabled)" 
-                            :class="subTask.config.enabled ? 'text-orange-600 hover:text-orange-900' : 'text-teal-600 hover:text-teal-900'"
+                            @click="openCreateSubTaskModal(task.task_id)" 
+                            class="text-purple-600 hover:text-purple-900"
                           >
-                            {{ subTask.config.enabled ? '禁用' : '启用' }}
+                            添加子任务
                           </button>
                           <button 
-                            @click="confirmDeleteTask(subTask.task_id)" 
+                            @click="executeTask(task.task_id)" 
+                            class="text-green-600 hover:text-green-900"
+                          >
+                            执行
+                          </button>
+                          <button 
+                            v-if="task.config?.enabled !== undefined"
+                            @click="toggleTaskEnabled(task.task_id, !task.config.enabled)" 
+                            :class="task.config.enabled ? 'text-orange-600 hover:text-orange-900' : 'text-teal-600 hover:text-teal-900'"
+                          >
+                            {{ task.config.enabled ? '禁用' : '启用' }}
+                          </button>
+                          <button 
+                            @click="confirmDeleteTask(task.task_id)" 
                             class="text-red-600 hover:text-red-900"
                           >
                             删除
@@ -285,10 +182,96 @@
                         </div>
                       </td>
                     </tr>
+                    <!-- 子任务行 -->
+                    <template v-if="task.sub_tasks && task.sub_tasks.length > 0 && task.isExpanded">
+                      <tr v-for="subTask in task.sub_tasks" 
+                          :key="subTask.task_id" 
+                          class="bg-[#fff8fa] hover:bg-[#fff2f6] border-l-4 border-[#fb7299]/30">
+                        <td class="pl-12 pr-4 py-2.5 whitespace-nowrap text-xs font-medium text-gray-900">
+                          <div class="flex items-center">
+                            <svg class="w-3.5 h-3.5 text-gray-400 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                            </svg>
+                            {{ subTask.task_id }}
+                          </div>
+                        </td>
+                        <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-500">
+                          {{ subTask.config?.name || subTask.task_id }}
+                        </td>
+                        <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-500">
+                          <span class="px-1.5 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">
+                            链式
+                          </span>
+                        </td>
+                        <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-500">
+                          依赖主任务
+                        </td>
+                        <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-500">
+                          <span v-if="subTask.execution?.success_rate !== undefined" class="inline-flex items-center">
+                            {{ Math.round(subTask.execution.success_rate) }}%
+                            <div class="ml-1.5 h-1 w-12 bg-gray-200 rounded-full overflow-hidden">
+                              <div 
+                                class="h-full rounded-full" 
+                                :class="{
+                                  'bg-green-500': subTask.execution.success_rate >= 90,
+                                  'bg-yellow-500': subTask.execution.success_rate >= 60 && subTask.execution.success_rate < 90,
+                                  'bg-red-500': subTask.execution.success_rate < 60
+                                }"
+                                :style="{width: `${subTask.execution.success_rate}%`}"
+                              ></div>
+                            </div>
+                          </span>
+                          <span v-else>-</span>
+                        </td>
+                        <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-500">
+                          {{ subTask.execution?.last_run || '未记录' }}
+                        </td>
+                        <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-500">
+                          <span 
+                            :class="{
+                              'bg-green-100 text-green-800': subTask.config?.enabled === true,
+                              'bg-red-100 text-red-800': subTask.config?.enabled === false
+                            }" 
+                            class="px-1.5 inline-flex text-xs leading-5 font-semibold rounded-full"
+                          >
+                            {{ subTask.config?.enabled ? '已启用' : '已禁用' }}
+                          </span>
+                        </td>
+                        <td class="px-4 py-3 whitespace-nowrap text-right text-xs font-medium">
+                          <div class="flex justify-end space-x-1.5">
+                            <button 
+                              @click="openTaskDetailModal(subTask.task_id)" 
+                              class="text-indigo-600 hover:text-indigo-900"
+                            >
+                              详情
+                            </button>
+                            <button 
+                              @click="openEditTaskModal(subTask.task_id)" 
+                              class="text-blue-600 hover:text-blue-900"
+                            >
+                              编辑
+                            </button>
+                            <button 
+                              v-if="subTask.config?.enabled !== undefined"
+                              @click="toggleTaskEnabled(subTask.task_id, !subTask.config.enabled)" 
+                              :class="subTask.config.enabled ? 'text-orange-600 hover:text-orange-900' : 'text-teal-600 hover:text-teal-900'"
+                            >
+                              {{ subTask.config.enabled ? '禁用' : '启用' }}
+                            </button>
+                            <button 
+                              @click="confirmDeleteTask(subTask.task_id)" 
+                              class="text-red-600 hover:text-red-900"
+                            >
+                              删除
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    </template>
                   </template>
-                </template>
-              </tbody>
-            </table>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>

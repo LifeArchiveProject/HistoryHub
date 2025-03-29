@@ -23,7 +23,7 @@
         </div>
 
         <!-- 基本信息 -->
-        <div class="bg-white rounded-lg p-1.5 border border-gray-100 shadow-sm">
+        <div class="bg-white rounded-lg p-1.5 border border-gray-200">
           <h4 class="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1 flex items-center">
             <svg class="w-3 h-3 mr-1 text-[#fb7299]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -58,7 +58,7 @@
         </div>
         
         <!-- API设置 -->
-        <div class="bg-white rounded-lg p-1.5 border border-gray-100 shadow-sm">
+        <div class="bg-white rounded-lg p-1.5 border border-gray-200">
           <h4 class="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1 flex items-center">
             <svg class="w-3 h-3 mr-1 text-[#fb7299]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
@@ -93,7 +93,7 @@
         </div>
         
         <!-- 调度设置 -->
-        <div class="bg-white rounded-lg p-1.5 border border-gray-100 shadow-sm">
+        <div class="bg-white rounded-lg p-1.5 border border-gray-200">
           <h4 class="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1 flex items-center">
             <svg class="w-3 h-3 mr-1 text-[#fb7299]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -142,7 +142,7 @@
         </div>
         
         <!-- 依赖任务 -->
-        <div class="bg-white rounded-lg p-1.5 border border-gray-100 shadow-sm">
+        <div class="bg-white rounded-lg p-1.5 border border-gray-200">
           <h4 class="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1 flex items-center">
             <svg class="w-3 h-3 mr-1 text-[#fb7299]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
@@ -190,13 +190,13 @@
           <button 
             type="button"
             @click="cancel" 
-            class="inline-flex items-center px-2 py-1 border border-gray-300 rounded-md shadow-sm text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-[#fb7299]"
+            class="inline-flex items-center px-2 py-1 border border-gray-300 rounded-md text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-[#fb7299]"
           >
             取消
           </button>
           <button 
             type="submit" 
-            class="inline-flex items-center px-2 py-1 border border-transparent rounded-md shadow-sm text-xs font-medium text-white bg-[#fb7299] hover:bg-[#fb7299]/90 focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-[#fb7299]"
+            class="inline-flex items-center px-2 py-1 border border-transparent rounded-md text-xs font-medium text-white bg-[#fb7299] hover:bg-[#fb7299]/90 focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-[#fb7299]"
           >
             {{ getSubmitButtonText }}
           </button>

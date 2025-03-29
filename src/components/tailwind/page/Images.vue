@@ -6,7 +6,7 @@
       <button
         @click="handleDownloadClick"
         :disabled="isLoading || isStoppingDownload"
-        class="px-4 py-2 bg-[#fb7299] text-white rounded-md hover:bg-[#fb7299]/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm"
+        class="px-4 py-2 bg-[#fb7299] text-white rounded-md hover:bg-[#fb7299]/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 border border-[#fb7299]/20"
       >
         <div class="flex items-center space-x-2">
           <svg v-if="isDownloading" class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -23,7 +23,7 @@
       <button
         @click="handleClear"
         :disabled="isDownloading || isLoading || isStoppingDownload"
-        class="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm"
+        class="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 border border-red-400/20"
       >
         <div class="flex items-center space-x-2">
           <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -36,10 +36,10 @@
 
     <!-- 加载状态 -->
     <div v-if="isLoading" class="space-y-8">
-      <div v-for="i in 2" :key="i" class="bg-white/50 backdrop-blur-sm rounded-lg p-6 border border-gray-200/50 animate-pulse">
+      <div v-for="i in 2" :key="i" class="bg-white/50 backdrop-blur-sm rounded-lg p-6 border border-gray-200 animate-pulse">
         <div class="h-8 bg-gray-200 rounded w-32 mb-4"></div>
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
-          <div v-for="j in 4" :key="j" class="bg-white/50 rounded-lg p-4 border border-gray-200/50">
+          <div v-for="j in 4" :key="j" class="bg-white/50 rounded-lg p-4 border border-gray-200">
             <div class="h-8 bg-gray-200 rounded w-16 mb-2"></div>
             <div class="h-4 bg-gray-200 rounded w-20"></div>
           </div>
@@ -50,7 +50,7 @@
     <!-- 下载状态 -->
     <div v-else class="space-y-8">
       <!-- 封面图片状态 -->
-      <div class="bg-white/50 backdrop-blur-sm rounded-lg p-6 border border-gray-200/50">
+      <div class="bg-white/50 backdrop-blur-sm rounded-lg p-6 border border-gray-200">
         <div class="flex items-center justify-between mb-4">
           <h2 class="text-xl font-semibold text-[#fb7299]">封面图片</h2>
           <span class="text-sm text-gray-500">最后更新: {{ formatTime(status?.last_update) }}</span>
@@ -70,19 +70,19 @@
 
         <!-- 状态卡片网格 -->
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <div class="bg-white/50 rounded-lg p-4 border border-gray-200/50">
+          <div class="bg-white/50 rounded-lg p-4 border border-gray-200">
             <div class="text-2xl font-bold text-[#fb7299]">{{ status?.covers?.total_planned || 0 }}</div>
             <div class="text-sm text-gray-500">计划下载</div>
           </div>
-          <div class="bg-white/50 rounded-lg p-4 border border-gray-200/50">
+          <div class="bg-white/50 rounded-lg p-4 border border-gray-200">
             <div class="text-2xl font-bold text-[#fb7299]">{{ status?.covers?.downloaded || 0 }}</div>
             <div class="text-sm text-gray-500">已下载</div>
           </div>
-          <div class="bg-white/50 rounded-lg p-4 border border-gray-200/50">
+          <div class="bg-white/50 rounded-lg p-4 border border-gray-200">
             <div class="text-2xl font-bold text-red-500">{{ status?.covers?.failed || 0 }}</div>
             <div class="text-sm text-gray-500">失败数</div>
           </div>
-          <div class="bg-white/50 rounded-lg p-4 border border-gray-200/50">
+          <div class="bg-white/50 rounded-lg p-4 border border-gray-200">
             <div class="text-2xl font-bold text-blue-500">{{ status?.covers?.total_planned ? (status.covers.total_planned - status.covers.downloaded - status.covers.failed) : 0 }}</div>
             <div class="text-sm text-gray-500">待下载</div>
           </div>
@@ -110,7 +110,7 @@
       </div>
 
       <!-- 头像图片状态 -->
-      <div class="bg-white/50 backdrop-blur-sm rounded-lg p-6 border border-gray-200/50">
+      <div class="bg-white/50 backdrop-blur-sm rounded-lg p-6 border border-gray-200">
         <div class="flex items-center justify-between mb-4">
           <h2 class="text-xl font-semibold text-[#fb7299]">头像图片</h2>
         </div>
@@ -129,19 +129,19 @@
 
         <!-- 状态卡片网格 -->
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <div class="bg-white/50 rounded-lg p-4 border border-gray-200/50">
+          <div class="bg-white/50 rounded-lg p-4 border border-gray-200">
             <div class="text-2xl font-bold text-[#fb7299]">{{ status?.avatars?.total_planned || 0 }}</div>
             <div class="text-sm text-gray-500">计划下载</div>
           </div>
-          <div class="bg-white/50 rounded-lg p-4 border border-gray-200/50">
+          <div class="bg-white/50 rounded-lg p-4 border border-gray-200">
             <div class="text-2xl font-bold text-[#fb7299]">{{ status?.avatars?.downloaded || 0 }}</div>
             <div class="text-sm text-gray-500">已下载</div>
           </div>
-          <div class="bg-white/50 rounded-lg p-4 border border-gray-200/50">
+          <div class="bg-white/50 rounded-lg p-4 border border-gray-200">
             <div class="text-2xl font-bold text-red-500">{{ status?.avatars?.failed || 0 }}</div>
             <div class="text-sm text-gray-500">失败数</div>
           </div>
-          <div class="bg-white/50 rounded-lg p-4 border border-gray-200/50">
+          <div class="bg-white/50 rounded-lg p-4 border border-gray-200">
             <div class="text-2xl font-bold text-blue-500">{{ status?.avatars?.total_planned ? (status.avatars.total_planned - status.avatars.downloaded - status.avatars.failed) : 0 }}</div>
             <div class="text-sm text-gray-500">待下载</div>
           </div>
@@ -172,7 +172,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, onBeforeUnmount } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { getImagesStatus, startImagesDownload, stopImagesDownload, clearImages } from '../../../api/api'
 import { showNotify, showDialog } from 'vant'
 import 'vant/es/notify/style'
@@ -283,13 +283,13 @@ const handleDownloadClick = async () => {
         isStoppingDownload.value = false
         plannedCoversTotal.value = 0
         plannedAvatarsTotal.value = 0
-        
+
         // 清除定时器
         if (statusInterval) {
           clearInterval(statusInterval)
           statusInterval = null
         }
-        
+
         // 刷新状态
         await fetchStatus()
       }
@@ -315,10 +315,10 @@ const handleDownloadClick = async () => {
           message: response.data.message
         })
         isDownloading.value = true
-        
+
         // 立即获取一次状态
         await fetchStatus()
-        
+
         // 开始定时获取状态
         if (!statusInterval) {
           statusInterval = setInterval(fetchStatus, 1000)
@@ -358,11 +358,11 @@ const handleClear = async () => {
     }
   } catch (error) {
     if (error.toString().includes('cancel')) return
-    
+
     showNotify({
       type: 'danger',
-      message: error.response?.status === 500 ? 
-        '服务器错误,请稍后重试' : 
+      message: error.response?.status === 500 ?
+        '服务器错误,请稍后重试' :
         `清空失败: ${error.message}`
     })
   }
@@ -394,4 +394,4 @@ onUnmounted(() => {
     opacity: .7;
   }
 }
-</style> 
+</style>

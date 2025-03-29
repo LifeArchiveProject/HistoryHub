@@ -2,23 +2,12 @@
   <div class="overflow-y-auto">
     <!-- 搜索框 -->
     <div class="mb-6">
-      <div class="relative w-full">
-        <input
-          type="text"
-          v-model="searchTerm"
-          @keyup.enter="loadDownloadedVideos"
-          placeholder="搜索已下载的视频..."
-          class="w-full pr-10 pl-3 py-2.5 text-sm rounded-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#fb7299] focus:border-[#fb7299] shadow-sm"
-        />
-        <button
-          @click="loadDownloadedVideos"
-          class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-[#fb7299]"
-        >
-          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-        </button>
-      </div>
+      <SimpleSearchBar 
+        v-model="searchTerm" 
+        placeholder="搜索已下载的视频..." 
+        @search="loadDownloadedVideos" 
+        class="w-full"
+      />
     </div>
 
     <!-- 主要内容 -->
@@ -49,87 +38,84 @@
           共找到 {{ downloads.total }} 个下载记录，当前第 {{ downloads.page }} 页，共 {{ downloads.pages }} 页
         </p>
         
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div v-for="(video, index) in downloads.videos" :key="index" class="bg-white rounded-lg shadow-sm border border-gray-200/50 overflow-hidden hover:shadow-md transition-shadow relative group">
-            <!-- 视频信息 -->
-            <div class="p-4">
-              <h3 class="text-lg font-medium text-gray-900 line-clamp-2 mb-2">{{ video.title }}</h3>
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+          <div v-for="(video, index) in downloads.videos" :key="index" class="bg-white/50 backdrop-blur-sm rounded-md overflow-hidden border border-gray-200/50 hover:border-[#fb7299] hover:shadow-sm transition-all duration-200 relative group">
+            <!-- 视频封面 -->
+            <div class="relative pb-[56.25%] overflow-hidden cursor-pointer group" @click="handleVideoClick(video)">
+              <img
+                :src="video.cover || 'https://i0.hdslb.com/bfs/archive/c9e72655b7c9c9c68a30d3275313c501e68427d1.jpg'"
+                :alt="video.title"
+                class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                loading="lazy"
+                onerror="this.src='https://i0.hdslb.com/bfs/archive/c9e72655b7c9c9c68a30d3275313c501e68427d1.jpg'"
+              />
               
-              <div class="flex items-start space-x-2 mb-3">
-                <svg class="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                <span class="text-sm text-gray-500">下载时间: {{ video.download_date }}</span>
+              <!-- 播放按钮覆盖 -->
+              <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                <button
+                  v-if="video.files && video.files.length > 0 && !video.files[0].is_audio_only"
+                  @click.stop="playVideo(video.files[0].file_path)"
+                  class="w-8 h-8 rounded-full bg-[#fb7299]/80 text-white flex items-center justify-center backdrop-blur-sm"
+                >
+                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </button>
               </div>
               
-              <div class="flex items-start space-x-2 mb-3">
-                <svg class="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
-                </svg>
-                <span class="text-sm text-gray-500">CID: {{ video.cid }}</span>
-              </div>
-              
-              <!-- 目录信息 -->
-              <div v-if="video.directory" class="flex items-start space-x-2 mb-3">
-                <svg class="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
-                </svg>
-                <span class="text-sm text-gray-500 truncate" :title="video.directory">目录: {{ getShortDirectory(video.directory) }}</span>
-              </div>
-              
-              <!-- 文件列表 -->
-              <div class="space-y-2 mb-4">
-                <div v-for="(file, fileIndex) in video.files" :key="fileIndex" class="flex items-center justify-between text-sm">
-                  <div class="flex items-center space-x-2 truncate">
-                    <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path 
-                        v-if="file.is_audio_only" 
-                        stroke-linecap="round" 
-                        stroke-linejoin="round" 
-                        stroke-width="2" 
-                        d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" 
-                      />
-                      <path 
-                        v-else 
-                        stroke-linecap="round" 
-                        stroke-linejoin="round" 
-                        stroke-width="2" 
-                        d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" 
-                      />
-                    </svg>
-                    <span class="truncate">{{ file.file_name }}</span>
-                  </div>
-                  <span class="text-gray-500 ml-2 flex-shrink-0">{{ file.size_mb.toFixed(1) }} MB</span>
+              <!-- 文件信息标签 -->
+              <div class="absolute bottom-1 right-1 bg-black/60 backdrop-blur-sm px-1 py-0.5 rounded text-white text-[10px]">
+                <div v-if="video.files && video.files.length > 0">
+                  {{ video.files[0].size_mb.toFixed(1) }} MB
                 </div>
               </div>
               
               <!-- 删除按钮 -->
-              <div class="absolute top-3 right-3 hidden group-hover:block">
-                <button 
-                  @click.stop="handleDeleteVideo(video)"
-                  class="flex items-center justify-center p-1.5 rounded-full bg-red-100 hover:bg-red-200 text-red-600 transition-colors"
-                  title="删除视频"
-                >
-                  <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                </button>
+              <div class="absolute right-1.5 top-1.5 z-20 hidden group-hover:flex items-center justify-center w-6 h-6 bg-[#7d7c75]/60 backdrop-blur-sm hover:bg-[#7d7c75]/80 rounded-md cursor-pointer transition-all duration-200"
+                   @click.stop="handleDeleteVideo(video)">
+                <svg class="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
               </div>
               
-              <!-- 操作按钮 -->
-              <div class="flex space-x-2 mt-2">
-                <button 
-                  @click="playVideo(file.file_path)"
-                  v-for="file in video.files" 
-                  :key="file.file_path"
-                  class="flex-1 flex items-center justify-center px-3 py-2 text-sm font-medium rounded-md text-white bg-[#fb7299] hover:bg-[#fb7299]/90 transition-colors"
-                >
-                  <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <!-- 多文件角标 -->
+              <div v-if="video.files && video.files.length > 1" 
+                   class="absolute left-1 top-1 rounded bg-[#fb7299] px-1 py-0.5 text-[10px] text-white">
+                {{ video.files.length }}
+              </div>
+            </div>
+            
+            <!-- 视频信息 -->
+            <div class="p-2 flex flex-col space-y-1">
+              <!-- 标题 -->
+              <div class="line-clamp-1 text-xs text-gray-900 font-medium cursor-pointer" @click="handleVideoClick(video)">
+                {{ video.title }}
+              </div>
+              
+              <!-- 作者信息 -->
+              <div class="flex items-center space-x-1">
+                <img 
+                  :src="video.author_face || 'https://i1.hdslb.com/bfs/face/1b6f746be0d0c8324e01e618c5e85e113a8b38be.jpg'" 
+                  :alt="video.author_name"
+                  class="w-3.5 h-3.5 rounded-full object-cover cursor-pointer"
+                  loading="lazy"
+                  onerror="this.src='https://i1.hdslb.com/bfs/face/1b6f746be0d0c8324e01e618c5e85e113a8b38be.jpg'"
+                  @click.stop="handleAuthorClick(video)"
+                />
+                <span class="text-[10px] text-gray-600 truncate hover:text-[#fb7299] cursor-pointer" @click.stop="handleAuthorClick(video)">
+                  {{ video.author_name || '未知UP主' }}
+                </span>
+              </div>
+              
+              <!-- 下载时间 -->
+              <div class="flex justify-between items-center text-[10px] text-gray-500">
+                <div class="flex items-center space-x-1">
+                  <svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
-                  {{ file.is_audio_only ? '播放音频' : '播放视频' }}
-                </button>
+                  <span>{{ video.download_date }}</span>
+                </div>
               </div>
             </div>
           </div>
@@ -159,7 +145,7 @@
         <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" @click="showDeleteConfirm = false"></div>
         
         <!-- 弹窗内容 -->
-        <div class="relative bg-white rounded-lg shadow-xl w-[450px] z-10 p-6">
+        <div class="relative bg-white rounded-lg border border-gray-200 w-[450px] z-10 p-6">
           <h3 class="text-lg font-medium text-gray-900 mb-4">确认删除视频</h3>
           
           <p class="text-gray-600 mb-4">
@@ -218,6 +204,7 @@ import VideoPlayerDialog from '../VideoPlayerDialog.vue'
 import { getDownloadedVideos, deleteDownloadedVideo } from '../../../api/api'
 import { showNotify } from 'vant'
 import 'vant/es/notify/style'
+import SimpleSearchBar from '../SimpleSearchBar.vue'
 
 // 定义组件选项
 defineOptions({
@@ -240,7 +227,7 @@ const currentPage = ref(1)
 const showVideoPlayer = ref(false)
 const currentVideoPath = ref('')
 
-// 删除视频相关
+// 删除相关
 const showDeleteConfirm = ref(false)
 const currentVideo = ref(null)
 const deleteDirectory = ref(true)
@@ -366,6 +353,22 @@ const confirmDeleteVideo = async () => {
     })
   } finally {
     isDeleting.value = false
+  }
+}
+
+// 点击视频跳转到B站
+const handleVideoClick = (video) => {
+  // 构建视频链接，使用bvid而不是cid
+  const url = `https://www.bilibili.com/video/${video.bvid}`
+  // 在新标签页打开
+  window.open(url, '_blank')
+}
+
+// 点击作者头像或名称跳转到作者页面
+const handleAuthorClick = (video) => {
+  if (video.author_mid) {
+    const url = `https://space.bilibili.com/${video.author_mid}`
+    window.open(url, '_blank')
   }
 }
 

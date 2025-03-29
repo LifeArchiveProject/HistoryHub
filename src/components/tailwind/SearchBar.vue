@@ -3,7 +3,7 @@
     <!-- 搜索区域容器 -->
     <div class="relative">
       <!-- 搜索框容器 -->
-      <div class="flex w-full h-8 sm:h-10 items-center rounded-md border border-gray-300 bg-white focus-within:border-[#FF6699] transition-colors duration-200">
+      <div class="flex w-full h-8 sm:h-10 items-center rounded-md border border-gray-300 bg-white focus-within:border-[#fb7299] transition-colors duration-200">
         <!-- 搜索图标 -->
         <div class="pl-2 sm:pl-3 text-gray-400">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 sm:h-4 sm:w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -11,17 +11,22 @@
           </svg>
         </div>
         
-        <!-- 搜索类型选择器 -->
-        <select
-          v-model="searchType"
-          class="h-full appearance-none border-none bg-transparent pl-1 sm:pl-2 text-[#FF6699] focus:outline-none focus:ring-0 text-xs sm:text-sm leading-none flex items-center"
-        >
-          <option value="all">全部</option>
-          <option value="title">标题</option>
-          <option value="author">UP主</option>
-          <option value="tag">分区</option>
-          <option value="remark">备注</option>
-        </select>
+        <!-- 搜索类型选择器 - 替换为CustomDropdown组件 -->
+        <div class="h-full pl-1 sm:pl-2 flex items-center">
+          <CustomDropdown
+            v-model="searchType"
+            :options="searchTypeOptions"
+            :selected-text="searchType"
+            @change="onSearchTypeChange"
+            custom-class="h-full border-none !shadow-none !p-0 !m-0 !rounded-none !pr-1"
+            :min-width="180"
+            :use-fixed-width="false"
+          >
+            <template #trigger-content>
+              <span class="text-[#fb7299] text-xs sm:text-sm flex items-center whitespace-nowrap">{{ getTypeLabel(searchType) }}</span>
+            </template>
+          </CustomDropdown>
+        </div>
 
         <!-- 分隔线 -->
         <div class="h-4 sm:h-5 w-px bg-gray-200 mx-1"></div>
@@ -43,6 +48,7 @@
 import { ref, onMounted, watch, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { getAvailableYears } from '../../api/api.js'
+import CustomDropdown from './CustomDropdown.vue'
 
 const props = defineProps({
   initialYear: {
@@ -66,6 +72,30 @@ const route = useRoute()
 // 搜索相关
 const searchQuery = ref(props.initialKeyword)
 const searchType = ref(props.initialSearchType)
+
+// 搜索类型选项
+const searchTypeOptions = [
+  { value: 'all', label: '全部' },
+  { value: 'title', label: '标题' },
+  { value: 'author', label: 'UP主' },
+  { value: 'tag', label: '分区' },
+  { value: 'remark', label: '备注' }
+]
+
+// 根据选项值获取显示文本
+const getTypeLabel = (value) => {
+  const option = searchTypeOptions.find(opt => opt.value === value)
+  return option ? option.label : '全部'
+}
+
+// 处理搜索类型变更
+const onSearchTypeChange = (value) => {
+  searchType.value = value
+  // 如果在搜索页面且有搜索关键词，触发搜索
+  if (route.name === 'Search' && searchQuery.value.trim()) {
+    handleSearch()
+  }
+}
 
 // 年份相关
 const selectedYear = ref(props.initialYear)
@@ -108,15 +138,6 @@ const fetchAvailableYears = async () => {
 const handleYearChange = () => {
   emit('year-change', selectedYear.value)
 }
-
-// 监听搜索类型变化
-watch(searchType, (newType) => {
-  console.log('SearchBar - 搜索类型变化:', newType)
-  // 如果在搜索页面且有搜索关键词，触发搜索
-  if (route.name === 'Search' && searchQuery.value.trim()) {
-    handleSearch()
-  }
-})
 
 // 处理搜索
 const handleSearch = () => {
@@ -169,7 +190,7 @@ onMounted(async () => {
 })
 </script>
 
-<style>
+<style scoped>
 /* 移除搜索框的默认样式 */
 input[type="search"]::-webkit-search-decoration,
 input[type="search"]::-webkit-search-cancel-button,
@@ -178,32 +199,22 @@ input[type="search"]::-webkit-search-results-decoration {
   display: none;
 }
 
-/* 移除选择器的默认箭头和focus样式 */
-select {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23FF6699' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-  background-repeat: no-repeat;
-  background-position: right 0.25rem center;
-  background-size: 1em;
-  padding-right: 1.5rem !important;
-}
-
-select:focus {
-  box-shadow: none !important;
-  outline: none !important;
-  -webkit-appearance: none !important;
-}
-
-select:focus-visible {
-  outline: none !important;
-  box-shadow: none !important;
-}
-
 /* 移除输入框的默认focus样式 */
 input:focus {
   box-shadow: none !important;
   outline: none !important;
+}
+
+:deep(.custom-dropdown-trigger) {
+  border: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+/* 确保下拉菜单按钮文本不会折行 */
+:deep(.custom-dropdown-trigger span) {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 </style>

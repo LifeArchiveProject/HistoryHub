@@ -74,7 +74,7 @@
       <!-- 任务详情内容 -->
       <div class="space-y-3">
         <!-- 基本信息 -->
-        <div class="bg-white rounded-lg p-2 border border-gray-100 shadow-sm">
+        <div class="bg-white rounded-lg p-2 border border-gray-200">
           <h4 class="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1.5 flex items-center">
             <svg class="w-3 h-3 mr-1 text-[#fb7299]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -102,7 +102,7 @@
         </div>
 
         <!-- 调度信息 -->
-        <div class="bg-white rounded-lg p-2 border border-gray-100 shadow-sm">
+        <div class="bg-white rounded-lg p-2 border border-gray-200">
           <h4 class="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1.5 flex items-center">
             <svg class="w-3 h-3 mr-1 text-[#fb7299]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -144,7 +144,7 @@
         </div>
 
         <!-- 执行统计 -->
-        <div class="bg-white rounded-lg p-2 border border-gray-100 shadow-sm">
+        <div class="bg-white rounded-lg p-2 border border-gray-200">
           <h4 class="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1.5 flex items-center">
             <svg class="w-3 h-3 mr-1 text-[#fb7299]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -194,7 +194,7 @@
         </div>
 
         <!-- 依赖任务 -->
-        <div class="bg-white rounded-lg p-2 border border-gray-100 shadow-sm">
+        <div class="bg-white rounded-lg p-2 border border-gray-200">
           <h4 class="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1.5 flex items-center">
             <svg class="w-3 h-3 mr-1 text-[#fb7299]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />

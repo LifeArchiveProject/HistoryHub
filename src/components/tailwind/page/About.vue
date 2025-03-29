@@ -60,6 +60,7 @@
                 <li><a href="https://github.com/SYSTRAN/faster-whisper" target="_blank" rel="noopener noreferrer" class="text-[#fb7299] hover:underline">FasterWhisper</a> - 音频转文字</li>
                 <li><a href="https://github.com/deepseek-ai/DeepSeek-R1" target="_blank" rel="noopener noreferrer" class="text-[#fb7299] hover:underline">DeepSeek</a> - DeepSeek AI API</li>
                 <li><a href="https://github.com/zhw2590582/ArtPlayer" target="_blank" rel="noopener noreferrer" class="text-[#fb7299] hover:underline">ArtPlayer</a> - 强大且灵活的HTML5视频播放器</li>
+                <li><a href="https://www.aicu.cc/" target="_blank" rel="noopener noreferrer" class="text-[#fb7299] hover:underline">aicu.cc</a> - 第三方B站用户评论API</li>
                 <li>所有贡献者</li>
               </ul>
             </div>

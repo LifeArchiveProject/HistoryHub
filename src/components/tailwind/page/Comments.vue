@@ -1,179 +1,103 @@
 <template>
   <div class="min-h-screen bg-gray-50/30">
-    <div class="py-4">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <!-- 页面标题 -->
-        <div class="bg-white rounded-lg shadow-sm p-5 mb-4">
-          <div class="flex flex-col md:flex-row md:items-center md:justify-between">
-            <div class="flex items-center mb-4 md:mb-0">
-              <div class="p-2 bg-[#fb7299]/10 rounded-lg mr-3">
-                <svg class="w-6 h-6 text-[#fb7299]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-                </svg>
-              </div>
-              <div>
-                <h1 class="text-2xl font-medium text-gray-800">我的评论</h1>
-                <p class="text-sm text-gray-500 mt-0.5">查看和管理您在B站的所有评论记录</p>
-              </div>
-            </div>
-            
-            <!-- API致谢 -->
-            <div class="bg-blue-50 border border-blue-100 px-4 py-3 rounded-lg">
-              <div class="flex items-center">
-                <div class="bg-white p-1 rounded-full mr-2">
-                  <img src="https://www.aicu.cc/favicon.ico" alt="AICU" class="w-5 h-5" />
-                </div>
-                <div>
-                  <div class="text-sm text-gray-700 font-medium">
-                    感谢 <a href="https://www.aicu.cc/" target="_blank" class="text-blue-600 hover:underline">AICU.cc</a> 网站开放API
-                  </div>
-                  <div class="text-xs text-gray-500 mt-0.5 flex items-center">
-                    <svg class="w-3.5 h-3.5 text-amber-500 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                    </svg>
-                    <span>非官方API，数据可能不是实时</span>
-                    <a href="https://www.aicu.cc/help.html?id=11" target="_blank" class="text-blue-600 ml-1 hover:underline">
-                      了解更多
-                    </a>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <!-- 筛选和搜索区域 -->
-        <div class="mb-4 bg-white rounded-lg shadow-sm p-5">
-          <!-- 标题 -->
-          <h2 class="text-sm font-medium text-gray-700 mb-3 flex items-center">
-            <svg class="w-4 h-4 mr-1.5 text-[#fb7299]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-            </svg>
-            筛选与搜索
-          </h2>
-          
-          <div class="space-y-4 md:space-y-0 md:flex md:items-end md:space-x-4">
-            <!-- 搜索框 -->
-            <div class="flex-1">
-              <label for="search-comment" class="block text-xs font-medium text-gray-600 mb-1.5">关键词</label>
-              <div class="relative rounded-md shadow-sm">
-                <input
-                  id="search-comment"
-                  v-model="keyword"
-                  type="text"
-                  placeholder="搜索评论内容..."
-                  class="w-full pl-10 pr-4 py-2.5 rounded-md border border-gray-300 focus:border-[#fb7299] focus:ring focus:ring-[#fb7299]/30 focus:ring-opacity-50 text-sm transition-all"
-                  @keyup.enter="handleSearch"
-                />
-                <svg class="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </div>
-            </div>
-
-            <!-- 评论类型 -->
-            <div class="w-full md:w-48">
-              <label for="comment-type" class="block text-xs font-medium text-gray-600 mb-1.5">评论类型</label>
-              <div class="relative">
-                <select
-                  id="comment-type"
-                  v-model="commentType"
-                  class="w-full bg-white rounded-md border border-gray-300 focus:border-[#fb7299] focus:ring focus:ring-[#fb7299]/30 focus:ring-opacity-50 py-2.5 px-3 text-sm shadow-sm transition-all"
-                  @change="handleSearch"
-                >
-                  <option value="all">全部评论</option>
-                  <option value="root">一级评论</option>
-                  <option value="reply">二级评论</option>
-                </select>
-              </div>
-            </div>
-
-            <!-- 内容类型 -->
-            <div class="w-full md:w-48">
-              <label for="content-type" class="block text-xs font-medium text-gray-600 mb-1.5">内容类型</label>
-              <div class="relative">
-                <select
-                  id="content-type"
-                  v-model="typeFilter"
-                  class="w-full bg-white rounded-md border border-gray-300 focus:border-[#fb7299] focus:ring focus:ring-[#fb7299]/30 focus:ring-opacity-50 py-2.5 px-3 text-sm shadow-sm transition-all"
-                  @change="handleSearch"
-                >
-                  <option value="0">全部</option>
-                  <option value="1">视频</option>
-                  <option value="17">动态</option>
-                  <option value="11">动态(旧版)</option>
-                </select>
-              </div>
-            </div>
-
-            <!-- 操作按钮 -->
-            <div class="w-full md:w-auto">
-              <button
-                @click="handleSearch"
-                class="w-full bg-[#fb7299] hover:bg-[#fc8bad] text-white rounded-md px-4 py-2.5 text-sm font-medium transition-colors duration-200 shadow-sm flex items-center justify-center"
-              >
-                <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-                搜索
-              </button>
-            </div>
-          </div>
-        </div>
-        
-        <!-- 评论列表 -->
-        <div class="space-y-4">
-          <!-- 筛选状态指示器 -->
-          <div v-if="hasActiveFilters" class="bg-gray-50 border border-gray-200/70 rounded-lg p-3 flex items-center justify-between">
+    <div class="py-6">
+      <div class="max-w-5xl mx-auto px-4">
+        <!-- 致谢 -->
+        <div class="mb-4">
+          <div class="bg-[#fb7299]/5 border border-[#fb7299]/20 px-3 py-0 rounded-md w-full flex items-center justify-center h-9">
+            <img src="https://www.aicu.cc/favicon.ico" alt="AICU" class="w-3 h-3 mr-1.5" />
             <div class="flex items-center">
-              <svg class="w-4 h-4 text-[#fb7299] mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-              </svg>
-              <div class="text-sm text-gray-600">
-                <span class="font-medium">筛选条件：</span>
-                <span v-if="keyword" class="ml-1 bg-[#fb7299]/10 text-[#fb7299] px-2 py-0.5 rounded-full text-xs font-medium">
-                  关键词：{{ keyword }}
-                </span>
-                <span v-if="commentType !== 'all'" class="ml-1 bg-[#fb7299]/10 text-[#fb7299] px-2 py-0.5 rounded-full text-xs font-medium">
-                  {{ getCommentTypeText(commentType) }}
-                </span>
-                <span v-if="typeFilter !== '0'" class="ml-1 bg-[#fb7299]/10 text-[#fb7299] px-2 py-0.5 rounded-full text-xs font-medium">
-                  {{ getContentTypeText(typeFilter) }}
-                </span>
+              <span class="text-xs text-gray-700">
+                感谢 <a href="https://www.aicu.cc/" target="_blank" class="text-[#fb7299] hover:text-[#fb7299]/80 font-medium">aicu.cc</a> 开放API
+              </span>
+              <span class="mx-1.5 text-gray-300">|</span>
+              <div class="flex items-center text-xs text-gray-500">
+                <svg class="w-3 h-3 text-[#fb7299] mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <span>非官方API，数据不是实时更新</span>
+                <a href="https://www.aicu.cc/help.html?id=11" target="_blank" class="text-[#fb7299] hover:text-[#fb7299]/80 ml-1 font-medium">
+                  了解更多
+                </a>
               </div>
             </div>
-            <button
-              @click="clearFilters"
-              class="text-xs text-gray-500 hover:text-[#fb7299] flex items-center space-x-1 hover:underline"
-            >
-              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-              <span>清除所有筛选</span>
-            </button>
           </div>
+        </div>
 
-          <div v-for="comment in comments" :key="comment.rpid" class="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300 border border-gray-100">
-            <div class="flex justify-between items-start">
-              <div class="flex-1">
-                <div class="flex items-center mb-2">
-                  <span class="text-xs px-1.5 py-0.5 rounded-full mr-2" 
-                        :class="comment.type === 1 ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'">
-                    {{ getCommentType(comment.type) }}
-                  </span>
-                  <span class="text-gray-500 text-xs">{{ comment.time_str }}</span>
-                </div>
-                <p class="text-gray-900 mb-3 text-sm whitespace-pre-wrap leading-relaxed">{{ comment.message }}</p>
-                <div class="flex items-center text-xs">
+        <!-- 搜索和筛选 -->
+        <div class="mb-6 bg-transparent">
+          <div class="p-4 md:p-0 mb-4">
+            <!-- 总评论数显示 -->
+            <div class="mb-3 flex items-center text-sm text-gray-600">
+              <span>共</span>
+              <span class="mx-1 text-[#fb7299] font-medium">{{ total }}</span>
+              <span>条评论</span>
+            </div>
+
+            <div class="flex flex-nowrap items-center space-x-2">
+              <!-- 关键词搜索 - 改为与首页一致的样式 -->
+              <div class="flex-1 min-w-0">
+                <SimpleSearchBar
+                  v-model="keyword"
+                  placeholder="搜索评论内容..."
+                  @search="handleSearch"
+                  class="w-full"
+                />
+              </div>
+
+              <!-- 评论类型筛选 -->
+              <div class="w-24 flex-shrink-0">
+                <CustomDropdown
+                  v-model="commentType"
+                  :options="commentTypeOptions"
+                  :selected-text="getCommentTypeText(commentType)"
+                  @change="selectCommentType"
+                  :min-width="80"
+                  :use-fixed-width="true"
+                  custom-class="h-9"
+                />
+              </div>
+
+              <!-- 内容类型筛选 -->
+              <div class="w-24 flex-shrink-0">
+                <CustomDropdown
+                  v-model="typeFilter"
+                  :options="contentTypeOptions"
+                  :selected-text="getContentTypeText(typeFilter)"
+                  @change="selectContentType"
+                  :min-width="80"
+                  :use-fixed-width="true"
+                  custom-class="h-9"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 评论列表 -->
+        <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+          <!-- 评论项 -->
+          <div v-if="!loading && comments.length > 0" class="divide-y divide-gray-100">
+            <div v-for="comment in comments" :key="comment.rpid" class="p-4 md:p-6">
+              <div class="space-y-2">
+                <!-- 评论内容 -->
+                <p class="text-gray-800 text-sm md:text-base whitespace-pre-wrap leading-relaxed">{{ comment.message }}</p>
+
+                <!-- 评论元数据 -->
+                <div class="flex items-center justify-between text-xs text-gray-500">
+                  <div class="flex items-center space-x-3">
+                    <span :class="comment.type === 1 ? 'text-[#fb7299]' : 'text-[#fb7299]'">
+                      {{ getCommentType(comment.type) }}
+                    </span>
+                    <span>{{ comment.time_str }}</span>
+                  </div>
+
                   <a
                     :href="getCommentLink(comment)"
                     target="_blank"
-                    class="text-[#fb7299] hover:underline flex items-center"
+                    class="text-[#fb7299] hover:text-[#fb7299]/80 transition-colors"
                   >
-                    <svg class="w-3.5 h-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                    </svg>
-                    查看原文
+                    查看原文 →
                   </a>
                 </div>
               </div>
@@ -181,36 +105,37 @@
           </div>
 
           <!-- 加载状态 -->
-          <div v-if="loading" class="bg-white p-8 rounded-lg shadow-sm flex flex-col items-center justify-center">
-            <div class="animate-spin h-8 w-8 border-3 border-[#fb7299] border-t-transparent rounded-full mb-3"></div>
-            <p class="text-gray-500 text-sm">加载评论中...</p>
+          <div v-if="loading" class="flex justify-center items-center py-16">
+            <div class="flex flex-col items-center">
+              <div class="animate-spin h-8 w-8 border-3 border-[#fb7299] border-t-transparent rounded-full"></div>
+              <p class="text-gray-500 text-sm mt-4">加载评论中...</p>
+            </div>
           </div>
 
           <!-- 空状态 -->
-          <div v-if="!loading && comments.length === 0" class="bg-white p-8 rounded-lg shadow-sm flex flex-col items-center justify-center">
-            <div class="bg-gray-50 rounded-full p-3 mb-3">
-              <svg class="w-8 h-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-              </svg>
+          <div v-if="!loading && comments.length === 0" class="flex justify-center items-center py-16">
+            <div class="flex flex-col items-center">
+              <div class="bg-[#fb7299]/5 rounded-full p-3 mb-3">
+                <svg class="w-8 h-8 text-[#fb7299]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                </svg>
+              </div>
+              <p class="text-gray-600 font-medium">暂无评论数据</p>
+              <p v-if="hasActiveFilters" class="text-gray-500 text-sm mt-1 text-center max-w-sm">
+                尝试调整搜索条件
+              </p>
+              <button
+                v-if="hasActiveFilters"
+                @click="clearFilters"
+                class="mt-4 px-4 py-2 text-white bg-[#fb7299] hover:bg-[#fb7299]/90 rounded-md text-sm transition-colors"
+              >
+                清除筛选
+              </button>
             </div>
-            <p class="text-gray-600 font-medium">暂无评论数据</p>
-            <p v-if="hasActiveFilters" class="text-gray-500 text-sm mt-1">
-              没有找到符合筛选条件的评论
-            </p>
-            <button
-              v-if="hasActiveFilters"
-              @click="clearFilters"
-              class="mt-3 bg-[#fb7299]/10 hover:bg-[#fb7299]/20 text-[#fb7299] px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 flex items-center"
-            >
-              <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-              清除筛选条件
-            </button>
           </div>
         </div>
 
-        <!-- 分页 -->
+        <!-- 分页控件 -->
         <div v-if="totalPages > 0" class="mt-6 flex justify-center">
           <Pagination
             :current-page="currentPage"
@@ -224,12 +149,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch, computed } from 'vue'
+import { ref, onMounted, watch, computed, onUnmounted } from 'vue'
 import { getComments, getLoginStatus } from '../../../api/api'
 import { showNotify } from 'vant'
 import { useRouter } from 'vue-router'
 import Pagination from '../Pagination.vue'
 import 'vant/es/notify/style'
+import SimpleSearchBar from '../SimpleSearchBar.vue'
+import CustomDropdown from '../CustomDropdown.vue'
 
 const router = useRouter()
 const comments = ref([])
@@ -268,6 +195,32 @@ const getUserInfo = async () => {
   }
 }
 
+// 下拉菜单选项数据
+const commentTypeOptions = [
+  { value: 'all', label: '全部' },
+  { value: 'root', label: '一级' },
+  { value: 'reply', label: '二级' }
+]
+
+const contentTypeOptions = [
+  { value: '0', label: '全部' },
+  { value: '1', label: '视频' },
+  { value: '17', label: '动态' },
+  { value: '11', label: '旧动态' }
+]
+
+// 计算下拉菜单按钮宽度 - 响应式设计
+const windowWidth = ref(window.innerWidth)
+computed(() => {
+  // 检测是否为移动设备
+  const isMobile = windowWidth.value < 768
+  return isMobile ? '100%' : 100
+})
+// 处理窗口大小变化
+const handleWindowResize = () => {
+  windowWidth.value = window.innerWidth
+}
+
 // 处理页码变化
 const handlePageChange = (newPage) => {
   currentPage.value = newPage
@@ -290,7 +243,7 @@ const fetchComments = async () => {
       keyword.value,
       typeFilter.value
     )
-    
+
     if (response.data) {
       comments.value = response.data.comments
       total.value = response.data.total
@@ -323,7 +276,7 @@ const getCommentType = (type) => {
 // 获取评论链接
 const getCommentLink = (comment) => {
   const { type, oid, rpid } = comment
-  
+
   switch (type) {
     case 1: // 视频评论
       return `https://www.bilibili.com/video/av${oid}#reply${rpid}`
@@ -347,28 +300,37 @@ watch([commentType, typeFilter], () => {
   fetchComments()
 })
 
+// 在组件挂载时添加事件监听器和获取数据
 onMounted(async () => {
+  window.addEventListener('resize', handleWindowResize)
   const hasUser = await getUserInfo()
   if (hasUser) {
     fetchComments()
   }
 })
 
+// 在组件卸载时移除事件监听器
+onUnmounted(() => {
+  window.removeEventListener('resize', handleWindowResize)
+})
+
 // 处理搜索
 const handleSearch = () => {
-  currentPage.value = 1
-  fetchComments()
+  if (keyword.value.trim() || hasActiveFilters.value) {
+    currentPage.value = 1
+    fetchComments()
+  }
 }
 
 // 获取评论类型文本
 const getCommentTypeText = (type) => {
   switch (type) {
     case 'root':
-      return '一级评论'
+      return '一级'
     case 'reply':
-      return '二级评论'
+      return '二级'
     default:
-      return '全部评论'
+      return '全部'
   }
 }
 
@@ -380,7 +342,7 @@ const getContentTypeText = (type) => {
     case '17':
       return '动态'
     case '11':
-      return '动态(旧版)'
+      return '旧动态'
     case '0':
     default:
       return '全部'
@@ -400,4 +362,20 @@ const clearFilters = () => {
 const hasActiveFilters = computed(() => {
   return keyword.value || commentType.value !== 'all' || typeFilter.value !== '0'
 })
-</script> 
+
+// 选择评论类型
+const selectCommentType = (value) => {
+  commentType.value = value
+  handleSearch()
+}
+
+// 选择内容类型
+const selectContentType = (value) => {
+  typeFilter.value = value
+  handleSearch()
+}
+</script>
+
+<style>
+/* 这里可以添加任何需要的自定义样式 */
+</style>

@@ -7,8 +7,8 @@
         <button
           v-for="(label, type) in businessTypeMap"
           :key="type"
-          class="px-2 sm:px-3 py-1 sm:py-1.5 text-xs rounded-lg border transition-colors duration-200"
-          :class="business === type ? 'border-[#fb7299] bg-[#fb7299]/10 text-[#fb7299]' : 'border-gray-200 text-gray-700 hover:border-[#fb7299]/50'"
+          class="px-2 sm:px-3 py-1 sm:py-1.5 text-xs rounded-md border transition-colors duration-200"
+          :class="business === type ? 'border-[#fb7299] bg-[#fb7299]/10 text-[#fb7299]' : 'border-gray-300 text-gray-700 hover:border-[#fb7299]/50'"
           @click="selectBusiness(type)"
         >
           {{ label }}
@@ -107,7 +107,7 @@
                   type="date"
                   v-model="startDate"
                   @change="onDateChange"
-                  class="w-full p-1.5 sm:p-2 text-xs sm:text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#fb7299] focus:border-[#fb7299] cursor-pointer"
+                  class="w-full p-1.5 sm:p-2 text-xs sm:text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#fb7299] focus:border-[#fb7299] cursor-pointer"
                   :max="endDate || undefined"
                 />
                 <label class="absolute -top-1.5 left-2 text-[10px] bg-white px-1 text-gray-500">开始日期</label>
@@ -118,7 +118,7 @@
                   type="date"
                   v-model="endDate"
                   @change="onDateChange"
-                  class="w-full p-1.5 sm:p-2 text-xs sm:text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#fb7299] focus:border-[#fb7299] cursor-pointer"
+                  class="w-full p-1.5 sm:p-2 text-xs sm:text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#fb7299] focus:border-[#fb7299] cursor-pointer"
                   :min="startDate || undefined"
                 />
                 <label class="absolute -top-1.5 left-2 text-[10px] bg-white px-1 text-gray-500">结束日期</label>
@@ -145,10 +145,10 @@
             </div>
             
             <!-- 分区选择器 -->
-            <div class="border border-gray-200 rounded-lg overflow-hidden">
+            <div class="border border-gray-300 rounded-md overflow-hidden">
               <!-- 主分区选择 -->
               <div class="flex h-48 sm:h-56">
-                <div class="w-1/3 border-r border-gray-200 overflow-y-auto">
+                <div class="w-1/3 border-r border-gray-300 overflow-y-auto">
                   <div 
                     v-for="(category, index) in videoCategories" 
                     :key="category.text"
@@ -162,11 +162,11 @@
                 
                 <!-- 子分区选择 -->
                 <div class="w-2/3 overflow-y-auto">
-                  <div class="grid grid-cols-2 gap-1 sm:gap-2 p-1 sm:p-2">
+                  <div class="grid grid-cols-2 gap-1.5 sm:gap-2 p-1 sm:p-2">
                     <!-- 主分区选项 -->
                     <div 
-                      class="p-1 sm:p-2 text-xs sm:text-sm border rounded-lg cursor-pointer transition-colors duration-200 truncate"
-                      :class="category === videoCategories[activeMainCategory]?.text ? 'border-[#fb7299] bg-[#fb7299]/10 text-[#fb7299]' : 'border-gray-200 hover:bg-gray-100'"
+                      class="p-1 sm:p-2 text-xs sm:text-sm border rounded-md cursor-pointer transition-colors duration-200 truncate"
+                      :class="category === videoCategories[activeMainCategory]?.text ? 'border-[#fb7299] bg-[#fb7299]/10 text-[#fb7299]' : 'border-gray-300 hover:bg-gray-100'"
                       @click="selectVideoCategory({text: videoCategories[activeMainCategory]?.text, type: 'main'})"
                     >
                       {{ videoCategories[activeMainCategory]?.text || '全部' }}
@@ -176,8 +176,8 @@
                     <div 
                       v-for="subCategory in videoCategories[activeMainCategory]?.children" 
                       :key="subCategory.id"
-                      class="p-1 sm:p-2 text-xs sm:text-sm border rounded-lg cursor-pointer transition-colors duration-200 truncate"
-                      :class="category === subCategory.text ? 'border-[#fb7299] bg-[#fb7299]/10 text-[#fb7299]' : 'border-gray-200 hover:bg-gray-100'"
+                      class="p-1 sm:p-2 text-xs sm:text-sm border rounded-md cursor-pointer transition-colors duration-200 truncate"
+                      :class="category === subCategory.text ? 'border-[#fb7299] bg-[#fb7299]/10 text-[#fb7299]' : 'border-gray-300 hover:bg-gray-100'"
                       @click="selectVideoCategory(subCategory)"
                     >
                       {{ subCategory.text }}

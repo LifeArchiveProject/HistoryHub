@@ -36,7 +36,7 @@
         <div>
           <button 
             @click="refreshHistory" 
-            class="inline-flex items-center px-2 py-1 border border-transparent rounded-md shadow-sm text-xs font-medium text-white bg-[#fb7299] hover:bg-[#fb7299]/90 focus:outline-none"
+            class="inline-flex items-center px-2 py-1 border border-transparent rounded-md text-xs font-medium text-white bg-[#fb7299] hover:bg-[#fb7299]/90 focus:outline-none"
           >
             <svg class="w-3.5 h-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -53,7 +53,7 @@
         暂无执行历史
       </div>
       <div v-else class="space-y-2">
-        <div v-for="record in history" :key="record.execution_id" class="bg-white rounded-lg p-3 border border-gray-100 shadow-sm">
+        <div v-for="record in history" :key="record.execution_id" class="bg-white rounded-lg p-3 border border-gray-200">
           <div class="flex items-center justify-between">
             <div class="flex items-center space-x-2">
               <span 

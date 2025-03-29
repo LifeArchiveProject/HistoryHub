@@ -63,22 +63,25 @@ BilibiliHistoryFrontend/
 
 ## 页面介绍
 
-**1. 主页面**
+**1. 主页**
 <img src="./public/home.png" alt="">
 
-**2. 设置页面**
-<img src="./public/setting.png" alt="">
+**2. 评论**
+<img src="./public/Comments.png" alt="">
 
-**3. 图片管理页面**
+**3. 媒体管理**
 <img src="./public/images.png" alt="">
 
-**4. 计划任务页面**
+**4. 计划任务**
 <img src="./public/scheduler.png" alt="">
 
-**5. 视频下载功能**
+**5. 设置**
+<img src="./public/setting.png" alt="">
+
+**6. 视频下载功能**
 <img src="./public/download.png" alt="">
 
-**6. 年度总结页面**
+**7. 年度总结页面**
 
 开场页
 <img src="public/HeroPage.png" alt="">
@@ -104,7 +107,7 @@ UP主完成率
 月度关键词
 <img src="./public/MonthlyTitle.png" alt="">
 
-**7. 本地摘要功能**
+**8. 本地摘要功能**
 
 本地摘要功能允许用户在本地生成视频内容摘要，无需依赖B站官方AI摘要：
 
@@ -168,6 +171,7 @@ UP主完成率
 - [FasterWhisper](https://github.com/SYSTRAN/faster-whisper) - 音频转文字
 - [DeepSeek](https://github.com/deepseek-ai/DeepSeek-R1) - DeepSeek AI API
 - [ArtPlayer](https://github.com/zhw2590582/ArtPlayer) - 强大且灵活的HTML5视频播放器
+- [aicu.cc](https://www.aicu.cc/) - 第三方B站用户评论API
 - 所有贡献者
 
 ## Star History
