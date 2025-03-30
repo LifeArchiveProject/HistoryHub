@@ -95,19 +95,33 @@
                           :class="{
                             'bg-blue-100 text-blue-800': task.config?.schedule_type === 'daily',
                             'bg-purple-100 text-purple-800': task.config?.schedule_type === 'chain',
-                            'bg-green-100 text-green-800': task.config?.schedule_type === 'once'
+                            'bg-green-100 text-green-800': task.config?.schedule_type === 'once',
+                            'bg-yellow-100 text-yellow-800': task.config?.schedule_type === 'interval'
                           }" 
                           class="px-1.5 inline-flex text-xs leading-5 font-semibold rounded-full"
                         >
                           {{ 
                             task.config?.schedule_type === 'daily' ? '每日' : 
                             task.config?.schedule_type === 'chain' ? '链式' : 
-                            task.config?.schedule_type === 'once' ? '一次性' : task.config?.schedule_type 
+                            task.config?.schedule_type === 'once' ? '一次性' : 
+                            task.config?.schedule_type === 'interval' ? '间隔' : 
+                            task.config?.schedule_type 
                           }}
                         </span>
                       </td>
                       <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-500">
-                        {{ task.config?.schedule_type === 'chain' ? '依赖主任务' : task.config?.schedule_time || '-' }}
+                        {{ 
+                          task.config?.schedule_type === 'chain' ? '依赖主任务' : 
+                          task.config?.schedule_type === 'interval' ? 
+                            (task.config?.interval_value || '-') + ' ' + 
+                            (task.config?.interval_unit === 'minutes' ? '分钟' : 
+                             task.config?.interval_unit === 'hours' ? '小时' : 
+                             task.config?.interval_unit === 'days' ? '天' : 
+                             task.config?.interval_unit === 'months' ? '月' : 
+                             task.config?.interval_unit === 'years' ? '年' : 
+                             task.config?.interval_unit || '') : 
+                          task.config?.schedule_time || '-' 
+                        }}
                       </td>
                       <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-500">
                         <span v-if="task.execution?.success_rate !== undefined" class="inline-flex items-center">
@@ -259,7 +273,7 @@
                               {{ subTask.config.enabled ? '禁用' : '启用' }}
                             </button>
                             <button 
-                              @click="confirmDeleteTask(subTask.task_id)" 
+                              @click="confirmDeleteTask(subTask.task_id, task.task_id)" 
                               class="text-red-600 hover:text-red-900"
                             >
                               删除
@@ -322,7 +336,8 @@ import {
   deleteSchedulerTask, 
   executeSchedulerTask,
   getTaskHistory,
-  setTaskEnabled
+  setTaskEnabled,
+  deleteSubTask
 } from '../../../api/api'
 import TaskForm from '../scheduler/TaskForm.vue'
 import TaskDetail from '../scheduler/TaskDetail.vue'
@@ -372,12 +387,14 @@ const executeTask = async (taskId) => {
     const response = await executeSchedulerTask(taskId, {
       wait_for_completion: false
     })
+    
     if (response.data && response.data.status === 'success') {
       showNotify({ type: 'success', message: '任务执行已启动' })
       // 刷新任务列表
       fetchTasks()
     } else {
-      showNotify({ type: 'danger', message: '执行任务失败: ' + (response.data?.message || '未知错误') })
+      const errorMessage = '执行任务失败: ' + (response.data?.message || '未知错误')
+      showNotify({ type: 'danger', message: errorMessage })
     }
   } catch (error) {
     console.error('执行任务出错:', error)
@@ -387,7 +404,6 @@ const executeTask = async (taskId) => {
 
 // 获取所有计划任务
 const fetchTasks = debounce(async () => {
-  console.log('开始获取任务列表')
   if (loading.value) return // 如果正在加载，则不重复获取
   
   loading.value = true
@@ -396,17 +412,14 @@ const fetchTasks = debounce(async () => {
       include_subtasks: true,
       detail_level: 'full'
     })
-    console.log('获取任务列表响应:', response)
     if (response.data && response.data.status === 'success') {
       // 为每个任务添加展开/收起状态
       tasks.value = (response.data.tasks || []).map(task => {
-        console.log('处理任务:', task)
         return {
           ...task,
           isExpanded: true // 默认展开
         }
       })
-      console.log('更新后的任务列表:', tasks.value)
     } else {
       showNotify({ type: 'danger', message: '获取任务列表失败: ' + (response.data?.message || '未知错误') })
     }
@@ -536,7 +549,6 @@ const openCreateSubTaskModal = async (taskId) => {
       if (mainTask.sub_tasks && mainTask.sub_tasks.length > 0) {
         // 如果有子任务，新子任务应该依赖于最后一个子任务
         const lastSubTask = mainTask.sub_tasks[mainTask.sub_tasks.length - 1]
-        console.log('主任务有子任务，新子任务将依赖于最后一个子任务:', lastSubTask.task_id)
         currentTask.value = {
           ...mainTask,
           depends_on: {
@@ -545,7 +557,6 @@ const openCreateSubTaskModal = async (taskId) => {
           }
         }
       } else {
-        console.log('主任务没有子任务，新子任务将依赖于主任务:', taskId)
       }
       
       showTaskFormModal.value = true
@@ -568,38 +579,49 @@ const openCreateTaskModal = () => {
 }
 
 // 确认删除任务
-const confirmDeleteTask = (taskId) => {
+const confirmDeleteTask = (taskId, parentTaskId = null) => {
+  const isSubTask = !!parentTaskId;
   showDialog({
     title: '确认删除',
-    message: '确定要删除此任务吗？此操作不可撤销。',
+    message: isSubTask ? '确定要删除此子任务吗？此操作不可撤销。' : '确定要删除此任务吗？此操作不可撤销。',
     showCancelButton: true,
     confirmButtonText: '确定',
     cancelButtonText: '取消',
     confirmButtonColor: '#fb7299',
   }).then(() => {
-    deleteTask(taskId)
+    deleteTask(taskId, parentTaskId)
   }).catch(() => {
     // 取消删除
   })
 }
 
 // 删除任务
-const deleteTask = async (taskId) => {
+const deleteTask = async (taskId, parentTaskId = null) => {
   try {
-    const response = await deleteSchedulerTask(taskId)
+    console.log('开始删除任务:', taskId, parentTaskId ? `(父任务: ${parentTaskId})` : '');
+    let response;
+    
+    if (parentTaskId) {
+      // 删除子任务
+      response = await deleteSubTask(parentTaskId, taskId)
+    } else {
+      // 删除主任务
+      response = await deleteSchedulerTask(taskId)
+    }
+    
     if (response.data && response.data.status === 'success') {
-      showNotify({ type: 'success', message: '任务删除成功' })
+      showNotify({ type: 'success', message: parentTaskId ? '子任务删除成功' : '任务删除成功' })
       // 关闭所有相关的弹窗
       showTaskDetailModal.value = false
       showTaskHistoryModal.value = false
       // 重新获取任务列表
       fetchTasks()
     } else {
-      showNotify({ type: 'danger', message: '删除任务失败: ' + (response.data?.message || '未知错误') })
+      showNotify({ type: 'danger', message: (parentTaskId ? '删除子任务失败: ' : '删除任务失败: ') + (response.data?.message || '未知错误') })
     }
   } catch (error) {
     console.error('删除任务出错:', error)
-    showNotify({ type: 'danger', message: '删除任务出错: ' + (error.message || '未知错误') })
+    showNotify({ type: 'danger', message: (parentTaskId ? '删除子任务出错: ' : '删除任务出错: ') + (error.message || '未知错误') })
   }
 }
 

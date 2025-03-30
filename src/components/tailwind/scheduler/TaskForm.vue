@@ -33,30 +33,31 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
             <div>
               <label for="taskId" class="block text-xs font-medium text-gray-700 mb-0.5">任务ID</label>
-              <input 
-                id="taskId" 
-                v-model="form.task_id" 
-                type="text" 
-                disabled
-                class="block w-full rounded-md border-gray-300 bg-gray-50 shadow-sm focus:border-[#fb7299] focus:ring-[#fb7299] text-xs py-1" 
-                placeholder="选择API端点后自动设置"
+              <input
+                id="taskId"
+                v-model="form.task_id"
+                type="text"
+                :disabled="props.isEditing"
+                class="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#fb7299] focus:ring-[#fb7299] text-xs py-1"
+                placeholder="请输入任务ID（选择API端点后会自动填充，可修改）"
+                required
               />
             </div>
-            
+
             <div>
               <label for="name" class="block text-xs font-medium text-gray-700 mb-0.5">任务名称 *</label>
-              <input 
-                id="name" 
-                v-model="form.name" 
-                type="text" 
-                class="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#fb7299] focus:ring-[#fb7299] text-xs py-1" 
+              <input
+                id="name"
+                v-model="form.name"
+                type="text"
+                class="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#fb7299] focus:ring-[#fb7299] text-xs py-1"
                 required
                 placeholder="例如：获取B站历史记录"
               />
             </div>
           </div>
         </div>
-        
+
         <!-- API设置 -->
         <div class="bg-white rounded-lg p-1.5 border border-gray-200">
           <h4 class="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1 flex items-center">
@@ -69,7 +70,7 @@
             <div>
               <label for="endpoint" class="block text-xs font-medium text-gray-700 mb-0.5">API端点 *</label>
               <div class="relative">
-                <button 
+                <button
                   type="button"
                   @click="showApiSelector = true"
                   class="block w-full text-left rounded-md border border-gray-300 shadow-sm focus:border-[#fb7299] focus:ring-[#fb7299] text-xs py-1.5 px-2"
@@ -78,20 +79,20 @@
                 </button>
               </div>
             </div>
-            
+
             <div>
               <label for="method" class="block text-xs font-medium text-gray-700 mb-0.5">请求方法</label>
-              <input 
-                id="method" 
-                v-model="form.method" 
-                type="text" 
+              <input
+                id="method"
+                v-model="form.method"
+                type="text"
                 disabled
                 class="block w-full rounded-md border-gray-300 bg-gray-50 shadow-sm focus:border-[#fb7299] focus:ring-[#fb7299] text-xs py-1"
               />
             </div>
           </div>
         </div>
-        
+
         <!-- 调度设置 -->
         <div class="bg-white rounded-lg p-1.5 border border-gray-200">
           <h4 class="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1 flex items-center">
@@ -103,44 +104,61 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
             <div>
               <label for="scheduleType" class="block text-xs font-medium text-gray-700 mb-0.5">调度类型 *</label>
-              <select 
-                id="scheduleType" 
-                v-model="form.schedule_type" 
+              <select
+                id="scheduleType"
+                v-model="form.schedule_type"
                 class="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#fb7299] focus:ring-[#fb7299] text-xs py-1 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
                 required
                 :disabled="props.parentTaskId || props.isEditing"
               >
                 <option v-if="!props.parentTaskId" value="daily">每日</option>
+                <option v-if="!props.parentTaskId" value="interval">间隔执行</option>
                 <option value="chain">链式</option>
-                <option v-if="!props.parentTaskId" value="once">一次性</option>
               </select>
             </div>
-            
+
             <div v-if="form.schedule_type === 'daily' && !props.parentTaskId">
               <label for="scheduleTime" class="block text-xs font-medium text-gray-700 mb-0.5">执行时间 *</label>
-              <input 
-                id="scheduleTime" 
-                v-model="form.schedule_time" 
-                type="time" 
-                class="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#fb7299] focus:ring-[#fb7299] text-xs py-1" 
+              <input
+                id="scheduleTime"
+                v-model="form.schedule_time"
+                type="time"
+                class="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#fb7299] focus:ring-[#fb7299] text-xs py-1"
                 required
               />
             </div>
-            
-            <div v-if="form.schedule_type === 'once' && !props.parentTaskId">
-              <label for="scheduleDelay" class="block text-xs font-medium text-gray-700 mb-0.5">延迟时间(秒) *</label>
-              <input 
-                id="scheduleDelay" 
-                v-model.number="form.schedule_delay" 
-                type="number" 
-                min="0"
-                class="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#fb7299] focus:ring-[#fb7299] text-xs py-1" 
-                required
-              />
+
+            <div v-if="form.schedule_type === 'interval' && !props.parentTaskId" class="col-span-2 grid grid-cols-2 gap-2">
+              <div>
+                <label for="intervalValue" class="block text-xs font-medium text-gray-700 mb-0.5">间隔时间 *</label>
+                <input
+                  id="intervalValue"
+                  v-model.number="form.interval"
+                  type="number"
+                  min="1"
+                  class="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#fb7299] focus:ring-[#fb7299] text-xs py-1"
+                  required
+                />
+              </div>
+              <div>
+                <label for="intervalUnit" class="block text-xs font-medium text-gray-700 mb-0.5">时间单位 *</label>
+                <select
+                  id="intervalUnit"
+                  v-model="form.unit"
+                  class="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#fb7299] focus:ring-[#fb7299] text-xs py-1"
+                  required
+                >
+                  <option value="minutes">分钟</option>
+                  <option value="hours">小时</option>
+                  <option value="days">天</option>
+                  <option value="months">月</option>
+                  <option value="years">年</option>
+                </select>
+              </div>
             </div>
           </div>
         </div>
-        
+
         <!-- 依赖任务 -->
         <div class="bg-white rounded-lg p-1.5 border border-gray-200">
           <h4 class="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1 flex items-center">
@@ -152,7 +170,7 @@
           <div>
             <label for="requires" class="block text-xs font-medium text-gray-700 mb-0.5">依赖任务 (可选)</label>
             <div class="relative">
-              <button 
+              <button
                 type="button"
                 @click="showDependencySelector = true"
                 :disabled="props.parentTaskId || props.isEditing"
@@ -162,15 +180,15 @@
                   {{ props.parentTaskId ? '子任务依赖关系由系统自动设置' : (props.isEditing ? '编辑时不可修改依赖任务' : '选择依赖任务') }}
                 </div>
                 <div v-else class="flex flex-wrap gap-1">
-                  <div 
-                    v-for="taskId in form.depends_on" 
+                  <div
+                    v-for="taskId in form.depends_on"
                     :key="taskId"
                     class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#fb7299]/10 text-[#fb7299]"
                   >
                     <span>{{ getTaskName(taskId) }}</span>
-                    <button 
+                    <button
                       type="button"
-                      @click.stop="removeTask(taskId)" 
+                      @click.stop="removeTask(taskId)"
                       class="ml-1 hover:text-[#fb7299]/70"
                       v-if="!props.parentTaskId && !props.isEditing"
                     >
@@ -184,18 +202,18 @@
             </div>
           </div>
         </div>
-        
+
         <!-- 底部按钮 -->
         <div class="flex justify-end space-x-2 pt-1.5 border-t border-gray-100">
-          <button 
+          <button
             type="button"
-            @click="cancel" 
+            @click="cancel"
             class="inline-flex items-center px-2 py-1 border border-gray-300 rounded-md text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-[#fb7299]"
           >
             取消
           </button>
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             class="inline-flex items-center px-2 py-1 border border-transparent rounded-md text-xs font-medium text-white bg-[#fb7299] hover:bg-[#fb7299]/90 focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-[#fb7299]"
           >
             {{ getSubmitButtonText }}
@@ -241,15 +259,12 @@ import { ref, computed, reactive, watch, nextTick } from 'vue'
 import { showNotify } from 'vant'
 import 'vant/es/notify/style'
 import SelectDialog from './SelectDialog.vue'
-import { 
-  createSchedulerTask, 
+import {
+  createSchedulerTask,
   updateSchedulerTask,
   getSchedulerTaskDetail,
   getAvailableEndpoints,
-  addSubTask,
-  getSubTasks,
-  deleteSubTask,
-  updateSubTaskSequence
+  addSubTask
 } from '../../../api/api'
 
 const props = defineProps({
@@ -290,7 +305,8 @@ const form = reactive({
   params: {},
   schedule_type: 'daily',
   schedule_time: '00:00',
-  schedule_delay: 0,
+  interval: 1,
+  unit: 'hours',
   depends_on: [],
   enabled: true,
   sub_tasks: []
@@ -330,24 +346,24 @@ const groupedEndpoints = computed(() => {
 const filteredGroupedEndpoints = computed(() => {
   const query = apiSearchQuery.value.toLowerCase()
   const filtered = {}
-  
+
   Object.entries(groupedEndpoints.value).forEach(([tag, apis]) => {
     const filteredApis = apis.filter(endpoint => {
-      const matchesSearch = !query || 
+      const matchesSearch = !query ||
         endpoint.path.toLowerCase().includes(query) ||
         endpoint.summary?.toLowerCase().includes(query)
-      
-      const matchesMethod = methodFilter.value === 'ALL' || 
+
+      const matchesMethod = methodFilter.value === 'ALL' ||
         endpoint.method === methodFilter.value
-      
+
       return matchesSearch && matchesMethod
     })
-    
+
     if (filteredApis.length > 0) {
       filtered[tag] = filteredApis
     }
   })
-  
+
   return filtered
 })
 
@@ -387,7 +403,9 @@ watch(selectedEndpoint, (newVal) => {
     if (endpoint) {
       form.endpoint = endpoint.description || endpoint.path
       form.method = endpoint.method || 'GET'
-      form.task_id = endpoint.id || endpoint.operationId || endpoint.path
+      if (!form.task_id) {
+        form.task_id = endpoint.id || endpoint.operationId || endpoint.path
+      }
       if (!form.name && (endpoint.name || endpoint.summary)) {
         form.name = endpoint.name || endpoint.summary
       }
@@ -408,18 +426,21 @@ const removeTask = (taskId) => {
 
 // 计算属性：检查表单是否有效
 const isFormValid = computed(() => {
-  if (!form.task_id || !form.name || !form.endpoint || !form.method) {
+  // 检查基本字段
+  if (!form.task_id.trim() || !form.name.trim() || !form.endpoint || !form.method) {
     return false
   }
-  
+
+  // 检查调度相关字段
   if (form.schedule_type === 'daily' && !form.schedule_time) {
     return false
   }
-  
-  if (form.schedule_type === 'once' && (form.schedule_delay === null || form.schedule_delay < 0)) {
+
+  if (form.schedule_type === 'interval' && (!form.interval || form.interval < 1 || !form.unit)) {
     return false
   }
-  
+
+  // 检查参数JSON格式
   return paramsError.value === ''
 })
 
@@ -434,12 +455,13 @@ const resetForm = () => {
     params: {},
     schedule_type: props.parentTaskId ? 'chain' : 'daily',
     schedule_time: '00:00',
-    schedule_delay: 0,
+    interval: 1,
+    unit: 'hours',
     depends_on: props.currentTask?.depends_on ? [props.currentTask.depends_on.task_id] : [],
     enabled: true,
     sub_tasks: []
   }
-  
+
   // 使用Object.keys确保所有属性都被重置
   Object.keys(form).forEach(key => {
     if (key === 'depends_on' && props.parentTaskId && props.currentTask) {
@@ -447,7 +469,7 @@ const resetForm = () => {
     }
     form[key] = initialState[key]
   })
-  
+
   // 重置其他相关状态
   selectedEndpoint.value = ''
   paramsJson.value = '{}'
@@ -465,21 +487,21 @@ const resetForm = () => {
 watch(() => props.show, async (newVal) => {
   if (newVal) {
     await fetchAvailableEndpoints()
-    
+
     if (props.isEditing && props.taskId) {
       await loadTaskDetail(props.taskId)
     } else if (!props.isEditing && props.parentTaskId) {
       resetForm()
       form.schedule_type = 'chain'
-      
+
       // 查找父任务及其子任务
       const parentTask = props.tasks.find(task => task.task_id === props.parentTaskId)
-      
+
       if (parentTask?.sub_tasks?.length > 0) {
         // 如果父任务有子任务，依赖最后一个子任务
         const lastSubTask = parentTask.sub_tasks[parentTask.sub_tasks.length - 1]
         form.depends_on = [lastSubTask.task_id]
-        
+
         // 确保依赖任务在availableEndpoints中
         if (!availableEndpoints.value.find(e => e.operationId === lastSubTask.task_id)) {
           availableEndpoints.value.push({
@@ -491,7 +513,7 @@ watch(() => props.show, async (newVal) => {
       } else {
         // 如果父任务没有子任务，依赖父任务
         form.depends_on = [props.parentTaskId]
-        
+
         // 确保父任务在availableEndpoints中
         if (!availableEndpoints.value.find(e => e.operationId === props.parentTaskId)) {
           availableEndpoints.value.push({
@@ -524,12 +546,12 @@ const setDependencyFromCurrentTask = (task) => {
     form.depends_on = [props.parentTaskId]
     return
   }
-  
+
   if (task.sub_tasks?.length > 0) {
     // 如果主任务有子任务，依赖最后一个子任务
     const lastSubTask = task.sub_tasks[task.sub_tasks.length - 1]
     form.depends_on = [lastSubTask.task_id]
-    
+
     // 确保依赖任务在availableEndpoints中
     if (!availableEndpoints.value.find(e => e.operationId === lastSubTask.task_id)) {
       availableEndpoints.value.push({
@@ -541,7 +563,7 @@ const setDependencyFromCurrentTask = (task) => {
   } else {
     // 如果主任务没有子任务，依赖主任务
     form.depends_on = [props.parentTaskId]
-    
+
     // 确保父任务在availableEndpoints中
     if (!availableEndpoints.value.find(e => e.operationId === props.parentTaskId)) {
       availableEndpoints.value.push({
@@ -569,7 +591,13 @@ const loadTaskDetail = async (taskId) => {
         form.schedule_type = taskInfo.config.schedule_type
         form.schedule_time = taskInfo.config.schedule_time
         form.enabled = taskInfo.config.enabled
-        
+
+        // 间隔执行配置
+        if (taskInfo.config.schedule_type === 'interval') {
+          form.interval = taskInfo.config.interval || 1
+          form.unit = taskInfo.config.unit || 'hours'
+        }
+
         // 设置依赖任务
         if (taskInfo.depends_on) {
           form.depends_on = [taskInfo.depends_on.task_id]
@@ -584,7 +612,7 @@ const loadTaskDetail = async (taskId) => {
         } else {
           form.depends_on = []
         }
-        
+
         // 加载子任务
         if (taskInfo.sub_tasks) {
           form.sub_tasks = taskInfo.sub_tasks
@@ -619,7 +647,7 @@ watch(paramsJson, (newVal) => {
     paramsError.value = ''
     return
   }
-  
+
   try {
     JSON.parse(newVal)
     paramsError.value = ''
@@ -642,8 +670,16 @@ const submitForm = async () => {
       form.schedule_type = 'chain'
     }
 
+    // 确保任务ID不为空
+    if (!form.task_id.trim()) {
+      showNotify({ type: 'danger', message: '任务ID不能为空' })
+      return
+    }
+
+    console.log('开始提交任务表单:', props.isEditing ? '编辑模式' : (props.parentTaskId ? '子任务模式' : '主任务模式'))
+
     const taskData = {
-      task_id: form.task_id,
+      task_id: form.task_id.trim(),
       name: form.name,
       endpoint: form.endpoint,
       method: form.method,
@@ -654,13 +690,14 @@ const submitForm = async () => {
     // 只有在创建新任务时才设置调度类型和依赖任务
     if (!props.isEditing) {
       taskData.schedule_type = form.schedule_type
-      
+
       if (form.schedule_type === 'daily') {
         taskData.schedule_time = form.schedule_time
-      } else if (form.schedule_type === 'once') {
-        taskData.schedule_delay = form.schedule_delay
+      } else if (form.schedule_type === 'interval') {
+        taskData.interval = form.interval
+        taskData.unit = form.unit
       }
-      
+
       if (form.depends_on.length > 0) {
         taskData.depends_on = {
           task_id: form.depends_on[0],
@@ -669,17 +706,22 @@ const submitForm = async () => {
       }
     }
 
+    console.log('准备提交的任务数据:', taskData)
+
     let response
     if (props.isEditing) {
+      console.log('开始更新任务:', props.taskId)
       response = await updateSchedulerTask(props.taskId, taskData)
     } else if (props.parentTaskId) {
+      console.log('开始添加子任务:', props.parentTaskId)
       response = await addSubTask(props.parentTaskId, {
         ...taskData,
         schedule_type: 'chain'
       })
     } else {
+      console.log('开始创建主任务')
       response = await createSchedulerTask({
-        task_id: form.task_id,
+        task_id: form.task_id.trim(),
         task_type: 'main',
         config: {
           name: form.name,
@@ -688,36 +730,45 @@ const submitForm = async () => {
           params: form.params,
           schedule_type: form.schedule_type,
           schedule_time: form.schedule_type === 'daily' ? form.schedule_time : undefined,
-          schedule_delay: form.schedule_type === 'once' ? form.schedule_delay : undefined,
+          interval: form.schedule_type === 'interval' ? form.interval : undefined,
+          unit: form.schedule_type === 'interval' ? form.unit : undefined,
           enabled: form.enabled
         },
         depends_on: taskData.depends_on
       })
     }
 
+    console.log('任务操作响应:', response.data)
+
     if (response.data && response.data.status === 'success') {
-      showNotify({ 
-        type: 'success', 
-        message: props.isEditing ? '更新成功' : 
-                 props.parentTaskId ? '子任务创建成功' : '创建成功' 
+      const successMessage = props.isEditing ? '更新成功' :
+                             props.parentTaskId ? '子任务创建成功' : '创建成功'
+      console.log('任务操作成功:', successMessage)
+      showNotify({
+        type: 'success',
+        message: successMessage
       })
       emit('task-saved')
       emit('update:show', false)
       resetForm()
     } else {
-      showNotify({ 
-        type: 'danger', 
-        message: (props.isEditing ? '更新失败: ' : 
-                 props.parentTaskId ? '创建子任务失败: ' : '创建失败: ') + 
-                 (response.data?.message || '未知错误') 
+      const errorMessage = (props.isEditing ? '更新失败: ' :
+                           props.parentTaskId ? '创建子任务失败: ' : '创建失败: ') +
+                           (response.data?.message || '未知错误')
+      console.error('任务操作失败:', errorMessage)
+      showNotify({
+        type: 'danger',
+        message: errorMessage
       })
     }
   } catch (error) {
-    showNotify({ 
-      type: 'danger', 
-      message: (props.isEditing ? '更新出错: ' : 
-               props.parentTaskId ? '创建子任务出错: ' : '创建出错: ') + 
-               (error.message || '未知错误') 
+    const errorMessage = (props.isEditing ? '更新出错: ' :
+                         props.parentTaskId ? '创建子任务出错: ' : '创建出错: ') +
+                         (error.message || '未知错误')
+    console.error('任务操作异常:', errorMessage, error)
+    showNotify({
+      type: 'danger',
+      message: errorMessage
     })
   }
 }
@@ -807,4 +858,4 @@ export default {
   background-color: #fb7299;
   border-radius: 2px;
 }
-</style> 
+</style>

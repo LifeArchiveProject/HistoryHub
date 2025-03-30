@@ -217,29 +217,29 @@
                 </span>
               </div>
             </div>
-            
+
             <!-- 数据完整性状态 -->
             <div class="flex items-center text-gray-500">
               <div class="mr-1">数据完整性:</div>
               <div class="flex items-center">
-                <span 
-                  class="w-1.5 h-1.5 rounded-full mr-1" 
-                  :class="integrityStatus.status === 'consistent' ? 'bg-green-500' : 
+                <span
+                  class="w-1.5 h-1.5 rounded-full mr-1"
+                  :class="integrityStatus.status === 'consistent' ? 'bg-green-500' :
                         integrityStatus.status === 'inconsistent' ? 'bg-yellow-500' : 'bg-gray-400'"
                 ></span>
-                <span 
-                  class="cursor-pointer hover:underline" 
-                  :class="integrityStatus.status === 'consistent' ? 'text-green-600' : 
+                <span
+                  class="cursor-pointer hover:underline"
+                  :class="integrityStatus.status === 'consistent' ? 'text-green-600' :
                         integrityStatus.status === 'inconsistent' ? 'text-yellow-600' : 'text-gray-400'"
                   @click="openDataSyncManager('integrity')"
                 >
-                  {{ integrityStatus.status === 'consistent' ? '一致' : 
+                  {{ integrityStatus.status === 'consistent' ? '一致' :
                     integrityStatus.status === 'inconsistent' ? '不一致' : '未检查' }}
                 </span>
               </div>
             </div>
           </div>
-          
+
           <!-- SQLite版本显示 -->
           <div v-if="!isCollapsed" class="mt-3 text-xs space-y-1 px-2 text-[11px]">
             <div class="text-gray-500">
@@ -516,19 +516,12 @@ const checkServerHealthStatus = async () => {
       return true
     } else {
       serverStatus.value.isRunning = false
-      showNotify({
-        type: 'danger',
-        message: '服务器未运行，请检查后端服务'
-      })
+      console.error('服务器健康检查失败: 服务器未运行')
       return false
     }
   } catch (error) {
     console.error('服务器健康检查失败:', error)
     serverStatus.value.isRunning = false
-    showNotify({
-      type: 'danger',
-      message: '无法连接到服务器，请检查网络或服务器状态'
-    })
     return false
   }
 }
@@ -543,7 +536,6 @@ const fetchIntegrityStatus = async () => {
         difference: response.data.difference || 0,
         lastCheck: response.data.timestamp
       }
-      console.log('完整性状态:', integrityStatus.value)
     }
   } catch (error) {
     console.error('获取完整性状态失败:', error)
@@ -579,14 +571,14 @@ onMounted(async () => {
   // 初始时检查登录状态
   checkLoginStatus()
   await fetchSqliteVersion()
-  
+
   // 设置定期健康检查
   setupPeriodicHealthCheck()
   checkServerHealthStatus()
-  
+
   // 添加获取数据完整性状态
   await fetchIntegrityStatus()
-  
+
   // 添加全局事件监听器，当登录状态变化时更新侧边栏的登录状态
   window.addEventListener('login-status-changed', handleLoginStatusChange)
 })
@@ -614,7 +606,7 @@ const handleLoginStatusChange = (event) => {
 // 组件卸载时移除事件监听器和清除定时器
 onUnmounted(() => {
   window.removeEventListener('login-status-changed', handleLoginStatusChange)
-  
+
   // 清除定时器
   if (healthCheckTimer.value) {
     clearInterval(healthCheckTimer.value)

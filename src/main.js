@@ -16,8 +16,6 @@ window.addEventListener('api-baseurl-updated', (event) => {
 // 判断是否在 Tauri 环境中
 const isTauri = window && window.__TAURI__
 
-// 添加日志以确认环境检测
-console.log('是否为 Tauri 环境:', isTauri)
 
 // 在 Tauri 环境中设置所有链接在当前窗口打开
 if (isTauri) {

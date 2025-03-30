@@ -475,10 +475,8 @@ export const checkFFmpeg = () => {
 
 // 计划任务管理相关接口
 export const getAllSchedulerTasks = (params = {}) => {
-  console.log('调用getAllSchedulerTasks API:', { params })
   return instance.get('/scheduler/tasks', { params })
     .then(response => {
-      console.log('getAllSchedulerTasks API响应:', response)
       return response
     })
     .catch(error => {

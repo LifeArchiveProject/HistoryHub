@@ -159,7 +159,8 @@ export default defineComponent({
       const type = props.task.config?.schedule_type
       return type === 'daily' ? '每日' : 
              type === 'chain' ? '链式' : 
-             type === 'once' ? '一次性' : type
+             type === 'once' ? '一次性' : 
+             type === 'interval' ? '间隔' : type
     })
 
     // 计算调度类型样式
@@ -168,7 +169,8 @@ export default defineComponent({
       return {
         'bg-blue-100 text-blue-800': type === 'daily',
         'bg-purple-100 text-purple-800': type === 'chain',
-        'bg-green-100 text-green-800': type === 'once'
+        'bg-green-100 text-green-800': type === 'once',
+        'bg-yellow-100 text-yellow-800': type === 'interval'
       }
     })
 

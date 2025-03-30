@@ -86,10 +86,8 @@ const routes = [
 
 // 创建路由实例的工厂函数
 export const createMyRouter = (mode = 'hash') => {
-  console.log('创建路由实例，模式:', mode)
 
   const history = mode === 'hash' ? createWebHashHistory() : createWebHistory()
-  console.log('使用的 history 类型:', history)
 
   return createRouter({
     history,

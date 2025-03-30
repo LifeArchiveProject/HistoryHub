@@ -118,7 +118,20 @@
               <p class="text-xs text-gray-500">执行时间</p>
               <p class="text-sm text-gray-800">
                 <template v-if="task.task_type === 'main'">
-                  {{ task.config?.schedule_time || '未设置' }}
+                  <template v-if="task.config?.schedule_type === 'interval'">
+                    {{ task.config?.interval_value || '-' }} 
+                    {{ 
+                      task.config?.interval_unit === 'minutes' ? '分钟' : 
+                      task.config?.interval_unit === 'hours' ? '小时' : 
+                      task.config?.interval_unit === 'days' ? '天' : 
+                      task.config?.interval_unit === 'months' ? '月' : 
+                      task.config?.interval_unit === 'years' ? '年' : 
+                      task.config?.interval_unit || ''
+                    }}
+                  </template>
+                  <template v-else>
+                    {{ task.config?.schedule_time || '未设置' }}
+                  </template>
                 </template>
                 <template v-else>
                   依赖于主任务
@@ -284,7 +297,8 @@ const scheduleTypeLabel = computed(() => {
   const type = props.task?.config?.schedule_type
   return type === 'daily' ? '每日' : 
          type === 'chain' ? '链式任务' : 
-         type === 'once' ? '一次性' : type
+         type === 'once' ? '一次性' : 
+         type === 'interval' ? '间隔执行' : type
 })
 
 // 计算状态标签

@@ -2,7 +2,7 @@
 import { ref, onMounted, provide } from 'vue'
 import { useRouter } from 'vue-router'
 import { tryConnectServers, setBaseUrl, updateInstanceBaseUrl } from './api/api'
-import { showNotify, showDialog } from 'vant'
+import { showDialog } from 'vant'
 import 'vant/es/notify/style'
 import 'vant/es/dialog/style'
 
@@ -19,15 +19,10 @@ const checkServerConnection = async () => {
   try {
     isLoading.value = true
     const result = await tryConnectServers()
-    
+
     if (result.success) {
       // 确保数据同步API也使用相同的baseUrl
       updateInstanceBaseUrl(result.url)
-      showNotify({
-        type: 'success',
-        message: `已连接到服务器: ${result.url}`,
-        duration: 2000,
-      })
       serverConnected.value = true
     } else {
       // 显示服务器连接失败提示
@@ -79,7 +74,7 @@ onMounted(() => {
         <div class="server-check-text">连接服务器中...</div>
       </div>
     </div>
-    
+
     <!-- 主应用内容 -->
     <router-view></router-view>
   </div>
