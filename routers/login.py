@@ -32,22 +32,30 @@ def save_cookies(cookies):
             config_data = f.read()
             print("成功读取配置文件")
         
-        # 更新SESSDATA
-        if 'SESSDATA' in cookies:
-            print(f"准备更新SESSDATA: {cookies['SESSDATA']}")
-            if 'SESSDATA:' in config_data:
-                # 替换现有的SESSDATA
-                lines = config_data.split('\n')
-                for i, line in enumerate(lines):
-                    if line.strip().startswith('SESSDATA:'):
-                        lines[i] = f'SESSDATA: {cookies["SESSDATA"]}'
-                        break
-                config_data = '\n'.join(lines)
-            else:
-                # 添加新的SESSDATA
-                config_data += f'\nSESSDATA: {cookies["SESSDATA"]}'
+        # 要更新的Cookie字段列表
+        cookie_fields = ['SESSDATA', 'bili_jct', 'DedeUserID', 'DedeUserID__ckMd5']
+        
+        lines = config_data.split('\n')
+        updated_fields = set()
+        
+        # 更新已存在的字段
+        for i, line in enumerate(lines):
+            for field in cookie_fields:
+                if line.strip().startswith(f'{field}:'):
+                    if field in cookies:
+                        lines[i] = f'{field}: {cookies[field]}'
+                        updated_fields.add(field)
+                        print(f"更新配置 {field}: {cookies[field]}")
+                    break
+        
+        # 添加不存在的字段
+        for field in cookie_fields:
+            if field in cookies and field not in updated_fields:
+                lines.append(f'{field}: {cookies[field]}')
+                print(f"添加配置 {field}: {cookies[field]}")
         
         # 保存更新后的配置
+        config_data = '\n'.join(lines)
         with open(config_path, 'w', encoding='utf-8') as f:
             f.write(config_data)
             print("配置文件已更新")
@@ -203,6 +211,8 @@ async def poll_scan_status(qrcode_key: str):
             
             print(f"API响应状态码: {response.status_code}")
             print(f"API响应内容: {response.text}")
+            print(f"响应头: {response.headers}")
+            print(f"响应Cookies: {response.cookies}")
             
             # 检查响应状态码
             if response.status_code != 200:
@@ -241,12 +251,83 @@ async def poll_scan_status(qrcode_key: str):
             # 如果登录成功，保存cookies
             if scan_data.get('code') == 0:
                 print("登录成功，保存cookies...")
+                
+                # 从set-cookie头和响应cookies中提取信息
                 cookies = {}
+                
+                # 从响应cookie中获取
                 for cookie in response.cookies:
                     cookies[cookie.name] = cookie.value
-                    print(f"获取到cookie: {cookie.name}={cookie.value}")
+                    print(f"从响应cookies获取到: {cookie.name}={cookie.value}")
+                
+                # 从响应头中获取（有些Cookie可能在响应头的set-cookie中，但不在cookies中）
+                if 'set-cookie' in response.headers:
+                    # 修复: 使用正确的方法获取set-cookie头
+                    # CaseInsensitiveDict不支持getlist方法
+                    set_cookie_header = response.headers.get('set-cookie', '')
+                    print(f"从响应头获取到set-cookie: {set_cookie_header}")
+                    
+                    # 如果是单个cookie
+                    if set_cookie_header:
+                        parts = set_cookie_header.split(';')[0].split('=', 1)
+                        if len(parts) == 2:
+                            name, value = parts
+                            cookies[name.strip()] = value.strip()
+                            print(f"解析出cookie: {name.strip()}={value.strip()}")
+                    
+                    # 可能多个cookie在不同的Set-Cookie头中
+                    # 遍历所有响应头来查找所有的Set-Cookie
+                    for key, value in response.headers.items():
+                        if key.lower() == 'set-cookie':
+                            cookie_parts = value.split(';')[0].split('=', 1)
+                            if len(cookie_parts) == 2:
+                                cookie_name, cookie_value = cookie_parts
+                                cookies[cookie_name.strip()] = cookie_value.strip()
+                                print(f"从头部遍历解析出cookie: {cookie_name.strip()}={cookie_value.strip()}")
+                
+                # 如果响应数据中包含cookie_info字段（TV端QR登录模式），从中提取cookies
+                if 'cookie_info' in scan_data:
+                    cookie_info = scan_data.get('cookie_info', {})
+                    for cookie in cookie_info.get('cookies', []):
+                        if 'name' in cookie and 'value' in cookie:
+                            cookies[cookie['name']] = cookie['value']
+                            print(f"从cookie_info获取到: {cookie['name']}={cookie['value']}")
+                
+                # 如果必要的cookie不在响应中，从url中解析
+                if 'url' in scan_data and scan_data['url'] and ('SESSDATA' not in cookies or 'bili_jct' not in cookies):
+                    url = scan_data['url']
+                    print(f"从url中解析cookie: {url}")
+                    if '?' in url:
+                        query = url.split('?', 1)[1]
+                        for param in query.split('&'):
+                            if '=' in param:
+                                name, value = param.split('=', 1)
+                                if name in ['DedeUserID', 'DedeUserID__ckMd5', 'SESSDATA', 'bili_jct']:
+                                    cookies[name] = value
+                                    print(f"从URL解析出cookie: {name}={value}")
+                
+                # 记录找到的所有cookie
+                print(f"找到的所有cookies: {cookies}")
+                
+                # 检查是否有必要的鉴权字段
+                if 'SESSDATA' not in cookies:
+                    print("警告: 未获取到SESSDATA")
+                
+                if 'bili_jct' not in cookies:
+                    print("警告: 未获取到bili_jct (CSRF Token)")
+                
+                # 保存cookies
                 save_cookies(cookies)
                 print("cookies已保存")
+                
+                # 记录获取到的鉴权信息
+                auth_info = {
+                    "SESSDATA": cookies.get("SESSDATA", "未获取"),
+                    "bili_jct": cookies.get("bili_jct", "未获取"),
+                    "DedeUserID": cookies.get("DedeUserID", "未获取"),
+                    "DedeUserID__ckMd5": cookies.get("DedeUserID__ckMd5", "未获取")
+                }
+                print(f"鉴权信息摘要: {auth_info}")
             
             return {
                 "status": "success",
