@@ -1,4 +1,6 @@
-# BilibiliHistoryFrontend
+<div align="center">
+  <img src="./public/logo.png" alt="Logo">
+</div>
 
 这是一个基于 Vue 3 开发的B站历史记录分析工具的前端项目，为用户提供丰富的B站观看历史数据分析功能。
 
@@ -29,20 +31,6 @@ npm run dev
 npm run build
 ```
 
-**项目结构**
-
-```
-BilibiliHistoryFrontend/
-├── src/                    # 源代码目录
-│   ├── api/               # API 接口
-│   ├── components/        # Vue 组件
-│   │   └── tailwind/     # Tailwind 样式组件
-│   ├── router/           # 路由配置
-│   └── style.css         # 全局样式
-├── public/               # 静态资源
-└── vite.config.js        # Vite 配置
-```
-
 ## 首次使用指南
 
 1. **登录账号**
@@ -69,19 +57,22 @@ BilibiliHistoryFrontend/
 **2. 评论**
 <img src="./public/Comments.png" alt="">
 
-**3. 媒体管理**
+**3. 我的收藏**
+<img src="./public/favorites.png" alt="">
+
+**4. 媒体管理**
 <img src="./public/images.png" alt="">
 
-**4. 计划任务**
+**5. 计划任务**
 <img src="./public/scheduler.png" alt="">
 
-**5. 设置**
+**6. 设置**
 <img src="./public/setting.png" alt="">
 
-**6. 视频下载功能**
+**7. 视频下载功能**
 <img src="./public/download.png" alt="">
 
-**7. 年度总结页面**
+**8. 年度总结页面**
 
 开场页
 <img src="public/HeroPage.png" alt="">
@@ -107,7 +98,7 @@ UP主完成率
 月度关键词
 <img src="./public/MonthlyTitle.png" alt="">
 
-**8. 本地摘要功能**
+**9. 本地摘要功能**
 
 本地摘要功能允许用户在本地生成视频内容摘要，无需依赖B站官方AI摘要：
 
@@ -148,13 +139,6 @@ UP主完成率
    npm run tauri:clean
    ```
    清理 `src-tauri/target` 目录中的构建产物，释放磁盘空间。
-
-### 构建特点
-
-- 小体积：生成的可执行文件约 11MB，远小于 Electron 构建的应用
-- 高性能：使用 Rust 后端和系统 WebView，运行更流畅
-- 无需安装：生成的是独立可执行文件，无需安装即可使用
-- 本地化：所有链接在应用内部打开，提供更好的用户体验
 
 ## 贡献指南
 

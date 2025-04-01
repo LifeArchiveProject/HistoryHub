@@ -10,11 +10,8 @@
       <div class="h-full flex flex-col">
         <!-- 顶部 Logo -->
         <div class="p-3 border-b border-gray-200/50">
-          <router-link to="/" class="flex items-center space-x-2" :class="{ 'justify-center': isCollapsed }">
-            <svg class="h-6 w-6 text-gray-900 flex-shrink-0" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
-              <path fill="currentColor" d="M306.005333 117.632L444.330667 256h135.296l138.368-138.325333a42.666667 42.666667 0 0 1 60.373333 60.373333L700.330667 256H789.333333A149.333333 149.333333 0 0 1 938.666667 405.333333v341.333334a149.333333 149.333333 0 0 1-149.333334 149.333333h-554.666666A149.333333 149.333333 0 0 1 85.333333 746.666667v-341.333334A149.333333 149.333333 0 0 1 234.666667 256h88.96L245.632 177.962667a42.666667 42.666667 0 0 1 60.373333-60.373334zM789.333333 341.333333h-554.666666a64 64 0 0 0-63.701334 57.856L170.666667 405.333333v341.333334a64 64 0 0 0 57.856 63.701333L234.666667 810.666667h554.666666a64 64 0 0 0 63.701334-57.856L853.333333 746.666667v-341.333334A64 64 0 0 0 789.333333 341.333333zM341.333333 469.333333a42.666667 42.666667 0 0 1 42.666667 42.666667v85.333333a42.666667 42.666667 0 0 1-85.333333 0v-85.333333a42.666667 42.666667 0 0 1 42.666666-42.666667z m341.333334 0a42.666667 42.666667 0 0 1 42.666666 42.666667v85.333333a42.666667 42.666667 0 0 1-85.333333 0v-85.333333a42.666667 42.666667 0 0 1 42.666667-42.666667z" />
-            </svg>
-            <span v-show="!isCollapsed" class="text-base font-semibold bg-gradient-to-r from-[#fb7299] to-[#fc9b7a] bg-clip-text text-transparent whitespace-nowrap">B站历史记录</span>
+          <router-link to="/" class="w-full flex justify-center items-center">
+            <img src="/logo.png" class="w-full object-contain" alt="Logo" />
           </router-link>
         </div>
 
