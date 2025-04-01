@@ -72,6 +72,24 @@
             <span v-show="!isCollapsed" class="truncate">我的评论</span>
           </router-link>
 
+          <!-- 我的收藏 -->
+          <router-link
+            to="/favorites"
+            :title="isCollapsed ? '我的收藏' : ''"
+            class="flex items-center py-1.5 text-gray-700 transition-all duration-300 ease-in-out text-sm"
+            :class="[
+              { 'bg-[#fb7299]/10 text-[#fb7299]': currentContent === 'favorites' },
+              { 'justify-center': isCollapsed },
+              isCollapsed ? 'px-2' : 'px-3 rounded-lg'
+            ]"
+            @click="currentContent = 'favorites'"
+          >
+            <svg class="w-5 h-5 flex-shrink-0" :class="{ 'mr-3': !isCollapsed }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+            </svg>
+            <span v-show="!isCollapsed" class="truncate">我的收藏</span>
+          </router-link>
+
           <!-- 年度总结 -->
           <router-link
             to="/analytics"
@@ -124,24 +142,6 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <span v-show="!isCollapsed" class="truncate">计划任务</span>
-          </router-link>
-
-          <!-- 关于页面 -->
-          <router-link
-            to="/about"
-            :title="isCollapsed ? '关于' : ''"
-            class="flex items-center py-1.5 text-gray-700 transition-all duration-300 ease-in-out text-sm"
-            :class="[
-              { 'bg-[#fb7299]/10 text-[#fb7299]': currentContent === 'about' },
-              { 'justify-center': isCollapsed },
-              isCollapsed ? 'px-2' : 'px-3 rounded-lg'
-            ]"
-            @click="currentContent = 'about'"
-          >
-            <svg class="w-5 h-5 flex-shrink-0" :class="{ 'mr-3': !isCollapsed }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span v-show="!isCollapsed" class="truncate">关于</span>
           </router-link>
 
           <!-- 设置 -->
@@ -314,8 +314,8 @@ const currentContent = ref((() => {
     return 'scheduler'
   } else if (path === '/comments') {
     return 'comments'
-  } else if (path === '/about') {
-    return 'about'
+  } else if (path === '/favorites' || path.startsWith('/favorites/')) {
+    return 'favorites'
   } else if (path === '/' || path.startsWith('/page/')) {
     return 'history'
   }
@@ -345,8 +345,8 @@ watch(
       currentContent.value = 'scheduler'
     } else if (path === '/comments') {
       currentContent.value = 'comments'
-    } else if (path === '/about') {
-      currentContent.value = 'about'
+    } else if (path === '/favorites' || path.startsWith('/favorites/')) {
+      currentContent.value = 'favorites'
     } else if (path === '/' || path.startsWith('/page/')) {
       currentContent.value = 'history'
     }

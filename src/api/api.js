@@ -749,12 +749,12 @@ export const getComments = (uid, page = 1, pageSize = 20, commentType = 'all', k
     comment_type: commentType,
     keyword
   }
-  
+
   // 只有当 typeFilter 有值且不为 '0' 时才添加到参数中
   if (typeFilter && typeFilter !== '0') {
     params.type_filter = parseInt(typeFilter)
   }
-  
+
   return instance.get(`/comment/query/${uid}`, { params })
 }
 
@@ -788,8 +788,8 @@ export const getDanmakuFile = async (cid = '', file_path = '') => {
     const params = {};
     if (cid) params.cid = cid;
     if (file_path) params.file_path = file_path;
-    
-    const response = await instance.get(`/download/stream_danmaku`, { 
+
+    const response = await instance.get(`/download/stream_danmaku`, {
       params,
       responseType: 'text' // 获取纯文本格式的弹幕文件
     });
@@ -845,4 +845,135 @@ export const checkDataIntegrity = (db_path = 'output/bilibili_history.db', json_
  */
 export const getIntegrityReport = () => {
   return instance.get('/data_sync/report')
+}
+
+/**
+ * 获取指定用户创建的所有收藏夹信息
+ * @param {Object} params 请求参数
+ * @param {number} [params.up_mid] 目标用户mid，不提供则使用当前登录用户
+ * @param {number} [params.type] 目标内容属性，0=全部(默认)，2=视频稿件
+ * @param {number} [params.rid] 目标内容id，视频稿件为avid
+ * @param {string} [params.sessdata] 用户的SESSDATA，不提供则从配置文件读取
+ * @returns {Promise<Object>} 收藏夹列表
+ */
+export const getCreatedFavoriteFolders = (params = {}) => {
+  return instance.get('/favorite/folder/created/list-all', { params })
+}
+
+/**
+ * 获取指定用户收藏的视频收藏夹列表
+ * @param {Object} params 请求参数
+ * @param {number} [params.up_mid] 目标用户mid，不提供则使用当前登录用户
+ * @param {number} [params.pn] 页码，默认为1
+ * @param {number} [params.ps] 每页项数，默认为20
+ * @param {string} [params.keyword] 搜索关键词
+ * @param {string} [params.sessdata] 用户的SESSDATA，不提供则从配置文件读取
+ * @returns {Promise<Object>} 收藏夹列表
+ */
+export const getCollectedFavoriteFolders = (params = {}) => {
+  return instance.get('/favorite/folder/collected/list', { params })
+}
+
+/**
+ * 获取收藏夹内容列表
+ * @param {Object} params 请求参数
+ * @param {number} params.media_id 目标收藏夹id（完整id）
+ * @param {number} [params.pn] 页码，默认为1
+ * @param {number} [params.ps] 每页项数，默认为20
+ * @param {string} [params.keyword] 搜索关键词
+ * @param {string} [params.order] 排序方式，mtime(收藏时间，默认)或view(播放量)
+ * @param {number} [params.type] 筛选类型，0=全部(默认)，2=视频
+ * @param {number} [params.tid] 分区ID，0=全部(默认)
+ * @param {string} [params.platform] 平台标识，默认为web
+ * @param {string} [params.sessdata] 用户的SESSDATA，不提供则从配置文件读取
+ * @returns {Promise<Object>} 收藏夹内容列表
+ */
+export const getFavoriteContents = (params = {}) => {
+  return instance.get('/favorite/folder/resource/list', { params })
+}
+
+/**
+ * 获取数据库中的收藏夹列表
+ * @param {Object} params 请求参数
+ * @param {number} [params.mid] 用户UID，不提供则返回所有收藏夹
+ * @param {number} [params.page] 页码，默认为1
+ * @param {number} [params.size] 每页数量，默认为20
+ * @returns {Promise<Object>} 收藏夹列表
+ */
+export const getLocalFavoriteFolders = (params = {}) => {
+  return instance.get('/favorite/list', { params })
+}
+
+/**
+ * 获取数据库中的收藏内容列表
+ * @param {Object} params 请求参数
+ * @param {number} params.media_id 收藏夹ID
+ * @param {number} [params.page] 页码，默认为1
+ * @param {number} [params.size] 每页数量，默认为20
+ * @returns {Promise<Object>} 内容列表
+ */
+export const getLocalFavoriteContents = (params = {}) => {
+  return instance.get('/favorite/content/list', { params })
+}
+// #endregion
+
+/**
+ * 收藏或取消收藏视频
+ * @param {Object} params 请求参数
+ * @param {number} params.rid 稿件avid (不含av前缀)
+ * @param {string} [params.add_media_ids] 需要加入的收藏夹ID，多个用逗号分隔
+ * @param {string} [params.del_media_ids] 需要取消的收藏夹ID，多个用逗号分隔
+ * @param {string} [params.sessdata] 用户的SESSDATA，不提供则从配置文件读取
+ * @returns {Promise<Object>} 操作结果
+ */
+export const favoriteResource = (params = {}) => {
+  return instance.post('/favorite/resource/deal', params)
+}
+
+/**
+ * 批量收藏或取消收藏视频
+ * @param {Object} params 请求参数
+ * @param {string} params.rids 稿件avid列表 (不含av前缀)，多个用逗号分隔
+ * @param {string} [params.add_media_ids] 需要加入的收藏夹ID，多个用逗号分隔
+ * @param {string} [params.del_media_ids] 需要取消的收藏夹ID，多个用逗号分隔
+ * @param {string} [params.sessdata] 用户的SESSDATA，不提供则从配置文件读取
+ * @returns {Promise<Object>} 操作结果
+ */
+export const batchFavoriteResource = (params = {}) => {
+  return instance.post('/favorite/resource/batch-deal', params)
+}
+
+/**
+ * 本地批量收藏或取消收藏视频
+ * @param {Object} params 请求参数
+ * @param {string} params.rids 稿件avid列表 (不含av前缀)，多个用逗号分隔
+ * @param {string} [params.add_media_ids] 需要加入的收藏夹ID，多个用逗号分隔
+ * @param {string} [params.del_media_ids] 需要取消的收藏夹ID，多个用逗号分隔
+ * @param {string} [params.operation_type] 操作类型，`sync`=同步到远程，`local`=仅本地操作，默认为`sync`
+ * @param {string} [params.sessdata] 用户的SESSDATA，不提供则从配置文件读取
+ * @returns {Promise<Object>} 操作结果
+ */
+export const localBatchFavoriteResource = (params = {}) => {
+  return instance.post('/favorite/resource/local-batch-deal', params)
+}
+
+/**
+ * 批量检查视频收藏状态
+ * @param {Object} params 请求参数
+ * @param {Array<number>|string} params.oids 视频av号列表，可以是数组或逗号分隔的字符串
+ * @param {string} [params.sessdata] 用户的SESSDATA，不提供则从配置文件读取
+ * @returns {Promise<Object>} 视频收藏状态
+ */
+export const batchCheckFavoriteStatus = (params = {}) => {
+  const requestParams = { ...params };
+
+  // 确保 oids 是数组格式
+  if (typeof requestParams.oids === 'string') {
+    requestParams.oids = requestParams.oids.split(',').map(id => parseInt(id.trim(), 10)).filter(id => !isNaN(id));
+  } else if (!Array.isArray(requestParams.oids)) {
+    console.error('批量检查收藏状态参数错误：oids必须是数组或逗号分隔的字符串');
+    requestParams.oids = [];
+  }
+
+  return instance.post('/favorite/check/batch', requestParams);
 }

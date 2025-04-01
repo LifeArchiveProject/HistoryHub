@@ -36,6 +36,14 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                 </svg>
               </div>
+              <!-- 收藏按钮 -->
+              <div class="flex items-center justify-center w-7 h-7 bg-[#7d7c75]/60 backdrop-blur-sm hover:bg-[#7d7c75]/80 rounded-md cursor-pointer transition-all duration-200"
+                   @click.stop.prevent="handleFavorite"
+                   title="收藏视频">
+                <svg class="w-4 h-4" :class="isVideoFavorited ? 'text-yellow-400' : 'text-white'" :fill="isVideoFavorited ? 'currentColor' : 'none'" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                </svg>
+              </div>
               <!-- 删除按钮 -->
               <div class="flex items-center justify-center w-7 h-7 bg-[#7d7c75]/60 backdrop-blur-sm hover:bg-[#7d7c75]/80 rounded-md cursor-pointer transition-all duration-200"
                    @click.stop="handleDelete"
@@ -66,6 +74,15 @@
               </svg>
             </div>
           </div>
+          <!-- 批量模式下的收藏状态图标 -->
+          <div v-if="isBatchMode"
+               class="absolute right-2 top-2 z-10">
+            <div class="flex items-center justify-center w-6 h-6 rounded-full bg-black/40 backdrop-blur-sm">
+              <svg class="w-4 h-4" :class="isVideoFavorited ? 'text-yellow-400' : 'text-white'" :fill="isVideoFavorited ? 'currentColor' : 'none'" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+              </svg>
+            </div>
+          </div>
           <!-- 已下载标识 -->
           <div v-if="isDownloaded && record.business === 'archive'"
                class="absolute left-0 top-0 z-10">
@@ -76,6 +93,18 @@
               <span>已下载</span>
             </div>
           </div>
+          
+          <!-- 收藏状态标识 -->
+          <div v-if="isVideoFavorited"
+               class="absolute right-0 top-0 z-10">
+            <div class="bg-gradient-to-r from-amber-500 to-yellow-400 text-white font-semibold px-2 py-0.5 text-xs flex items-center space-x-1.5 rounded-bl-md shadow-md">
+              <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+              </svg>
+              <span>已收藏</span>
+            </div>
+          </div>
+          
           <img
             :src="record.cover || record.covers[0]"
             class="h-full w-full object-cover transition-all duration-300"
@@ -155,6 +184,15 @@
               </svg>
             </div>
           </div>
+          <!-- 批量模式下的收藏状态图标 -->
+          <div v-if="isBatchMode"
+               class="absolute right-2 top-2 z-10">
+            <div class="flex items-center justify-center w-6 h-6 rounded-full bg-black/40 backdrop-blur-sm">
+              <svg class="w-4 h-4" :class="isVideoFavorited ? 'text-yellow-400' : 'text-white'" :fill="isVideoFavorited ? 'currentColor' : 'none'" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+              </svg>
+            </div>
+          </div>
           <!-- 已下载标识 -->
           <div v-if="isDownloaded && record.business === 'archive'"
                class="absolute left-0 top-0 z-10">
@@ -165,6 +203,18 @@
               <span>已下载</span>
             </div>
           </div>
+          
+          <!-- 收藏状态标识 -->
+          <div v-if="isVideoFavorited"
+               class="absolute right-0 top-0 z-10">
+            <div class="bg-gradient-to-r from-amber-500 to-yellow-400 text-white font-semibold px-2 py-0.5 text-xs flex items-center space-x-1.5 rounded-bl-md shadow-md">
+              <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+              </svg>
+              <span>已收藏</span>
+            </div>
+          </div>
+          
           <img
             v-if="record.cover"
             :src="record.cover"
@@ -226,6 +276,14 @@
                    title="下载视频">
                 <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+              </div>
+              <!-- 收藏按钮 -->
+              <div class="flex items-center justify-center w-7 h-7 bg-[#7d7c75]/60 backdrop-blur-sm hover:bg-[#7d7c75]/80 rounded-md cursor-pointer transition-all duration-200"
+                   @click.stop.prevent="handleFavorite"
+                   title="收藏视频">
+                <svg class="w-4 h-4" :class="isVideoFavorited ? 'text-yellow-400' : 'text-white'" :fill="isVideoFavorited ? 'currentColor' : 'none'" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
                 </svg>
               </div>
               <!-- 删除按钮 -->
@@ -406,10 +464,19 @@ const props = defineProps({
   isDownloaded: {
     type: Boolean,
     default: false
+  },
+  isVideoFavorited: {
+    type: Boolean,
+    default: false
   }
 })
 
-const emit = defineEmits(['toggle-selection', 'refresh-data', 'remark-updated'])
+const emit = defineEmits([
+  'toggle-selection',
+  'refresh-data',
+  'remark-updated',
+  'favorite'
+])
 
 const remarkContent = ref('')
 const originalRemark = ref('') // 用于存储原始备注内容
@@ -668,6 +735,12 @@ const showDownloadDialog = ref(false)
 // 处理下载按钮点击
 const handleDownload = () => {
   showDownloadDialog.value = true
+}
+
+// 处理收藏按钮点击
+const handleFavorite = () => {
+  // 触发父组件的favorite事件
+  emit('favorite', props.record)
 }
 </script>
 
