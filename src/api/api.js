@@ -977,3 +977,23 @@ export const batchCheckFavoriteStatus = (params = {}) => {
 
   return instance.post('/favorite/check/batch', requestParams);
 }
+
+/**
+ * 批量修复失效的收藏视频
+ * @param {Object} params 请求参数
+ * @param {Array<number>} [params.video_ids] 视频av号列表
+ * @param {number} [params.media_id] 收藏夹ID，指定时修复该收藏夹内的所有失效视频
+ * @param {boolean} [params.repair_all] 是否修复所有收藏夹中的失效视频，默认为false
+ * @param {Array<string>} [params.bvids] 视频BV号列表
+ * @param {string} [params.sessdata] 用户的SESSDATA，不提供则从配置文件读取
+ * @returns {Promise<Object>} 修复结果
+ */
+export const repairFavoriteVideos = (params = {}) => {
+  // 确保video_ids字段始终存在，即使为空数组
+  const requestParams = { ...params };
+  if (!requestParams.video_ids) {
+    requestParams.video_ids = [];
+  }
+  
+  return instance.post('/favorite/repair/batch', requestParams);
+}
