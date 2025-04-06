@@ -252,7 +252,8 @@ async def download_video(request: DownloadRequest):
             request.url,
             '--dir', download_dir,
             '--tmp-dir', tmp_dir,
-            '--subpath-template', f'{{title}}_{{username}}_{{download_date@%Y%m%d_%H%M%S}}_{request.cid}/{{title}}_{request.cid}'
+            '--subpath-template', f'{{title}}_{{username}}_{{download_date@%Y%m%d_%H%M%S}}_{request.cid}/{{title}}_{request.cid}',
+            '--with-metadata'  # 添加元数据文件保存
         ]
         
         # 根据用户选择决定是否下载封面
@@ -764,6 +765,20 @@ async def list_downloaded_videos(search_term: Optional[str] = None, limit: int =
                         import json
                         metadata = json.load(f)
                     print(f"【调试】从元数据文件获取数据: {metadata_file}")
+                    
+                    # 显示元数据文件内容摘要
+                    if 'title' in metadata:
+                        print(f"【调试】元数据标题: {metadata['title']}")
+                    if 'id' in metadata:
+                        if 'bvid' in metadata['id']:
+                            print(f"【调试】元数据BVID: {metadata['id']['bvid']}")
+                        if 'cid' in metadata['id']:
+                            print(f"【调试】元数据CID: {metadata['id']['cid']}")
+                    if 'owner' in metadata and 'name' in metadata['owner']:
+                        print(f"【调试】元数据作者: {metadata['owner']['name']}")
+                    if 'cover_url' in metadata:
+                        print(f"【调试】元数据封面: {metadata['cover_url']}")
+                    
                 except Exception as e:
                     print(f"读取元数据文件出错: {str(e)}")
             
@@ -900,7 +915,31 @@ async def list_downloaded_videos(search_term: Optional[str] = None, limit: int =
                             if 'mid' in owner:
                                 video_info["author_mid"] = owner['mid']
                         
-                        print(f"【调试】从元数据获取到视频信息: {video_info['title']}")
+                        # 处理图片URL
+                        if _process_image_url:
+                            # 使用导入的函数处理图片URL
+                            if video_info["cover"]:
+                                video_info["cover"] = _process_image_url(video_info["cover"], 'covers', use_local_images)
+                            if video_info["author_face"]:
+                                video_info["author_face"] = _process_image_url(video_info["author_face"], 'avatars', use_local_images)
+                        elif hasattr(sys.modules.get('routers.history'), '_process_image_url'):
+                            # 如果导入失败但模块运行时可访问，再次尝试
+                            process_url = getattr(sys.modules.get('routers.history'), '_process_image_url')
+                            if video_info["cover"]:
+                                video_info["cover"] = process_url(video_info["cover"], 'covers', use_local_images)
+                            if video_info["author_face"]:
+                                video_info["author_face"] = process_url(video_info["author_face"], 'avatars', use_local_images)
+                        elif use_local_images:
+                            # 简单的URL处理逻辑，作为后备方案
+                            import hashlib
+                            if video_info["cover"]:
+                                cover_hash = hashlib.md5(video_info["cover"].encode()).hexdigest()
+                                video_info["cover"] = f"http://localhost:8899/images/local/covers/{cover_hash}"
+                            if video_info["author_face"]:
+                                avatar_hash = hashlib.md5(video_info["author_face"].encode()).hexdigest()
+                                video_info["author_face"] = f"http://localhost:8899/images/local/avatars/{avatar_hash}"
+                        
+                        print(f"【调试】从元数据获取到视频信息: {video_info['title']}，封面URL: {video_info['cover'][:50]}...")
                     except Exception as e:
                         print(f"解析元数据时出错: {str(e)}")
                 
@@ -946,13 +985,40 @@ async def list_downloaded_videos(search_term: Optional[str] = None, limit: int =
                             if bvid_match:
                                 video_info["bvid"] = bvid_match.group(1)
                         
-                        print(f"【调试】从NFO文件获取到视频信息: {video_info['title']}")
+                        # 处理NFO文件中的图片URL
+                        if _process_image_url:
+                            # 使用导入的函数处理图片URL
+                            if video_info["cover"]:
+                                video_info["cover"] = _process_image_url(video_info["cover"], 'covers', use_local_images)
+                            if video_info["author_face"]:
+                                video_info["author_face"] = _process_image_url(video_info["author_face"], 'avatars', use_local_images)
+                        elif hasattr(sys.modules.get('routers.history'), '_process_image_url'):
+                            # 如果导入失败但模块运行时可访问，再次尝试
+                            process_url = getattr(sys.modules.get('routers.history'), '_process_image_url')
+                            if video_info["cover"]:
+                                video_info["cover"] = process_url(video_info["cover"], 'covers', use_local_images)
+                            if video_info["author_face"]:
+                                video_info["author_face"] = process_url(video_info["author_face"], 'avatars', use_local_images)
+                        elif use_local_images:
+                            # 简单的URL处理逻辑，作为后备方案
+                            import hashlib
+                            if video_info["cover"]:
+                                cover_hash = hashlib.md5(video_info["cover"].encode()).hexdigest()
+                                video_info["cover"] = f"http://localhost:8899/images/local/covers/{cover_hash}"
+                            if video_info["author_face"]:
+                                avatar_hash = hashlib.md5(video_info["author_face"].encode()).hexdigest()
+                                video_info["author_face"] = f"http://localhost:8899/images/local/avatars/{avatar_hash}"
+
+                        print(f"【调试】从NFO文件获取到视频信息: {video_info['title']}，封面URL: {video_info['cover'][:50] if video_info['cover'] else 'None'}")
                     except Exception as e:
                         print(f"解析NFO文件时出错: {str(e)}")
                 
                 # 如果有CID但没有其他信息，尝试通过API获取
-                if cid and cid.isdigit():
+                if not metadata and not nfo_data and cid and cid.isdigit() and (not video_info["cover"] or not video_info["author_name"] or not video_info["author_face"]):
                     try:
+                        # 仅当没有元数据和NFO文件时，才尝试通过API或数据库获取
+                        print(f"【调试】没有找到元数据或NFO文件，尝试通过API/数据库获取CID={cid}的视频信息")
+                        
                         # 方式1: 直接调用get_video_by_cid函数（如果已成功导入）
                         if get_video_by_cid:
                             print(f"【调试】使用导入的get_video_by_cid函数获取CID={cid}的视频信息")
@@ -1747,3 +1813,80 @@ class VideoInfo(BaseModel):
 class VideoSearchResponse(BaseModel):
     total: int
     videos: list[VideoInfo]
+
+# 视频详细信息响应模型
+class VideoDetailResponse(BaseModel):
+    status: str
+    message: str
+    data: Optional[dict] = None
+    
+@router.get("/video_info", summary="获取B站视频详细信息")
+async def get_video_info(aid: Optional[int] = None, bvid: Optional[str] = None, sessdata: Optional[str] = None):
+    """
+    获取B站视频的详细信息
+    
+    Args:
+        aid: 可选，视频的avid
+        bvid: 可选，视频的bvid
+        sessdata: 可选，用户的SESSDATA，用于获取限制观看的视频
+    
+    Returns:
+        视频详细信息
+    """
+    try:
+        # 检查参数是否有效
+        if not aid and not bvid:
+            return VideoDetailResponse(
+                status="error",
+                message="必须提供aid或bvid参数中的至少一个"
+            )
+            
+        # 设置请求头
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        }
+        
+        # 如果提供了SESSDATA，添加到请求头中
+        if sessdata:
+            headers['Cookie'] = f'SESSDATA={sessdata}'
+        elif config.get('SESSDATA'):
+            headers['Cookie'] = f'SESSDATA={config["SESSDATA"]}'
+            
+        # 构建请求参数
+        params = {}
+        if aid:
+            params['aid'] = aid
+        if bvid:
+            params['bvid'] = bvid
+            
+        # 发送请求获取视频信息
+        response = requests.get(
+            'https://api.bilibili.com/x/web-interface/view',
+            params=params,
+            headers=headers,
+            timeout=10
+        )
+        
+        # 解析响应
+        response_json = response.json()
+        
+        # 处理可能的错误
+        if response_json.get('code') != 0:
+            return VideoDetailResponse(
+                status="error",
+                message=f"获取视频信息失败: {response_json.get('message', '未知错误')}",
+                data=response_json
+            )
+            
+        # 返回成功响应
+        return VideoDetailResponse(
+            status="success",
+            message="获取视频信息成功",
+            data=response_json.get('data')
+        )
+            
+    except Exception as e:
+        return VideoDetailResponse(
+            status="error",
+            message=f"获取视频信息时出错: {str(e)}"
+        )
