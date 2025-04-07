@@ -1,0 +1,12 @@
+{
+	auto_https off
+}
+
+:80
+
+respond /health 200 {
+	body `{"status": "ok"}`
+}
+
+root * /app
+file_server

@@ -2,11 +2,20 @@
   <img src="./public/logo.png" alt="Logo">
 </div>
 
-这是一个基于 Vue 3 开发的B站历史记录分析工具的前端项目，为用户提供丰富的B站观看历史数据分析功能。
+这是一个基于 Vue 3 开发的 B 站历史记录分析工具的前端项目，为用户提供丰富的 B 站观看历史数据分析功能。
 
 ## 该项目需要配合 [BilibiliHistoryFetcher](https://github.com/LifeArchiveProject/HistoryHub) 后端项目一起使用
 
 ## 快速开始
+
+### 使用 Docker 安装
+
+1. 安装[Docker](https://docs.docker.com/get-started/get-docker/).
+2. 构建镜像：`docker build -t bili-history-fetcher-web:dev .`
+3. 启动容器：`docker run --name bili-history-fetcher-web -p 5173:80 -d bili-history-fetcher-web:dev`
+4. 停止容器：`docker stop bili-history-fetcher-web`
+
+### 使用源码安装
 
 1. 克隆项目
 ```bash
@@ -36,7 +45,7 @@ npm run build
 1. **登录账号**
   - 点击侧边栏的设置，然后配置你的服务器地址
   - 然后点击侧边栏中的"未登录"状态
-  - 使用B站手机APP扫描二维码进行登录
+  - 使用 B 站手机 APP 扫描二维码进行登录
   - 登录成功后会显示你的用户名
 
 2. **获取历史记录**
@@ -89,7 +98,7 @@ npm run build
 整体完成率
 <img src="./public/OverallCompletionPage.png" alt="">
 
-UP主完成率
+UP 主完成率
 <img src="./public/AuthorCompletionPage.png" alt="">
 
 标题关键词
@@ -100,7 +109,7 @@ UP主完成率
 
 **9. 本地摘要功能**
 
-本地摘要功能允许用户在本地生成视频内容摘要，无需依赖B站官方AI摘要：
+本地摘要功能允许用户在本地生成视频内容摘要，无需依赖 B 站官方 AI 摘要：
 
 <img src="./public/LocalSummary.png" alt="">
 <img src="./public/DSSummary.png" alt="">
@@ -151,11 +160,11 @@ UP主完成率
 ## 致谢
 
 - [bilibili-API-collect](https://github.com/SocialSisterYi/bilibili-API-collect) - 没有它就没有这个项目
-- [Yutto](https://yutto.nyakku.moe/) - 可爱的B站视频下载工具
+- [Yutto](https://yutto.nyakku.moe/) - 可爱的 B 站视频下载工具
 - [FasterWhisper](https://github.com/SYSTRAN/faster-whisper) - 音频转文字
 - [DeepSeek](https://github.com/deepseek-ai/DeepSeek-R1) - DeepSeek AI API
-- [ArtPlayer](https://github.com/zhw2590582/ArtPlayer) - 强大且灵活的HTML5视频播放器
-- [aicu.cc](https://www.aicu.cc/) - 第三方B站用户评论API
+- [ArtPlayer](https://github.com/zhw2590582/ArtPlayer) - 强大且灵活的 HTML5 视频播放器
+- [aicu.cc](https://www.aicu.cc/) - 第三方 B 站用户评论 API
 - 所有贡献者
 
 ## Star History
