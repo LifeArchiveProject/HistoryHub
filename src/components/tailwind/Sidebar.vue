@@ -9,9 +9,10 @@
       <!-- 侧边栏内容 -->
       <div class="h-full flex flex-col">
         <!-- 顶部 Logo -->
-        <div class="p-3 border-b border-gray-200/50">
+        <div class="p-1 border-b border-gray-200/50">
           <router-link to="/" class="w-full flex justify-center items-center">
-            <img src="/logo.png" class="w-full object-contain" alt="Logo" />
+            <img v-if="isCollapsed" src="/logo.svg" class="w-full object-contain" alt="Logo" />
+            <img v-else src="/logo.png" class="w-full object-contain" alt="Logo" />
           </router-link>
         </div>
 
@@ -123,6 +124,24 @@
             <span v-show="!isCollapsed" class="truncate">媒体管理</span>
           </router-link>
 
+          <!-- 视频下载 -->
+          <router-link
+            to="/video-downloader"
+            :title="isCollapsed ? '视频下载' : ''"
+            class="flex items-center py-1.5 text-gray-700 transition-all duration-300 ease-in-out text-sm"
+            :class="[
+              { 'bg-[#fb7299]/10 text-[#fb7299]': currentContent === 'video-downloader' },
+              { 'justify-center': isCollapsed },
+              isCollapsed ? 'px-2' : 'px-3 rounded-lg'
+            ]"
+            @click="currentContent = 'video-downloader'"
+          >
+            <svg class="w-5 h-5 flex-shrink-0" :class="{ 'mr-3': !isCollapsed }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            <span v-show="!isCollapsed" class="truncate">视频下载</span>
+          </router-link>
+
           <!-- 计划任务 -->
           <router-link
             to="/scheduler"
@@ -168,12 +187,14 @@
               isCollapsed ? 'px-2' : 'px-3 rounded-lg'
             ]"
           >
+            <!-- 未登录时显示默认图标 -->
             <svg
+              v-if="!isLoggedIn"
               class="w-5 h-5 flex-shrink-0"
               :class="{ 'mr-3': !isCollapsed }"
               fill="none"
               viewBox="0 0 24 24"
-              :stroke="isLoggedIn ? '#10b981' : 'currentColor'"
+              stroke="currentColor"
             >
               <path
                 stroke-linecap="round"
@@ -182,13 +203,29 @@
                 d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"
               />
             </svg>
+
+            <!-- 已登录时显示用户头像 -->
+            <div
+              v-else
+              class="w-5 h-5 flex-shrink-0 rounded-full overflow-hidden"
+              :class="{ 'mr-3': !isCollapsed }"
+            >
+              <img
+                :src="userInfo?.face"
+                alt="用户头像"
+                class="w-full h-full object-cover"
+                :class="{ 'blur-md': isPrivacyMode }"
+                onerror="this.src='/defaultAvatar.png'"
+              />
+            </div>
+
             <span
               v-show="!isCollapsed"
-              class="truncate"
+              class="truncate relative"
               :class="{ 'text-green-500': isLoggedIn }"
             >
               <template v-if="isLoggedIn">
-                {{ isPrivacyMode ? '已登录' : (userInfo?.uname || '已登录') }} (退出)
+                {{ isPrivacyMode ? '已登录' : (userInfo?.uname || '已登录') }}
               </template>
               <template v-else>
                 未登录
@@ -296,28 +333,22 @@ const route = useRoute()
 const router = useRouter()
 const currentRoute = computed(() => route.path)
 
-// 当前内容 - 根据路由初始化
-const currentContent = ref((() => {
+// 根据当前路由路径计算当前内容
+const currentContent = computed(() => {
   const path = route.path
-  if (path === '/settings') {
-    return 'settings'
-  } else if (path === '/remarks') {
-    return 'remarks'
-  } else if (path === '/media') {
-    return 'media'
-  } else if (path === '/analytics') {
-    return 'analytics'
-  } else if (path === '/scheduler') {
-    return 'scheduler'
-  } else if (path === '/comments') {
-    return 'comments'
-  } else if (path === '/favorites' || path.startsWith('/favorites/')) {
-    return 'favorites'
-  } else if (path === '/' || path.startsWith('/page/')) {
-    return 'history'
-  }
-  return 'history'
-})())
+  if (path.startsWith('/search')) return 'search'
+  if (path.startsWith('/analytics')) return 'analytics'
+  if (path.startsWith('/settings')) return 'settings'
+  if (path.startsWith('/remarks')) return 'remarks'
+  if (path.startsWith('/images')) return 'images'
+  if (path.startsWith('/scheduler')) return 'scheduler'
+  if (path.startsWith('/downloads')) return 'downloads'
+  if (path.startsWith('/comments')) return 'comments'
+  if (path.startsWith('/media')) return 'media'
+  if (path.startsWith('/favorites')) return 'favorites'
+  if (path.startsWith('/video-downloader')) return 'video-downloader'
+  return 'history' // 默认返回历史记录
+})
 const props = defineProps({
   showRemarks: {
     type: Boolean,

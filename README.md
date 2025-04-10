@@ -80,6 +80,8 @@ npm run build
 
 **7. 视频下载功能**
 <img src="./public/download.png" alt="">
+<img src="./public/SingleVideo.png" alt="">
+<img src="./public/MultipleVideos.png" alt="">
 
 **8. 年度总结页面**
 

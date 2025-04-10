@@ -53,6 +53,12 @@ watch(
     } else if (path === '/scheduler') {
       currentContent.value = 'scheduler'
       showRemarks.value = false
+    } else if (path === '/media') {
+      currentContent.value = 'media'
+      showRemarks.value = false
+    } else if (path === '/video-downloader') {
+      currentContent.value = 'video-downloader'
+      showRemarks.value = false
     }
   },
   { immediate: true }

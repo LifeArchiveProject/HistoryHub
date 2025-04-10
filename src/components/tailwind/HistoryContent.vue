@@ -1031,7 +1031,8 @@ const refreshData = async () => {
     isLoading.value = true
     showNotify({ type: 'success', message: '正在从B站获取历史记录...' })
 
-    const response = await updateBiliHistoryRealtime()
+    const syncDeleted = localStorage.getItem('syncDeleted') === 'true'
+    const response = await updateBiliHistoryRealtime(syncDeleted)
     if (response.data.status === 'success') {
       showNotify({ type: 'success', message: response.data.message || '数据获取成功' })
       fetchHistoryByDateRange()

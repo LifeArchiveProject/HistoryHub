@@ -90,6 +90,18 @@
 
           <!-- 内容区域 -->
           <div class="transition-all duration-300 p-5">
+            <!-- 全局提示信息 -->
+            <div class="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-md text-amber-700 text-sm">
+              <div class="flex items-start">
+                <svg class="w-5 h-5 text-amber-500 mt-0.5 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <div>
+                  <p class="mt-1">用户收藏夹往往非常庞大，解析时很容易触发反爬机制。如遇该问题请稍等片刻后重试。（emmm，如果视频太多的话还是建议逐个收藏夹下载……）</p>
+                </div>
+              </div>
+            </div>
+            
             <!-- 收藏夹列表 -->
             <div class="animate-fadeIn" v-if="!showFolderContents">
               <!-- 收藏夹列表显示区域 -->
@@ -176,12 +188,24 @@
                         />
                         <span class="ml-1.5 text-xs text-gray-600">{{ folder.upper?.name || folder.creator_name }}</span>
                       </div>
-                      <button
-                        @click="viewFolderContents(folder)"
-                        class="text-xs text-[#fb7299] hover:bg-[#fb7299]/10 px-2 py-1 rounded transition-colors"
-                      >
-                        查看详情
-                      </button>
+                      <div class="flex items-center space-x-2">
+                        <button
+                          v-if="activeTab !== 'local'"
+                          @click="startDownloadFolder(folder)"
+                          class="text-xs text-blue-500 hover:bg-blue-50 px-2 py-1 rounded transition-colors"
+                          title="下载收藏夹中的视频"
+                        >
+                          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                          </svg>
+                        </button>
+                        <button
+                          @click="viewFolderContents(folder)"
+                          class="text-xs text-[#fb7299] hover:bg-[#fb7299]/10 px-2 py-1 rounded transition-colors"
+                        >
+                          查看详情
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -214,6 +238,41 @@
               </div>
 
               <div v-else>
+                <!-- 收藏夹操作栏 -->
+                <div class="mb-4 flex flex-wrap justify-between items-center bg-white/70 p-3 rounded-lg shadow-sm">
+                  <div class="flex items-center space-x-3">
+                    <div class="text-sm text-gray-700">共 {{ contentsTotalItems }} 个内容</div>
+                    <div v-if="invalidVideosCount > 0" class="text-sm text-red-500">
+                      ({{ invalidVideosCount }} 个失效)
+                    </div>
+                  </div>
+                  
+                  <div class="flex items-center space-x-3 mt-2 sm:mt-0">
+                    <button 
+                      v-if="activeTab !== 'local'"
+                      @click="startDownloadFolder(currentFolder)" 
+                      class="flex items-center px-3 py-1.5 text-xs text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-md transition-colors"
+                    >
+                      <svg class="w-3.5 h-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                      </svg>
+                      <span>下载收藏夹</span>
+                    </button>
+                    
+                    <button 
+                      v-if="invalidVideosCount > 0"
+                      @click="repairInvalidVideos" 
+                      class="flex items-center px-3 py-1.5 text-xs text-yellow-600 bg-yellow-50 hover:bg-yellow-100 rounded-md transition-colors"
+                      :disabled="repairing"
+                    >
+                      <svg class="w-3.5 h-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                      </svg>
+                      <span>{{ repairing ? '修复中...' : '修复失效视频' }}</span>
+                    </button>
+                  </div>
+                </div>
+
                 <!-- 内容列表 - 网格布局 -->
                 <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
                   <div
@@ -350,6 +409,13 @@
       </div>
     </div>
 
+    <!-- 使用DownloadDialog组件 -->
+    <DownloadDialog
+      v-model:show="showDownloadDialog"
+      :video-info="favoriteDownloadInfo"
+      @download-complete="handleDownloadComplete"
+    />
+
     <!-- 修复功能说明弹窗 -->
     <div v-if="showRepairHelp" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
       <div class="bg-white rounded-lg shadow-xl max-w-2xl w-11/12 max-h-[80vh] overflow-y-auto">
@@ -410,6 +476,7 @@ import 'vant/es/notify/style'
 import 'vant/es/dialog/style'
 import Pagination from '../Pagination.vue'
 import LoginDialog from '../LoginDialog.vue'
+import DownloadDialog from '../DownloadDialog.vue'
 import {
   getCreatedFavoriteFolders,
   getCollectedFavoriteFolders,
@@ -417,7 +484,8 @@ import {
   getFavoriteContents,
   getLocalFavoriteContents,
   getLoginStatus,
-  repairFavoriteVideos
+  repairFavoriteVideos,
+  downloadFavorites
 } from '../../../api/api'
 
 const router = useRouter()
@@ -1794,6 +1862,79 @@ function openAuthorPage(video) {
   } else {
     showNotify({ type: 'warning', message: '无法获取UP主信息' })
   }
+}
+
+// 下载相关状态
+const showDownloadDialog = ref(false)
+const favoriteDownloadInfo = ref({
+  title: '',
+  author: '',
+  bvid: '',
+  cover: '',
+  cid: 0
+})
+
+// 计算无效视频数量
+const invalidVideosCount = computed(() => {
+  return folderContents.value.filter(video => isInvalidVideo(video)).length
+})
+
+// 开始下载收藏夹
+async function startDownloadFolder(folder) {
+  if (!folder) return;
+  
+  // 检查登录状态
+  if (!isLoggedIn.value) {
+    showNotify({ type: 'warning', message: '请先登录B站账号' });
+    showLoginDialog.value = true;
+    return;
+  }
+  
+  // 获取完整的收藏夹视频总数
+  try {
+    // 发起一次API请求获取视频总数，仅获取第一页第一条
+    const response = await getFavoriteContents({
+      media_id: folder.id || folder.media_id,
+      pn: 1,
+      ps: 1
+    });
+    
+    if (response.data && response.data.status === 'success' && response.data.data) {
+      // 更新收藏夹信息
+      if (response.data.data.info) {
+        folder.media_count = response.data.data.info.media_count || response.data.data.total || folder.media_count;
+      } else if (response.data.data.total) {
+        folder.media_count = response.data.data.total;
+      }
+      
+      console.log(`获取到收藏夹[${folder.title}]视频总数: ${folder.media_count}`);
+    }
+  } catch (error) {
+    console.error('获取收藏夹信息失败:', error);
+  }
+  
+  // 设置要下载的收藏夹信息
+  favoriteDownloadInfo.value = {
+    title: `收藏夹: ${folder.title || '未命名收藏夹'}`,
+    author: folder.upper?.name || folder.creator_name || '未知创建者',
+    bvid: `fid_${(folder.id || folder.media_id || '').toString()}`,  // 使用特殊格式标识这是收藏夹ID
+    cover: folder.cover || '',
+    cid: 0,
+    // 添加额外信息供下载组件使用
+    is_favorite_folder: true,
+    user_id: (folder.mid || folder.creator_mid || '').toString(),
+    fid: (folder.id || folder.media_id || '').toString(),
+    // 添加视频总数信息，帮助下载对话框显示正确的总数
+    total_videos: folder.media_count || 0
+  };
+  
+  // 打开下载对话框
+  showDownloadDialog.value = true;
+}
+
+// 处理下载完成
+function handleDownloadComplete() {
+  showNotify({ type: 'success', message: '收藏夹下载完成' });
 }
 </script>
 

@@ -4,7 +4,7 @@
     <div class="mb-6">
       <SimpleSearchBar 
         v-model="searchTerm" 
-        placeholder="搜索已下载的视频..." 
+        placeholder="搜索已下载的视频或目录路径..." 
         @search="loadDownloadedVideos" 
         class="w-full"
       />
@@ -145,22 +145,26 @@
         <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" @click="showDeleteConfirm = false"></div>
         
         <!-- 弹窗内容 -->
-        <div class="relative bg-white rounded-lg border border-gray-200 w-[450px] z-10 p-6">
+        <div class="relative bg-white rounded-lg border border-gray-200 w-[500px] z-10 p-6">
           <h3 class="text-lg font-medium text-gray-900 mb-4">确认删除视频</h3>
           
           <p class="text-gray-600 mb-4">
             确定要删除以下视频吗？此操作不可恢复。
           </p>
           
-          <p class="font-medium text-gray-800 mb-2">{{ currentVideo?.title }}</p>
+          <p class="font-medium text-gray-800 mb-2">{{ currentVideo?.title || '未知视频' }}</p>
           
           <!-- 显示CID和目录信息 -->
           <div class="mb-3 text-sm text-gray-500">
-            <p>CID: {{ currentVideo?.cid }}</p>
-            <p v-if="currentVideoDirectory" class="truncate mt-1">
-              <span class="text-gray-600">目录: </span>
-              <span :title="currentVideoDirectory">{{ getShortDirectory(currentVideoDirectory) }}</span>
-            </p>
+            <p v-if="currentVideo?.cid">CID: {{ currentVideo?.cid }}</p>
+            
+            <!-- 目录信息显示 -->
+            <div class="mt-2">
+              <p class="text-gray-600 mb-1">目录路径:</p>
+              <div class="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-gray-700 text-sm break-all">
+                {{ getVideoDirectory(currentVideo) || '无法获取目录路径' }}
+              </div>
+            </div>
           </div>
           
           <!-- 删除选项 -->
@@ -175,6 +179,14 @@
             </label>
           </div>
           
+          <!-- 视频来源提示 (针对收藏夹视频) -->
+          <div v-if="!currentVideo?.cid && getVideoDirectory(currentVideo)" class="mb-4 p-2 bg-amber-50 rounded-md border border-amber-200">
+            <p class="text-sm text-amber-700">
+              <span class="font-medium">提示：</span>
+              该视频可能来自收藏夹批量下载，将使用目录路径进行删除。
+            </p>
+          </div>
+          
           <!-- 按钮 -->
           <div class="flex justify-end space-x-3 mt-6">
             <button
@@ -186,7 +198,7 @@
             <button
               @click="confirmDeleteVideo"
               class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700"
-              :disabled="isDeleting"
+              :disabled="isDeleting || (!currentVideo?.cid && !getVideoDirectory(currentVideo))"
             >
               {{ isDeleting ? '删除中...' : '确认删除' }}
             </button>
@@ -202,6 +214,7 @@ import { ref, onMounted, computed } from 'vue'
 import Pagination from '../Pagination.vue'
 import VideoPlayerDialog from '../VideoPlayerDialog.vue'
 import { getDownloadedVideos, deleteDownloadedVideo } from '../../../api/api'
+import axios from 'axios'
 import { showNotify } from 'vant'
 import 'vant/es/notify/style'
 import SimpleSearchBar from '../SimpleSearchBar.vue'
@@ -210,6 +223,9 @@ import SimpleSearchBar from '../SimpleSearchBar.vue'
 defineOptions({
   name: 'Downloads'
 })
+
+// 定义API基础URL，与api.js中保持一致
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
 
 // 状态变量
 const isLoading = ref(true)
@@ -232,12 +248,6 @@ const showDeleteConfirm = ref(false)
 const currentVideo = ref(null)
 const deleteDirectory = ref(true)
 const isDeleting = ref(false)
-
-// 获取当前选中视频的目录
-const currentVideoDirectory = computed(() => {
-  if (!currentVideo.value) return null;
-  return getVideoDirectory(currentVideo.value);
-})
 
 // 加载已下载的视频
 const loadDownloadedVideos = async () => {
@@ -286,21 +296,7 @@ const playVideo = (filePath) => {
 const handleDeleteVideo = (video) => {
   currentVideo.value = video
   showDeleteConfirm.value = true
-  deleteDirectory.value = true // 默认勾选删除整个目录
-}
-
-// 提取短目录名
-const getShortDirectory = (directory) => {
-  if (!directory) return '';
-  // 获取最后一级目录名
-  const parts = directory.split(/[\/\\]/);
-  const lastPart = parts[parts.length - 1];
-  
-  // 如果路径太长，截断显示
-  if (directory.length > 40) {
-    return '...' + directory.substring(directory.length - 40);
-  }
-  return directory;
+  deleteDirectory.value = true
 }
 
 // 获取视频目录
@@ -322,15 +318,43 @@ const getVideoDirectory = (video) => {
   return null;
 }
 
+// 提取短目录名
+const getShortDirectory = (directory) => {
+  if (!directory) return '';
+  // 获取最后一级目录名
+  const parts = directory.split(/[\/\\]/);
+  const lastPart = parts[parts.length - 1];
+  
+  // 如果路径太长，截断显示
+  if (directory.length > 40) {
+    return '...' + directory.substring(directory.length - 40);
+  }
+  return directory;
+}
+
 // 确认删除视频
 const confirmDeleteVideo = async () => {
-  if (!currentVideo.value || !currentVideo.value.cid) return
-  
   try {
     isDeleting.value = true
-    // 获取视频目录路径
-    const directory = getVideoDirectory(currentVideo.value);
-    const response = await deleteDownloadedVideo(currentVideo.value.cid, deleteDirectory.value, directory)
+    
+    // 确定目录路径
+    const directory = getVideoDirectory(currentVideo.value)
+    
+    // 自动判断是否使用CID
+    // 如果有CID则使用CID，否则使用目录路径
+    const cid = currentVideo.value?.cid || null
+    
+    // 如果既没有CID也没有目录路径，则无法删除
+    if (!cid && !directory) {
+      showNotify({
+        type: 'warning',
+        message: '无法获取视频信息，删除失败'
+      })
+      isDeleting.value = false
+      return
+    }
+    
+    const response = await deleteDownloadedVideo(cid, deleteDirectory.value, directory)
     
     if (response.data && response.data.status === 'success') {
       showNotify({

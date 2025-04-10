@@ -73,6 +73,20 @@
                 </div>
               </div>
 
+              <!-- 同步已删除记录 -->
+              <div class="p-4 transition-colors duration-200 hover:bg-gray-50">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <h3 class="text-base font-medium text-gray-900">同步已删除记录</h3>
+                    <p class="text-sm text-gray-500">开启后将同步已删除的历史记录，建议仅在需要恢复记录时开启</p>
+                  </div>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" v-model="syncDeleted" class="sr-only peer">
+                    <div class="w-11 h-6 bg-gray-200 peer-focus:ring-4 peer-focus:ring-[#fb7299]/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#fb7299]"></div>
+                  </label>
+                </div>
+              </div>
+
               <!-- 邮件配置 -->
               <div class="p-4 transition-colors duration-200 hover:bg-gray-50">
                 <div class="flex items-center justify-between mb-2">
@@ -562,6 +576,18 @@ const deepseekBalanceMessage = ref('')
 // 隐私模式
 const { isPrivacyMode, setPrivacyMode } = usePrivacyStore()
 const privacyMode = ref(isPrivacyMode.value)
+
+// 同步已删除记录
+const syncDeleted = ref(localStorage.getItem('syncDeleted') === 'true')
+
+// 监听同步已删除记录变化
+watch(syncDeleted, (newVal) => {
+  localStorage.setItem('syncDeleted', newVal.toString())
+  showNotify({
+    type: 'success',
+    message: newVal ? '已开启同步已删除记录' : '已关闭同步已删除记录'
+  })
+})
 
 // 默认布局设置
 const defaultLayout = ref(localStorage.getItem('defaultLayout') || 'grid')

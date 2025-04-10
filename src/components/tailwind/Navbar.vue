@@ -11,16 +11,20 @@
               @click="handleUpdate"
               :disabled="isUpdating"
               class="flex sm:flex-col items-center text-gray-700 hover:text-[#fb7299] transition-colors duration-200"
+              :class="{
+                'text-gray-500': isUpdating
+              }"
+              :title="syncDeleted ? '当前模式：同步已删除记录' : '当前模式：不同步已删除记录'"
             >
+              <!-- 实时更新图标 - 加载中 -->
               <svg
-                :class="{'animate-spin': isUpdating}"
-                class="w-5 h-5 sm:w-6 sm:h-6"
+                v-if="isUpdating"
+                class="animate-spin w-5 h-5 sm:w-6 sm:h-6"
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
                 viewBox="0 0 24 24"
               >
                 <circle
-                  v-if="isUpdating"
                   class="opacity-25"
                   cx="12"
                   cy="12"
@@ -29,19 +33,65 @@
                   stroke-width="4"
                 ></circle>
                 <path
-                  v-if="isUpdating"
                   class="opacity-75"
                   fill="currentColor"
                   d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                 ></path>
+              </svg>
+
+              <!-- 实时更新图标 - 正常模式 -->
+              <svg
+                v-if="!isUpdating && !syncDeleted"
+                class="w-5 h-5 sm:w-6 sm:h-6"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
                 <path
-                  v-if="!isUpdating"
                   stroke="currentColor"
                   stroke-linecap="round"
                   stroke-linejoin="round"
                   stroke-width="2"
                   d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
                 ></path>
+              </svg>
+
+              <!-- 实时更新图标 - 同步已删除记录模式 (带垃圾桶图标) -->
+              <svg
+                v-if="!isUpdating && syncDeleted"
+                class="w-5 h-5 sm:w-6 sm:h-6"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <!-- 刷新图标 -->
+                <path
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                ></path>
+
+                <!-- 垃圾桶图标 -->
+                <g transform="translate(12, 12) scale(0.012) translate(-512, -512)">
+                  <path
+                    fill="currentColor"
+                    d="M630.784 831.488c12.288 0 20.48-8.192 20.48-16.384l28.672-450.56c0-12.288-8.192-20.48-16.384-20.48-12.288 0-20.48 8.192-20.48 16.384l-28.672 450.56C614.4 823.296 622.592 831.488 630.784 831.488z"
+                  ></path>
+                  <path
+                    fill="currentColor"
+                    d="M409.6 831.488c12.288 0 20.48-8.192 16.384-20.48l-28.672-450.56c0-12.288-8.192-20.48-20.48-16.384C368.64 344.064 360.448 352.256 360.448 360.448l28.672 450.56C389.12 823.296 397.312 831.488 409.6 831.488z"
+                  ></path>
+                  <path
+                    fill="currentColor"
+                    d="M520.192 831.488c12.288 0 20.48-8.192 20.48-20.48l0-450.56c0-12.288-8.192-20.48-20.48-20.48-12.288 0-20.48 8.192-20.48 20.48l0 450.56C499.712 823.296 507.904 831.488 520.192 831.488z"
+                  ></path>
+                  <path
+                    fill="currentColor"
+                    d="M839.68 229.376l-188.416 0L651.264 151.552c0-20.48-16.384-36.864-36.864-36.864l-188.416 0c-20.48 0-36.864 16.384-36.864 36.864l0 73.728L200.704 225.28C188.416 229.376 180.224 237.568 180.224 245.76c0 12.288 8.192 20.48 20.48 20.48l36.864 0 36.864 602.112c4.096 40.96 32.768 73.728 73.728 73.728l339.968 0c40.96 0 69.632-32.768 73.728-73.728l36.864-602.112 36.864 0C851.968 266.24 860.16 258.048 860.16 245.76 860.16 237.568 851.968 229.376 839.68 229.376zM425.984 151.552 614.4 151.552l0 73.728-188.416 0L425.984 151.552zM729.088 868.352c-4.096 20.48-16.384 36.864-36.864 36.864L352.256 905.216c-20.48 0-32.768-16.384-36.864-36.864L274.432 266.24l491.52 0L729.088 868.352z"
+                  ></path>
+                </g>
               </svg>
               <span class="sm:mt-1 text-xs hidden sm:block">{{ isUpdating ? '更新中' : '实时更新' }}</span>
             </button>
@@ -186,7 +236,7 @@
 <script setup>
 import SearchBar from './SearchBar.vue'
 import FilterDropdown from './FilterDropdown.vue'
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { updateBiliHistoryRealtime } from '../../api/api'
 import { showNotify } from 'vant'
 import { usePrivacyStore } from '../../store/privacy'
@@ -239,6 +289,12 @@ const emit = defineEmits([
 ])
 
 const isUpdating = ref(false)
+const syncDeleted = ref(localStorage.getItem('syncDeleted') === 'true')
+
+// 监听 syncDeleted 的变化
+watch(() => localStorage.getItem('syncDeleted'), (newVal) => {
+  syncDeleted.value = newVal === 'true'
+})
 
 // 清除日期筛选
 const clearDate = (event) => {

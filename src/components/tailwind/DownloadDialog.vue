@@ -1,9 +1,11 @@
 <!-- 视频下载弹窗 -->
 <template>
+  <!-- 将通知容器放置在最外层，确保z-index最高 -->
   <Teleport to="body">
-    <!-- 通知容器 -->
-    <div class="notification-container fixed top-0 left-0 right-0 z-[100000]"></div>
+    <div class="notification-container fixed top-0 left-0 right-0 z-[999999]"></div>
+  </Teleport>
 
+  <Teleport to="body">
     <div v-if="show" class="fixed inset-0 z-[9999] flex items-center justify-center">
       <!-- 遮罩层 -->
       <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" @click="handleClose"></div>
@@ -33,12 +35,16 @@
         <div class="px-6 pt-4 pb-0">
           <div class="flex items-center justify-between">
             <div>
-              <h3 class="text-lg font-medium text-gray-900">下载视频</h3>
+              <h3 class="text-lg font-medium text-gray-900">{{ isFavoriteFolder ? '下载收藏夹' : '下载视频' }}</h3>
               <p v-if="downloadStarted" class="mt-1 text-sm text-gray-500">
-                {{ isDownloading ? '正在下载：' : (downloadError ? '下载出错：' : '下载完成：') }} {{ videoInfo.title }}
+                {{ isDownloading ? '正在下载：' : (downloadError ? '下载出错：' : '下载完成：') }} {{ currentVideoTitle }}
               </p>
               <p v-else class="mt-1 text-sm text-gray-500">
                 {{ videoInfo.title }}
+              </p>
+              <!-- 收藏夹视频总数 -->
+              <p v-if="isFavoriteFolder" class="mt-1 text-xs text-gray-500">
+                共 {{ favoritePageInfo.totalCount || props.videoInfo.total_videos || favoriteVideos.length }} 个视频，当前进度：{{ currentVideoIndex + 1 }}/{{ favoritePageInfo.totalCount || props.videoInfo.total_videos || favoriteVideos.length }}
               </p>
             </div>
 
@@ -108,12 +114,12 @@
           <div class="relative w-full">
             <div class="flex space-x-6">
               <div class="w-44 h-28 flex-shrink-0">
-                <img :src="videoInfo.cover" :alt="videoInfo.title" class="w-full h-full object-cover rounded-lg">
+                <img :src="currentVideoCover" :alt="currentVideoTitle" class="w-full h-full object-cover rounded-lg">
               </div>
               <div class="flex-1 min-w-0 space-y-2">
-                <h4 class="text-base font-medium text-gray-900 truncate whitespace-nowrap overflow-hidden">{{ videoInfo.title }}</h4>
-                <p class="text-sm text-gray-500">UP主：{{ videoInfo.author }}</p>
-                <p class="text-sm text-gray-500">BV号：{{ videoInfo.bvid }}</p>
+                <h4 class="text-base font-medium text-gray-900 truncate whitespace-nowrap overflow-hidden">{{ currentVideoTitle }}</h4>
+                <p v-if="!isFavoriteFolder" class="text-sm text-gray-500">UP主：{{ props.videoInfo.author || '未知' }}</p>
+                <p v-if="!isFavoriteFolder" class="text-sm text-gray-500">BV号：{{ props.videoInfo.bvid || '未知' }}</p>
                 <!-- 下载选项 -->
                 <div class="flex gap-8 items-start text-sm text-gray-600">
                   <div class="space-y-1">
@@ -193,7 +199,9 @@
 
 <script setup>
 import { ref, computed, watch, onUnmounted, nextTick } from 'vue'
-import { downloadVideo, checkFFmpeg } from '../../api/api'
+import { downloadVideo, checkFFmpeg, downloadFavorites, getFavoriteContents, downloadUserVideos } from '@/api/api.js'
+import { showNotify } from 'vant'
+import 'vant/es/notify/style'
 
 defineOptions({
   name: 'DownloadDialog'
@@ -214,6 +222,11 @@ const props = defineProps({
       cover: '',
       cid: 0
     })
+  },
+  // 添加 UP 主视频列表参数
+  upUserVideos: {
+    type: Array,
+    default: () => []
   }
 })
 
@@ -262,6 +275,327 @@ const downloadCover = ref(true)
 // 仅下载音频选项
 const onlyAudio = ref(false)
 
+// 当前正在下载的视频标题
+const currentVideoTitle = ref('')
+const currentVideoCover = ref('')
+
+const videoTitles = ref([]) // 存储所有检测到的视频标题
+
+// 存储收藏夹中所有视频信息
+const favoriteVideos = ref([])
+// 当前正在下载的视频索引
+const currentVideoIndex = ref(-1)
+// 收藏夹的页码信息
+const favoritePageInfo = ref({
+  page: 1,
+  pageSize: 40,
+  totalCount: 0,
+  totalPage: 0,
+  hasMore: false
+})
+// 加载收藏夹内容状态
+const loadingFavorites = ref(false)
+
+// 是否是收藏夹
+const isFavoriteFolder = computed(() => {
+  return !!props.videoInfo.is_favorite_folder
+})
+
+// 预加载收藏夹所有视频
+const preloadFavoriteVideos = async () => {
+  if (!isFavoriteFolder.value || !props.videoInfo.fid) return
+
+  try {
+    loadingFavorites.value = true
+    downloadLogs.value.push('INFO 正在获取收藏夹内容，请稍候...')
+
+    // 先获取基本信息，确定总视频数
+    try {
+      const initialResponse = await getFavoriteContents({
+        media_id: props.videoInfo.fid,
+        pn: 1,
+        ps: 1 // 只获取一个视频，主要是为了拿到总数
+      })
+
+      if (initialResponse.data && initialResponse.data.status === 'success' && initialResponse.data.data) {
+        // 更新总数信息
+        favoritePageInfo.value.totalCount = initialResponse.data.data.total || props.videoInfo.total_videos || 0
+        favoritePageInfo.value.totalPage = Math.ceil(favoritePageInfo.value.totalCount / 40)
+
+        console.log('收藏夹总视频数:', favoritePageInfo.value.totalCount)
+        console.log('总页数:', favoritePageInfo.value.totalPage)
+
+        downloadLogs.value.push(`INFO 收藏夹共有 ${favoritePageInfo.value.totalCount} 个视频，开始获取视频信息`)
+      }
+    } catch (error) {
+      console.error('获取收藏夹基本信息失败:', error)
+    }
+
+    // 如果仍然没有总数信息，使用props中的值
+    if (!favoritePageInfo.value.totalCount) {
+      favoritePageInfo.value.totalCount = props.videoInfo.total_videos || 0
+      favoritePageInfo.value.totalPage = Math.ceil(favoritePageInfo.value.totalCount / 40)
+    }
+
+    let allVideos = []
+    let page = 1
+    let maxPages = Math.min(favoritePageInfo.value.totalPage || 5, 10) // 最多获取10页，避免过多请求
+    let hasMore = page <= maxPages
+
+    // 如果视频总数超过200个，提示用户
+    if (favoritePageInfo.value.totalCount > 200) {
+      downloadLogs.value.push(`WARN 收藏夹视频数量较多(${favoritePageInfo.value.totalCount}个)，将只预加载部分视频信息`)
+      downloadLogs.value.push('INFO 下载过程中会自动更新视频信息')
+    }
+
+    while (hasMore) {
+      try {
+        downloadLogs.value.push(`INFO 正在获取第${page}页视频信息...`)
+
+        const response = await getFavoriteContents({
+          media_id: props.videoInfo.fid,
+          pn: page,
+          ps: 40  // 每页40条
+        })
+
+        if (response.data && response.data.status === 'success' && response.data.data) {
+          const data = response.data.data
+
+          // 更新总视频数，避免后续请求
+          if (page === 1 && data.total) {
+            favoritePageInfo.value.totalCount = data.total
+            favoritePageInfo.value.totalPage = Math.ceil(data.total / (data.pagesize || 40))
+          }
+
+          if (data.medias && Array.isArray(data.medias)) {
+            // 合并结果
+            const newVideos = data.medias.map(item => ({
+              title: item.title || '',
+              cover: item.cover || '',
+              bvid: item.bvid || '',
+              cid: item.cid || 0,
+              author: item.upper?.name || '',
+              avid: item.id || 0
+            }))
+
+            allVideos = allVideos.concat(newVideos)
+
+            // 更新日志，显示当前进度
+            downloadLogs.value.push(`INFO 已获取 ${allVideos.length}/${favoritePageInfo.value.totalCount} 个视频信息`)
+          }
+
+          // 判断是否还有更多页
+          page++
+          hasMore = page <= maxPages && page <= favoritePageInfo.value.totalPage
+
+          // 大型收藏夹时，避免请求过多页面
+          if (page > 5 && favoritePageInfo.value.totalCount > 200) {
+            downloadLogs.value.push(`INFO 已获取前${page-1}页视频信息，剩余信息将在下载过程中更新`)
+            hasMore = false
+          }
+
+          // 休眠一段时间，避免触发API限制
+          if (hasMore) {
+            await new Promise(resolve => setTimeout(resolve, 500))
+          }
+        } else {
+          downloadLogs.value.push('ERROR 获取收藏夹内容失败，将使用实时日志更新视频信息')
+          hasMore = false
+        }
+      } catch (error) {
+        console.error(`获取收藏夹内容第${page}页失败:`, error)
+        downloadLogs.value.push(`ERROR 获取第${page}页内容失败，可能触发了API限制`)
+        hasMore = false
+      }
+    }
+
+    favoriteVideos.value = allVideos
+
+    if (allVideos.length < favoritePageInfo.value.totalCount) {
+      downloadLogs.value.push(`INFO 已预加载 ${allVideos.length}/${favoritePageInfo.value.totalCount} 个视频信息，剩余视频将在下载过程中更新`)
+    } else {
+      downloadLogs.value.push(`INFO 收藏夹内容获取完成，共 ${allVideos.length} 个视频`)
+    }
+
+  } catch (error) {
+    console.error('加载收藏夹内容失败:', error)
+    downloadLogs.value.push('ERROR 获取收藏夹内容失败，将使用实时日志更新视频信息')
+  } finally {
+    loadingFavorites.value = false
+  }
+}
+
+// 监听日志变化，提取视频顺序索引
+watch(() => downloadLogs.value, async (logs) => {
+  if (!logs || logs.length === 0) return
+
+  // 获取最新的日志信息
+  const latestLog = logs[logs.length - 1]
+  console.log('处理新日志:', latestLog)
+
+  // 检查是否是下载完成信息
+  if (latestLog === '下载完成') {
+    console.log('收藏夹下载全部完成')
+    // 确保显示最后一个视频
+    if (isFavoriteFolder.value && favoriteVideos.value.length > 0) {
+      currentVideoIndex.value = favoriteVideos.value.length - 1
+      const lastVideo = favoriteVideos.value[currentVideoIndex.value]
+      currentVideoTitle.value = lastVideo.title
+      currentVideoCover.value = lastVideo.cover || ''
+    }
+    return
+  }
+
+  // 检查是否为视频序号信息 [n/total]
+  const indexMatch = latestLog.match(/\[(\d+)\/(\d+)\]/)
+  if (indexMatch) {
+    const index = parseInt(indexMatch[1], 10) - 1 // 索引从0开始
+    const total = parseInt(indexMatch[2], 10)
+    console.log(`检测到视频索引: ${index + 1}/${total}`)
+
+    // 提取完整的视频标题
+    const titleMatch = latestLog.match(/\[(\d+)\/(\d+)\]\s+(.+)/)
+    if (titleMatch) {
+      const videoTitle = titleMatch[3].trim()
+      console.log('检测到视频标题:', videoTitle)
+      currentVideoTitle.value = videoTitle
+
+      // 更新索引和封面
+      if (isFavoriteFolder.value && favoriteVideos.value.length > 0) {
+        if (index >= 0 && index < favoriteVideos.value.length) {
+          currentVideoIndex.value = index
+          const videoInfo = favoriteVideos.value[index]
+          if (videoInfo && videoInfo.cover) {
+            currentVideoCover.value = videoInfo.cover
+          }
+        }
+      } else {
+        // 搜索封面
+        trySearchCover(videoTitle)
+      }
+    }
+    return
+  }
+
+  // 检查是否为"开始处理视频"
+  const processingMatch = latestLog.match(/INFO\s+开始处理视频\s+(.+)/)
+  if (processingMatch) {
+    const videoTitle = processingMatch[1].trim()
+    console.log('检测到开始处理视频:', videoTitle)
+
+    // 更新当前视频标题
+    currentVideoTitle.value = videoTitle
+
+    // 查找匹配的视频
+    if (isFavoriteFolder.value && favoriteVideos.value.length > 0) {
+      const videoIndex = favoriteVideos.value.findIndex(v => v.title === videoTitle)
+      if (videoIndex >= 0) {
+        currentVideoIndex.value = videoIndex
+        const videoInfo = favoriteVideos.value[videoIndex]
+        if (videoInfo && videoInfo.cover) {
+          currentVideoCover.value = videoInfo.cover
+        }
+      } else {
+        // 没找到匹配的视频，尝试搜索封面
+        trySearchCover(videoTitle)
+      }
+    } else {
+      // 没有预加载数据，搜索封面
+      trySearchCover(videoTitle)
+    }
+    return
+  }
+
+  // 检查是否为"合并完成"
+  if (latestLog.includes('INFO  合并完成！')) {
+    console.log('检测到视频合并完成')
+
+    // 预测下一个视频
+    const nextIndex = currentVideoIndex.value + 1
+    if (isFavoriteFolder.value && favoriteVideos.value.length > 0 && nextIndex < favoriteVideos.value.length) {
+      // 等待短暂时间，看是否会有新的视频标题出现
+      setTimeout(() => {
+        // 再次检查最新的几条日志
+        const recentLogs = downloadLogs.value.slice(-5).join('\n')
+        // 如果没有新的视频标题信息，则主动切换到下一个视频
+        if (!recentLogs.includes('[') || !recentLogs.includes('/')) {
+          console.log(`准备切换到下一个视频, 索引: ${nextIndex + 1}/${favoriteVideos.value.length}`)
+          currentVideoIndex.value = nextIndex
+          const nextVideo = favoriteVideos.value[nextIndex]
+          if (nextVideo) {
+            currentVideoTitle.value = nextVideo.title
+            currentVideoCover.value = nextVideo.cover || props.videoInfo.cover
+          }
+        }
+      }, 300)
+    }
+    return
+  }
+
+  // 检查是否为"下载完成！"
+  if (latestLog.includes('INFO  下载完成！')) {
+    console.log('检测到视频下载完成')
+    // 这里不做处理，等待"合并完成"的消息
+    return
+  }
+}, { deep: true })
+
+// 辅助函数：尝试搜索视频封面
+const trySearchCover = async (videoTitle) => {
+  if (!videoTitle) return
+  
+  // 此函数不再实际执行搜索操作，只记录日志
+  console.log('UP主投稿模式-图片加载失败，使用原始封面:', currentVideoCover.value)
+}
+
+// 监听 show 变化
+watch(() => props.show, async (isVisible) => {
+  if (isVisible) {
+    // 输出调试信息
+    console.log('DownloadDialog 弹窗打开，接收到的视频信息:', JSON.stringify(props.videoInfo, null, 2))
+
+    // 初始化
+    currentVideoTitle.value = props.videoInfo.title
+    currentVideoCover.value = props.videoInfo.pic || props.videoInfo.cover
+    console.log('设置封面图片路径:', currentVideoCover.value)
+    videoTitles.value = []
+    currentVideoIndex.value = -1
+    favoriteVideos.value = []
+
+    // 如果是收藏夹，预加载收藏夹内容
+    if (isFavoriteFolder.value && props.videoInfo.fid) {
+      await preloadFavoriteVideos()
+    }
+
+    // 在弹窗打开时检查 FFmpeg
+    checkFFmpegStatus()
+  }
+})
+
+// 重置状态
+const resetState = () => {
+  downloadStarted.value = false
+  isDownloading.value = false
+  downloadError.value = false
+  downloadLogs.value = []
+  currentVideoTitle.value = props.videoInfo.title
+  currentVideoCover.value = props.videoInfo.pic || props.videoInfo.cover
+  videoTitles.value = []
+  currentVideoIndex.value = -1
+  favoriteVideos.value = []
+}
+
+// 显示下载完成通知
+const showDownloadCompleteNotify = () => {
+  showNotify({
+    type: 'success',
+    message: '下载已完成',
+    position: 'top',
+    duration: 2000,
+    teleport: '.notification-container'
+  })
+}
+
 // 开始下载
 const startDownload = async () => {
   try {
@@ -278,25 +612,165 @@ const startDownload = async () => {
     downloadError.value = false
     downloadLogs.value = []
 
-    // 发起下载请求并处理实时消息
-    await downloadVideo(props.videoInfo.bvid, null, (content) => {
-      console.log('收到消息:', content)
-      downloadLogs.value.push(content)
+    // 首次显示正在使用预加载的视频
+    if (isFavoriteFolder.value && favoriteVideos.value.length > 0) {
+      downloadLogs.value.push(`INFO 将使用预加载的 ${favoriteVideos.value.length} 个视频信息进行下载`)
 
-      // 检查下载状态
-      if (content.includes('下载完成')) {
-        isDownloading.value = false
-        emit('download-complete')
-      } else if (content.includes('ERROR')) {
-        downloadError.value = true
-        isDownloading.value = false
+      // 立即设置第一个视频的信息
+      currentVideoIndex.value = 0
+      const firstVideo = favoriteVideos.value[0]
+      if (firstVideo) {
+        currentVideoTitle.value = firstVideo.title
+        currentVideoCover.value = firstVideo.cover || props.videoInfo.cover
+      }
+    } else {
+      // 设置当前视频信息
+      currentVideoTitle.value = props.videoInfo.title
+      currentVideoCover.value = props.videoInfo.pic || props.videoInfo.cover
+    }
+
+    // 检查是否是用户视频下载请求
+    if (props.videoInfo.is_user_videos) {
+      // 使用传入的UP主视频列表
+      if (props.upUserVideos && props.upUserVideos.length > 0) {
+        console.log('使用预加载的UP主视频列表:', props.upUserVideos.length)
+        favoriteVideos.value = props.upUserVideos.map(video => ({
+          title: video.title || '',
+          cover: video.pic || '',
+          bvid: video.bvid || '',
+          author: video.author || ''
+        }))
       }
 
-      // 自动滚动到底部
-      nextTick(() => {
-        scrollToBottom()
+      // 发起用户视频下载请求并处理实时消息
+      await downloadUserVideos({
+        user_id: props.videoInfo.user_id,
+        download_cover: downloadCover.value,
+        only_audio: onlyAudio.value
+      }, (content) => {
+        console.log('收到用户视频下载消息:', content)
+        downloadLogs.value.push(content)
+
+        // 检查是否为视频标题信息 [n/5] 视频标题
+        const upVideoTitleMatch = content.match(/\[(\d+)\/(\d+)\]\s+(.+)/)
+        if (upVideoTitleMatch) {
+          const index = parseInt(upVideoTitleMatch[1], 10) - 1 // 索引从0开始
+          const total = parseInt(upVideoTitleMatch[2], 10)
+          const videoTitle = upVideoTitleMatch[3].trim()
+          console.log('检测到UP主视频标题:', videoTitle, `${index + 1}/${total}`)
+          currentVideoTitle.value = videoTitle
+
+          // 尝试从预加载的视频列表中找到匹配的视频以获取封面
+          if (favoriteVideos.value.length > 0) {
+            // 尝试使用索引直接获取
+            if (index >= 0 && index < favoriteVideos.value.length) {
+              const matchedVideo = favoriteVideos.value[index]
+              if (matchedVideo && matchedVideo.cover) {
+                console.log('找到匹配视频:', matchedVideo.title)
+                console.log('更新视频封面:', matchedVideo.cover)
+                currentVideoCover.value = matchedVideo.cover
+                currentVideoIndex.value = index
+              }
+            } else {
+              // 如果索引无效，尝试通过标题匹配
+              const videoByTitle = favoriteVideos.value.find(v => v.title === videoTitle)
+              if (videoByTitle && videoByTitle.cover) {
+                console.log('通过标题找到匹配视频:', videoByTitle.title)
+                console.log('更新视频封面:', videoByTitle.cover)
+                currentVideoCover.value = videoByTitle.cover
+                currentVideoIndex.value = favoriteVideos.value.indexOf(videoByTitle)
+              }
+            }
+          }
+        }
+
+        // 检查是否为"开始处理视频"
+        const processingMatch = content.match(/INFO\s+开始处理视频\s+(.+)/)
+        if (processingMatch) {
+          const videoTitle = processingMatch[1].trim()
+          console.log('检测到开始处理UP主视频:', videoTitle)
+          currentVideoTitle.value = videoTitle
+
+          // 尝试从预加载的视频列表中找到匹配的视频以获取封面
+          if (favoriteVideos.value.length > 0) {
+            const videoByTitle = favoriteVideos.value.find(v => v.title === videoTitle)
+            if (videoByTitle && videoByTitle.cover) {
+              console.log('根据处理信息找到匹配视频:', videoByTitle.title)
+              console.log('更新视频封面:', videoByTitle.cover)
+              currentVideoCover.value = videoByTitle.cover
+              currentVideoIndex.value = favoriteVideos.value.indexOf(videoByTitle)
+            }
+          }
+        }
+
+        // 检查下载状态
+        if (content.includes('下载完成') && !content.includes('INFO')) {
+          isDownloading.value = false
+          // 显示下载完成通知
+          showDownloadCompleteNotify()
+          emit('download-complete')
+        } else if (content.includes('ERROR')) {
+          downloadError.value = true
+          isDownloading.value = false
+        }
+
+        // 自动滚动到底部
+        nextTick(() => {
+          scrollToBottom()
+        })
       })
-    }, downloadCover.value, onlyAudio.value, props.videoInfo.cid)
+    }
+    // 检查是否是收藏夹下载请求
+    else if (props.videoInfo.is_favorite_folder) {
+      // 发起收藏夹下载请求并处理实时消息
+      await downloadFavorites({
+        user_id: props.videoInfo.user_id,
+        fid: props.videoInfo.fid,
+        download_cover: downloadCover.value,
+        only_audio: onlyAudio.value
+      }, (content) => {
+        console.log('收到收藏夹下载消息:', content)
+        downloadLogs.value.push(content)
+
+        // 检查下载状态
+        if (content.includes('下载完成') && !content.includes('INFO')) {
+          isDownloading.value = false
+          // 显示下载完成通知
+          showDownloadCompleteNotify()
+          emit('download-complete')
+        } else if (content.includes('ERROR')) {
+          downloadError.value = true
+          isDownloading.value = false
+        }
+
+        // 自动滚动到底部
+        nextTick(() => {
+          scrollToBottom()
+        })
+      })
+    } else {
+      // 发起视频下载请求并处理实时消息
+      await downloadVideo(props.videoInfo.bvid, null, (content) => {
+        console.log('收到消息:', content)
+        downloadLogs.value.push(content)
+
+        // 检查下载状态
+        if (content.includes('下载完成')) {
+          isDownloading.value = false
+          // 显示下载完成通知
+          showDownloadCompleteNotify()
+          emit('download-complete')
+        } else if (content.includes('ERROR')) {
+          downloadError.value = true
+          isDownloading.value = false
+        }
+
+        // 自动滚动到底部
+        nextTick(() => {
+          scrollToBottom()
+        })
+      }, downloadCover.value, onlyAudio.value, props.videoInfo.cid)
+    }
   } catch (error) {
     console.error('下载失败:', error)
     downloadError.value = true
@@ -329,18 +803,15 @@ const handleClose = () => {
       return
     }
   }
-  
+
   // 如果下载已完成且没有错误，触发下载完成事件
   if (downloadStarted.value && !isDownloading.value && !downloadError.value) {
     emit('download-complete')
   }
-  
+
   emit('update:show', false)
   // 重置状态
-  downloadStarted.value = false
-  isDownloading.value = false
-  downloadError.value = false
-  downloadLogs.value = []
+  resetState()
 }
 
 // 监听show变化
@@ -350,16 +821,16 @@ watch(() => props.show, (newVal) => {
   } else {
     // 在弹窗打开时检查 FFmpeg
     checkFFmpegStatus()
+    // 初始化当前视频标题和封面
+    currentVideoTitle.value = props.videoInfo.title
+    currentVideoCover.value = props.videoInfo.pic || props.videoInfo.cover
   }
 })
 
 // 组件卸载时清理
 onUnmounted(() => {
   // 重置状态
-  downloadStarted.value = false
-  isDownloading.value = false
-  downloadError.value = false
-  downloadLogs.value = []
+  resetState()
 })
 
 // 复制到剪贴板函数
@@ -403,10 +874,6 @@ const isCommand = (line) => {
 const getCommandContent = (line) => {
   return line.trim()
 }
-
-// 导入通知组件
-import { showNotify } from 'vant'
-import 'vant/es/notify/style'
 </script>
 
 <style scoped>

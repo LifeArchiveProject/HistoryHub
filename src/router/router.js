@@ -10,6 +10,7 @@ import Downloads from '../components/tailwind/page/Downloads.vue'
 import Comments from '../components/tailwind/page/Comments.vue'
 import MediaManager from '../components/tailwind/page/MediaManager.vue'
 import Favorites from '../components/tailwind/page/Favorites.vue'
+import VideoDownloader from '../components/tailwind/page/VideoDownloader.vue'
 
 const routes = [
   {
@@ -84,6 +85,11 @@ const routes = [
         path: 'favorites',
         name: 'Favorites',
         component: Favorites
+      },
+      {
+        path: 'video-downloader',
+        name: 'VideoDownloader',
+        component: VideoDownloader
       }
     ]
   }

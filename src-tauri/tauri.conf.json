@@ -2,7 +2,7 @@
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "BiliBili History Frontend",
   "version": "1.0.0",
-  "identifier": "com.bilibili.history",
+  "identifier": "com.ab46.history",
   "build": {
     "frontendDist": "../dist",
     "devUrl": "http://localhost:5173",

@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import Inspector from 'vite-plugin-vue-inspector'
+import path from 'path'
 
 // 获取环境变量
 const isElectron = process.env.ELECTRON === 'true'
@@ -19,5 +20,10 @@ export default defineConfig({
   },
   server: {
     host: '0.0.0.0',
+  },
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, 'src'),
+    },
   },
 })

@@ -165,8 +165,12 @@ export const getYearlyAnalysis = async (year) => {
 }
 
 // 实时更新历史记录
-export const updateBiliHistoryRealtime = () => {
-  return instance.get(`/fetch/bili-history-realtime`).then(response => {
+export const updateBiliHistoryRealtime = (syncDeleted = false) => {
+  return instance.get(`/fetch/bili-history-realtime`, {
+    params: {
+      sync_deleted: syncDeleted
+    }
+  }).then(response => {
     // 检查响应格式
     if (!response.data) {
       throw new Error('响应数据格式错误')
@@ -729,7 +733,16 @@ export const getDownloadedVideos = (searchTerm = '', page = 1, limit = 20) => {
   })
 }
 
-// 删除已下载的视频
+/**
+ * 删除已下载的视频
+ * @param {number|null} cid 视频的CID，若为null则必须指定directory
+ * @param {boolean} deleteDirectory 是否删除整个目录，默认为false（只删除视频文件）
+ * @param {string|null} directory 可选，指定要删除文件的目录路径
+ *                               若提供则在该目录中查找和删除文件
+ *                               对于从收藏夹下载的视频，由于没有CID，
+ *                               可以设置cid为null并通过directory参数指定目录路径
+ * @returns {Promise<object>} 包含删除结果信息的响应
+ */
 export const deleteDownloadedVideo = (cid, deleteDirectory = false, directory = null) => {
   return instance.delete(`/download/delete_downloaded_video`, {
     params: {
@@ -994,6 +1007,169 @@ export const repairFavoriteVideos = (params = {}) => {
   if (!requestParams.video_ids) {
     requestParams.video_ids = [];
   }
-  
+
   return instance.post('/favorite/repair/batch', requestParams);
+}
+
+/**
+ * 下载用户收藏夹视频
+ * @param {Object} options 下载选项
+ * @param {string} options.user_id 用户UID
+ * @param {string} [options.fid] 收藏夹ID，不提供则下载全部收藏夹
+ * @param {string} [options.sessdata] 用户的SESSDATA，不提供则从配置文件读取
+ * @param {boolean} [options.download_cover] 是否下载封面，默认true
+ * @param {boolean} [options.only_audio] 是否仅下载音频，默认false
+ * @param {Function} onMessage 消息处理回调函数
+ * @returns {Promise<void>}
+ */
+export const downloadFavorites = async (options, onMessage) => {
+  console.log('调用收藏夹下载API, 参数:', options)
+
+  const response = await fetch(`${BASE_URL}/download/download_favorites`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      user_id: options.user_id,
+      fid: options.fid,
+      sessdata: options.sessdata,
+      download_cover: options.download_cover ?? true,
+      only_audio: options.only_audio ?? false
+    })
+  })
+
+  if (!response.ok) {
+    const errorData = await response.json()
+    throw new Error(errorData.detail || '下载请求失败')
+  }
+
+  const reader = response.body.getReader()
+  const decoder = new TextDecoder()
+  let buffer = ''
+
+  while (true) {
+    const { value, done } = await reader.read()
+    if (done) break
+
+    buffer += decoder.decode(value, { stream: true })
+
+    // 处理缓冲区中的完整行
+    const lines = buffer.split('\n')
+    buffer = lines.pop() // 保留最后一个不完整的行
+
+    for (const line of lines) {
+      if (line.startsWith('data: ')) {
+        const content = line.substring(6).trim()
+        if (content && content !== 'close') {
+          onMessage(content)
+        }
+      }
+    }
+  }
+
+  // 处理最后可能剩余的数据
+  if (buffer) {
+    if (buffer.startsWith('data: ')) {
+      const content = buffer.substring(6).trim()
+      if (content && content !== 'close') {
+        onMessage(content)
+      }
+    }
+  }
+}
+
+/**
+ * 下载用户全部投稿视频
+ * @param {Object} options 下载选项
+ * @param {string} options.user_id 用户UID
+ * @param {string} [options.sessdata] 用户的SESSDATA，不提供则从配置文件读取
+ * @param {boolean} [options.download_cover] 是否下载封面，默认true
+ * @param {boolean} [options.only_audio] 是否仅下载音频，默认false
+ * @param {Function} onMessage 消息处理回调函数
+ * @returns {Promise<void>}
+ */
+export const downloadUserVideos = async (options, onMessage) => {
+  console.log('调用用户视频下载API, 参数:', options)
+
+  const response = await fetch(`${BASE_URL}/download/download_user_videos`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      user_id: options.user_id,
+      sessdata: options.sessdata,
+      download_cover: options.download_cover ?? true,
+      only_audio: options.only_audio ?? false
+    })
+  })
+
+  if (!response.ok) {
+    const errorData = await response.json()
+    throw new Error(errorData.detail || '下载请求失败')
+  }
+
+  const reader = response.body.getReader()
+  const decoder = new TextDecoder()
+  let buffer = ''
+
+  while (true) {
+    const { value, done } = await reader.read()
+    if (done) break
+
+    buffer += decoder.decode(value, { stream: true })
+
+    // 处理缓冲区中的完整行
+    const lines = buffer.split('\n')
+    buffer = lines.pop() // 保留最后一个不完整的行
+
+    for (const line of lines) {
+      if (line.startsWith('data: ')) {
+        const content = line.substring(6).trim()
+        if (content && content !== 'close') {
+          onMessage(content)
+        }
+      }
+    }
+  }
+
+  // 处理最后可能剩余的数据
+  if (buffer) {
+    if (buffer.startsWith('data: ')) {
+      const content = buffer.substring(6).trim()
+      if (content && content !== 'close') {
+        onMessage(content)
+      }
+    }
+  }
+}
+
+
+/**
+ * 获取B站视频详细信息
+ * @param {Object} params 参数对象
+ * @param {string} [params.aid] 视频的avid
+ * @param {string} [params.bvid] 视频的bvid
+ * @returns {Promise<object>} 包含视频详细信息的响应
+ */
+export const getVideoInfo = (params) => {
+  return instance.get(`/download/video_info`, {
+    params
+  })
+}
+
+// 获取用户投稿视频列表
+export const getUserVideos = (params) => {
+  return instance.get('/download/user_videos', {
+    params: {
+      mid: params.mid,
+      pn: params.pn || 1,
+      ps: params.ps || 30,
+      tid: params.tid || 0,
+      keyword: params.keyword || '',
+      order: params.order || 'pubdate',
+      sessdata: params.sessdata || ''
+    }
+  })
 }

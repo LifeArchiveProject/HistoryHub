@@ -71,7 +71,7 @@
         <!-- 状态卡片网格 -->
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
           <div class="bg-white/50 rounded-lg p-4 border border-gray-200">
-            <div class="text-2xl font-bold text-[#fb7299]">{{ status?.covers?.total_planned || 0 }}</div>
+            <div class="text-2xl font-bold text-[#fb7299]">{{ status?.covers?.total || 0 }}</div>
             <div class="text-sm text-gray-500">计划下载</div>
           </div>
           <div class="bg-white/50 rounded-lg p-4 border border-gray-200">
@@ -83,7 +83,7 @@
             <div class="text-sm text-gray-500">失败数</div>
           </div>
           <div class="bg-white/50 rounded-lg p-4 border border-gray-200">
-            <div class="text-2xl font-bold text-blue-500">{{ status?.covers?.total_planned ? (status.covers.total_planned - status.covers.downloaded - status.covers.failed) : 0 }}</div>
+            <div class="text-2xl font-bold text-blue-500">{{ status?.covers?.total_planned || 0 }}</div>
             <div class="text-sm text-gray-500">待下载</div>
           </div>
         </div>
@@ -130,7 +130,7 @@
         <!-- 状态卡片网格 -->
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
           <div class="bg-white/50 rounded-lg p-4 border border-gray-200">
-            <div class="text-2xl font-bold text-[#fb7299]">{{ status?.avatars?.total_planned || 0 }}</div>
+            <div class="text-2xl font-bold text-[#fb7299]">{{ status?.avatars?.total || 0 }}</div>
             <div class="text-sm text-gray-500">计划下载</div>
           </div>
           <div class="bg-white/50 rounded-lg p-4 border border-gray-200">
@@ -142,7 +142,7 @@
             <div class="text-sm text-gray-500">失败数</div>
           </div>
           <div class="bg-white/50 rounded-lg p-4 border border-gray-200">
-            <div class="text-2xl font-bold text-blue-500">{{ status?.avatars?.total_planned ? (status.avatars.total_planned - status.avatars.downloaded - status.avatars.failed) : 0 }}</div>
+            <div class="text-2xl font-bold text-blue-500">{{ status?.avatars?.total_planned || 0 }}</div>
             <div class="text-sm text-gray-500">待下载</div>
           </div>
         </div>
@@ -180,8 +180,6 @@ import 'vant/es/dialog/style'
 
 const status = ref(null)
 const isDownloading = ref(false)
-const plannedCoversTotal = ref(0)
-const plannedAvatarsTotal = ref(0)
 const isLoading = ref(true)
 const isStoppingDownload = ref(false)  // 新增：是否正在停止下载
 let statusInterval = null
@@ -203,8 +201,7 @@ const formatTime = (timestamp) => {
 // 计算进度百分比
 const getProgressPercentage = (data, type) => {
   if (!data) return 0
-  const planned = type === 'covers' ? plannedCoversTotal.value : plannedAvatarsTotal.value
-  return Math.round((data.downloaded / (planned || data.total_planned)) * 100)
+  return Math.round((data.downloaded / (data.total || 1)) * 100)
 }
 
 // 获取状态
@@ -212,14 +209,6 @@ const fetchStatus = async () => {
   try {
     const response = await getImagesStatus()
     if (response.data.status === 'success') {
-      // 如果正在下载且计划总数为0，则更新计划总数
-      if (response.data.data.is_downloading && plannedCoversTotal.value === 0) {
-        plannedCoversTotal.value = response.data.data.covers.total_planned
-      }
-      if (response.data.data.is_downloading && plannedAvatarsTotal.value === 0) {
-        plannedAvatarsTotal.value = response.data.data.avatars.total_planned
-      }
-
       status.value = response.data.data
       isDownloading.value = status.value.is_downloading
       isLoading.value = false  // 数据加载完成，关闭加载状态
@@ -236,9 +225,6 @@ const fetchStatus = async () => {
         setTimeout(() => {
           window.location.reload()
         }, 1000)
-        // 重置计划总数
-        plannedCoversTotal.value = 0
-        plannedAvatarsTotal.value = 0
       }
     }
   } catch (error) {
@@ -278,11 +264,9 @@ const handleDownloadClick = async () => {
           type: 'success',
           message: '已停止下载'
         })
-        // 重置所有状态
+        // 重置状态
         isDownloading.value = false
         isStoppingDownload.value = false
-        plannedCoversTotal.value = 0
-        plannedAvatarsTotal.value = 0
 
         // 清除定时器
         if (statusInterval) {
