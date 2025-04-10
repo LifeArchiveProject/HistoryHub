@@ -37,6 +37,17 @@ CREATE TABLE IF NOT EXISTS {table} (
 );
 """
 
+# 删除记录表创建语句
+CREATE_TABLE_DELETED_HISTORY = """
+CREATE TABLE IF NOT EXISTS deleted_history (
+    id INTEGER PRIMARY KEY,
+    bvid TEXT NOT NULL,
+    view_at INTEGER NOT NULL,
+    delete_time INTEGER NOT NULL,
+    UNIQUE(bvid, view_at)
+);
+"""
+
 # 视频摘要表创建语句
 CREATE_TABLE_VIDEO_SUMMARY = """
 CREATE TABLE IF NOT EXISTS video_summary (
@@ -70,9 +81,9 @@ CREATE_INDEXES_VIDEO_SUMMARY = [
 
 INSERT_DATA = """
 INSERT INTO {table} (
-    id, title, long_title, cover, covers, uri, oid, epid, bvid, page, cid, part, 
-    business, dt, videos, author_name, author_face, author_mid, view_at, progress, 
-    badge, show_title, duration, current, total, new_desc, is_finish, is_fav, kid, 
+    id, title, long_title, cover, covers, uri, oid, epid, bvid, page, cid, part,
+    business, dt, videos, author_name, author_face, author_mid, view_at, progress,
+    badge, show_title, duration, current, total, new_desc, is_finish, is_fav, kid,
     tag_name, live_status, main_category, remark, remark_time
 ) VALUES ({placeholders})
 """
@@ -86,7 +97,7 @@ INSERT INTO video_summary (
 
 # 视频摘要表更新语句
 UPDATE_VIDEO_SUMMARY = """
-UPDATE video_summary SET 
+UPDATE video_summary SET
     stid = ?, summary = ?, outline = ?, result_type = ?, update_time = ?
 WHERE bvid = ? AND cid = ?
 """

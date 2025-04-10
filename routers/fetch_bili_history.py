@@ -57,7 +57,7 @@ async def get_bili_history(output_dir: Optional[str] = "history_by_date"):
 
 
 @router.get("/bili-history-realtime", summary="实时获取B站历史记录", response_model=ResponseModel)
-async def get_bili_history_realtime():
+async def get_bili_history_realtime(sync_deleted: bool = False):
     """实时获取B站历史记录"""
     try:
         # 获取最新的本地历史记录时间戳
@@ -81,8 +81,9 @@ async def get_bili_history_realtime():
 
         # 更新SQLite数据库
         logger.info("=== 开始更新SQLite数据库 ===")
-        result = import_all_history_files()
-        
+        logger.info(f"同步已删除记录: {sync_deleted}")
+        result = import_all_history_files(sync_deleted=sync_deleted)
+
         if result["status"] == "success":
             if result['inserted_count'] > 0:
                 message = f"实时更新成功，获取到 {len(new_records)} 条新记录，成功导入 {result['inserted_count']} 条记录到SQLite数据库"

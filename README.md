@@ -67,6 +67,8 @@
    # 安装依赖
    uv sync
    ```
+   
+   **Linux/macOS系统:**
    ```bash
    # 安装 PyTorch（使用 NVIDIA 显卡）
    UV_TORCH_BACKEND=auto uv pip install torch torchaudio torchvision
@@ -75,6 +77,27 @@
    # 安装 PyTorch（使用 CPU）
    UV_TORCH_BACKEND=cpu uv pip install torch torchaudio torchvision
    ```
+   
+   **Windows系统:**
+   ```powershell
+   # PowerShell中安装 PyTorch（使用 NVIDIA 显卡）
+   $env:UV_TORCH_BACKEND="auto"; uv pip install torch torchaudio torchvision
+   ```
+   ```powershell
+   # PowerShell中安装 PyTorch（使用 CPU）
+   $env:UV_TORCH_BACKEND="cpu"; uv pip install torch torchaudio torchvision
+   ```
+   ```cmd
+   # CMD中安装 PyTorch（使用 NVIDIA 显卡）
+   set UV_TORCH_BACKEND=auto
+   uv pip install torch torchaudio torchvision
+   ```
+   ```cmd
+   # CMD中安装 PyTorch（使用 CPU）
+   set UV_TORCH_BACKEND=cpu
+   uv pip install torch torchaudio torchvision
+   ```
+   
    ```bash
    # 运行程序
    uv run main.py

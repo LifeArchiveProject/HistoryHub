@@ -94,7 +94,7 @@ def table_exists(conn, table_name):
     """检查表是否存在"""
     cursor = conn.cursor()
     cursor.execute("""
-        SELECT count(name) FROM sqlite_master 
+        SELECT count(name) FROM sqlite_master
         WHERE type='table' AND name=?
     """, (table_name,))
     return cursor.fetchone()[0] > 0
@@ -102,25 +102,25 @@ def table_exists(conn, table_name):
 def create_table(conn, table_name):
     """创建数据表"""
     cursor = conn.cursor()
-    
+
     # 使用 sql_statements_sqlite.py 中的建表语句
     cursor.execute(CREATE_TABLE_DEFAULT.format(table=table_name))
-    
+
     # 创建索引
     for index_sql in CREATE_INDEXES:
         cursor.execute(index_sql.format(table=table_name))
-    
+
     conn.commit()
     logger.info(f"成功创建表 {table_name} 及其索引")
 
 def batch_insert_data(conn, table_name, data_batch):
     """批量插入数据"""
     cursor = conn.cursor()
-    
+
     # 使用 sql_statements_sqlite.py 中的插入语句
     placeholders = ','.join(['?' for _ in range(34)])  # 34个字段
     insert_sql = INSERT_DATA.format(table=table_name, placeholders=placeholders)
-    
+
     try:
         cursor.executemany(insert_sql, data_batch)
         conn.commit()
@@ -144,7 +144,7 @@ def get_last_import_time():
         logger.error(f"读取上次导入时间失败: {e}")
         return 0
 
-def import_data_from_json(conn, table_name, file_path, last_import_time=0, batch_size=1000):
+def import_data_from_json(conn, table_name, file_path, last_import_time=0, batch_size=1000, sync_deleted=False):
     """从JSON文件导入数据"""
     try:
         # 尝试不同的编码方式读取
@@ -156,11 +156,11 @@ def import_data_from_json(conn, table_name, file_path, last_import_time=0, batch
                 break
             except (UnicodeDecodeError, json.JSONDecodeError):
                 continue
-        
+
         if data is None:
             logger.error(f"无法读取文件 {file_path}：所有编码尝试都失败")
             return 0
-            
+
         total_inserted = 0
         # 按年份分组数据
         data_by_year = {}
@@ -175,13 +175,32 @@ def import_data_from_json(conn, table_name, file_path, last_import_time=0, batch
                 cursor.execute(f"SELECT bvid, view_at FROM {table}")
                 existing_records.update((bvid, view_at) for bvid, view_at in cursor.fetchall())
 
+        # 获取已删除的记录
+        deleted_records = set()
+        if not sync_deleted:
+            # 确保删除记录表存在
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS deleted_history (
+                    id INTEGER PRIMARY KEY,
+                    bvid TEXT NOT NULL,
+                    view_at INTEGER NOT NULL,
+                    delete_time INTEGER NOT NULL,
+                    UNIQUE(bvid, view_at)
+                )
+            """)
+
+            # 获取已删除的记录
+            cursor.execute("SELECT bvid, view_at FROM deleted_history")
+            deleted_records = set((bvid, view_at) for bvid, view_at in cursor.fetchall())
+            logger.info(f"已加载 {len(deleted_records)} 条已删除的记录")
+
         # 遍历所有记录，检查每条记录的时间
         for item in data:
             # 获取观看时间
             view_at = item.get('view_at', 0)
             if view_at == 0:
                 continue
-            
+
             # 如果有上次导入时间，则只处理更新的记录
             if last_import_time > 0 and view_at <= last_import_time:
                 logger.debug(f"跳过旧记录: {item.get('title')} - {datetime.fromtimestamp(view_at)}")
@@ -193,12 +212,17 @@ def import_data_from_json(conn, table_name, file_path, last_import_time=0, batch
             if (bvid, view_at) in existing_records:
                 logger.debug(f"跳过重复记录: {item.get('title')} - {datetime.fromtimestamp(view_at)}")
                 continue
-                
+
+            # 如果不同步已删除的记录，则跳过已删除的记录
+            if not sync_deleted and (bvid, view_at) in deleted_records:
+                logger.debug(f"跳过已删除的记录: {item.get('title')} - {datetime.fromtimestamp(view_at)}")
+                continue
+
             has_new_records = True
             year = datetime.fromtimestamp(view_at).year
             if year not in data_by_year:
                 data_by_year[year] = []
-                
+
             main_category = None
             business = history.get('business', '')
             tag_name = item.get('tag_name', '').strip()
@@ -251,10 +275,10 @@ def import_data_from_json(conn, table_name, file_path, last_import_time=0, batch
                 '',  # 默认的空备注
                 0   # 默认的备注时间为0
             )
-            
+
             data_by_year[year].append(record)
             existing_records.add((bvid, view_at))  # 添加到已存在记录集合中
-            
+
             # 当达到批量大小时，执行插入
             if len(data_by_year[year]) >= batch_size:
                 year_table = f"{table_name}_{year}"
@@ -263,7 +287,7 @@ def import_data_from_json(conn, table_name, file_path, last_import_time=0, batch
                 inserted = batch_insert_data(conn, year_table, data_by_year[year])
                 total_inserted += inserted
                 data_by_year[year] = []
-                
+
         # 处理剩余的数据
         for year, records in data_by_year.items():
             if records:
@@ -272,9 +296,9 @@ def import_data_from_json(conn, table_name, file_path, last_import_time=0, batch
                     create_table(conn, year_table)
                 inserted = batch_insert_data(conn, year_table, records)
                 total_inserted += inserted
-                
+
         return total_inserted
-        
+
     except sqlite3.Error as e:
         logger.error(f"导入数据时发生错误: {e}")
         return 0
@@ -286,7 +310,7 @@ def save_last_import_record(file_path, timestamp):
         "last_import_time": timestamp,
         "last_import_date": datetime.fromtimestamp(timestamp).strftime("%Y-%m-%d")
     }
-    
+
     record_file = get_output_path('last_import.json')
     with open(record_file, 'w', encoding='utf-8') as f:
         json.dump(record, f, ensure_ascii=False, indent=4)
@@ -300,12 +324,12 @@ def get_last_import_record():
             return json.load(f)
     return None
 
-def import_all_history_files():
+def import_all_history_files(sync_deleted=False):
     """导入所有历史记录文件"""
     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     logger.info(f"========== 运行时间: {current_time} ==========")
     logger.info(f"当前工作目录: {os.getcwd()}")
-    
+
     # 使用 get_output_path 获取路径
     full_data_folder = get_output_path('history_by_date')
     full_db_file = get_output_path(config['db_file'])
@@ -313,7 +337,7 @@ def import_all_history_files():
     logger.info(f"\n=== 路径信息 ===")
     logger.info(f"数据文件夹: {full_data_folder}")
     logger.info(f"数据库文件: {full_db_file}")
-    
+
     if not os.path.exists(full_data_folder):
         message = f"本地文件夹 '{full_data_folder}' 不存在，无法加载数据。"
         logger.error(message)
@@ -322,7 +346,7 @@ def import_all_history_files():
     # 获取最后导入记录
     last_record = get_last_import_record()
     last_import_time = last_record['last_import_time'] if last_record else 0
-    
+
     if last_record:
         logger.info(f"上次导入记录:")
         logger.info(f"- 文件: {last_record['last_import_file']}")
@@ -347,7 +371,7 @@ def import_all_history_files():
         total_records = 0
         latest_timestamp = 0  # 记录最新的时间戳
         latest_file = None  # 记录最新的文件
-        
+
         # 获取所有JSON文件并按日期排序
         all_json_files = []
         for year in sorted(os.listdir(full_data_folder), reverse=True):  # 从最新的年份开始
@@ -360,10 +384,10 @@ def import_all_history_files():
                             if day_file.endswith('.json'):
                                 day_path = os.path.join(month_path, day_file)
                                 all_json_files.append(day_path)
-        
+
         for day_path in all_json_files:
             logger.info(f"\n处理文件: {day_path}")
-            
+
             # 读取文件中最新的记录时间
             try:
                 with open(day_path, 'r', encoding='utf-8') as f:
@@ -371,12 +395,12 @@ def import_all_history_files():
                     if data:
                         newest_view_at = max(item.get('view_at', 0) for item in data)
                         logger.info(f"文件中最新记录时间: {datetime.fromtimestamp(newest_view_at)}")
-                        
+
                         # 更新最新的时间戳
                         if newest_view_at > latest_timestamp:
                             latest_timestamp = newest_view_at
                             latest_file = day_path
-                        
+
                         # 只有当存在上次导入记录时才进行时间判断
                         if last_import_time > 0 and newest_view_at <= last_import_time:
                             logger.info(f"跳过文件 {day_path} 及后续文件: 所有记录都早于上次导入时间")
@@ -384,19 +408,19 @@ def import_all_history_files():
             except Exception as e:
                 logger.error(f"读取文件 {day_path} 时出错: {e}")
                 continue
-            
-            inserted_count = import_data_from_json(conn, "bilibili_history", day_path, last_import_time)
+
+            inserted_count = import_data_from_json(conn, "bilibili_history", day_path, last_import_time, sync_deleted=sync_deleted)
             if inserted_count > 0:
                 total_files += 1
                 total_records += inserted_count
                 file_insert_counts[day_path] = inserted_count
                 logger.info(f"成功插入 {inserted_count} 条记录")
-        
+
         # 在所有文件处理完成后，使用最新的时间戳更新导入记录
         if total_records > 0 and latest_timestamp > 0:
             save_last_import_record(latest_file, latest_timestamp)
             logger.info(f"更新导入记录为最新时间戳: {datetime.fromtimestamp(latest_timestamp)}")
-        
+
         # 打印导入统计
         logger.info("\n=== 导入统计 ===")
         logger.info(f"处理文件总数: {total_files}")

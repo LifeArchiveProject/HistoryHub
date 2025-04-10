@@ -27,7 +27,7 @@ def update_last_import_time(timestamp: int):
         "last_import_time": timestamp,
         "last_import_date": datetime.fromtimestamp(timestamp).strftime("%Y-%m-%d")
     }
-    
+
     record_file = get_output_path('last_import.json')
     with open(record_file, 'w', encoding='utf-8') as f:
         json.dump(record, f, ensure_ascii=False, indent=4)
@@ -35,40 +35,54 @@ def update_last_import_time(timestamp: int):
 @router.delete("/batch-delete", summary="批量删除历史记录")
 async def batch_delete_history(items: List[DeleteHistoryItem]):
     """批量删除历史记录
-    
+
     Args:
         items: 要删除的视频记录列表，每个记录包含BV号和观看时间戳
-    
+
     Returns:
         dict: 删除操作的结果
     """
     if not items:
         raise HTTPException(status_code=400, detail="请提供要删除的视频记录列表")
-        
+
     try:
         conn = get_db()
         cursor = conn.cursor()
-        
+
         # 获取当前所有年份的表
         cursor.execute("""
-            SELECT name FROM sqlite_master 
+            SELECT name FROM sqlite_master
             WHERE type='table' AND name LIKE 'bilibili_history_%'
         """)
         tables = [table[0] for table in cursor.fetchall()]
-        
+
         total_deleted = 0
         deleted_details = []
         min_timestamp = float('inf')  # 记录最早的删除时间
-        
+
+        # 确保删除记录表存在
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS deleted_history (
+                id INTEGER PRIMARY KEY,
+                bvid TEXT NOT NULL,
+                view_at INTEGER NOT NULL,
+                delete_time INTEGER NOT NULL,
+                UNIQUE(bvid, view_at)
+            )
+        """)
+
+        # 获取当前时间戳作为删除时间
+        current_time = int(datetime.now().timestamp())
+
         for item in items:
             # 从时间戳获取年份
             year = datetime.fromtimestamp(item.view_at).year
             table_name = f"bilibili_history_{year}"
-            
+
             if table_name in tables:
                 # 在对应年份的表中删除指定的记录
                 query = f"""
-                    DELETE FROM {table_name} 
+                    DELETE FROM {table_name}
                     WHERE bvid = ? AND view_at = ?
                 """
                 cursor.execute(query, (item.bvid, item.view_at))
@@ -81,13 +95,27 @@ async def batch_delete_history(items: List[DeleteHistoryItem]):
                     })
                     # 更新最早的删除时间
                     min_timestamp = min(min_timestamp, item.view_at)
-            
+
+                    # 将删除的记录添加到删除记录表中
+                    try:
+                        cursor.execute("""
+                            INSERT INTO deleted_history (bvid, view_at, delete_time)
+                            VALUES (?, ?, ?)
+                        """, (item.bvid, item.view_at, current_time))
+                    except sqlite3.IntegrityError:
+                        # 如果记录已存在，则更新删除时间
+                        cursor.execute("""
+                            UPDATE deleted_history
+                            SET delete_time = ?
+                            WHERE bvid = ? AND view_at = ?
+                        """, (current_time, item.bvid, item.view_at))
+
         conn.commit()
-        
+
         # 如果有记录被删除，更新last_import.json
         if total_deleted > 0 and min_timestamp != float('inf'):
             update_last_import_time(min_timestamp - 1)  # 减1秒以确保能获取到被删除时间点的记录
-        
+
         return {
             "status": "success",
             "message": f"成功删除 {total_deleted} 条历史记录",
@@ -96,7 +124,7 @@ async def batch_delete_history(items: List[DeleteHistoryItem]):
                 "deleted_records": deleted_details
             }
         }
-        
+
     except sqlite3.Error as e:
         raise HTTPException(
             status_code=500,
@@ -104,4 +132,4 @@ async def batch_delete_history(items: List[DeleteHistoryItem]):
         )
     finally:
         if 'conn' in locals() and conn:
-            conn.close() 
+            conn.close()
