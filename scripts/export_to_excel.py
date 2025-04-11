@@ -21,7 +21,7 @@ def create_connection(db_file):
     if not os.path.exists(db_file):
         logger.error(f"数据库文件 {db_file} 不存在。")
         return None
-    
+
     conn = None
     try:
         conn = sqlite3.connect(db_file)
@@ -45,35 +45,117 @@ def safe_json_loads(value):
         logger.error(f"处理JSON时发生未知错误: {e}, 值为: {value}")
         return []
 
-def export_bilibili_history(year=None):
+def export_bilibili_history(year=None, month=None, start_date=None, end_date=None):
     """导出B站历史记录到Excel文件
-    
+
     Args:
         year: 要导出的年份，如果不指定则使用当前年份
+        month: 要导出的月份（1-12），如果指定则只导出该月数据
+        start_date: 开始日期，格式为'YYYY-MM-DD'，如果指定则从该日期开始导出
+        end_date: 结束日期，格式为'YYYY-MM-DD'，如果指定则导出到该日期为止
     """
     full_db_file = get_output_path(config['db_file'])
     target_year = year if year is not None else get_current_year()
-    excel_file = get_output_path(f'bilibili_history_{target_year}.xlsx')
+
+    # 构建文件名
+    filename_parts = ['bilibili_history']
+    if year is not None:
+        filename_parts.append(str(target_year))
+    if month is not None:
+        filename_parts.append(f"{month:02d}月")
+    if start_date and end_date:
+        filename_parts.append(f"{start_date}至{end_date}")
+    elif start_date:
+        filename_parts.append(f"从{start_date}开始")
+    elif end_date:
+        filename_parts.append(f"至{end_date}")
+
+    excel_file = get_output_path(f'{"_".join(filename_parts)}.xlsx')
 
     conn = create_connection(full_db_file)
     if conn is None:
         return {"status": "error", "message": f"无法连接到数据库 {full_db_file}。数据库文件可能不存在。"}
 
     try:
-        table_name = f"bilibili_history_{target_year}"
+        # 如果指定了日期范围，需要确定要查询的年份表
+        years_to_query = [target_year]
 
-        # 检查表是否存在
+        # 如果指定了日期范围，可能需要查询多个年份的表
+        if start_date or end_date:
+            # 获取开始和结束年份
+            start_year = int(start_date.split('-')[0]) if start_date else target_year
+            end_year = int(end_date.split('-')[0]) if end_date else target_year
+
+            # 确保年份范围有效
+            start_year = max(2000, min(start_year, datetime.now().year))
+            end_year = max(2000, min(end_year, datetime.now().year))
+
+            # 生成要查询的年份列表
+            years_to_query = list(range(start_year, end_year + 1))
+            logger.info(f"将查询以下年份的表: {years_to_query}")
+
+        # 获取所有存在的表
         cursor = conn.cursor()
-        cursor.execute(f"SELECT name FROM sqlite_master WHERE type='table' AND name='{table_name}'")
-        if cursor.fetchone() is None:
-            return {"status": "error", "message": f"数据库中不存在表 {table_name}。"}
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'bilibili_history_%'")
+        existing_tables = [row[0] for row in cursor.fetchall()]
+        logger.info(f"存在的表: {existing_tables}")
 
-        # 从数据库读取数据
-        query = f"SELECT * FROM {table_name}"
-        df = pd.read_sql_query(query, conn)
+        # 过滤出实际存在的表
+        tables_to_query = [f"bilibili_history_{year}" for year in years_to_query if f"bilibili_history_{year}" in existing_tables]
+
+        if not tables_to_query:
+            return {"status": "error", "message": f"没有找到符合条件的数据表。"}
+
+        logger.info(f"将查询以下表: {tables_to_query}")
+
+        # 准备查询条件
+        conditions = []
+        params = []
+
+        # 如果指定了月份，添加月份筛选条件
+        if month is not None:
+            conditions.append("strftime('%m', datetime(view_at, 'unixepoch', 'localtime')) = ?")
+            params.append(f"{month:02d}")
+
+        # 如果指定了开始日期，添加开始日期筛选条件
+        if start_date:
+            conditions.append("date(view_at, 'unixepoch', 'localtime') >= ?")
+            params.append(start_date)
+
+        # 如果指定了结束日期，添加结束日期筛选条件
+        if end_date:
+            conditions.append("date(view_at, 'unixepoch', 'localtime') <= ?")
+            params.append(end_date)
+
+        # 准备查询条件字符串
+        condition_str = ""
+        if conditions:
+            condition_str = " WHERE " + " AND ".join(conditions)
+
+        # 从所有表中查询数据
+        all_data = []
+        for table in tables_to_query:
+            query = f"SELECT * FROM {table}{condition_str}"
+
+            # 打印调试信息
+            logger.info(f"执行SQL查询: {query}")
+            logger.info(f"参数: {params}")
+
+            # 使用params参数执行查询
+            table_df = pd.read_sql_query(query, conn, params=params)
+            if not table_df.empty:
+                all_data.append(table_df)
+                logger.info(f"从表 {table} 中获取了 {len(table_df)} 条数据")
+
+        # 合并所有表的数据
+        if all_data:
+            df = pd.concat(all_data, ignore_index=True)
+            logger.info(f"合并后共有 {len(df)} 条数据")
+        else:
+            df = pd.DataFrame()
 
         if df.empty:
-            return {"status": "error", "message": f"表 {table_name} 中没有数据。"}
+            return {"status": "error", "message": f"没有找到符合条件的数据。"}
 
         # 将 JSON 字符串转换为列表，处理 null 值
         if 'covers' in df.columns:
