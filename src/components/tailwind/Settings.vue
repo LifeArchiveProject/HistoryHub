@@ -340,31 +340,90 @@
             <div class="bg-white rounded-lg border border-gray-200 divide-y divide-gray-200">
               <!-- 数据导出 -->
               <div class="p-4 transition-colors duration-200 hover:bg-gray-50">
-                <div class="flex items-center justify-between">
-                  <div>
-                    <h3 class="text-base font-medium text-gray-900">数据导出</h3>
-                    <p class="text-sm text-gray-500">导出历史记录数据到Excel文件，支持按年份导出</p>
+                <div>
+                  <div class="flex items-center justify-between mb-4">
+                    <div>
+                      <h3 class="text-base font-medium text-gray-900">数据导出</h3>
+                      <p class="text-sm text-gray-500">导出历史记录数据到Excel文件，支持按年份、月份或日期范围导出</p>
+                    </div>
                   </div>
-                  <div class="flex items-center space-x-4">
-                    <select
-                      v-model="selectedYear"
-                      class="block w-32 rounded-md border-gray-300 shadow-sm focus:border-[#fb7299] focus:ring-[#fb7299] sm:text-sm"
-                    >
-                      <option v-for="year in availableYears" :key="year" :value="year">
-                        {{ year }}年
-                      </option>
-                    </select>
-                    <button
-                      @click="exportAndDownloadExcel"
-                      :disabled="isExporting"
-                      class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-[#fb7299] rounded-lg hover:bg-[#fb7299]/90 disabled:opacity-50"
-                    >
-                      <svg v-if="isExporting" class="animate-spin -ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      {{ isExporting ? '导出中...' : '导出Excel' }}
-                    </button>
+
+                  <!-- 导出选项 -->
+                  <div class="bg-gray-50 p-4 rounded-lg">
+                    <div class="flex flex-wrap items-end gap-4">
+                      <!-- 年份选择 (始终显示) -->
+                      <div class="w-32">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">年份</label>
+                        <select
+                          v-model="exportOptions.year"
+                          class="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#fb7299] focus:ring-[#fb7299] sm:text-sm"
+                        >
+                          <option v-for="year in availableYears" :key="year" :value="year">
+                            {{ year }}年
+                          </option>
+                        </select>
+                      </div>
+
+                      <!-- 导出类型选择 -->
+                      <div class="w-40">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">导出类型</label>
+                        <select
+                          v-model="exportOptions.exportType"
+                          class="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#fb7299] focus:ring-[#fb7299] sm:text-sm"
+                        >
+                          <option value="year">全年数据</option>
+                          <option value="month">按月份</option>
+                          <option value="dateRange">按日期范围</option>
+                        </select>
+                      </div>
+
+                      <!-- 按月选择框 -->
+                      <div v-if="exportOptions.exportType === 'month'" class="w-24">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">月份</label>
+                        <select
+                          v-model="exportOptions.month"
+                          class="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#fb7299] focus:ring-[#fb7299] sm:text-sm"
+                        >
+                          <option v-for="month in 12" :key="month" :value="month">
+                            {{ month }}月
+                          </option>
+                        </select>
+                      </div>
+
+                      <!-- 日期范围选择框 -->
+                      <template v-if="exportOptions.exportType === 'dateRange'">
+                        <div class="w-40">
+                          <label class="block text-sm font-medium text-gray-700 mb-1">开始日期</label>
+                          <input
+                            type="date"
+                            v-model="exportOptions.startDate"
+                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#fb7299] focus:ring-[#fb7299] sm:text-sm"
+                          />
+                        </div>
+
+                        <div class="w-40">
+                          <label class="block text-sm font-medium text-gray-700 mb-1">结束日期</label>
+                          <input
+                            type="date"
+                            v-model="exportOptions.endDate"
+                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#fb7299] focus:ring-[#fb7299] sm:text-sm"
+                          />
+                        </div>
+                      </template>
+
+                      <!-- 导出按钮 -->
+                      <button
+                        @click="exportAndDownloadExcel"
+                        :disabled="isExporting"
+                        class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-[#fb7299] rounded-lg hover:bg-[#fb7299]/90 disabled:opacity-50 h-10"
+                      >
+                        <svg v-if="isExporting" class="animate-spin -ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24">
+                          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        {{ isExporting ? '导出中...' : '导出Excel' }}
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -546,9 +605,17 @@ watch(() => route.query.tab, (newTab) => {
   }
 }, { immediate: true })
 
-const selectedYear = ref(new Date().getFullYear())
 const availableYears = ref([])
 const isExporting = ref(false)
+
+// 导出选项
+const exportOptions = ref({
+  year: new Date().getFullYear(),
+  month: null,
+  startDate: '',
+  endDate: '',
+  exportType: 'year' // 默认导出全年数据
+})
 const serverUrl = ref('')
 const useLocalImages = ref(localStorage.getItem('useLocalImages') === 'true')
 const DEFAULT_EMAIL_CONFIG = {
@@ -624,10 +691,12 @@ onMounted(async () => {
         console.log('开始获取可用年份')
         try {
           const response = await getAvailableYears()
+          console.log('获取年份响应:', response.data)
           if (response.data.status === 'success') {
             availableYears.value = response.data.data.sort((a, b) => b - a)
             if (availableYears.value.length > 0) {
-              selectedYear.value = availableYears.value[0]
+              // 设置导出选项的年份
+              exportOptions.value.year = availableYears.value[0]
             }
             console.log('获取可用年份成功:', availableYears.value)
           } else {
@@ -639,7 +708,18 @@ onMounted(async () => {
             type: 'danger',
             message: '获取年份列表失败'
           })
-          availableYears.value = [new Date().getFullYear()]
+          // 设置当前年份作为默认值
+          const currentYear = new Date().getFullYear()
+          availableYears.value = [currentYear]
+
+          // 重置导出选项
+          exportOptions.value = {
+            year: currentYear,
+            month: null,
+            startDate: '',
+            endDate: '',
+            exportType: 'year'
+          }
         }
       })(),
       (async () => {
@@ -660,20 +740,82 @@ const exportAndDownloadExcel = async () => {
   if (isExporting.value) return
 
   try {
+    // 准备导出参数
+    let exportParams = {}
+
+    // 根据导出类型设置参数
+    switch (exportOptions.value.exportType) {
+      case 'month':
+        // 检查月份是否选择
+        if (!exportOptions.value.month) {
+          showNotify({
+            type: 'danger',
+            message: '请选择要导出的月份'
+          })
+          return
+        }
+        exportParams = {
+          year: exportOptions.value.year,
+          month: exportOptions.value.month
+        }
+        break
+
+      case 'dateRange':
+        // 验证日期范围
+        if (!exportOptions.value.startDate || !exportOptions.value.endDate) {
+          showNotify({
+            type: 'danger',
+            message: '请选择完整的日期范围'
+          })
+          return
+        }
+
+        const startDate = new Date(exportOptions.value.startDate)
+        const endDate = new Date(exportOptions.value.endDate)
+        if (startDate > endDate) {
+          showNotify({
+            type: 'danger',
+            message: '开始日期不能晚于结束日期'
+          })
+          return
+        }
+
+        // 只传递日期范围参数，不传递年份参数
+        exportParams = {
+          start_date: exportOptions.value.startDate,
+          end_date: exportOptions.value.endDate
+        }
+        break
+
+      case 'year':
+      default:
+        // 全年数据，只需要year参数
+        exportParams = {
+          year: exportOptions.value.year
+        }
+        break
+    }
+
     isExporting.value = true
     showNotify({
       type: 'primary',
       message: '正在导出数据...'
     })
 
-    const response = await exportHistory(selectedYear.value)
+    console.log('导出选项:', exportParams)
+    const response = await exportHistory(exportParams)
+    console.log('导出响应:', response.data)
+
     if (response.data.status === 'success') {
       showNotify({
         type: 'success',
         message: '导出成功，准备下载...'
       })
 
-      await downloadExcelFile(selectedYear.value)
+      // 使用响应中的文件名
+      const filename = response.data.filename
+      console.log('准备下载文件:', filename)
+      await downloadExcelFile(filename)
       showNotify({
         type: 'success',
         message: '下载完成'
@@ -682,9 +824,21 @@ const exportAndDownloadExcel = async () => {
       throw new Error(response.data.message)
     }
   } catch (error) {
+    console.error('导出错误:', error)
+    let errorMessage = error.message
+
+    // 尝试获取服务器返回的错误信息
+    if (error.response && error.response.data) {
+      if (error.response.data.detail) {
+        errorMessage = error.response.data.detail
+      } else if (typeof error.response.data === 'string') {
+        errorMessage = error.response.data
+      }
+    }
+
     showNotify({
       type: 'danger',
-      message: `操作失败：${error.message}`
+      message: `操作失败：${errorMessage}`
     })
   } finally {
     isExporting.value = false

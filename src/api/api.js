@@ -235,17 +235,40 @@ export const importSqliteData = () => {
 
 // 导出相关接口
 // 导出历史记录到Excel
-export const exportHistory = (year) => {
+export const exportHistory = (options = {}) => {
+  // 只传递非空参数
+  const params = {}
+
+  // 年份参数
+  if (options.year !== undefined && options.year !== null) {
+    params.year = options.year
+  }
+
+  // 月份参数
+  if (options.month !== undefined && options.month !== null) {
+    params.month = options.month
+  }
+
+  // 开始日期参数
+  if (options.start_date) {
+    params.start_date = options.start_date
+  }
+
+  // 结束日期参数
+  if (options.end_date) {
+    params.end_date = options.end_date
+  }
+
+  console.log('导出参数:', params)
+
   return instance.post('/export/export_history', null, {
-    params: {
-      year
-    }
+    params
   })
 }
 
 // 下载Excel文件
-export const downloadExcelFile = (year) => {
-  return instance.get(`/export/download_excel/${year}`, {
+export const downloadExcelFile = (filename) => {
+  return instance.get(`/export/download_excel/${encodeURIComponent(filename)}`, {
     responseType: 'blob',
     headers: {
       'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
@@ -258,7 +281,7 @@ export const downloadExcelFile = (year) => {
     const url = window.URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
-    link.setAttribute('download', `bilibili_history_${year}.xlsx`)
+    link.setAttribute('download', filename)
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
