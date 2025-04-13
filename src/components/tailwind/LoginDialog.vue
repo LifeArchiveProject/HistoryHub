@@ -161,7 +161,7 @@ const startPolling = () => {
           // 获取用户信息并发送登录成功事件
           try {
             const userResponse = await getLoginStatus()
-            if (userResponse.data && userResponse.data.status === 'success') {
+            if (userResponse.data && userResponse.data.code === 0) {
               console.log('登录对话框获取到用户信息:', userResponse.data)
               // 发送登录成功事件，并传递用户信息
               emit('login-success', userResponse.data.data)

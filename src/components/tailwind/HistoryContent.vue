@@ -979,27 +979,27 @@ const openLoginDialog = () => {
 const handleLoginSuccess = async (userData) => {
   try {
     // 如果登录对话框传递了用户数据，直接使用
-    if (userData && userData.is_logged_in) {
-      isLoggedIn.value = userData.is_logged_in
+    if (userData && userData.isLogin) {
+      isLoggedIn.value = userData.isLogin
 
       // 触发全局事件，通知侧边栏更新登录状态，并传递用户信息
       window.dispatchEvent(new CustomEvent('login-status-changed', {
         detail: {
           isLoggedIn: true,
-          userInfo: userData.user_info
+          userInfo: userData
         }
       }))
     } else {
       // 如果没有传递用户数据，则调用API获取
       const response = await getLoginStatus()
-      if (response.data && response.data.status === 'success') {
-        isLoggedIn.value = response.data.data.is_logged_in
+      if (response.data && response.data.code === 0) {
+        isLoggedIn.value = response.data.data.isLogin
 
         // 触发全局事件，通知侧边栏更新登录状态，并传递用户信息
         window.dispatchEvent(new CustomEvent('login-status-changed', {
           detail: {
             isLoggedIn: true,
-            userInfo: response.data.data.user_info
+            userInfo: response.data.data
           }
         }))
       }
@@ -1018,7 +1018,7 @@ const handleLoginSuccess = async (userData) => {
 const checkLoginStatus = async () => {
   try {
     const response = await getLoginStatus()
-    isLoggedIn.value = response.data && response.data.data && response.data.data.is_logged_in
+    isLoggedIn.value = response.data && response.data.code === 0 && response.data.data.isLogin
   } catch (error) {
     console.error('获取登录状态失败:', error)
     isLoggedIn.value = false

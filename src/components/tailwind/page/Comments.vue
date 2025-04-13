@@ -174,17 +174,23 @@ const typeFilter = ref('0')
 const getUserInfo = async () => {
   try {
     const response = await getLoginStatus()
-    if (response.data.status === 'success' && response.data.data.is_logged_in) {
-      userInfo.value = response.data.data.user_info
-      return true
-    } else {
-      showNotify({
-        type: 'warning',
-        message: '请先登录后查看评论'
-      })
-      router.push('/')
-      return false
+    // 新的API响应格式是 {code: 0, message: "0", ttl: 1, data: {...}}
+    // code为0表示请求成功
+    if (response.data && response.data.code === 0) {
+      const userData = response.data.data
+      if (userData.isLogin) {
+        userInfo.value = userData
+        return true
+      }
     }
+    
+    // 如果未登录，显示提示
+    showNotify({
+      type: 'warning',
+      message: '请先登录后查看评论'
+    })
+    router.push('/')
+    return false
   } catch (error) {
     console.error('获取用户信息失败:', error)
     showNotify({
@@ -228,7 +234,7 @@ const handlePageChange = (newPage) => {
 
 // 获取评论列表
 const fetchComments = async () => {
-  if (!userInfo.value?.uid) {
+  if (!userInfo.value?.mid) {
     const hasUser = await getUserInfo()
     if (!hasUser) return
   }
@@ -236,7 +242,7 @@ const fetchComments = async () => {
   loading.value = true
   try {
     const response = await getComments(
-      userInfo.value.uid,
+      userInfo.value.mid,
       currentPage.value,
       pageSize.value,
       commentType.value,

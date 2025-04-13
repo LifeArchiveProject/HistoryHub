@@ -28,7 +28,7 @@
 
               <!-- 分隔线 -->
               <div class="h-5 w-px bg-gray-200 mx-1"></div>
-              
+
               <!-- 输入框 -->
               <input
                 v-model="inputValue"
@@ -54,7 +54,7 @@
             </button>
           </div>
         </div>
-        
+
         <p class="mt-2 text-xs text-gray-500">
           {{ downloadType === 'video' ? '支持完整链接或 BV 号，例如：BV1xx411c7mD' : '在 UP 主空间页面 URL 中查看 UID' }}
         </p>
@@ -70,8 +70,8 @@
       </div>
       <h3 class="text-lg font-medium text-gray-900 mb-2">开始下载视频</h3>
       <p class="text-sm text-gray-500 max-w-md">
-        {{ downloadType === 'video' 
-          ? '请输入视频的 BV 号或完整链接，支持单个视频下载' 
+        {{ downloadType === 'video'
+          ? '请输入视频的 BV 号或完整链接，支持单个视频下载'
           : '请输入 UP 主的 UID，支持批量下载 UP 主的所有投稿视频' }}
       </p>
     </div>
@@ -91,7 +91,7 @@
               </svg>
               <span class="text-sm font-medium text-gray-600">{{ formatCount(videoInfo.stat?.view) }}</span>
             </div>
-            
+
             <!-- 弹幕数 -->
             <div class="flex items-center">
               <svg class="dm-icon w-4 h-4 text-gray-600 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
@@ -103,7 +103,7 @@
               </svg>
               <span class="text-sm font-medium text-gray-600">{{ formatCount(videoInfo.stat?.danmaku) }}</span>
             </div>
-            
+
             <!-- 发布时间 -->
             <div v-if="videoInfo.pubdate" class="flex items-center">
               <svg class="w-4 h-4 text-gray-600 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -111,17 +111,17 @@
               </svg>
               <span class="text-sm font-medium text-gray-600">{{ formatDetailedTimestamp(videoInfo.pubdate) }}</span>
             </div>
-            
+
             <!-- 警告/提示信息 -->
-            <div v-if="videoInfo.argue_info?.argue_msg" 
+            <div v-if="videoInfo.argue_info?.argue_msg"
                  class="inline-flex items-center bg-yellow-50 px-2 py-1 rounded text-xs text-yellow-700">
               <span class="mr-1">提示：</span>{{ videoInfo.argue_info.argue_msg }}
             </div>
-            
+
             <!-- 荣誉信息 - 修改样式 -->
-            <div v-if="videoInfo.honor_reply?.honor && videoInfo.honor_reply.honor.length > 0" 
+            <div v-if="videoInfo.honor_reply?.honor && videoInfo.honor_reply.honor.length > 0"
                  class="inline-flex flex-wrap gap-4">
-              <div v-for="(honor, index) in videoInfo.honor_reply.honor" 
+              <div v-for="(honor, index) in videoInfo.honor_reply.honor"
                    :key="index"
                    class="text-xs px-2 py-1 bg-[#fff7e9] text-[#ffb027] rounded-md flex items-center">
                 <svg width="16" height="16" viewBox="0 0 16 13" fill="none" xmlns="http://www.w3.org/2000/svg" class="honor-icon mr-1" data-v-b37c19ce=""><path fill-rule="evenodd" clip-rule="evenodd" d="M0.69043 3.9539C0.69043 2.62399 1.76853 1.5459 3.09843 1.5459L3.09843 2.23389C3.09843 2.89885 3.63748 3.4379 4.30243 3.4379C4.96739 3.4379 5.50643 2.89885 5.50643 2.2339V1.5459H10.4944V2.23389C10.4944 2.89885 11.0335 3.4379 11.6984 3.4379C12.3634 3.4379 12.9024 2.89885 12.9024 2.2339L12.9024 1.5459C14.2323 1.5459 15.3104 2.62399 15.3104 3.9539V10.5759C15.3104 11.9058 14.2323 12.9839 12.9024 12.9839H3.09843C1.76853 12.9839 0.69043 11.9058 0.69043 10.5759V3.9539ZM8.59407 5.73981C8.26159 5.73981 7.99207 6.00934 7.99207 6.34181C7.99207 6.67429 8.26159 6.9438 8.59407 6.9438H13.4101C13.7425 6.9438 14.0121 6.67429 14.0121 6.34181C14.0121 6.00934 13.7425 5.73981 13.4101 5.73981H8.59407ZM7.99207 9.35182C7.99207 9.01935 8.26159 8.74982 8.59407 8.74982H13.4101C13.7425 8.74982 14.0121 9.01935 14.0121 9.35182C14.0121 9.6843 13.7425 9.95381 13.4101 9.95381H8.59407C8.26159 9.95381 7.99207 9.6843 7.99207 9.35182ZM2.23794 6.80617L3.04621 6.68384L3.4095 5.92297C3.61412 5.4928 4.20532 5.4928 4.40994 5.92297L4.77212 6.68384L5.5815 6.80617C6.00636 6.87022 6.19423 7.37784 5.95382 7.71812L5.89065 7.79341L5.30428 8.38548L5.44316 9.22243C5.5161 9.66373 5.10432 10.0072 4.71637 9.86957L4.63378 9.83257L3.90972 9.43657L3.18566 9.83257C2.8037 10.0409 2.36159 9.74072 2.36788 9.31535L2.37628 9.22243L2.51404 8.38548L1.92879 7.79341C1.62136 7.48247 1.75692 6.95721 2.14419 6.82854L2.23794 6.80617Z" fill="currentColor"></path> <path fill-rule="evenodd" clip-rule="evenodd" d="M4.31965 1.02979V1.88979V1.02979Z" fill="currentColor"></path> <path d="M4.31965 1.02979V1.88979" stroke-width="1.72" stroke-linecap="round" stroke-linejoin="round" stroke="currentColor"></path> <path fill-rule="evenodd" clip-rule="evenodd" d="M11.7415 1.02979V1.88979V1.02979Z" fill="currentColor"></path> <path d="M11.7415 1.02979V1.88979" stroke-width="1.72" stroke-linecap="round" stroke-linejoin="round" stroke="currentColor"></path></svg>
@@ -134,18 +134,18 @@
             <!-- 左侧封面 -->
             <div class="w-full md:w-1/3 mb-4 md:mb-0 flex flex-col">
               <div class="relative aspect-video bg-gray-200 rounded-lg overflow-hidden">
-                <img 
-                  v-if="videoInfo.pic" 
-                  :src="videoInfo.pic" 
-                  :alt="videoInfo.title" 
-                  class="w-full h-full object-cover" 
+                <img
+                  v-if="videoInfo.pic"
+                  :src="videoInfo.pic"
+                  :alt="videoInfo.title"
+                  class="w-full h-full object-cover"
                 />
                 <div v-else class="w-full h-full flex items-center justify-center text-gray-400">
                   <svg class="w-16 h-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                   </svg>
                 </div>
-                
+
                 <!-- 视频时长标记 -->
                 <div v-if="videoInfo.duration" class="absolute bottom-1 right-1 rounded bg-black/50 px-1 py-0.5 text-xs font-semibold text-white">
                   {{ formatDuration(videoInfo.duration) }}
@@ -155,7 +155,7 @@
                 <div class="absolute bottom-1 left-1 flex space-x-2">
                 </div>
               </div>
-              
+
               <!-- 视频互动数据统计 - 点赞、投币、收藏、分享 -->
               <div class="grid grid-cols-4 gap-2 mt-6">
                 <div class="flex items-center justify-center text-gray-700">
@@ -184,40 +184,40 @@
                 </div>
               </div>
             </div>
-            
+
             <!-- 右侧信息 -->
             <div class="w-full md:w-2/3 flex flex-col">
               <!-- 视频标题可点击 -->
-              <a 
-                :href="`https://www.bilibili.com/video/${videoInfo.bvid}`" 
-                target="_blank" 
+              <a
+                :href="`https://www.bilibili.com/video/${videoInfo.bvid}`"
+                target="_blank"
                 class="text-xl font-bold text-gray-900 mb-6 line-clamp-2 hover:text-[#fb7299] transition-colors duration-200"
               >
                 {{ videoInfo.title }}
               </a>
-              
+
               <!-- 作者信息区域 - UP 主可点击 -->
               <div v-if="videoInfo.owner" class="flex items-center mb-6 space-x-2">
-                <a 
-                  :href="`https://space.bilibili.com/${videoInfo.owner.mid}`" 
-                  target="_blank" 
+                <a
+                  :href="`https://space.bilibili.com/${videoInfo.owner.mid}`"
+                  target="_blank"
                   class="flex items-center space-x-2 hover:text-[#fb7299] transition-colors duration-200"
                 >
-                  <img 
-                    v-if="videoInfo.owner.face" 
-                    :src="videoInfo.owner.face" 
-                    :alt="videoInfo.owner.name" 
+                  <img
+                    v-if="videoInfo.owner.face"
+                    :src="videoInfo.owner.face"
+                    :alt="videoInfo.owner.name"
                     class="w-10 h-10 rounded-full object-cover border border-gray-200"
                   />
                   <div class="text-sm font-medium text-gray-900">{{ videoInfo.owner.name || '未知作者' }}</div>
                 </a>
               </div>
-              
+
               <!-- 视频动态信息 - 在作者信息下方，添加提示文字 -->
               <div v-if="videoInfo.dynamic" class="mb-6 text-xs bg-blue-50 border border-blue-200 px-2 py-1 rounded text-blue-700">
                 <span class="font-medium mr-1">视频同步发布的动态：</span>{{ videoInfo.dynamic }}
               </div>
-              
+
               <!-- 视频基本信息 -->
               <div class="mb-6 grid grid-cols-4 gap-2">
                 <!-- 分区 显示 tname-tname_v2 -->
@@ -227,7 +227,7 @@
                   </svg>
                   <span>{{ videoInfo.tname + (videoInfo.tname_v2 ? `-${videoInfo.tname_v2}` : '') }}</span>
                 </div>
-                
+
                 <!-- 视频类型 -->
                 <div v-if="videoInfo.copyright !== undefined" class="flex items-center text-gray-700 text-sm">
                   <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -235,7 +235,7 @@
                   </svg>
                   <span>{{ videoInfo.copyright === 1 ? '原创' : '转载' }}</span>
                 </div>
-                
+
                 <!-- 清晰度 -->
                 <div v-if="videoInfo.dimension" class="flex items-center text-gray-700 text-sm">
                   <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -252,13 +252,13 @@
                   <span>{{ formatCount(videoInfo.stat?.reply) }} 条评论</span>
                 </div>
               </div>
-              
+
               <!-- 多 P 信息 -->
               <div v-if="videoInfo.pages && videoInfo.pages.length > 1" class="mb-5">
                 <h4 class="text-sm font-semibold text-gray-900 mb-5">分 P 列表</h4>
                 <div class="max-h-40 overflow-y-auto border border-gray-200 rounded-md">
-                  <div 
-                    v-for="(page, index) in videoInfo.pages" 
+                  <div
+                    v-for="(page, index) in videoInfo.pages"
                     :key="index"
                     class="flex items-center p-2 text-sm hover:bg-gray-100 border-b border-gray-100 last:border-b-0"
                   >
@@ -352,13 +352,13 @@ const extractBvid = (input) => {
   if (/^BV[a-zA-Z0-9]{10}$/.test(input)) {
     return input
   }
-  
+
   // 尝试从 URL 中提取 BV 号
   const match = input.match(/\/video\/(BV[a-zA-Z0-9]{10})/)
   if (match && match[1]) {
     return match[1]
   }
-  
+
   return input // 返回原始输入，让后端处理错误
 }
 
@@ -407,7 +407,7 @@ const handleDownload = async () => {
 
     // 检查登录状态
     const loginResponse = await getLoginStatus()
-    if (loginResponse.data.status !== 'success' || !loginResponse.data.data.is_logged_in) {
+    if (loginResponse.data.code !== 0 || !loginResponse.data.data.isLogin) {
       showNotify({ type: 'warning', message: '请先登录 B 站账号' })
       return
     }
@@ -429,25 +429,25 @@ const handleDownload = async () => {
       try {
         console.log('获取UP主视频信息，UID:', inputValue.value)
         const { getUserVideos } = await import('../../../api/api')
-        
+
         // 先获取第一个视频以获取封面
         const response = await getUserVideos({
           mid: inputValue.value,
           pn: 1,
           ps: 1 // 只获取第一个视频，用于显示封面
         })
-        
+
         console.log('获取UP主视频响应:', response.data)
-        
+
         // 检查响应
-        if (response.data.status === 'success' && 
-            response.data.data.list.vlist && 
+        if (response.data.status === 'success' &&
+            response.data.data.list.vlist &&
             response.data.data.list.vlist.length > 0) {
-          
+
           const firstVideo = response.data.data.list.vlist[0]
           console.log('第一个视频信息:', firstVideo)
           console.log('视频封面URL:', firstVideo.pic)
-          
+
           // 使用第一个视频的信息
           downloadVideoInfo.value = {
             title: `UP 主 ${firstVideo.author || inputValue.value} 的全部投稿视频`,
@@ -460,10 +460,10 @@ const handleDownload = async () => {
             is_user_videos: true,
             user_id: inputValue.value
           }
-          
+
           console.log('准备显示下载弹窗，传递的视频信息:', downloadVideoInfo.value)
           console.log('检查封面URL是否正确:', downloadVideoInfo.value.pic)
-          
+
           // 开始预加载更多视频的信息，获取页数和投稿总数
           await fetchUpUserVideosList(inputValue.value)
         } else {
@@ -496,7 +496,7 @@ const handleDownload = async () => {
           user_id: inputValue.value
         }
       }
-      
+
       // 显示下载对话框
       showDownloadDialog.value = true
     }
@@ -511,29 +511,29 @@ const handleDownload = async () => {
 const fetchUpUserVideosList = async (userId) => {
   try {
     const { getUserVideos } = await import('../../../api/api')
-    
+
     // 先获取第一页，确定总视频数
     const response = await getUserVideos({
       mid: userId,
       pn: 1,
       ps: 30
     })
-    
+
     if (!response.data || response.data.status !== 'success') {
       console.warn('获取UP主视频列表失败')
       return
     }
-    
+
     // 保存第一页的视频
     const videos = response.data.data.list.vlist || []
     upUserVideosList.value = videos
-    
+
     // 尝试获取总页数
     const count = response.data.data.page?.count || 0
     if (count > 30) {
       // 如果总数超过30个，只预加载前2页
       const totalPages = Math.min(3, Math.ceil(count / 30))
-      
+
       for (let page = 2; page <= totalPages; page++) {
         try {
           const pageResponse = await getUserVideos({
@@ -541,12 +541,12 @@ const fetchUpUserVideosList = async (userId) => {
             pn: page,
             ps: 30
           })
-          
+
           if (pageResponse.data && pageResponse.data.status === 'success') {
             const pageVideos = pageResponse.data.data.list.vlist || []
             upUserVideosList.value = [...upUserVideosList.value, ...pageVideos]
           }
-          
+
           // 防止频繁请求
           await new Promise(resolve => setTimeout(resolve, 300))
         } catch (err) {
@@ -554,7 +554,7 @@ const fetchUpUserVideosList = async (userId) => {
         }
       }
     }
-    
+
     console.log(`已预加载 ${upUserVideosList.value.length} 个视频信息`)
   } catch (error) {
     console.error('预加载UP主视频列表失败:', error)
@@ -564,11 +564,11 @@ const fetchUpUserVideosList = async (userId) => {
 // 格式化时长
 const formatDuration = (seconds) => {
   if (!seconds) return '未知时长'
-  
+
   const hours = Math.floor(seconds / 3600)
   const minutes = Math.floor((seconds % 3600) / 60)
   const remainingSeconds = seconds % 60
-  
+
   if (hours > 0) {
     return `${hours}:${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`
   } else {
@@ -579,7 +579,7 @@ const formatDuration = (seconds) => {
 // 格式化时间戳为秒级时间显示
 const formatDetailedTimestamp = (timestamp) => {
   if (!timestamp) return '未知时间'
-  
+
   const date = new Date(timestamp * 1000)
   const year = date.getFullYear()
   const month = (date.getMonth() + 1).toString().padStart(2, '0')
@@ -587,18 +587,18 @@ const formatDetailedTimestamp = (timestamp) => {
   const hours = date.getHours().toString().padStart(2, '0')
   const minutes = date.getMinutes().toString().padStart(2, '0')
   const seconds = date.getSeconds().toString().padStart(2, '0')
-  
+
   return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
 }
 
 // 格式化数字（播放、点赞等）
 const formatCount = (count) => {
   if (!count && count !== 0) return '0'
-  
+
   if (count >= 10000) {
     return (count / 10000).toFixed(1) + '万'
   }
-  
+
   return count.toString()
 }
 
@@ -606,7 +606,7 @@ const formatCount = (count) => {
 const startDownload = () => {
   try {
     console.log('开始下载，类型:', downloadType.value)
-    
+
     if (downloadType.value === 'video') {
       // 设置视频信息
       downloadVideoInfo.value = {
@@ -631,7 +631,7 @@ const startDownload = () => {
       }
       console.log('用户视频下载信息:', downloadVideoInfo.value)
     }
-    
+
     // 显示下载对话框
     showDownloadDialog.value = true
   } catch (error) {
@@ -674,4 +674,4 @@ input:focus {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-</style> 
+</style>

@@ -62,7 +62,6 @@
               { 'justify-center': isCollapsed },
               isCollapsed ? 'px-2' : 'px-3 rounded-lg'
             ]"
-            @click="currentContent = 'comments'"
           >
             <svg class="w-5 h-5 flex-shrink-0" :class="{ 'mr-3': !isCollapsed }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
@@ -80,7 +79,6 @@
               { 'justify-center': isCollapsed },
               isCollapsed ? 'px-2' : 'px-3 rounded-lg'
             ]"
-            @click="currentContent = 'favorites'"
           >
             <svg class="w-5 h-5 flex-shrink-0" :class="{ 'mr-3': !isCollapsed }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
@@ -98,7 +96,6 @@
               { 'justify-center': isCollapsed },
               isCollapsed ? 'px-2' : 'px-3 rounded-lg'
             ]"
-            @click="currentContent = 'analytics'"
           >
             <svg class="w-5 h-5 flex-shrink-0" :class="{ 'mr-3': !isCollapsed }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -116,7 +113,6 @@
               { 'justify-center': isCollapsed },
               isCollapsed ? 'px-2' : 'px-3 rounded-lg'
             ]"
-            @click="currentContent = 'media'"
           >
             <svg class="w-5 h-5 flex-shrink-0" :class="{ 'mr-3': !isCollapsed }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
@@ -134,7 +130,6 @@
               { 'justify-center': isCollapsed },
               isCollapsed ? 'px-2' : 'px-3 rounded-lg'
             ]"
-            @click="currentContent = 'video-downloader'"
           >
             <svg class="w-5 h-5 flex-shrink-0" :class="{ 'mr-3': !isCollapsed }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -152,7 +147,6 @@
               { 'justify-center': isCollapsed },
               isCollapsed ? 'px-2' : 'px-3 rounded-lg'
             ]"
-            @click="currentContent = 'scheduler'"
           >
             <svg class="w-5 h-5 flex-shrink-0" :class="{ 'mr-3': !isCollapsed }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -321,8 +315,8 @@
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { usePrivacyStore } from '../../store/privacy'
-import { importSqliteData, getLoginStatus, logout, getSqliteVersion, checkServerHealth, checkDataIntegrity } from '../../api/api'
+import { usePrivacyStore } from '@/store/privacy.js'
+import { getLoginStatus, logout, getSqliteVersion, checkServerHealth, checkDataIntegrity } from '../../api/api'
 import { showNotify } from 'vant'
 import { showDialog } from 'vant'
 import 'vant/es/notify/style'
@@ -403,7 +397,7 @@ const changeContent = (content) => {
 }
 
 // 判断是否在历史记录页面（包括分页）
-computed(() => {
+const isHistoryPage = computed(() => {
   return currentRoute.value === '/' || currentRoute.value.startsWith('/page/')
 })
 // 隐私模式状态
@@ -441,10 +435,12 @@ const showLoginDialog = ref(false)
 const checkLoginStatus = async () => {
   try {
     const response = await getLoginStatus()
-    if (response.data.status === 'success') {
-      isLoggedIn.value = response.data.data.is_logged_in
+    // 新的API响应格式是 {code: 0, message: "0", ttl: 1, data: {...}}
+    // code为0表示请求成功
+    if (response.data && response.data.code === 0) {
+      isLoggedIn.value = response.data.data.isLogin
       if (isLoggedIn.value) {
-        userInfo.value = response.data.data.user_info
+        userInfo.value = response.data.data
       }
     }
   } catch (error) {
