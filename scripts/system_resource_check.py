@@ -116,28 +116,38 @@ def check_system_resources():
             }
         }
 
-def can_import_torch():
+def can_import_faster_whisper():
     """
-    检查是否可以导入torch模块
+    检查是否可以导入faster_whisper模块
     
     返回:
-        bool: 如果可以导入torch则返回True，否则返回False
+        bool: 如果可以导入faster_whisper则返回True，否则返回False
     """
     try:
         # 检查系统资源
         resources = check_system_resources()
         
-        # 如果是Linux系统且资源不足，则不导入torch
+        # 如果是Linux系统且资源不足，则不导入faster_whisper
         if resources["os_info"]["is_linux"] and not resources["summary"]["can_run_speech_to_text"]:
-            logger.warning(f"系统资源不足，不导入torch模块。限制原因: {resources.get('summary', {}).get('resource_limitation', '未知')}")
+            logger.warning(f"系统资源不足，不导入faster_whisper模块。限制原因: {resources.get('summary', {}).get('resource_limitation', '未知')}")
             return False
         
-        # 尝试导入torch
-        import torch
+        # 尝试导入faster_whisper
+        import faster_whisper
         return True
     except ImportError:
-        logger.warning("无法导入torch模块")
+        logger.warning("无法导入faster_whisper模块")
         return False
     except Exception as e:
-        logger.error(f"检查torch导入时出错: {str(e)}")
+        logger.error(f"检查faster_whisper导入时出错: {str(e)}")
         return False
+
+# 保留原函数以保持兼容性，但实际上现在我们不再使用torch
+def can_import_torch():
+    """
+    检查是否可以导入torch模块 (为了兼容性而保留，实际使用can_import_faster_whisper)
+    
+    返回:
+        bool: 调用can_import_faster_whisper的结果
+    """
+    return can_import_faster_whisper()

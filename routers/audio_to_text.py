@@ -32,29 +32,25 @@ model_lock = asyncio.Lock()
 # 检查是否是Linux系统
 is_linux = platform.system().lower() == "linux"
 
-# 条件导入torch和faster_whisper
-torch_available = False
+# 条件导入faster_whisper
 whisper_available = False
 
 try:
     # 如果是Linux系统，先检查系统资源
     if is_linux:
-        from scripts.system_resource_check import can_import_torch
-        torch_available = can_import_torch()
-        if torch_available:
-            import torch
+        from scripts.system_resource_check import check_system_resources
+        resources = check_system_resources()
+        if resources["summary"]["can_run_speech_to_text"]:
             from faster_whisper import WhisperModel
             whisper_available = True
         else:
-            logger.warning("Linux系统资源不足，不导入torch和WhisperModel模块")
+            logger.warning(f"Linux系统资源不足，不导入WhisperModel模块。限制原因: {resources.get('summary', {}).get('resource_limitation', '未知')}")
     else:
         # 非Linux系统，直接导入
-        import torch
         from faster_whisper import WhisperModel
-        torch_available = True
         whisper_available = True
 except ImportError as e:
-    logger.warning(f"导入torch或WhisperModel失败: {str(e)}")
+    logger.warning(f"导入WhisperModel失败: {str(e)}")
 except Exception as e:
     logger.error(f"导入模块时出错: {str(e)}")
 
@@ -67,8 +63,6 @@ def handle_interrupt(signum, frame):
         if whisper_model is not None:
             del whisper_model
             whisper_model = None
-            if torch.cuda.is_available():
-                torch.cuda.empty_cache()
         print("资源已清理")
     except Exception as e:
         print(f"清理资源时出错: {str(e)}")
@@ -257,34 +251,65 @@ def save_transcript(all_segments, output_path):
     print(f"转录结果已保存: {output_path}")
 
 async def transcribe_audio(audio_path, model_size="medium", language="zh", cid=None):
-    """转录音频文件"""
+    """
+    转录音频文件为文本
+    
+    Args:
+        audio_path: 音频文件路径
+        model_size: 模型大小
+        language: 语言代码
+        cid: 视频CID
+        
+    Returns:
+        dict: 转录结果字典
+    """
+    start_time = time.time()
+    
+    if not whisper_available:
+        return {
+            "success": False,
+            "message": "语音转文字功能不可用，请安装faster-whisper",
+            "cid": cid
+        }
+    
+    if not os.path.exists(audio_path):
+        return {
+            "success": False, 
+            "message": f"音频文件不存在: {audio_path}",
+            "cid": cid
+        }
+    
+    print(f"开始处理音频文件: {audio_path}")
+    
     try:
-        logger.info(f"开始处理音频文件: {audio_path}")
-        logger.info(f"参数: model_size={model_size}, language={language}, cid={cid}")
+        # 检测是否有GPU可用
+        import subprocess
+        has_gpu = False
+        try:
+            # 尝试使用nvidia-smi命令检测GPU
+            result = subprocess.run(['nvidia-smi'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            has_gpu = (result.returncode == 0)
+        except (FileNotFoundError, subprocess.SubprocessError):
+            # 命令不存在或执行失败，认为没有GPU
+            has_gpu = False
+            
+        # 选择设备和计算类型
+        device = "cuda" if has_gpu else "cpu"
+        compute_type = "float16" if has_gpu else "int8"
         
-        start_time = time.time()
-        
-        # 检查文件是否存在
-        if not os.path.exists(audio_path):
-            logger.error(f"音频文件不存在: {audio_path}")
-            raise HTTPException(
-                status_code=404,
-                detail=f"文件不存在: {audio_path}"
-            )
+        print(f"使用设备: {device}, 计算类型: {compute_type}")
         
         # 加载模型
-        logger.info("准备加载模型...")
-        model = await load_model(model_size)
-        logger.info("模型加载完成")
+        global whisper_model
+        whisper_model = await load_model(model_size, device, compute_type)
         
         # 转录音频
-        logger.info("开始转录音频...")
-        segments, info = model.transcribe(
+        segments, info = whisper_model.transcribe(
             audio_path,
             language=language,
-            vad_filter=True
+            task="transcribe",
+            beam_size=5
         )
-        logger.info("音频转录完成")
         
         # 处理结果
         logger.info("处理转录结果...")
@@ -580,78 +605,99 @@ def get_model_info(model_size: str) -> ModelInfo:
 
 @router.get("/check_environment", response_model=EnvironmentCheckResponse)
 async def check_environment():
-    """
-    检查系统环境、CUDA支持情况
+    """检查系统环境，判断是否支持运行faster-whisper"""
+    import platform
+    import sys
+    import os
+    import subprocess
     
-    返回：
-    - 系统信息（操作系统、Python版本等）
-    - CUDA支持情况
-    - 推荐配置
-    """
+    os_name = platform.system()
+    os_version = platform.version()
+    python_version = sys.version
+    
+    # 初始化变量
+    cuda_available = False
+    cuda_version = None
+    gpu_info = None
+    resource_limitation = None
+    
     try:
-        import platform
-        import sys
-        
-        # 获取系统信息
-        os_name = platform.system()
-        os_version = platform.version()
-        python_version = sys.version
-        
-        # 检查CUDA支持
+        # 检查CUDA是否可用
         cuda_available = False
-        cuda_version = None
-        gpu_info = None
-        resource_limitation = None
-        
-        # 如果torch可用，检查CUDA支持
-        if torch_available:
-            cuda_available = torch.cuda.is_available()
-            if cuda_available:
-                cuda_version = torch.version.cuda
+        try:
+            # 使用nvidia-smi命令检查CUDA
+            result = subprocess.run(["nvidia-smi"], capture_output=True, text=True)
+            if result.returncode == 0:
+                # 成功执行nvidia-smi，表示CUDA可用
+                cuda_available = True
+                
+                # 尝试提取CUDA版本
+                import re
+                match = re.search(r"CUDA Version: (\d+\.\d+)", result.stdout)
+                if match:
+                    cuda_version = match.group(1)
+                
+                # 提取GPU信息
                 gpu_info = []
-                for i in range(torch.cuda.device_count()):
-                    gpu_info.append({
-                        "name": torch.cuda.get_device_name(i),
-                        "memory": f"{torch.cuda.get_device_properties(i).total_memory / 1024**3:.1f}GB"
-                    })
+                lines = result.stdout.split('\n')
+                for i, line in enumerate(lines):
+                    if "GeForce" in line or "RTX" in line or "GTX" in line or "Tesla" in line or "Quadro" in line:
+                        name_match = re.search(r"(GeForce|RTX|GTX|Tesla|Quadro)[\w\s]+", line)
+                        name = name_match.group(0) if name_match else "Unknown GPU"
+                        
+                        # 尝试获取显存信息
+                        mem_match = None
+                        if i+1 < len(lines):
+                            mem_match = re.search(r"(\d+)MiB\s+/\s+(\d+)MiB", lines[i+1])
+                        
+                        memory = f"{int(mem_match.group(2))/1024:.1f}GB" if mem_match else "Unknown"
+                        
+                        gpu_info.append({
+                            "name": name.strip(),
+                            "memory": memory
+                        })
+        except (FileNotFoundError, subprocess.SubprocessError):
+            # nvidia-smi命令不可用，CUDA不可用
+            cuda_available = False
+            
+        # 获取CUDA安装指南
+        cuda_setup_guide = get_cuda_setup_guide(os_name)
         
-        # 如果是Linux系统且torch不可用，获取资源限制原因
-        if is_linux and not torch_available:
+        # 如果是Linux系统且whisper不可用，获取资源限制原因
+        if is_linux and not whisper_available:
             try:
                 from scripts.system_resource_check import check_system_resources
                 resources = check_system_resources()
                 resource_limitation = resources.get('summary', {}).get('resource_limitation', '系统资源不足')
             except Exception as e:
-                resource_limitation = f"检查系统资源时出错: {str(e)}"
-        
-        # 生成CUDA安装指南
-        cuda_setup_guide = None if cuda_available else get_cuda_setup_guide(os_name)
-        
-        # 获取系统信息
-        system_info = SystemInfo(
-            os_name=os_name,
-            os_version=os_version,
-            python_version=python_version,
-            cuda_available=cuda_available,
-            cuda_version=cuda_version,
-            gpu_info=gpu_info,
-            cuda_setup_guide=cuda_setup_guide,
-            torch_available=torch_available,
-            whisper_available=whisper_available,
-            resource_limitation=resource_limitation
-        )
-        
-        # 确定推荐设备和计算类型
+                resource_limitation = f"资源检查失败: {str(e)}"
+    
+        # 推荐设备选择
         recommended_device = "cuda" if cuda_available else "cpu"
         compute_type = "float16" if cuda_available else "int8"
         
+        # 获取模型信息
+        models_info = {}
+        for size in ["tiny", "base", "small", "medium", "large-v1", "large-v2", "large-v3"]:
+            models_info[size] = get_model_info(size)
+        
         return EnvironmentCheckResponse(
-            system_info=system_info,
-            models_info={},  # 移除模型信息，因为已经在 /models 接口中提供
+            system_info=SystemInfo(
+                os_name=os_name,
+                os_version=os_version,
+                python_version=python_version,
+                cuda_available=cuda_available,
+                cuda_version=cuda_version,
+                gpu_info=gpu_info,
+                cuda_setup_guide=cuda_setup_guide,
+                torch_available=whisper_available,
+                whisper_available=whisper_available,
+                resource_limitation=resource_limitation
+            ),
+            models_info=models_info,
             recommended_device=recommended_device,
             compute_type=compute_type
         )
-        
     except Exception as e:
         raise HTTPException(
             status_code=500,
@@ -717,43 +763,33 @@ async def download_model(model_size: str):
 @router.get("/resource_check", response_model=ResourceCheckResponse)
 async def check_system_resources_api():
     """
-    检查系统资源是否满足运行语音转文字模型的要求
+    检查系统资源是否满足运行语音转文字的要求
     
-    返回：
-    - 操作系统信息
-    - 内存信息
-    - CPU信息
-    - 磁盘信息
-    - 资源检查总结
-    - 是否可以运行语音转文字功能
-    - 限制原因（如果有）
+    返回:
+        ResourceCheckResponse: 包含系统资源检查结果的响应
     """
     try:
         from scripts.system_resource_check import check_system_resources
         resources = check_system_resources()
         
-        # 添加语音转文字功能可用性信息
-        can_run = resources["summary"]["can_run_speech_to_text"]
-        limitation = resources.get("summary", {}).get("resource_limitation", None)
+        # 检查是否可以运行语音转文字
+        can_run_speech_to_text = resources["summary"]["can_run_speech_to_text"] and whisper_available
         
-        # 构建响应
-        response = ResourceCheckResponse(
-            os_info=resources["os_info"],
-            memory=resources["memory"],
-            cpu=resources["cpu"],
-            disk=resources["disk"],
-            summary=resources["summary"],
-            can_run_speech_to_text=can_run,
-            limitation_reason=limitation
-        )
+        # 获取限制原因
+        limitation_reason = None
+        if not can_run_speech_to_text:
+            if not whisper_available:
+                limitation_reason = "缺少必要的依赖，请安装faster-whisper"
+            else:
+                limitation_reason = resources.get("summary", {}).get("resource_limitation", "系统资源不足")
         
-        return response
-    except ImportError:
-        raise HTTPException(
-            status_code=500,
-            detail="未安装psutil模块，无法检查系统资源。请安装psutil: pip install psutil"
+        return ResourceCheckResponse(
+            **resources, 
+            can_run_speech_to_text=can_run_speech_to_text,
+            limitation_reason=limitation_reason
         )
     except Exception as e:
+        logger.error(f"检查系统资源时出错: {e}")
         raise HTTPException(
             status_code=500,
             detail=f"检查系统资源时出错: {str(e)}"

@@ -11,9 +11,30 @@ def build(build_type):
     """执行打包过程
     
     Args:
-        build_type: "lite" (不含torch), "full" (含torch), 或 "all" (两者都打包)
+        build_type: "full" (含fasterwhisper)
     """
     try:
+        # 获取虚拟环境路径
+        venv_path = os.path.join(os.getcwd(), '.venv')
+        venv_site_packages = None
+        
+        # 确定site-packages路径
+        if os.path.exists(venv_path):
+            if os.path.exists(os.path.join(venv_path, 'Lib', 'site-packages')):
+                venv_site_packages = os.path.join(venv_path, 'Lib', 'site-packages')  # Windows
+            elif os.path.exists(os.path.join(venv_path, 'lib')):
+                python_dirs = [d for d in os.listdir(os.path.join(venv_path, 'lib')) if d.startswith('python')]
+                if python_dirs:
+                    venv_site_packages = os.path.join(venv_path, 'lib', python_dirs[0], 'site-packages')  # Linux/Mac
+        
+        if not venv_site_packages or not os.path.exists(venv_site_packages):
+            print(f"\n警告: 无法找到虚拟环境的site-packages目录: {venv_site_packages}")
+            print("将尝试使用系统路径，但可能导致版本冲突")
+        else:
+            print(f"\n使用虚拟环境site-packages: {venv_site_packages}")
+            # 设置PYTHONPATH环境变量，确保PyInstaller优先使用虚拟环境中的包
+            os.environ['PYTHONPATH'] = venv_site_packages
+        
         # 检查当前目录下的所有文件
         print("\n=== 当前目录文件检查 ===\n")
         current_dir = os.getcwd()
@@ -45,19 +66,61 @@ def build(build_type):
 
         print(f"\n找到 yutto.exe: {yutto_exe}")
         
+        # 确定包管理工具 (uv或pip)
+        use_uv = False
+        uv_path = os.path.join('.venv', 'Scripts', 'uv.exe') if os.name == 'nt' else os.path.join('.venv', 'bin', 'uv')
+        if os.path.exists(uv_path):
+            print(f"\n找到uv包管理工具: {uv_path}")
+            use_uv = True
+        
+        # 确定Python解释器路径
+        python_exe = os.path.join('.venv', 'Scripts', 'python.exe') if os.name == 'nt' else os.path.join('.venv', 'bin', 'python')
+        if not os.path.exists(python_exe):
+            print(f"\n警告: 找不到虚拟环境中的Python: {python_exe}")
+            python_exe = sys.executable
+            print(f"将使用系统Python: {python_exe}")
+        
         # 检查PyInstaller是否安装
         try:
-            pyinstaller_version = subprocess.check_output(['pyinstaller', '--version'], text=True).strip()
+            pyinstaller_version = subprocess.check_output([python_exe, '-m', 'PyInstaller', '--version'], text=True).strip()
             print(f"PyInstaller 版本: {pyinstaller_version}")
-        except subprocess.CalledProcessError:
-            print("\n错误: 无法运行 PyInstaller，请确保已安装")
-            subprocess.run([sys.executable, '-m', 'pip', 'install', 'pyinstaller'])
-            print("\n已安装 PyInstaller")
-        except FileNotFoundError:
-            print("\n错误: 无法找到 PyInstaller，请确保已安装")
-            subprocess.run([sys.executable, '-m', 'pip', 'install', 'pyinstaller'])
+        except (subprocess.CalledProcessError, FileNotFoundError):
+            print("\n错误: 无法运行 PyInstaller，正在安装...")
+            if use_uv:
+                # 使用uv安装
+                subprocess.run([uv_path, 'pip', 'install', 'pyinstaller'])
+            else:
+                # 使用pip安装
+                subprocess.run([python_exe, '-m', 'pip', 'install', 'pyinstaller'])
             print("\n已安装 PyInstaller")
         
+        # 确保psutil版本一致 - 尝试安装与应用要求相同的版本
+        print("\n检查psutil版本...")
+        try:
+            # 检查代码中需要的psutil版本
+            with open('requirements.txt', 'r') as f:
+                requirements = f.read()
+            
+            # 查找psutil版本要求
+            psutil_req = None
+            for line in requirements.splitlines():
+                if line.strip().startswith('psutil'):
+                    psutil_req = line.strip()
+                    break
+            
+            if psutil_req:
+                print(f"应用需要的psutil版本: {psutil_req}")
+                # 根据包管理工具安装指定版本的psutil
+                if use_uv:
+                    subprocess.run([uv_path, 'pip', 'install', psutil_req, '--force'])
+                else:
+                    subprocess.run([python_exe, '-m', 'pip', 'install', psutil_req, '--force-reinstall'])
+                print(f"已安装psutil: {psutil_req}")
+            else:
+                print("在requirements.txt中未找到psutil版本要求")
+        except Exception as e:
+            print(f"检查/安装psutil过程中出错: {str(e)}")
+            
         # 确保 app.spec 存在
         if not os.path.exists('app.spec'):
             # 创建基本的spec文件
@@ -65,13 +128,14 @@ def build(build_type):
             
             try:
                 makespec_cmd = [
-                    'pyi-makespec',
+                    python_exe, '-m', 'PyInstaller',
                     '--name=BilibiliHistoryAnalyzer',
                     '--add-binary', f"{yutto_exe};.",
                     '--add-data', "config/*;config", 
                     '--add-data', "scripts;scripts",
                     '--add-data', "routers;routers",
                     '--add-data', "main.py;.",
+                    '--paths', venv_site_packages,
                     'app_launcher.py'
                 ]
                 print(f"\n运行命令: {' '.join(makespec_cmd)}")
@@ -132,85 +196,44 @@ def build(build_type):
             return False
         
         try:
-            # 创建必要的spec文件并修改其中的配置路径
-            if build_type == "lite" or build_type == "all":
-                # 复制并修改app.spec为lite版本
-                lite_spec_path = 'app_lite.spec'
-                success = create_lite_spec('app.spec', lite_spec_path)
-                if not success or not os.path.exists(lite_spec_path):
-                    raise FileNotFoundError(f"无法创建{lite_spec_path}文件")
+            # 创建必要的spec文件
+            spec_path = 'app_build.spec'
+            success = create_spec('app.spec', spec_path, venv_site_packages)
+            if not success or not os.path.exists(spec_path):
+                raise FileNotFoundError(f"无法创建{spec_path}文件")
+            
+            # 修改spec文件中的配置路径，确保只使用临时目录的配置
+            if clean_config_dir:
+                modify_spec_config_path(spec_path, original_config_dir, clean_config_dir)
+            
+            # 执行PyInstaller打包
+            print("\n===== 开始打包应用 =====\n")
+            
+            # 使用run_pyinstaller函数打包
+            if not run_pyinstaller(spec_path, python_exe):
+                print("\n打包失败！")
+                return False
+            
+            # 复制 yutto.exe 到输出目录
+            dist_dir = os.path.join('dist', 'BilibiliHistoryAnalyzer')
+            if os.path.exists(yutto_exe) and os.path.exists(dist_dir):
+                try:
+                    shutil.copy2(yutto_exe, dist_dir)
+                    print(f"\n已复制 yutto.exe 到 {dist_dir}")
+                except Exception as e:
+                    print(f"\n复制 yutto.exe 时出错: {e}")
+            else:
+                print(f"\n警告: 无法复制yutto.exe - 目标目录 {dist_dir} 不存在")
+            
+            # 复制配置文件到应用根目录
+            if os.path.exists(dist_dir):
+                print("\n===== 复制配置文件到应用根目录 =====")
+                post_build_copy(dist_dir)
+                print(f"\n打包完成！程序位于 {dist_dir} 文件夹中")
+                print(f"{os.listdir(dist_dir)[:10]}..." if len(os.listdir(dist_dir)) > 10 else os.listdir(dist_dir))
+            else:
+                print(f"\n警告: 找不到输出目录 {dist_dir}，打包可能失败")
                 
-                # 修改spec文件中的配置路径，确保只使用临时目录的配置
-                if clean_config_dir:
-                    modify_spec_config_path(lite_spec_path, original_config_dir, clean_config_dir)
-                
-                # 执行PyInstaller打包Lite版本
-                print("\n===== 开始打包Lite版本（不含torch） =====\n")
-                
-                # 使用新的run_pyinstaller函数打包
-                if not run_pyinstaller('app_lite.spec'):
-                    print("\n打包失败！")
-                    return False
-                
-                # 复制 yutto.exe 到Lite输出目录
-                lite_dist_dir = os.path.join('dist', 'BilibiliHistoryAnalyzer_Lite')
-                if os.path.exists(yutto_exe) and os.path.exists(lite_dist_dir):
-                    try:
-                        shutil.copy2(yutto_exe, lite_dist_dir)
-                        print(f"\n已复制 yutto.exe 到 {lite_dist_dir}")
-                    except Exception as e:
-                        print(f"\n复制 yutto.exe 时出错: {e}")
-                else:
-                    print(f"\n警告: 无法复制yutto.exe - 目标目录 {lite_dist_dir} 不存在")
-                
-                # 复制配置文件到应用根目录
-                if os.path.exists(lite_dist_dir):
-                    print("\n===== 复制配置文件到Lite版本根目录 =====")
-                    post_build_copy(lite_dist_dir)
-                    print(f"\nLite版本打包完成！程序位于 {lite_dist_dir} 文件夹中")
-                    print(f"{os.listdir(lite_dist_dir)[:10]}..." if len(os.listdir(lite_dist_dir)) > 10 else os.listdir(lite_dist_dir))
-                else:
-                    print(f"\n警告: 找不到输出目录 {lite_dist_dir}，打包可能失败")
-
-            if build_type == "full" or build_type == "all":
-                # 复制并修改app.spec为完整版
-                full_spec_path = 'app_full.spec'
-                success = create_full_spec('app.spec', full_spec_path)
-                if not success or not os.path.exists(full_spec_path):
-                    raise FileNotFoundError(f"无法创建{full_spec_path}文件")
-                
-                # 修改spec文件中的配置路径，确保只使用临时目录的配置
-                if clean_config_dir:
-                    modify_spec_config_path(full_spec_path, original_config_dir, clean_config_dir)
-                
-                # 执行PyInstaller打包完整版
-                print("\n===== 开始打包完整版（含torch） =====\n")
-                
-                # 使用新的run_pyinstaller函数打包
-                if not run_pyinstaller('app_full.spec'):
-                    print("\n打包失败！")
-                    return False
-                
-                # 复制 yutto.exe 到完整版输出目录
-                full_dist_dir = os.path.join('dist', 'BilibiliHistoryAnalyzer_Full')
-                if os.path.exists(yutto_exe) and os.path.exists(full_dist_dir):
-                    try:
-                        shutil.copy2(yutto_exe, full_dist_dir)
-                        print(f"\n已复制 yutto.exe 到 {full_dist_dir}")
-                    except Exception as e:
-                        print(f"\n复制 yutto.exe 时出错: {e}")
-                else:
-                    print(f"\n警告: 无法复制yutto.exe - 目标目录 {full_dist_dir} 不存在")
-                
-                # 复制配置文件到应用根目录
-                if os.path.exists(full_dist_dir):
-                    print("\n===== 复制配置文件到Full版本根目录 =====")
-                    post_build_copy(full_dist_dir)
-                    print(f"\n完整版打包完成！程序位于 {full_dist_dir} 文件夹中")
-                    print(f"{os.listdir(full_dist_dir)[:10]}..." if len(os.listdir(full_dist_dir)) > 10 else os.listdir(full_dist_dir))
-                else:
-                    print(f"\n警告: 找不到输出目录 {full_dist_dir}，打包可能失败")
-                    
             return True
         finally:
             # 清理临时配置目录
@@ -237,86 +260,65 @@ def build(build_type):
         print(traceback.format_exc())
         return False
 
-def create_lite_spec(source_spec, target_spec):
-    """创建Lite版本的spec文件"""
+def create_spec(source_spec, target_spec, venv_site_packages=None):
+    """创建用于打包的spec文件"""
     try:
         with open(source_spec, 'r', encoding='utf-8') as f:
             content = f.read()
         
-        # 修改名称为Lite版本
-        content = content.replace("name='BilibiliHistoryAnalyzer'", "name='BilibiliHistoryAnalyzer_Lite'")
+        # 添加虚拟环境路径到pathex
+        if venv_site_packages and os.path.exists(venv_site_packages):
+            if "pathex=" in content:
+                content = content.replace(
+                    "pathex=[]",
+                    f"pathex=[r'{venv_site_packages}']"
+                )
+            elif "pathex=[" in content:
+                content = content.replace(
+                    "pathex=[",
+                    f"pathex=[r'{venv_site_packages}', "
+                )
         
-        # 修改excludes列表，排除torch相关模块
-        if "excludes=[" in content:
-            content = content.replace("excludes=[", "excludes=['torch', 'torchvision', 'torchaudio', 'faster_whisper', ")
-        else:
-            # 如果没有找到excludes，添加一个
-            content = content.replace("hiddenimports=[", "excludes=['torch', 'torchvision', 'torchaudio', 'faster_whisper'],\n    hiddenimports=[")
-        
-        with open(target_spec, 'w', encoding='utf-8') as f:
-            f.write(content)
-        
-        print(f"\n已创建Lite版本spec文件: {target_spec} ({os.path.getsize(target_spec)} 字节)")
-        return True
-    except Exception as e:
-        print(f"\n创建Lite版本spec文件时出错: {e}")
-        import traceback
-        print(traceback.format_exc())
-        return False
-
-def create_full_spec(source_spec, target_spec):
-    """创建完整版的spec文件"""
-    try:
-        with open(source_spec, 'r', encoding='utf-8') as f:
-            content = f.read()
-        
-        # 修改名称为完整版
-        content = content.replace("name='BilibiliHistoryAnalyzer'", "name='BilibiliHistoryAnalyzer_Full'")
-        
-        # 删除排除torch相关的代码
-        if "excludes=['torch', 'torchvision', 'torchaudio', 'faster_whisper'" in content:
-            content = content.replace("excludes=['torch', 'torchvision', 'torchaudio', 'faster_whisper', ", "excludes=[")
-        elif "excludes=['torch', 'torchvision', 'torchaudio', 'faster_whisper'" in content:
-            content = content.replace("excludes=['torch', 'torchvision', 'torchaudio', 'faster_whisper'],", "excludes=[]")
-        
-        # 如果有任何torch相关的排除内容，全部删除
-        content = content.replace("'torch',", "")
-        content = content.replace("'torchvision',", "")
-        content = content.replace("'torchaudio',", "")
-        content = content.replace("'faster_whisper',", "")
-        
-        # 添加faster_whisper及其资产到datas列表
-        content = content.replace(
-            "(os.path.join(venv_site_packages, 'yutto'), 'yutto'),",
-            "(os.path.join(venv_site_packages, 'yutto'), 'yutto'),\n        (os.path.join(venv_site_packages, 'faster_whisper/assets'), 'faster_whisper/assets'),\n        (os.path.join(venv_site_packages, 'faster_whisper'), 'faster_whisper'),"
-        )
-
-        # 添加faster_whisper到hiddenimports列表
+        # 添加av模块和faster-whisper相关模块到hiddenimports列表
         content = content.replace(
             "'email_validator',",
-            "'email_validator',\n        'faster_whisper',\n        'faster_whisper.audio',\n        'faster_whisper.tokenizer',\n        'faster_whisper.transcribe',\n        'faster_whisper.utils',\n        'faster_whisper.vad',\n        'faster_whisper.feature_extractor',"
+            "'email_validator',\n        'av',\n        'ctranslate2',\n        'tokenizers',\n        'faster_whisper',\n        'faster_whisper.audio',\n        'faster_whisper.tokenizer',\n        'faster_whisper.transcribe',\n        'faster_whisper.utils',\n        'faster_whisper.vad',\n        'faster_whisper.feature_extractor',"
         )
+        
+        # 添加faster_whisper及其资产到datas列表，同时添加av和ctranslate2模块目录
+        content = content.replace(
+            "(os.path.join(venv_site_packages, 'yutto'), 'yutto'),",
+            "(os.path.join(venv_site_packages, 'yutto'), 'yutto'),\n        (os.path.join(venv_site_packages, 'av'), 'av'),\n        (os.path.join(venv_site_packages, 'ctranslate2'), 'ctranslate2'),\n        (os.path.join(venv_site_packages, 'tokenizers'), 'tokenizers'),\n        (os.path.join(venv_site_packages, 'faster_whisper/assets'), 'faster_whisper/assets'),\n        (os.path.join(venv_site_packages, 'faster_whisper'), 'faster_whisper'),"
+        )
+        
+        # 清空excludes列表，不排除任何模块
+        if "excludes=[" in content:
+            # 完全清空excludes列表
+            content = re.sub(r"excludes=\[.*?\]", "excludes=[]", content, flags=re.DOTALL)
         
         with open(target_spec, 'w', encoding='utf-8') as f:
             f.write(content)
         
-        print(f"\n已创建完整版spec文件: {target_spec} ({os.path.getsize(target_spec)} 字节)")
+        print(f"\n已创建打包spec文件: {target_spec} ({os.path.getsize(target_spec)} 字节)")
         return True
     except Exception as e:
-        print(f"\n创建完整版spec文件时出错: {e}")
+        print(f"\n创建spec文件时出错: {e}")
         import traceback
         print(traceback.format_exc())
         return False
 
-def run_pyinstaller(spec_file):
+def run_pyinstaller(spec_file, python_exe=None):
     """运行PyInstaller命令"""
     try:
-        print(f"\n运行命令: pyinstaller --clean --noconfirm {spec_file}\n")
+        if not python_exe:
+            python_exe = sys.executable
+            
+        print(f"\n运行命令: {python_exe} -m PyInstaller --clean --noconfirm {spec_file}\n")
         print("正在执行PyInstaller打包过程...这可能需要一些时间...")
         
         # 使用subprocess.Popen实现实时输出
         process = subprocess.Popen(
-            ['pyinstaller', '--clean', '--noconfirm', spec_file],
+            [python_exe, '-m', 'PyInstaller', '--clean', '--noconfirm', spec_file],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             universal_newlines=True,
@@ -388,79 +390,9 @@ def run_pyinstaller(spec_file):
         print(traceback.format_exc())
         return False
 
-def pack_lite():
-    """打包Lite版本（不含torch）"""
-    try:
-        # 创建Lite版本spec文件
-        if not create_lite_spec('app.spec', 'app_lite.spec'):
-            print("创建Lite版本spec文件失败，打包终止。")
-            return False
-        
-        print("\n===== 开始打包Lite版本（不含torch） =====")
-        
-        # 运行PyInstaller命令
-        if not run_pyinstaller('app_lite.spec'):
-            print("打包失败！")
-            return False
-        
-        # 复制yutto.exe到输出目录
-        yutto_path = os.path.join('.venv', 'Scripts', 'yutto.exe')
-        output_dir = os.path.join('dist', 'BilibiliHistoryAnalyzer_Lite')
-        if os.path.exists(yutto_path) and os.path.exists(output_dir):
-            shutil.copy2(yutto_path, output_dir)
-            print(f"\n已复制yutto.exe到{output_dir}")
-        else:
-            print(f"\n警告：无法复制yutto.exe到{output_dir}，目标目录不存在")
-        
-        print("\nLite版本打包完成！程序位于dist/BilibiliHistoryAnalyzer_Lite文件夹中")
-        if os.path.exists(output_dir):
-            print(os.listdir(output_dir))
-        return True
-    except Exception as e:
-        print(f"\n打包过程出错：{e}")
-        import traceback
-        print(traceback.format_exc())
-        return False
-
-def pack_full():
-    """打包完整版（含torch）"""
-    try:
-        # 创建完整版spec文件
-        if not create_full_spec('app.spec', 'app_full.spec'):
-            print("创建完整版spec文件失败，打包终止。")
-            return False
-        
-        print("\n===== 开始打包完整版（含torch） =====")
-        
-        # 运行PyInstaller命令
-        if not run_pyinstaller('app_full.spec'):
-            print("打包失败！")
-            return False
-            
-        # 复制yutto.exe到输出目录
-        yutto_path = os.path.join('.venv', 'Scripts', 'yutto.exe')
-        output_dir = os.path.join('dist', 'BilibiliHistoryAnalyzer_Full')
-        if os.path.exists(yutto_path) and os.path.exists(output_dir):
-            shutil.copy2(yutto_path, output_dir)
-            print(f"\n已复制yutto.exe到{output_dir}")
-        else:
-            print(f"\n警告：无法复制yutto.exe到{output_dir}，目标目录不存在")
-                
-        print("\n完整版打包完成！程序位于dist/BilibiliHistoryAnalyzer_Full文件夹中")
-        if os.path.exists(output_dir):
-            print(os.listdir(output_dir))
-        return True
-    except Exception as e:
-        print(f"\n打包过程出错：{e}")
-        import traceback
-        print(traceback.format_exc())
-        return False
-
 def print_usage():
-    print("使用方法: python build.py [lite|full|all]")
-    print("  lite: 打包Lite版本（不含torch，体积小，不支持音频转文字）")
-    print("  full: 打包完整版（含torch，体积大，支持所有功能）")
-    print("  all: 同时打包Lite版本和完整版")
+    print("使用方法: python build.py")
+    print("  将打包应用程序（支持fasterwhisper的完整版本）")
 
 def cleanup_sensitive_config():
     """清理config.yaml文件中的敏感信息，返回临时文件路径"""
@@ -620,13 +552,5 @@ def post_build_copy(dist_dir):
         return False
 
 if __name__ == '__main__':
-    # 检查命令行参数
-    if len(sys.argv) > 1 and sys.argv[1] in ["lite", "full", "all"]:
-        if sys.argv[1] == "lite":
-            build("lite")
-        elif sys.argv[1] == "full":
-            build("full")
-        elif sys.argv[1] == "all":
-            build("all")
-    else:
-        print_usage()
+    # 执行打包
+    build("full")
