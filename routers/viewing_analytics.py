@@ -160,7 +160,7 @@ def analyze_viewing_continuity(cursor, table_name: str) -> dict:
     """
     # 获取所有观看日期
     cursor.execute(f"""
-        SELECT DISTINCT date(datetime(view_at, 'unixepoch')) as view_date
+        SELECT DISTINCT date(datetime(view_at + 28800, 'unixepoch')) as view_date
         FROM {table_name}
         ORDER BY view_date
     """)
@@ -205,9 +205,9 @@ def analyze_time_investment(cursor, table_name: str) -> dict:
     """
     cursor.execute(f"""
         SELECT 
-            date(datetime(view_at, 'unixepoch')) as view_date,
+            date(datetime(view_at + 28800, 'unixepoch')) as view_date,
             COUNT(*) as video_count,
-            SUM(duration) as total_duration
+            SUM(CASE WHEN progress = -1 THEN duration ELSE progress END) as total_duration
         FROM {table_name}
         GROUP BY view_date
         ORDER BY total_duration DESC
@@ -220,8 +220,8 @@ def analyze_time_investment(cursor, table_name: str) -> dict:
             AVG(daily_duration) as avg_duration
         FROM (
             SELECT 
-                date(datetime(view_at, 'unixepoch')) as view_date,
-                SUM(duration) as daily_duration
+                date(datetime(view_at + 28800, 'unixepoch')) as view_date,
+                SUM(CASE WHEN progress = -1 THEN duration ELSE progress END) as daily_duration
             FROM {table_name}
             GROUP BY view_date
         )
@@ -250,13 +250,13 @@ def analyze_seasonal_patterns(cursor, table_name: str) -> dict:
     cursor.execute(f"""
         SELECT 
             CASE 
-                WHEN CAST(strftime('%m', datetime(view_at, 'unixepoch')) AS INTEGER) IN (3,4,5) THEN '春季'
-                WHEN CAST(strftime('%m', datetime(view_at, 'unixepoch')) AS INTEGER) IN (6,7,8) THEN '夏季'
-                WHEN CAST(strftime('%m', datetime(view_at, 'unixepoch')) AS INTEGER) IN (9,10,11) THEN '秋季'
+                WHEN CAST(strftime('%m', datetime(view_at + 28800, 'unixepoch')) AS INTEGER) IN (3,4,5) THEN '春季'
+                WHEN CAST(strftime('%m', datetime(view_at + 28800, 'unixepoch')) AS INTEGER) IN (6,7,8) THEN '夏季'
+                WHEN CAST(strftime('%m', datetime(view_at + 28800, 'unixepoch')) AS INTEGER) IN (9,10,11) THEN '秋季'
                 ELSE '冬季'
             END as season,
             COUNT(*) as view_count,
-            AVG(duration) as avg_duration
+            AVG(CASE WHEN progress = -1 THEN duration ELSE progress END) as avg_duration
         FROM {table_name}
         GROUP BY season
     """)
@@ -277,12 +277,12 @@ def analyze_holiday_patterns(cursor, table_name: str) -> dict:
     cursor.execute(f"""
         SELECT 
             CASE 
-                WHEN strftime('%w', datetime(view_at, 'unixepoch')) IN ('0', '6') THEN '周末'
+                WHEN strftime('%w', datetime(view_at + 28800, 'unixepoch')) IN ('0', '6') THEN '周末'
                 ELSE '工作日'
             END as day_type,
             COUNT(*) as view_count,
-            AVG(duration) as avg_duration,
-            COUNT(DISTINCT date(datetime(view_at, 'unixepoch'))) as active_days
+            AVG(CASE WHEN progress = -1 THEN duration ELSE progress END) as avg_duration,
+            COUNT(DISTINCT date(datetime(view_at + 28800, 'unixepoch'))) as active_days
         FROM {table_name}
         GROUP BY day_type
     """)
@@ -313,9 +313,9 @@ def analyze_duration_time_correlation(cursor, table_name: str) -> dict:
     cursor.execute(f"""
         SELECT 
             CASE 
-                WHEN CAST(strftime('%H', datetime(view_at, 'unixepoch')) AS INTEGER) < 6 THEN '凌晨'
-                WHEN CAST(strftime('%H', datetime(view_at, 'unixepoch')) AS INTEGER) < 12 THEN '上午'
-                WHEN CAST(strftime('%H', datetime(view_at, 'unixepoch')) AS INTEGER) < 18 THEN '下午'
+                WHEN CAST(strftime('%H', datetime(view_at + 28800, 'unixepoch')) AS INTEGER) < 6 THEN '凌晨'
+                WHEN CAST(strftime('%H', datetime(view_at + 28800, 'unixepoch')) AS INTEGER) < 12 THEN '上午'
+                WHEN CAST(strftime('%H', datetime(view_at + 28800, 'unixepoch')) AS INTEGER) < 18 THEN '下午'
                 ELSE '晚上'
             END as time_slot,
             CASE 
@@ -324,7 +324,7 @@ def analyze_duration_time_correlation(cursor, table_name: str) -> dict:
                 ELSE '长视频'
             END as duration_type,
             COUNT(*) as video_count,
-            AVG(duration) as avg_duration
+            AVG(CASE WHEN progress = -1 THEN duration ELSE progress END) as avg_duration
         FROM {table_name}
         GROUP BY time_slot, duration_type
     """)
@@ -392,7 +392,12 @@ def analyze_completion_rates(cursor, table_name: str) -> dict:
             continue
         
         # 计算完成率
-        completion_rate = (progress / duration * 100) if duration > 0 else 0
+        # 当progress为-1时表示已完全观看，计算为100%
+        if progress == -1:
+            completion_rate = 100
+        else:
+            completion_rate = (progress / duration * 100) if duration > 0 else 0
+        
         total_completion += completion_rate
         
         # 统计完整观看和未开始观看
@@ -914,7 +919,7 @@ async def get_viewing_analytics(
         # 1. 月度观看统计
         cursor.execute(f"""
             SELECT 
-                strftime('%Y-%m', datetime(view_at, 'unixepoch')) as month,
+                strftime('%Y-%m', datetime(view_at + 28800, 'unixepoch')) as month,
                 COUNT(*) as view_count
             FROM {table_name}
             GROUP BY month
@@ -929,7 +934,7 @@ async def get_viewing_analytics(
         weekly_stats = {day: 0 for day in weekday_mapping.values()}
         cursor.execute(f"""
             SELECT 
-                strftime('%w', datetime(view_at, 'unixepoch')) as weekday,
+                strftime('%w', datetime(view_at + 28800, 'unixepoch')) as weekday,
                 COUNT(*) as view_count
             FROM {table_name}
             GROUP BY weekday
@@ -968,7 +973,7 @@ async def get_viewing_analytics(
         # 5. 最高单日观看记录
         cursor.execute(f"""
             SELECT 
-                strftime('%Y-%m-%d', datetime(view_at, 'unixepoch')) as date,
+                strftime('%Y-%m-%d', datetime(view_at + 28800, 'unixepoch')) as date,
                 COUNT(*) as view_count
             FROM {table_name}
             GROUP BY date
@@ -986,7 +991,7 @@ async def get_viewing_analytics(
         total_views = cursor.fetchone()[0]
         
         cursor.execute(f"""
-            SELECT COUNT(DISTINCT strftime('%Y-%m-%d', datetime(view_at, 'unixepoch')))
+            SELECT COUNT(DISTINCT strftime('%Y-%m-%d', datetime(view_at + 28800, 'unixepoch')))
             FROM {table_name}
         """)
         active_days = cursor.fetchone()[0]
@@ -1080,7 +1085,7 @@ def analyze_viewing_details(cursor, table_name: str) -> dict:
     """
     # 1. 计算总观看时长（根据progress字段）
     cursor.execute(f"""
-        SELECT SUM(progress) as total_watch_seconds
+        SELECT SUM(CASE WHEN progress = -1 THEN duration ELSE progress END) as total_watch_seconds
         FROM {table_name}
         WHERE progress IS NOT NULL
     """)
@@ -1099,7 +1104,7 @@ def analyze_viewing_details(cursor, table_name: str) -> dict:
         SELECT 
             main_category, 
             COUNT(*) as view_count,
-            SUM(progress) as total_progress
+            SUM(CASE WHEN progress = -1 THEN duration ELSE progress END) as total_progress
         FROM {table_name}
         WHERE main_category IS NOT NULL AND main_category != ''
         GROUP BY main_category
@@ -1120,7 +1125,7 @@ def analyze_viewing_details(cursor, table_name: str) -> dict:
             author_mid, 
             author_name,
             COUNT(*) as view_count,
-            SUM(progress) as total_progress
+            SUM(CASE WHEN progress = -1 THEN duration ELSE progress END) as total_progress
         FROM {table_name}
         WHERE author_mid IS NOT NULL
         GROUP BY author_mid
