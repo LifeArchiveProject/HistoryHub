@@ -229,10 +229,6 @@ BilibiliHistoryAnalyzer.exe
 3. 提交更改
 4. 发起 Pull Request
 
-## 许可证
-
-MIT License
-
 ## 致谢
 
 - [bilibili-API-collect](https://github.com/SocialSisterYi/bilibili-API-collect) - 哔哩哔哩-API 收集整理，本项目使用其 API 接口获取 B 站用户数据
