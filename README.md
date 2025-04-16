@@ -155,10 +155,6 @@ UP 主完成率
 
 欢迎提交 Issue 和 Pull Request 来帮助改进这个项目。
 
-## 许可证
-
-[MIT License](LICENSE)
-
 ## 致谢
 
 - [bilibili-API-collect](https://github.com/SocialSisterYi/bilibili-API-collect) - 没有它就没有这个项目

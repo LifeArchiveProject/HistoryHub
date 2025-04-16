@@ -405,13 +405,6 @@ const handleDownload = async () => {
 
     isDownloading.value = true
 
-    // 检查登录状态
-    const loginResponse = await getLoginStatus()
-    if (loginResponse.data.code !== 0 || !loginResponse.data.data.isLogin) {
-      showNotify({ type: 'warning', message: '请先登录 B 站账号' })
-      return
-    }
-
     if (downloadType.value === 'video') {
       // 如果已有视频信息，直接开始下载
       if (hasVideoInfo.value) {
