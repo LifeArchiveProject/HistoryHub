@@ -15,7 +15,6 @@ WORKDIR /app
 COPY . .
 RUN --mount=type=cache,target=/root/.cache/uv \
   uv sync
-# https://docs.astral.sh/uv/guides/integration/pytorch/#automatic-backend-selection
-RUN uv pip install torch torchaudio torchvision --torch-backend=cpu --preview
+# faster-whisper doesn't require torch, so we don't need to install it
 
 CMD ["uv", "run", "main.py"]
