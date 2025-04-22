@@ -39,6 +39,9 @@
       v-model:show="showFilterPopup"
       position="bottom"
       round
+      :z-index="2000"
+      get-container="body"
+      teleport="body"
       :style="{ height: '70%' }"
       class="overflow-hidden"
     >
