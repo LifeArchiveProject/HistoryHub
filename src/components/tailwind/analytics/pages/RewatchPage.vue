@@ -14,8 +14,20 @@
           >
           </div>
 
+          <!-- 没有重复观看数据的提示 -->
+          <div v-if="!viewingData?.watch_counts?.most_watched_videos?.length" 
+               class="mt-8 text-center py-10 bg-white/50 dark:bg-white/5 backdrop-blur-sm rounded-lg border border-gray-300/50 dark:border-gray-500/50">
+            <svg class="w-16 h-16 mx-auto text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+            </svg>
+            <p class="mt-4 text-lg font-medium text-gray-700 dark:text-gray-300">暂无重复观看记录</p>
+            <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">你在这一年中很少重复观看相同的视频</p>
+            <p class="mt-1 text-sm text-gray-500">每次都在探索新内容的你，真是充满好奇心呢！</p>
+          </div>
+
           <!-- 第一名 -->
-          <div v-if="viewingData.watch_counts.most_watched_videos[0]"
+          <div v-else-if="viewingData.watch_counts.most_watched_videos[0]"
             class="bg-gradient-to-br from-white/50 via-[#fb7299]/10 to-[#fc9b7a]/20 dark:from-white/5 dark:via-[#fb7299]/20 dark:to-[#fc9b7a]/30 backdrop-blur-sm rounded-lg p-3 transform hover:scale-[1.01] transition-transform cursor-pointer video-item relative overflow-hidden border border-gray-300/50 dark:border-gray-500/50"
             @click="handleVideoClick(viewingData.watch_counts.most_watched_videos[0].bvid)"
           >
@@ -40,7 +52,7 @@
           </div>
 
           <!-- 其余视频 -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div v-if="viewingData.watch_counts.most_watched_videos?.length > 1" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             <div v-for="(video, index) in viewingData.watch_counts.most_watched_videos.slice(1)"
               :key="video.bvid"
               class="backdrop-blur-sm rounded-lg p-2.5 transform hover:scale-[1.02] transition-transform cursor-pointer video-item relative overflow-hidden border border-gray-300/50 dark:border-gray-500/50"
