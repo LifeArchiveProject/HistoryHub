@@ -214,23 +214,6 @@ def create_tables(conn):
     )
     ''')
 
-    # 创建热门视频快照表
-    cursor.execute('''
-    CREATE TABLE IF NOT EXISTS popular_video_snapshots (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        aid TEXT,
-        bvid TEXT,
-        fetch_time INTEGER,  -- 抓取时间
-        rank INTEGER,        -- 排名
-        view_count INTEGER,  -- 当时的播放量
-        like_count INTEGER,  -- 当时的点赞数
-        coin_count INTEGER,  -- 当时的投币数
-        favorite_count INTEGER, -- 当时的收藏数
-        share_count INTEGER,  -- 当时的分享数
-        UNIQUE(aid, bvid, fetch_time)
-    )
-    ''')
-
     conn.commit()
 
 def insert_video_to_db(conn, video: Dict[str, Any], fetch_time: int, rank: int = 0):
@@ -333,7 +316,6 @@ def insert_video_to_db(conn, video: Dict[str, Any], fetch_time: int, rank: int =
             json.dumps(video.get('ai_rcmd', {}), ensure_ascii=False) if video.get('ai_rcmd') else None,
             fetch_time
         )
-        print(f"参数数量: {len(values)}")
 
         cursor.execute('''
         INSERT OR REPLACE INTO popular_videos (
@@ -358,9 +340,6 @@ def insert_video_to_db(conn, video: Dict[str, Any], fetch_time: int, rank: int =
 
         # 更新跟踪表
         update_tracking_info(conn, video, fetch_time, rank)
-
-        # 插入到快照表
-        insert_video_snapshot(conn, video, fetch_time, rank)
 
     except sqlite3.Error as e:
         print(f"插入数据库时出错: {e}")
@@ -431,38 +410,6 @@ def update_tracking_info(conn, video: Dict[str, Any], fetch_time: int, rank: int
             ))
     except sqlite3.Error as e:
         print(f"更新跟踪信息时出错: {e}")
-        raise
-
-def insert_video_snapshot(conn, video: Dict[str, Any], fetch_time: int, rank: int = 0):
-    """
-    插入视频快照
-
-    Args:
-        conn: 数据库连接
-        video: 视频数据
-        fetch_time: 抓取时间戳
-        rank: 视频排名
-    """
-    cursor = conn.cursor()
-
-    aid = video.get('aid')
-    bvid = video.get('bvid')
-    stat = video.get('stat', {})
-
-    try:
-        cursor.execute('''
-        INSERT OR REPLACE INTO popular_video_snapshots (
-            aid, bvid, fetch_time, rank, view_count, like_count,
-            coin_count, favorite_count, share_count
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ''', (
-            aid, bvid, fetch_time, rank,
-            stat.get('view'), stat.get('like'),
-            stat.get('coin'), stat.get('favorite'),
-            stat.get('share')
-        ))
-    except sqlite3.Error as e:
-        print(f"插入视频快照时出错: {e}")
         raise
 
 def update_inactive_videos(conn, fetch_time: int):
@@ -1184,12 +1131,6 @@ def cleanup_inactive_video_records():
                     """, [bvid] + times_to_delete)
                     
                     deleted_count = cursor.rowcount
-                    
-                    # 5. 同样清理视频快照表
-                    cursor.execute(f"""
-                        DELETE FROM popular_video_snapshots 
-                        WHERE bvid = ? AND fetch_time IN ({placeholders})
-                    """, [bvid] + times_to_delete)
                     
                     # 6. 更新统计信息
                     year_stats["processed_videos"] += 1
