@@ -2,36 +2,51 @@
 <template>
   <div class="container mx-auto max-w-full">
     <!-- 操作按钮 -->
-    <div class="mb-6 flex space-x-4">
-      <button
-        @click="handleDownloadClick"
-        :disabled="isLoading || isStoppingDownload"
-        class="px-4 py-2 bg-[#fb7299] text-white rounded-md hover:bg-[#fb7299]/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 border border-[#fb7299]/20"
-      >
-        <div class="flex items-center space-x-2">
-          <svg v-if="isDownloading" class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
-          <svg v-else class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-          </svg>
-          <span>{{ isDownloading ? (isStoppingDownload ? '正在停止...' : '停止下载') : '下载图片' }}</span>
-        </div>
-      </button>
+    <div class="mb-6 flex flex-col space-y-4 sm:flex-row sm:space-y-0 sm:space-x-4">
+      <div class="flex space-x-4">
+        <button
+          @click="handleDownloadClick"
+          :disabled="isLoading || isStoppingDownload"
+          class="px-4 py-2 bg-[#fb7299] text-white rounded-md hover:bg-[#fb7299]/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 border border-[#fb7299]/20"
+        >
+          <div class="flex items-center space-x-2">
+            <svg v-if="isDownloading" class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <svg v-else class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            <span>{{ isDownloading ? (isStoppingDownload ? '正在停止...' : '停止下载') : '下载图片' }}</span>
+          </div>
+        </button>
 
-      <button
-        @click="handleClear"
-        :disabled="isDownloading || isLoading || isStoppingDownload"
-        class="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 border border-red-400/20"
-      >
-        <div class="flex items-center space-x-2">
-          <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-          </svg>
-          <span>清空图片</span>
-        </div>
-      </button>
+        <button
+          @click="handleClear"
+          :disabled="isDownloading || isLoading || isStoppingDownload"
+          class="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 border border-red-400/20"
+        >
+          <div class="flex items-center space-x-2">
+            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+            <span>清空图片</span>
+          </div>
+        </button>
+      </div>
+
+      <!-- 下载选项 -->
+      <div class="flex items-center space-x-2 bg-white/50 backdrop-blur-sm rounded-md px-4 py-2 border border-gray-200">
+        <input
+          type="checkbox"
+          id="useSessdata"
+          v-model="useSessdata"
+          class="w-4 h-4 text-[#fb7299] bg-gray-100 border-gray-300 rounded focus:ring-[#fb7299]"
+        >
+        <label for="useSessdata" class="text-sm text-gray-700">
+          使用SESSDATA下载图片（对于公开内容如视频封面和头像，可以不使用SESSDATA）
+        </label>
+      </div>
     </div>
 
     <!-- 加载状态 -->
@@ -182,6 +197,7 @@ const status = ref(null)
 const isDownloading = ref(false)
 const isLoading = ref(true)
 const isStoppingDownload = ref(false)  // 新增：是否正在停止下载
+const useSessdata = ref(true)  // 新增：是否使用SESSDATA
 let statusInterval = null
 
 // 格式化时间戳
@@ -292,7 +308,7 @@ const handleDownloadClick = async () => {
   } else {
     // 如果未在下载，则开始下载
     try {
-      const response = await startImagesDownload()
+      const response = await startImagesDownload(null, useSessdata.value)
       if (response.data.status === 'success') {
         showNotify({
           type: 'success',

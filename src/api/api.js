@@ -419,10 +419,11 @@ export const getImagesStatus = () => {
 }
 
 // 开始下载图片
-export const startImagesDownload = (year = null) => {
+export const startImagesDownload = (year = null, useSessdata = true) => {
   return instance.post('/images/start', null, {
     params: {
-      year
+      year,
+      use_sessdata: useSessdata
     }
   })
 }
@@ -1202,16 +1203,19 @@ export const getUserVideos = (params) => {
  * @param {object} params - 请求参数
  * @param {number} params.max_videos - 最多处理的视频数量，0表示全部
  * @param {string} params.specific_videos - 要获取的特定视频ID列表，用逗号分隔（可选）
+ * @param {boolean} params.use_sessdata - 是否使用SESSDATA获取详情，某些视频需要登录才能查看（可选，默认为true）
  * @returns {Promise<object>} - 包含获取结果的响应
  */
 export const fetchVideoDetails = (params) => {
   let maxVideos = 100
   let specificVideos = ''
+  let useSessdata = true
 
   // 兼容旧版调用方式，同时支持对象参数和独立参数
   if (typeof params === 'object') {
     maxVideos = params.max_videos !== undefined ? params.max_videos : 100
     specificVideos = params.specific_videos || ''
+    useSessdata = params.use_sessdata !== undefined ? params.use_sessdata : true
   } else if (typeof params === 'number') {
     // 旧版调用方式: fetchVideoDetails(maxVideos, specificVideos)
     maxVideos = params
@@ -1221,7 +1225,8 @@ export const fetchVideoDetails = (params) => {
   return instance.get('/fetch/fetch-video-details', {
     params: {
       max_videos: maxVideos,
-      specific_videos: specificVideos
+      specific_videos: specificVideos,
+      use_sessdata: useSessdata
     }
   })
 }

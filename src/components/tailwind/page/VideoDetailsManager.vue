@@ -1,37 +1,39 @@
 <!-- 视频详情管理组件 -->
 <template>
   <div class="bg-white rounded-lg border border-gray-200 p-6">
-    <!-- 标题与操作按钮组 -->
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 space-y-4 md:space-y-0">
-      <div>
-        <h2 class="text-xl font-semibold text-gray-800">视频详情管理</h2>
-        <p class="text-sm text-gray-500 mt-1">管理历史记录中视频的详细信息，用于提升界面展示和搜索功能</p>
-      </div>
-      <div>
+    <!-- 操作按钮 -->
+    <div class="mb-6 flex flex-col space-y-4 sm:flex-row sm:space-y-0 sm:space-x-4">
+      <div class="flex space-x-4">
         <button
           @click="startFetchingDetails"
           :disabled="stats.pendingVideosCount === 0 || isFetching"
-          class="inline-flex items-center px-4 py-2 rounded-md text-white font-medium"
-          :class="[
-            isFetching ?
-              'bg-gray-300 cursor-not-allowed' :
-              (stats.pendingVideosCount === 0 ?
-                'bg-gray-400 cursor-not-allowed' :
-                'bg-[#fb7299] hover:bg-[#fb7299]/90')
-          ]"
-          :title="stats.pendingVideosCount === 0 ? '已获取所有视频详情，无需再次获取' : ''"
+          class="px-4 py-2 bg-[#fb7299] text-white rounded-md hover:bg-[#fb7299]/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 border border-[#fb7299]/20"
         >
-          <svg v-if="!isFetching" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-          </svg>
-          <svg v-else xmlns="http://www.w3.org/2000/svg" class="animate-spin h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-          </svg>
-          {{
-            isFetching ? '获取中...' :
-            (stats.pendingVideosCount === 0 ? '无需获取' : '获取视频详情')
-          }}
+          <div class="flex items-center space-x-2">
+            <svg v-if="isFetching" class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <svg v-else class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            <span>{{ isFetching ? '获取中...' : (stats.pendingVideosCount === 0 ? '无需获取' : '获取视频详情') }}</span>
+          </div>
         </button>
+      </div>
+
+      <!-- 下载选项 -->
+      <div class="flex items-center space-x-2 bg-white/50 backdrop-blur-sm rounded-md px-4 py-2 border border-gray-200">
+        <input
+          type="checkbox"
+          id="useSessdata"
+          v-model="useSessdata"
+          class="w-4 h-4 text-[#fb7299] bg-gray-100 border-gray-300 rounded focus:ring-[#fb7299]"
+          :disabled="stats.pendingVideosCount === 0 || isFetching"
+        >
+        <label for="useSessdata" class="text-sm text-gray-700">
+          使用SESSDATA获取详情（对于公开视频可以不使用SESSDATA）
+        </label>
       </div>
     </div>
 
@@ -158,6 +160,7 @@ import 'vant/es/notify/style'
 // 状态变量
 const isLoading = ref(true)
 const isFetching = ref(false)
+const useSessdata = ref(true) // 默认使用SESSDATA
 const stats = ref({
   totalHistoryVideos: 0,
   existingVideosCount: 0,
@@ -236,7 +239,8 @@ const startFetchingDetails = async () => {
     // 调用API启动获取流程，设置maxVideos=0表示获取全部
     const response = await fetchVideoDetails({
       max_videos: 0,  // 获取全部视频
-      specific_videos: ''
+      specific_videos: '',
+      use_sessdata: useSessdata.value // 传递是否使用SESSDATA的选项
     })
 
     if (response.data.status === 'success') {
