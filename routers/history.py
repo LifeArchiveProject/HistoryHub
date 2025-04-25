@@ -8,8 +8,6 @@ except ImportError:
 from datetime import datetime
 from typing import Optional
 
-import jieba
-import jieba.analyse
 from fastapi import APIRouter, Query, HTTPException
 from pydantic import BaseModel
 
@@ -344,24 +342,21 @@ async def get_history_page(
         if conn:
             conn.close()
 
-def process_search_keyword(keyword: str) -> list:
-    """处理搜索关键词，返回分词列表
+def process_search_keyword(keyword: str) -> str:
+    """处理搜索关键词，返回处理后的关键词
 
     Args:
         keyword: 搜索关键词
 
     Returns:
-        list: 分词列表
+        str: 处理后的关键词
     """
     if not keyword:
-        return []
+        return ""
 
-    # 1. 移除多余的空格，但保留单个空格
+    # 移除多余的空格，但保留单个空格
     keyword = ' '.join(keyword.split())
-
-    # 2. 分词处理 - 使用jieba的默认分词
-    words = list(jieba.cut_for_search(keyword))
-    return [w.strip() for w in words if w.strip()]
+    return keyword
 
 def create_fts_table(conn, table_name: str):
     """创建全文搜索虚拟表"""
@@ -438,7 +433,7 @@ def create_fts_table(conn, table_name: str):
         conn.rollback()
         return False
 
-def build_field_search_conditions(field: str, search: str, words: list, exact_match: bool) -> tuple:
+def build_field_search_conditions(field: str, search: str, exact_match: bool) -> tuple:
     """构建字段搜索条件"""
     params = []
     conditions = []
@@ -448,18 +443,9 @@ def build_field_search_conditions(field: str, search: str, words: list, exact_ma
         conditions.append(f"{field} = ?")
         params.append(search)
     else:
-        # 1. 完整关键词模糊匹配
+        # 模糊匹配
         conditions.append(f"{field} LIKE ?")
         params.append(f"%{search}%")
-
-        # 2. 分词匹配 - 任一分词匹配即可
-        if words:
-            word_conditions = []
-            for word in words:
-                word_conditions.append(f"{field} LIKE ?")
-                params.append(f"%{word}%")
-            if word_conditions:
-                conditions.append("(" + " OR ".join(word_conditions) + ")")
 
     # 使用 OR 连接所有条件
     condition = "(" + " OR ".join(conditions) + ")"
@@ -516,8 +502,8 @@ async def search_history(
         where_clause = ""
         search_params = []
         if search:
-            words = process_search_keyword(search)
-            print(f"\n分词结果: {words}\n")
+            search = process_search_keyword(search)
+            print(f"\n处理后的搜索关键词: {search}\n")
 
             print("\n=== 开始构建查询条件 ===")
 
@@ -526,7 +512,7 @@ async def search_history(
                 field_conditions = []
                 for field_name, field in field_map.items():
                     print(f"\n处理字段: {field_name}")
-                    condition, params = build_field_search_conditions(field, search, words, exact_match)
+                    condition, params = build_field_search_conditions(field, search, exact_match)
                     field_conditions.append(condition)
                     search_params.extend(params)
                     print(f"当前参数数量: {len(search_params)}")
@@ -536,7 +522,7 @@ async def search_history(
             else:
                 field = field_map.get(search_type)
                 if field:
-                    condition, params = build_field_search_conditions(field, search, words, exact_match)
+                    condition, params = build_field_search_conditions(field, search, exact_match)
                     where_clause = f"WHERE {condition}"
                     search_params.extend(params)
 

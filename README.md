@@ -1,10 +1,24 @@
+<p align="center">
+    <img src="./logo.png" width="500" />
+</p>
+
 <div align="center">
-  <img src="./logo.png" alt="BilibiliHistoryFetcher Logo" />
+    <h1>BilibiliHistoryFetcher - 哔哩哔哩历史记录获取与分析工具</h1>
+    <img src="https://img.shields.io/github/v/tag/LifeArchiveProject/HistoryHub" />
+    <img src="https://img.shields.io/github/stars/LifeArchiveProject/HistoryHub" />
+    <img src="https://img.shields.io/github/forks/LifeArchiveProject/HistoryHub" />
+    <img src="https://img.shields.io/github/last-commit/LifeArchiveProject/HistoryHub" />
+    <img src="https://img.shields.io/github/license/LifeArchiveProject/HistoryHub" />
+    <img src="https://img.shields.io/badge/Python-3776AB?logo=Python&logoColor=white" />
+    <img src="https://img.shields.io/badge/FastAPI-009688?logo=FastAPI&logoColor=white" />
+    <img src="https://img.shields.io/badge/SQLite-003B57?logo=SQLite&logoColor=white" />
 </div>
 
+## 介绍
 该项目用于获取、处理、分析和可视化哔哩哔哩用户的观看历史数据。它提供了完整的数据处理流程，从数据获取到可视化展示，并支持自动化运行和邮件通知。
 
-## 配套前端请前往此项目[BiliHistoryFrontend](https://github.com/LifeArchiveProject/BiliHistoryFrontend) 
+## 配套前端
+请前往此项目 [BiliHistoryFrontend](https://github.com/LifeArchiveProject/BiliHistoryFrontend) 获取配套的前端界面
 
 ## 主要功能
 
@@ -84,16 +98,16 @@
    ```bash
    # 查看服务状态
    docker-compose ps
-   
+
    # 查看日志
    docker-compose logs -f
-   
+
    # 停止服务
    docker-compose stop
-   
+
    # 重启服务
    docker-compose restart
-   
+
    # 重新构建并启动服务
    docker-compose up -d --build
    ```
@@ -105,7 +119,7 @@
    ```bash
    # 安装依赖
    uv sync
-   
+
    # 运行程序
    uv run main.py
    ```
@@ -202,7 +216,7 @@ tasks:
     schedule:
       type: "daily"
       time: "00:00"
-  
+
   analyze_data:
     schedule:
       type: "chain"
@@ -243,7 +257,7 @@ python build.py
   - `email`：邮箱相关信息替换为示例邮箱地址和说明
   - `ssl_certfile`/`ssl_keyfile`：替换为示例路径
   - `api_key`：替换为"你的 API 密钥"
-  
+
 - 打包完成后，临时文件会被自动删除
 - 打包版本中的配置文件包含原始结构但敏感字段被替换为示例值，用户需要首次运行时填写实际信息
 
