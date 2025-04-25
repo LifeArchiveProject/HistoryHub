@@ -1823,7 +1823,7 @@ class VideoDetailResponse(BaseModel):
     data: Optional[dict] = None
     
 @router.get("/video_info", summary="获取 B 站视频详细信息")
-async def get_video_info(aid: Optional[int] = None, bvid: Optional[str] = None, sessdata: Optional[str] = None, headers: Optional[dict] = None):
+async def get_video_info(aid: Optional[int] = None, bvid: Optional[str] = None, sessdata: Optional[str] = None, headers: Optional[dict] = None, use_sessdata: bool = True):
     """
     获取B站视频详细信息
     
@@ -1832,6 +1832,7 @@ async def get_video_info(aid: Optional[int] = None, bvid: Optional[str] = None, 
         bvid: 视频bvid
         sessdata: B站会话ID
         headers: 自定义请求头
+        use_sessdata: 是否使用SESSDATA认证，默认为True
     """
     try:
         if not aid and not bvid:
@@ -1851,8 +1852,8 @@ async def get_video_info(aid: Optional[int] = None, bvid: Optional[str] = None, 
         if headers:
             default_headers.update(headers)
         
-        # 如果存在SESSDATA，加入到请求头中
-        if sessdata:
+        # 仅在需要使用SESSDATA且提供了SESSDATA时，加入到请求头中
+        if sessdata and use_sessdata:
             default_headers['Cookie'] = f'SESSDATA={sessdata};'
         
         # 准备请求参数
@@ -1966,7 +1967,8 @@ async def get_user_videos(
     tid: int = 0, 
     keyword: str = "", 
     order: str = "pubdate", 
-    sessdata: Optional[str] = None
+    sessdata: Optional[str] = None,
+    use_sessdata: bool = True
 ):
     """
     查询用户投稿视频明细
@@ -1980,6 +1982,7 @@ async def get_user_videos(
         order: 排序方式，默认为 pubdate（发布日期）
                可选值：pubdate（发布日期）、click（播放量）、stow（收藏量）
         sessdata: 可选，用户的 SESSDATA，用于获取限制查看的视频
+        use_sessdata: 是否使用SESSDATA认证，默认为True
     
     Returns:
         用户投稿视频列表
@@ -1993,12 +1996,12 @@ async def get_user_videos(
             'Origin': 'https://space.bilibili.com'
         }
         
-        # 如果提供了 SESSDATA，添加到请求头中
-        if sessdata:
+        # 仅在需要使用SESSDATA且提供了SESSDATA时，加入到请求头中
+        if sessdata and use_sessdata:
             headers['Cookie'] = f'SESSDATA={sessdata}'
-        elif config.get('SESSDATA'):
+        elif config.get('SESSDATA') and use_sessdata:
             headers['Cookie'] = f'SESSDATA={config["SESSDATA"]}'
-            
+        
         # 构建请求参数
         params = {
             'mid': mid,

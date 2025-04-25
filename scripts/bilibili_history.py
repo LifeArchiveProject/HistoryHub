@@ -715,7 +715,7 @@ def check_invalid_video(bvid):
         return {"is_invalid": False}
 
 # 修改get_video_info_sync函数，在JSON解析错误时保存并打印原始响应内容，并确保将这类错误也添加到失效表中
-def get_video_info_sync(bvid, sessdata, skip_exists=False):
+def get_video_info_sync(bvid, sessdata, skip_exists=False, use_sessdata=True):
     """同步版本的获取视频详情函数，供多线程使用"""
     # 如果需要跳过已存在的视频，则先检查
     if skip_exists and is_video_exists(bvid):
@@ -771,8 +771,12 @@ def get_video_info_sync(bvid, sessdata, skip_exists=False):
         'Sec-Fetch-Dest': 'empty',
         'Sec-Ch-Ua': '"Chromium";v="92", " Not A;Brand";v="99", "Google Chrome";v="92"',
         'Sec-Ch-Ua-Mobile': '?0',
-        'Cookie': f'SESSDATA={sessdata}; buvid3={buvid3}; buvid4={buvid4}; b_nut={b_nut}; bsource=search_google; _uuid=D{buvid3}-{b_nut}-{buvid4}'
+        'Cookie': f'buvid3={buvid3}; buvid4={buvid4}; b_nut={b_nut}; bsource=search_google; _uuid=D{buvid3}-{b_nut}-{buvid4}'
     }
+    
+    # 如果存在SESSDATA并且需要使用，加入到Cookie中
+    if sessdata and use_sessdata:
+        headers['Cookie'] += f'; SESSDATA={sessdata}'
     
     # 使用指数退避策略进行重试
     max_retries = 3
@@ -1324,13 +1328,14 @@ async def fetch_history(output_dir: str = "history_by_date", skip_exists: bool =
         return {"status": "error", "message": str(e)}
 
 # 新增: 批量获取历史记录中的视频详情但不重新获取历史记录
-async def fetch_video_details_only(max_videos: int = 0, specific_videos: list = None) -> dict:
+async def fetch_video_details_only(max_videos: int = 0, specific_videos: list = None, use_sessdata: bool = True) -> dict:
     """
     从历史记录中获取视频ID，批量获取视频详情
     
     Args:
         max_videos: 本次最多处理的视频数量，0表示不限制
         specific_videos: 指定要获取的视频ID列表，如果提供则优先使用这个列表
+        use_sessdata: 是否使用SESSDATA进行认证，默认为True
     """
     try:
         # 确保参数是合法整数
@@ -1413,7 +1418,7 @@ async def fetch_video_details_only(max_videos: int = 0, specific_videos: list = 
             
             with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
                 future_to_bvid = {
-                    executor.submit(get_video_info_sync, bvid, cookie, False): bvid
+                    executor.submit(get_video_info_sync, bvid, cookie, False, use_sessdata): bvid
                     for bvid in batch
                 }
                 
