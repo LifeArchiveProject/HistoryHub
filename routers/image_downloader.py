@@ -116,9 +116,6 @@ async def get_local_image(image_type: str, file_hash: str):
     Returns:
         FileResponse: 图片文件响应
     """
-    print(f"\n=== 获取本地图片 ===")
-    print(f"图片类型: {image_type}")
-    print(f"文件哈希: {file_hash}")
 
     # 验证图片类型
     if image_type not in ('covers', 'avatars'):

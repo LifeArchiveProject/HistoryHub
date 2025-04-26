@@ -465,7 +465,8 @@ async def search_history(
     search_type: Optional[str] = Query("all", description="搜索类型：all-全部, title-标题, author-作者, tag-分区, remark-备注"),
     exact_match: bool = Query(False, description="是否精确匹配"),
     sort_by: Optional[str] = Query("view_at", description="排序字段：view_at-观看时间, relevance-相关度"),
-    use_sessdata: bool = Query(True, description="是否在图片URL中使用SESSDATA")
+    use_sessdata: bool = Query(True, description="是否在图片URL中使用SESSDATA"),
+    use_local_images: bool = Query(False, description="是否使用本地图片")
 ):
     """高级搜索历史记录"""
     try:
@@ -474,6 +475,7 @@ async def search_history(
         print(f"类型: {search_type}")
         print(f"精确匹配: {exact_match}")
         print(f"是否使用SESSDATA: {use_sessdata}")
+        print(f"是否使用本地图片: {use_local_images}")
         print("==============\n")
 
         conn = get_db()
@@ -591,7 +593,7 @@ async def search_history(
 
         for row in cursor.fetchall():
             record = dict(zip(columns, row))
-            record = _process_record(record, False, use_sessdata)
+            record = _process_record(record, use_local_images, use_sessdata)
             records.append(record)
 
         return {
