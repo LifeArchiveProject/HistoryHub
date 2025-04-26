@@ -98,7 +98,7 @@ export const getBiliHistory2024 = (page, size, sortOrder, tagName, mainCategory,
   })
 }
 
-export const searchBiliHistory2024 = (search, searchType = 'all', page = 1, size = 30, sortOrder = 0, sortBy = 'relevance') => {
+export const searchBiliHistory2024 = (search, searchType = 'all', page = 1, size = 30, sortOrder = 0, sortBy = 'relevance', useLocalImages = false, useSessdata = true) => {
   return instance.get(`/history/search`, {
     params: {
       page,
@@ -106,7 +106,9 @@ export const searchBiliHistory2024 = (search, searchType = 'all', page = 1, size
       search,
       search_type: searchType,
       sort_order: sortOrder,
-      sort_by: sortBy
+      sort_by: sortBy,
+      use_local_images: useLocalImages,
+      use_sessdata: useSessdata
     },
   })
 }

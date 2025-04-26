@@ -26,9 +26,9 @@
       <!-- 使用 key 来强制组件重新渲染 -->
       <div :key="page">
         <!-- 视频记录列表 -->
-        <VideoRecord 
-          v-for="record in records" 
-          :key="record.id" 
+        <VideoRecord
+          v-for="record in records"
+          :key="record.id"
           :record="record"
           :search-keyword="keyword"
           :search-type="searchType"
@@ -85,7 +85,7 @@ const handleSearch = ({ keyword: searchKeyword, type }) => {
     router.push({
       name: 'Search',
       params: { keyword: searchKeyword.trim() },
-      query: { 
+      query: {
         type: type
       }
     })
@@ -124,13 +124,17 @@ const handlePageChange = async (newPage) => {
 // 获取搜索结果
 const fetchSearchResults = async () => {
   try {
+    // 从localStorage获取是否使用本地图片源的设置
+    const useLocalImages = localStorage.getItem('useLocalImages') === 'true'
+
     const response = await searchBiliHistory2024(
       keyword.value,           // search
       searchType.value,        // searchType
       page.value,             // page
       size.value,             // size
       sortBy.value === 'time' ? 0 : 1,  // sortOrder
-      sortBy.value            // sortBy
+      sortBy.value,           // sortBy
+      useLocalImages          // 使用本地图片源
     )
 
     if (response.data.status === 'success') {
@@ -203,7 +207,7 @@ watch(
       router.push({
         name: 'Search',
         params: { keyword: keyword.value },
-        query: { 
+        query: {
           type: newType
         }
       })
