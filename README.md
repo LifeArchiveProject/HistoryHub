@@ -169,34 +169,7 @@
 pip install -r requirements.txt
 ```
 
-2. **配置文件**
-
-在 `config/config.yaml` 中配置以下信息：
-```yaml
-# B 站用户认证
-SESSDATA: "你的 SESSDATA"
-
-# 邮件通知配置
-email:
-  smtp_server: smtp.qq.com
-  smtp_port: 587
-  sender: "发件人邮箱"
-  password: "邮箱授权码"
-  receiver: "收件人邮箱"
-
-# DeepSeek AI API 配置
-deepseek:
-  api_key: "你的 DeepSeek API 密钥"
-  api_base: "https://api.deepseek.com/v1"
-  default_model: "deepseek-reasoner"
-
-# 服务器配置
-server:
-  host: "localhost"
-  port: 8899
-```
-
-3. **运行程序**
+2. **运行程序**
 ```bash
 python main.py
 ```
@@ -206,23 +179,6 @@ python main.py
 基础 URL: `http://localhost:8899`
 
 完整 API 文档访问：`http://localhost:8899/docs`
-
-## 自动化任务配置
-
-在 `config/scheduler_config.yaml` 中配置定时任务：
-```yaml
-tasks:
-  fetch_history:
-    schedule:
-      type: "daily"
-      time: "00:00"
-
-  analyze_data:
-    schedule:
-      type: "chain"
-    requires:
-      - fetch_history
-```
 
 ## 应用打包
 
@@ -286,13 +242,19 @@ BilibiliHistoryAnalyzer.exe
 3. 提交更改
 4. 发起 Pull Request
 
+## 后续开发计划
+
+项目正在积极开发中，您可以在我们的 [GitHub 项目计划页面](https://github.com/users/woijfwefw/projects/2) 查看最新的开发路线图和即将实现的功能。
+
 ## 致谢
 
 - [bilibili-API-collect](https://github.com/SocialSisterYi/bilibili-API-collect) - 哔哩哔哩-API 收集整理，本项目使用其 API 接口获取 B 站用户数据
 - [Yutto](https://yutto.nyakku.moe/) - 可爱的 B 站视频下载工具，本项目使用其进行视频下载功能
 - [FasterWhisper](https://github.com/SYSTRAN/faster-whisper) - 音频转文字，本项目使用其进行视频音频转文字功能
 - [DeepSeek](https://github.com/deepseek-ai/DeepSeek-R1) - DeepSeek AI API，本项目使用其进行 AI 摘要生成
-- 所有贡献者
+- [ArtPlayer](https://github.com/zhw2590582/ArtPlayer) - 强大且灵活的 HTML5 视频播放器
+- [aicu.cc](https://www.aicu.cc/) - 第三方 B 站用户评论 API
+- 所有贡献者，特别感谢 [@eli-yip](https://github.com/eli-yip) 对 Docker 部署的贡献
 
 ## Star History
 
