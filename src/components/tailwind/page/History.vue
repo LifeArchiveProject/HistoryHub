@@ -59,7 +59,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import Navbar from '../Navbar.vue'
 import HistoryContent from '../HistoryContent.vue'
@@ -160,6 +160,37 @@ onMounted(() => {
 
   if (page.value !== 1 && !route.path.startsWith('/remarks')) {
     router.push(`/page/${page.value}`)
+  }
+  
+  // 监听布局设置变更事件
+  window.addEventListener('layout-setting-changed', handleLayoutSettingChanged)
+})
+
+// 组件卸载时清理事件监听器
+onUnmounted(() => {
+  window.removeEventListener('layout-setting-changed', handleLayoutSettingChanged)
+})
+
+// 处理布局设置变更事件 - 从设置页面接收
+const handleLayoutSettingChanged = (event) => {
+  if (event.detail && typeof event.detail.layout === 'string') {
+    layout.value = event.detail.layout
+  }
+}
+
+// 监听布局变化，同步到localStorage并触发全局事件
+watch(layout, (newLayout) => {
+  // 保存到localStorage
+  localStorage.setItem('defaultLayout', newLayout)
+  
+  // 触发全局事件通知设置页面
+  try {
+    const event = new CustomEvent('layout-changed', { 
+      detail: { layout: newLayout } 
+    })
+    window.dispatchEvent(event)
+  } catch (error) {
+    console.error('触发布局变更事件失败:', error)
   }
 })
 

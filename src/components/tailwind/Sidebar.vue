@@ -407,6 +407,34 @@ const { isPrivacyMode } = usePrivacyStore()
 const isCollapsed = ref(false)
 const toggleCollapse = () => {
   isCollapsed.value = !isCollapsed.value
+  // 保存当前侧边栏状态
+  localStorage.setItem('sidebarCollapsed', isCollapsed.value.toString())
+  
+  // 如果用户手动收起侧边栏，将showSidebar设置为false
+  if (isCollapsed.value) {
+    localStorage.setItem('showSidebar', 'false')
+    // 触发全局事件，通知设置组件更新
+    try {
+      const event = new CustomEvent('sidebar-toggle-changed', { 
+        detail: { showSidebar: false } 
+      })
+      window.dispatchEvent(event)
+    } catch (error) {
+      console.error('触发侧边栏切换事件失败:', error)
+    }
+  } else {
+    // 如果用户展开侧边栏，将showSidebar设置为true
+    localStorage.setItem('showSidebar', 'true')
+    // 触发全局事件，通知设置组件更新
+    try {
+      const event = new CustomEvent('sidebar-toggle-changed', { 
+        detail: { showSidebar: true } 
+      })
+      window.dispatchEvent(event)
+    } catch (error) {
+      console.error('触发侧边栏切换事件失败:', error)
+    }
+  }
 }
 
 // SQLite版本信息
@@ -592,6 +620,16 @@ const setupPeriodicHealthCheck = () => {
 }
 
 onMounted(async () => {
+  // 读取侧边栏设置，默认显示
+  const showSidebar = localStorage.getItem('showSidebar') !== 'false'
+  // 如果设置为不显示侧边栏，则自动收起
+  if (!showSidebar) {
+    isCollapsed.value = true
+  } else {
+    // 否则使用上次保存的状态
+    isCollapsed.value = localStorage.getItem('sidebarCollapsed') === 'true'
+  }
+
   // 初始时检查登录状态
   checkLoginStatus()
   await fetchSqliteVersion()
@@ -605,6 +643,9 @@ onMounted(async () => {
 
   // 添加全局事件监听器，当登录状态变化时更新侧边栏的登录状态
   window.addEventListener('login-status-changed', handleLoginStatusChange)
+  
+  // 添加侧边栏设置变更事件监听
+  window.addEventListener('sidebar-setting-changed', handleSidebarSettingChange)
 })
 
 // 处理登录状态变化事件
@@ -627,9 +668,21 @@ const handleLoginStatusChange = (event) => {
   }
 }
 
+// 处理侧边栏设置变更事件
+const handleSidebarSettingChange = (event) => {
+  console.log('侧边栏收到设置变更事件', event.detail)
+  if (event.detail && typeof event.detail.showSidebar === 'boolean') {
+    // 如果设置为不显示侧边栏，则自动收起
+    if (!event.detail.showSidebar) {
+      isCollapsed.value = true
+    }
+  }
+}
+
 // 组件卸载时移除事件监听器和清除定时器
 onUnmounted(() => {
   window.removeEventListener('login-status-changed', handleLoginStatusChange)
+  window.removeEventListener('sidebar-setting-changed', handleSidebarSettingChange)
 
   // 清除定时器
   if (healthCheckTimer.value) {

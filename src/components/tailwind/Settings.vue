@@ -73,6 +73,48 @@
                 </div>
               </div>
 
+              <!-- 隐私模式 -->
+              <div class="p-4 transition-colors duration-200 hover:bg-gray-50">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <h3 class="text-base font-medium text-gray-900">隐私模式</h3>
+                    <p class="text-sm text-gray-500">开启后将模糊显示标题、封面、UP主名称等敏感信息</p>
+                  </div>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" v-model="privacyMode" class="sr-only peer">
+                    <div class="w-11 h-6 bg-gray-200 peer-focus:ring-4 peer-focus:ring-[#fb7299]/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#fb7299]"></div>
+                  </label>
+                </div>
+              </div>
+
+              <!-- 侧边栏设置 -->
+              <div class="p-4 transition-colors duration-200 hover:bg-gray-50">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <h3 class="text-base font-medium text-gray-900">侧边栏显示</h3>
+                    <p class="text-sm text-gray-500">设置是否默认显示侧边栏，关闭后侧边栏将自动收起</p>
+                  </div>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" v-model="showSidebar" class="sr-only peer" @change="handleSidebarChange">
+                    <div class="w-11 h-6 bg-gray-200 peer-focus:ring-4 peer-focus:ring-[#fb7299]/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#fb7299]"></div>
+                  </label>
+                </div>
+              </div>
+
+              <!-- 首页默认布局设置 -->
+              <div class="p-4 transition-colors duration-200 hover:bg-gray-50">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <h3 class="text-base font-medium text-gray-900">首页默认布局</h3>
+                    <p class="text-sm text-gray-500">设置历史记录页面的默认展示方式，开启为网格视图，关闭为列表视图</p>
+                  </div>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" v-model="isGridLayout" class="sr-only peer" @change="handleLayoutChange">
+                    <div class="w-11 h-6 bg-gray-200 peer-focus:ring-4 peer-focus:ring-[#fb7299]/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#fb7299]"></div>
+                  </label>
+                </div>
+              </div>
+
               <!-- 同步已删除记录 -->
               <div class="p-4 transition-colors duration-200 hover:bg-gray-50">
                 <div class="flex items-center justify-between">
@@ -168,66 +210,6 @@
                         class="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#fb7299] focus:ring-[#fb7299] sm:text-sm"
                         placeholder="授权码"
                       />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- 隐私模式 -->
-              <div class="p-4 transition-colors duration-200 hover:bg-gray-50">
-                <div class="flex items-center justify-between">
-                  <div>
-                    <h3 class="text-base font-medium text-gray-900">隐私模式</h3>
-                    <p class="text-sm text-gray-500">开启后将模糊显示标题、封面、UP主名称等敏感信息</p>
-                  </div>
-                  <label class="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" v-model="privacyMode" class="sr-only peer">
-                    <div class="w-11 h-6 bg-gray-200 peer-focus:ring-4 peer-focus:ring-[#fb7299]/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#fb7299]"></div>
-                  </label>
-                </div>
-              </div>
-
-              <!-- 首页默认布局设置 -->
-              <div class="p-4 transition-colors duration-200 hover:bg-gray-50">
-                <div class="flex flex-col space-y-2">
-                  <div class="flex items-center justify-between mb-1">
-                    <div>
-                      <h3 class="text-base font-medium text-gray-900">首页默认布局</h3>
-                      <p class="text-sm text-gray-500">设置历史记录页面的默认展示方式</p>
-                    </div>
-                  </div>
-                  <div class="flex items-center space-x-6 mt-2">
-                    <div
-                      class="flex flex-col items-center cursor-pointer p-2 rounded-lg transition-colors duration-200"
-                      @click="setDefaultLayout('grid')"
-                      :class="defaultLayout === 'grid' ? 'bg-[#fb7299]/5' : 'hover:bg-gray-100'"
-                    >
-                      <div class="w-28 h-20 border rounded-lg p-2 flex items-center justify-center mb-2"
-                           :class="defaultLayout === 'grid' ? 'border-[#fb7299] bg-[#fb7299]/5' : 'border-gray-200 bg-white'">
-                        <div class="grid grid-cols-3 gap-1 w-full">
-                          <div v-for="i in 6" :key="i"
-                               class="aspect-video rounded-sm"
-                               :class="defaultLayout === 'grid' ? 'bg-[#fb7299]/20' : 'bg-gray-200'"></div>
-                        </div>
-                      </div>
-                      <div class="text-sm font-medium" :class="defaultLayout === 'grid' ? 'text-[#fb7299]' : 'text-gray-500'">网格视图</div>
-                    </div>
-                    <div
-                      class="flex flex-col items-center cursor-pointer p-2 rounded-lg transition-colors duration-200"
-                      @click="setDefaultLayout('list')"
-                      :class="defaultLayout === 'list' ? 'bg-[#fb7299]/5' : 'hover:bg-gray-100'"
-                    >
-                      <div class="w-28 h-20 border rounded-lg p-2 flex flex-col justify-center space-y-1 mb-2"
-                           :class="defaultLayout === 'list' ? 'border-[#fb7299] bg-[#fb7299]/5' : 'border-gray-200 bg-white'">
-                        <div v-for="i in 4" :key="i"
-                             class="flex w-full h-3 space-x-1">
-                          <div class="w-1/3 rounded-sm"
-                               :class="defaultLayout === 'list' ? 'bg-[#fb7299]/20' : 'bg-gray-200'"></div>
-                          <div class="w-2/3 rounded-sm"
-                               :class="defaultLayout === 'list' ? 'bg-[#fb7299]/20' : 'bg-gray-200'"></div>
-                        </div>
-                      </div>
-                      <div class="text-sm font-medium" :class="defaultLayout === 'list' ? 'text-[#fb7299]' : 'text-gray-500'">列表视图</div>
                     </div>
                   </div>
                 </div>
@@ -546,7 +528,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, onUnmounted } from 'vue'
 import { showNotify } from 'vant'
 import 'vant/es/notify/style'
 import 'vant/es/toast/style'
@@ -656,16 +638,29 @@ watch(syncDeleted, (newVal) => {
   })
 })
 
-// 默认布局设置
-const defaultLayout = ref(localStorage.getItem('defaultLayout') || 'grid')
+// 首页默认布局设置 - 网格布局或列表布局
+const isGridLayout = ref(localStorage.getItem('defaultLayout') === 'list' ? false : true) // 默认为网格视图
 
-// 设置默认布局
-const setDefaultLayout = (layout) => {
-  defaultLayout.value = layout
-  localStorage.setItem('defaultLayout', layout)
+// 处理布局变更
+const handleLayoutChange = () => {
+  // 更新localStorage，保存用户选择的布局模式
+  const newLayout = isGridLayout.value ? 'grid' : 'list'
+  localStorage.setItem('defaultLayout', newLayout)
+  
+  // 触发全局事件，通知其他组件更新布局
+  try {
+    const event = new CustomEvent('layout-setting-changed', { 
+      detail: { layout: newLayout } 
+    })
+    window.dispatchEvent(event)
+    console.log('已触发布局设置更新事件:', newLayout)
+  } catch (error) {
+    console.error('触发布局设置更新事件失败:', error)
+  }
+  
   showNotify({
     type: 'success',
-    message: '默认布局已保存'
+    message: `已切换到${isGridLayout.value ? '网格' : '列表'}视图`
   })
 }
 
@@ -674,12 +669,54 @@ watch(privacyMode, (newVal) => {
   setPrivacyMode(newVal)
 })
 
+// 侧边栏显示设置
+const showSidebar = ref(localStorage.getItem('showSidebar') !== 'false') // 默认为true
+
+// 处理侧边栏设置变更
+const handleSidebarChange = () => {
+  localStorage.setItem('showSidebar', showSidebar.value.toString())
+  
+  // 触发全局事件，通知侧边栏组件更新设置
+  try {
+    const event = new CustomEvent('sidebar-setting-changed', { 
+      detail: { showSidebar: showSidebar.value } 
+    })
+    window.dispatchEvent(event)
+    console.log('已触发侧边栏设置更新事件:', showSidebar.value)
+  } catch (error) {
+    console.error('触发侧边栏设置更新事件失败:', error)
+  }
+  
+  showNotify({
+    type: 'success',
+    message: `已${showSidebar.value ? '启用' : '禁用'}侧边栏显示`
+  })
+}
+
 // 初始化服务器地址
 onMounted(async () => {
   console.log('Settings组件开始挂载')
   try {
     serverUrl.value = getCurrentBaseUrl()
     console.log('当前服务器地址:', serverUrl.value)
+    
+    // 监听侧边栏切换事件
+    window.addEventListener('sidebar-toggle-changed', handleSidebarToggleEvent)
+    
+    // 监听布局切换事件
+    window.addEventListener('layout-changed', handleLayoutChangedEvent)
+    
+    // 获取可用年份数据
+    await getAvailableYears().then(response => {
+      if (response.data.status === 'success') {
+        availableYears.value = response.data.data
+        if (availableYears.value.length > 0) {
+          exportOptions.value.year = availableYears.value[0]
+        }
+      }
+    }).catch(error => {
+      console.error('获取可用年份失败:', error)
+    })
 
     await Promise.all([
       (async () => {
@@ -1177,6 +1214,27 @@ const testEmailConfig = async () => {
       type: 'danger',
       message: `发送失败：${error.message || '未知错误'}`
     })
+  }
+}
+
+// 处理侧边栏切换事件
+const handleSidebarToggleEvent = (event) => {
+  if (event.detail && typeof event.detail.showSidebar === 'boolean') {
+    showSidebar.value = event.detail.showSidebar
+  }
+}
+
+// 在script setup部分添加卸载功能
+onUnmounted(() => {
+  // 移除事件监听
+  window.removeEventListener('sidebar-toggle-changed', handleSidebarToggleEvent)
+  window.removeEventListener('layout-changed', handleLayoutChangedEvent)
+})
+
+// 处理布局变更事件 - 从首页接收的布局变化
+const handleLayoutChangedEvent = (event) => {
+  if (event.detail && typeof event.detail.layout === 'string') {
+    isGridLayout.value = event.detail.layout === 'grid'
   }
 }
 </script>
