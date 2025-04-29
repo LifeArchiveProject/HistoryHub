@@ -76,20 +76,20 @@ jobs:
       run: |
         echo "当前目录内容："
         ls -la
-        
+
         echo "检查dist目录是否存在..."
         if [ ! -d "./dist" ]; then
           echo "警告: dist目录不存在，创建空目录"
           mkdir -p ./dist
         fi
-        
+
         echo "dist目录内容："
         ls -la ./dist/
-        
+
         echo "检查可能的构建产物目录:"
         find . -type d -name "*BilibiliHistory*" -o -name "*bili*" | grep -v "__pycache__"
       shell: bash
-      
+
     - name: 创建构建验证报告
       run: |
         # 创建简单版构建报告，确保在任何平台都能运行
@@ -100,21 +100,21 @@ jobs:
         echo "- 操作系统: ${{ matrix.os }}" >> build_report.md
         echo "- Python版本: ${{ matrix.python-version }}" >> build_report.md
         echo "" >> build_report.md
-        
+
         echo "## 构建产物" >> build_report.md
         if [ -d "./dist" ]; then
           echo "### dist目录内容:" >> build_report.md
           echo '```' >> build_report.md
           ls -la ./dist/ >> build_report.md
           echo '```' >> build_report.md
-          
+
           # 简单检查，使用ls和通配符列出可能的构建产物
           echo "### 可能的产物文件:" >> build_report.md
           echo '```' >> build_report.md
           # 使用简单的ls列出文件
           find ./dist -type d | sort >> build_report.md
           echo "" >> build_report.md
-          
+
           if [ "${{ matrix.os }}" == "windows-latest" ]; then
             # Windows特定文件
             ls -la ./dist/*.exe 2>/dev/null >> build_report.md || echo "未找到.exe文件" >> build_report.md
@@ -123,7 +123,7 @@ jobs:
             ls -la ./dist/**/BilibiliHistoryAnalyzer* 2>/dev/null >> build_report.md || echo "未找到主程序文件" >> build_report.md
           fi
           echo '```' >> build_report.md
-          
+
           # 添加目录树信息
           echo "### 目录结构:" >> build_report.md
           echo '```' >> build_report.md
@@ -138,7 +138,7 @@ jobs:
         else
           echo "❌ 未找到dist目录" >> build_report.md
         fi
-        
+
         echo "" >> build_report.md
         echo "## 构建状态" >> build_report.md
         if [ -d "./dist" ] && [ "$(ls -la ./dist/ | wc -l)" -gt 3 ]; then
@@ -150,23 +150,23 @@ jobs:
         else
           echo "❌ 构建失败 (dist目录为空或不存在)" >> build_report.md
         fi
-        
+
         cat build_report.md
       shell: bash
-      
+
     - name: 上传构建报告
       uses: actions/upload-artifact@v4
       with:
         name: build-report-${{ matrix.os }}
         path: build_report.md
-        
+
     - name: 打包构建结果
       run: |
         echo "当前平台: ${{ matrix.os }}"
-        
+
         # 确保dist目录存在
         mkdir -p ./dist
-        
+
         if [ "${{ matrix.os }}" == "windows-latest" ]; then
           # Windows平台特殊处理
           if [ -d "./dist/BilibiliHistoryAnalyzer" ]; then
@@ -190,7 +190,7 @@ jobs:
           # macOS平台
           echo "dist目录内容:"
           ls -la ./dist/
-          
+
           # 查找dist目录下的子目录
           DIST_DIR=$(find ./dist -type d -mindepth 1 -maxdepth 1 | head -1)
           if [ ! -z "$DIST_DIR" ]; then
@@ -206,7 +206,7 @@ jobs:
           # Linux平台
           echo "dist目录内容:"
           ls -la ./dist/
-          
+
           # 查找dist目录下的子目录
           DIST_DIR=$(find ./dist -type d -mindepth 1 -maxdepth 1 | head -1)
           if [ ! -z "$DIST_DIR" ]; then
@@ -257,4 +257,4 @@ jobs:
           - [macOS版](./BilibiliHistoryFetcher-macos.zip)
           - [Linux版](./BilibiliHistoryFetcher-linux.zip)
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
