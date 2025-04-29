@@ -123,7 +123,7 @@
    # 运行程序
    uv run main.py
    ```
-   
+
    **Linux/macOS系统:**
    ```bash
    # 安装 PyTorch（使用 NVIDIA 显卡）
@@ -133,7 +133,7 @@
    # 安装 PyTorch（使用 CPU）
    UV_TORCH_BACKEND=cpu uv pip install torch torchaudio torchvision
    ```
-   
+
    **Windows系统:**
    ```powershell
    # PowerShell中安装 PyTorch（使用 NVIDIA 显卡）
@@ -153,7 +153,7 @@
    set UV_TORCH_BACKEND=cpu
    uv pip install torch torchaudio torchvision
    ```
-   
+
    ```bash
    # 运行程序
    uv run main.py
