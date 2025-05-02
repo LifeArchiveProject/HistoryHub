@@ -34,6 +34,10 @@
   - [x] 修复失效视频
   - [x] 一键下载收藏夹所有视频
 
+## 后续开发计划
+
+项目正在积极开发中，您可以在我们的 [GitHub 项目计划页面](https://github.com/users/woijfwefw/projects/2) 查看最新的开发路线图和即将实现的功能。
+
 ## 系统要求
 
 - Python 3.10+
@@ -241,10 +245,6 @@ BilibiliHistoryAnalyzer.exe
 2. 创建特性分支
 3. 提交更改
 4. 发起 Pull Request
-
-## 后续开发计划
-
-项目正在积极开发中，您可以在我们的 [GitHub 项目计划页面](https://github.com/users/woijfwefw/projects/2) 查看最新的开发路线图和即将实现的功能。
 
 ## 致谢
 
