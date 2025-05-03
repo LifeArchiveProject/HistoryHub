@@ -1,124 +1,162 @@
 <script setup>
-import { ref, onMounted, provide } from 'vue'
-import { useRouter } from 'vue-router'
-import { tryConnectServers, setBaseUrl, updateInstanceBaseUrl } from './api/api'
-import { showDialog } from 'vant'
+import { onMounted, onUnmounted } from 'vue'
 import 'vant/es/notify/style'
 import 'vant/es/dialog/style'
+import { globalPixelate } from './utils/globalPixelate'
+import privacyManager from './utils/privacyManager'
 
-const isLoading = ref(true)
-const serverConnected = ref(false)
-const connectionChecked = ref(false)
-const baseUrl = ref('')
-const router = useRouter()
+let privacyCheckInterval = null
 
-provide('baseUrl', baseUrl)
-
-// 检查服务器连接
-const checkServerConnection = async () => {
-  try {
-    isLoading.value = true
-    const result = await tryConnectServers()
-
-    if (result.success) {
-      // 确保数据同步API也使用相同的baseUrl
-      updateInstanceBaseUrl(result.url)
-      serverConnected.value = true
-    } else {
-      // 显示服务器连接失败提示
-      showServerConnectionError()
-      serverConnected.value = false
-    }
-  } catch (error) {
-    console.error('连接服务器出错:', error)
-    showServerConnectionError()
-    serverConnected.value = false
-  } finally {
-    isLoading.value = false
-    connectionChecked.value = true
+// 确保像素化设置的初始值
+const ensurePixelSettings = () => {
+  // 如果用户之前没有设置过像素化质量值，设置默认值为20
+  if (localStorage.getItem('pixelQuality') === null) {
+    localStorage.setItem('pixelQuality', '20')
   }
 }
 
-// 显示服务器连接失败提示
-const showServerConnectionError = () => {
-  showDialog({
-    title: '服务器连接失败',
-    message: '无法连接到服务器，请检查服务器是否已启动，或手动设置服务器地址',
-    showCancelButton: true,
-    confirmButtonText: '设置服务器地址',
-    cancelButtonText: '继续尝试',
-    confirmButtonColor: '#fb7299'
-  }).then(() => {
-    // 用户点击设置服务器地址
-    const url = window.prompt('请输入服务器地址', 'http://localhost:8899')
-    if (url) {
-      setBaseUrl(url)
+// 处理隐私模式变化
+const handlePrivacyModeChange = (isEnabled) => {
+  console.log('隐私模式状态变化:', isEnabled)
+
+  if (isEnabled) {
+    // 隐私模式开启，强制关闭像素化
+    localStorage.setItem('usePixelImage', 'false')
+
+    // 如果全局像素化已启用，则禁用它
+    if (globalPixelate.enabled) {
+      globalPixelate.disable()
+
+      // 移除像素化样式
+      document.documentElement.classList.remove('use-pixel-images')
     }
-  }).catch(() => {
-    // 用户点击继续尝试，重新检查连接
-    checkServerConnection()
-  })
+  }
+}
+
+// 设置定时检查隐私模式
+const setupPrivacyModeChecker = () => {
+  // 每秒检查一次隐私模式状态
+  privacyCheckInterval = setInterval(() => {
+    // 如果隐私模式开启，检查并确保像素化已关闭
+    if (privacyManager.isEnabled() &&
+        (globalPixelate.enabled || localStorage.getItem('usePixelImage') === 'true')) {
+      handlePrivacyModeChange(true)
+    }
+  }, 1000)
 }
 
 onMounted(() => {
-  checkServerConnection()
+  // 确保像素化默认设置
+  ensurePixelSettings()
+
+  // 初始化像素字体设置
+  const usePixelFont = localStorage.getItem('usePixelFont') === 'true'
+  document.documentElement.classList.toggle('use-pixel-font', usePixelFont)
+
+  // 预加载像素字体
+  if (usePixelFont) {
+    // 预加载Ark像素字体
+    const preloadArkLatin = document.createElement('link')
+    preloadArkLatin.href = '/fonts/ark-pixel-font-10px-monospaced-ttf-v2025.03.14/ark-pixel-10px-monospaced-latin.ttf'
+    preloadArkLatin.rel = 'preload'
+    preloadArkLatin.as = 'font'
+    preloadArkLatin.type = 'font/ttf'
+    preloadArkLatin.crossOrigin = 'anonymous'
+    document.head.appendChild(preloadArkLatin)
+
+    const preloadArkZH = document.createElement('link')
+    preloadArkZH.href = '/fonts/ark-pixel-font-10px-monospaced-ttf-v2025.03.14/ark-pixel-10px-monospaced-zh_cn.ttf'
+    preloadArkZH.rel = 'preload'
+    preloadArkZH.as = 'font'
+    preloadArkZH.type = 'font/ttf'
+    preloadArkZH.crossOrigin = 'anonymous'
+    document.head.appendChild(preloadArkZH)
+  }
+
+  // 监听像素字体设置变更事件
+  window.addEventListener('pixel-font-changed', (event) => {
+    if (event.detail && typeof event.detail.usePixelFont === 'boolean') {
+      document.documentElement.classList.toggle('use-pixel-font', event.detail.usePixelFont)
+    }
+  })
+
+  // 添加隐私模式变化监听器
+  privacyManager.addListener(handlePrivacyModeChange)
+
+  // 首先检查隐私模式
+  const privacyModeEnabled = privacyManager.isEnabled()
+
+  // 如果隐私模式已开启，强制关闭像素化
+  if (privacyModeEnabled) {
+    handlePrivacyModeChange(true)
+  } else {
+    // 初始化图片像素化设置（只在非隐私模式下）
+    const usePixelImage = localStorage.getItem('usePixelImage') === 'true'
+    const pixelQuality = parseInt(localStorage.getItem('pixelQuality') || '20') // 默认值从50改为20
+
+    // 如果启用了像素化，初始化全局像素化处理器
+    if (usePixelImage) {
+      // 先添加像素渲染样式（在等待像素化处理时保持像素化效果）
+      document.documentElement.classList.add('use-pixel-images')
+      document.documentElement.setAttribute('data-pixel-quality', pixelQuality.toString())
+
+      // 启用全局像素化管理器
+      globalPixelate.enable({
+        quality: pixelQuality
+      })
+    }
+  }
+
+  // 监听图片像素化设置变更事件
+  window.addEventListener('pixel-image-changed', (event) => {
+    if (event.detail) {
+      const { usePixelImage, pixelQuality } = event.detail
+
+      // 如果隐私模式开启，阻止开启像素化
+      if (privacyManager.isEnabled() && usePixelImage) {
+        console.log('隐私模式下尝试开启像素化，已阻止')
+        return
+      }
+
+      // 添加或移除全局像素化样式
+      document.documentElement.classList.toggle('use-pixel-images', usePixelImage)
+      document.documentElement.setAttribute('data-pixel-quality', pixelQuality.toString())
+
+      if (usePixelImage) {
+        // 启用或更新全局像素化处理
+        if (globalPixelate.enabled) {
+          globalPixelate.updateQuality(pixelQuality)
+        } else {
+          globalPixelate.enable({
+            quality: pixelQuality
+          })
+        }
+      } else {
+        // 禁用全局像素化处理
+        globalPixelate.disable()
+      }
+    }
+  })
+
+  // 设置定时检查隐私模式
+  setupPrivacyModeChecker()
+})
+
+onUnmounted(() => {
+  // 清除定时器
+  if (privacyCheckInterval) {
+    clearInterval(privacyCheckInterval)
+  }
 })
 </script>
 
 <template>
   <div>
-    <!-- 服务器连接检查提示 -->
-    <div v-if="isLoading && !connectionChecked" class="server-check-overlay">
-      <div class="server-check-container">
-        <div class="server-check-spinner"></div>
-        <div class="server-check-text">连接服务器中...</div>
-      </div>
-    </div>
-
     <!-- 主应用内容 -->
     <router-view></router-view>
   </div>
 </template>
 
 <style scoped>
-.server-check-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(255, 255, 255, 0.9);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-}
-
-.server-check-container {
-  text-align: center;
-  padding: 20px;
-  border-radius: 8px;
-  background-color: white;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
-}
-
-.server-check-spinner {
-  width: 40px;
-  height: 40px;
-  margin: 0 auto 16px;
-  border: 4px solid rgba(251, 114, 153, 0.2);
-  border-top: 4px solid #fb7299;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-.server-check-text {
-  font-size: 16px;
-  color: #333;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
+/* 已移除服务器连接相关样式 */
 </style>
