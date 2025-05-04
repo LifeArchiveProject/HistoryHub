@@ -101,7 +101,7 @@
                 </div>
               </div>
             </div>
-            
+
             <!-- 收藏夹列表 -->
             <div class="animate-fadeIn" v-if="!showFolderContents">
               <!-- 收藏夹列表显示区域 -->
@@ -246,11 +246,11 @@
                       ({{ invalidVideosCount }} 个失效)
                     </div>
                   </div>
-                  
+
                   <div class="flex items-center space-x-3 mt-2 sm:mt-0">
-                    <button 
+                    <button
                       v-if="activeTab !== 'local'"
-                      @click="startDownloadFolder(currentFolder)" 
+                      @click="startDownloadFolder(currentFolder)"
                       class="flex items-center px-3 py-1.5 text-xs text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-md transition-colors"
                     >
                       <svg class="w-3.5 h-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -258,10 +258,10 @@
                       </svg>
                       <span>下载收藏夹</span>
                     </button>
-                    
-                    <button 
+
+                    <button
                       v-if="invalidVideosCount > 0"
-                      @click="repairInvalidVideos" 
+                      @click="repairInvalidVideos"
                       class="flex items-center px-3 py-1.5 text-xs text-yellow-600 bg-yellow-50 hover:bg-yellow-100 rounded-md transition-colors"
                       :disabled="repairing"
                     >
@@ -582,8 +582,13 @@ async function checkLoginStatus() {
   checkingLoginStatus.value = true
   try {
     const response = await getLoginStatus()
-    if (response.data.status === 'success') {
-      isLoggedIn.value = response.data.data.is_logged_in
+    console.log('获取登录状态响应:', response.data)
+    if (response.data && response.data.code === 0) {
+      isLoggedIn.value = response.data.data.isLogin
+      console.log('登录状态:', isLoggedIn.value)
+    } else {
+      console.warn('登录状态响应异常:', response.data)
+      isLoggedIn.value = false
     }
   } catch (error) {
     console.error('获取登录状态失败:', error)
@@ -1882,14 +1887,14 @@ const invalidVideosCount = computed(() => {
 // 开始下载收藏夹
 async function startDownloadFolder(folder) {
   if (!folder) return;
-  
+
   // 检查登录状态
   if (!isLoggedIn.value) {
     showNotify({ type: 'warning', message: '请先登录B站账号' });
     showLoginDialog.value = true;
     return;
   }
-  
+
   // 获取完整的收藏夹视频总数
   try {
     // 发起一次API请求获取视频总数，仅获取第一页第一条
@@ -1898,7 +1903,7 @@ async function startDownloadFolder(folder) {
       pn: 1,
       ps: 1
     });
-    
+
     if (response.data && response.data.status === 'success' && response.data.data) {
       // 更新收藏夹信息
       if (response.data.data.info) {
@@ -1906,13 +1911,13 @@ async function startDownloadFolder(folder) {
       } else if (response.data.data.total) {
         folder.media_count = response.data.data.total;
       }
-      
+
       console.log(`获取到收藏夹[${folder.title}]视频总数: ${folder.media_count}`);
     }
   } catch (error) {
     console.error('获取收藏夹信息失败:', error);
   }
-  
+
   // 设置要下载的收藏夹信息
   favoriteDownloadInfo.value = {
     title: `收藏夹: ${folder.title || '未命名收藏夹'}`,
@@ -1927,7 +1932,7 @@ async function startDownloadFolder(folder) {
     // 添加视频总数信息，帮助下载对话框显示正确的总数
     total_videos: folder.media_count || 0
   };
-  
+
   // 打开下载对话框
   showDownloadDialog.value = true;
 }

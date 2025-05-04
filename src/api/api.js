@@ -441,21 +441,25 @@ export const clearImages = () => {
 }
 
 // 下载视频
-export const downloadVideo = async (bvid, sessdata = null, onMessage, downloadCover = true, onlyAudio = false, cid = 0) => {
-  console.log('调用下载API, bvid:', bvid)
+export const downloadVideo = async (bvid, sessdata = null, onMessage, downloadCover = true, onlyAudio = false, cid = 0, options = {}) => {
+  console.log('调用下载API, bvid:', bvid, '高级选项:', options)
+
+  const requestBody = {
+    url: bvid,
+    sessdata,
+    download_cover: downloadCover,
+    only_audio: onlyAudio,
+    cid,
+    // 添加高级选项
+    ...options
+  }
 
   const response = await fetch(`${BASE_URL}/download/download_video`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({
-      url: bvid,
-      sessdata,
-      download_cover: downloadCover,
-      only_audio: onlyAudio,
-      cid
-    })
+    body: JSON.stringify(requestBody)
   })
 
   if (!response.ok) {
@@ -1051,18 +1055,25 @@ export const repairFavoriteVideos = (params = {}) => {
 export const downloadFavorites = async (options, onMessage) => {
   console.log('调用收藏夹下载API, 参数:', options)
 
+  // 提取基本选项和高级选项
+  const { user_id, fid, sessdata, download_cover, only_audio, ...advancedOptions } = options
+
+  const requestBody = {
+    user_id,
+    fid,
+    sessdata,
+    download_cover: download_cover ?? true,
+    only_audio: only_audio ?? false,
+    // 添加高级选项
+    ...advancedOptions
+  }
+
   const response = await fetch(`${BASE_URL}/download/download_favorites`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({
-      user_id: options.user_id,
-      fid: options.fid,
-      sessdata: options.sessdata,
-      download_cover: options.download_cover ?? true,
-      only_audio: options.only_audio ?? false
-    })
+    body: JSON.stringify(requestBody)
   })
 
   if (!response.ok) {
@@ -1118,17 +1129,24 @@ export const downloadFavorites = async (options, onMessage) => {
 export const downloadUserVideos = async (options, onMessage) => {
   console.log('调用用户视频下载API, 参数:', options)
 
+  // 提取基本选项和高级选项
+  const { user_id, sessdata, download_cover, only_audio, ...advancedOptions } = options
+
+  const requestBody = {
+    user_id,
+    sessdata,
+    download_cover: download_cover ?? true,
+    only_audio: only_audio ?? false,
+    // 添加高级选项
+    ...advancedOptions
+  }
+
   const response = await fetch(`${BASE_URL}/download/download_user_videos`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({
-      user_id: options.user_id,
-      sessdata: options.sessdata,
-      download_cover: options.download_cover ?? true,
-      only_audio: options.only_audio ?? false
-    })
+    body: JSON.stringify(requestBody)
   })
 
   if (!response.ok) {
