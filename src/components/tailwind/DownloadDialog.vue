@@ -8,33 +8,33 @@
   <Teleport to="body">
     <div v-if="show" class="fixed inset-0 z-[9999] flex items-center justify-center">
       <!-- 遮罩层 -->
-      <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" @click="handleClose"></div>
+      <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" @click="handleClose"></div>
 
       <!-- 弹窗内容 -->
-      <div class="relative bg-white rounded-lg shadow-xl w-[100vw] h-[100vh] z-10 overflow-y-auto">
+      <div class="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl w-[96vw] max-w-5xl h-[95vh] z-10 overflow-hidden flex flex-col">
         <!-- 关闭按钮 -->
         <button
           @click="handleClose"
-          class="absolute right-4 top-4 text-gray-400 hover:text-gray-500 z-20"
+          class="absolute right-4 top-4 text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 z-20 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
         >
           <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
 
-        <!-- Yutto 项目致谢 -->
-        <div class="py-2 px-3 flex items-center justify-between bg-gray-50 border-b border-gray-100 rounded-t-lg">
-          <div class="flex items-center space-x-2">
+        <!-- 页眉区域：包含Yutto致谢和FFmpeg状态 -->
+        <div class="px-6 py-3 flex items-center justify-between bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+          <div class="flex items-center space-x-3">
             <img src="https://yutto.nyakku.moe/logo-mini.svg" alt="Yutto Logo" class="w-6 h-6">
             <div class="flex flex-col">
-              <p class="text-xs text-gray-600">下载功能通过 <a href="https://yutto.nyakku.moe/" target="_blank" class="text-[#fb7299] hover:text-[#fb7299]/80 font-medium">Yutto</a> 实现</p>
-              <p class="text-xs text-gray-400">感谢 Yutto 开发团队的开源贡献</p>
+              <p class="text-xs text-gray-700 dark:text-gray-300">下载功能通过 <a href="https://yutto.nyakku.moe/" target="_blank" class="text-[#fb7299] hover:text-[#fb7299]/80 font-medium">Yutto</a> 实现</p>
+              <p class="text-xs text-gray-500 dark:text-gray-400">感谢 Yutto 开发团队的开源贡献</p>
             </div>
           </div>
 
           <!-- FFmpeg 状态 -->
           <div v-if="ffmpegStatus" class="flex-shrink-0">
-            <div v-if="ffmpegStatus.installed" class="flex items-center space-x-1 p-1 bg-green-50 text-green-700 rounded-lg text-xs">
+            <div v-if="ffmpegStatus.installed" class="flex items-center space-x-1 p-1.5 bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-lg text-xs">
               <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
               </svg>
@@ -45,13 +45,13 @@
             </div>
             <div v-else class="group relative">
               <div class="flex flex-col space-y-1">
-                <div class="flex items-center space-x-1 p-1 bg-red-50 text-red-700 rounded-lg text-xs">
+                <div class="flex items-center space-x-1 p-1.5 bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-lg text-xs">
                   <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                   </svg>
                   <p class="font-medium">FFmpeg 未安装</p>
                 </div>
-                <div class="text-xs text-gray-600">
+                <div class="text-xs text-gray-600 dark:text-gray-400">
                   <p>
                     <a href="https://yutto.nyakku.moe/guide/quick-start#ffmpeg-%E4%B8%8B%E8%BD%BD%E4%B8%8E%E9%85%8D%E7%BD%AE"
                        target="_blank"
@@ -61,17 +61,14 @@
                   </p>
                 </div>
               </div>
-              <!-- 添加间隙区域 -->
               <div class="hidden group-hover:block hover:block absolute right-0 top-full h-2 w-full"></div>
-              <!-- 悬浮提示 -->
-              <div class="hidden group-hover:block hover:block absolute right-0 top-[calc(100%+0.5rem)] w-[500px] p-3 bg-white rounded-lg shadow-lg border border-gray-200 z-30 text-xs">
-                <p class="font-medium text-gray-900 mb-2">安装指南：</p>
-                <!-- 使用接口返回的安装指南 -->
+              <div class="hidden group-hover:block hover:block absolute right-0 top-[calc(100%+0.5rem)] w-[500px] p-3 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-30 text-xs">
+                <p class="font-medium text-gray-900 dark:text-gray-100 mb-2">安装指南：</p>
                 <div v-if="ffmpegStatus?.install_guide" class="space-y-1 whitespace-pre-wrap">
                   <div v-for="(line, index) in installGuideLines" :key="index" class="flex items-start space-x-1">
                     <template v-if="isCommand(line)">
-                      <div class="flex-1 bg-gray-50 p-1 rounded break-all">
-                        <code class="text-gray-700">{{ getCommandContent(line) }}</code>
+                      <div class="flex-1 bg-gray-50 dark:bg-gray-900 p-1.5 rounded break-all">
+                        <code class="text-gray-700 dark:text-gray-300">{{ getCommandContent(line) }}</code>
                       </div>
                       <button @click="copyToClipboard(getCommandContent(line))"
                               class="text-[#fb7299] hover:text-[#fb7299]/80 p-1 rounded-md hover:bg-[#fb7299]/10 flex-shrink-0"
@@ -82,7 +79,7 @@
                       </button>
                     </template>
                     <template v-else>
-                      <p class="text-gray-600 break-all">{{ line }}</p>
+                      <p class="text-gray-600 dark:text-gray-400 break-all">{{ line }}</p>
                     </template>
                   </div>
                 </div>
@@ -91,284 +88,305 @@
           </div>
         </div>
 
-        <!-- 标题 -->
-        <div class="px-4 pt-2 pb-0">
-          <div>
-            <h3 class="text-base font-medium text-gray-900">{{ isFavoriteFolder ? '下载收藏夹' : '下载视频' }}</h3>
-            <p v-if="downloadStarted" class="text-xs text-gray-500">
-              {{ isDownloading ? '正在下载：' : (downloadError ? '下载出错：' : '下载完成：') }} {{ currentVideoTitle }}
-            </p>
-            <p v-else class="text-xs text-gray-500">
-              {{ videoInfo.title }}
-            </p>
-            <!-- 收藏夹视频总数 -->
-            <p v-if="isFavoriteFolder" class="text-xs text-gray-500">
-              共 {{ favoritePageInfo.totalCount || props.videoInfo.total_videos || favoriteVideos.length }} 个视频，当前进度：{{ currentVideoIndex + 1 }}/{{ favoritePageInfo.totalCount || props.videoInfo.total_videos || favoriteVideos.length }}
-            </p>
+        <!-- 主内容区域 -->
+        <div class="flex-1 overflow-y-auto">
+          <div class="p-6">
+            <!-- 标题 -->
+            <div class="mb-4">
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ isFavoriteFolder ? '下载收藏夹' : '下载视频' }}</h3>
+              <p v-if="downloadStarted" class="text-sm text-gray-500 dark:text-gray-400">
+                {{ isDownloading ? '正在下载：' : (downloadError ? '下载出错：' : '下载完成：') }} {{ currentVideoTitle }}
+              </p>
+              <p v-else class="text-sm text-gray-500 dark:text-gray-400">
+                {{ videoInfo.title }}
+              </p>
+              <!-- 收藏夹视频总数 -->
+              <p v-if="isFavoriteFolder" class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                共 {{ favoritePageInfo.totalCount || props.videoInfo.total_videos || favoriteVideos.length }} 个视频，当前进度：{{ currentVideoIndex + 1 }}/{{ favoritePageInfo.totalCount || props.videoInfo.total_videos || favoriteVideos.length }}
+              </p>
+            </div>
+
+            <!-- 视频信息 -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 mb-4">
+              <div class="flex items-start space-x-4">
+                <div class="w-32 h-20 flex-shrink-0 overflow-hidden rounded-lg">
+                  <img :src="currentVideoCover" :alt="currentVideoTitle" class="w-full h-full object-cover transition-transform hover:scale-105">
+                </div>
+                <div class="flex-1 min-w-0">
+                  <h4 class="text-base font-medium text-gray-900 dark:text-gray-100 truncate whitespace-nowrap overflow-hidden">{{ currentVideoTitle }}</h4>
+                  <p v-if="!isFavoriteFolder" class="text-xs text-gray-500 dark:text-gray-400 mt-1">UP主：{{ props.videoInfo.author || '未知' }}</p>
+                  <p v-if="!isFavoriteFolder" class="text-xs text-gray-500 dark:text-gray-400">BV号：{{ props.videoInfo.bvid || '未知' }}</p>
+                  
+                  <!-- 基础下载选项 -->
+                  <div class="flex flex-wrap gap-4 items-center mt-3">
+                    <label class="flex items-center space-x-2 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        v-model="downloadCover"
+                        class="w-4 h-4 text-[#fb7299] border-gray-300 rounded focus:ring-[#fb7299]"
+                      >
+                      <span class="text-sm text-gray-700 dark:text-gray-300">下载并合成视频封面</span>
+                    </label>
+                    <label class="flex items-center space-x-2 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        v-model="onlyAudio"
+                        class="w-4 h-4 text-[#fb7299] border-gray-300 rounded focus:ring-[#fb7299]"
+                      >
+                      <span class="text-sm text-gray-700 dark:text-gray-300">仅下载音频</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 高级下载选项区域 -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 mb-4 overflow-hidden">
+              <!-- 高级选项标题 -->
+              <div class="bg-gray-50 dark:bg-gray-700/50 p-3 flex justify-between items-center border-b border-gray-200 dark:border-gray-700">
+                <h4 class="text-sm font-medium text-gray-800 dark:text-gray-200">高级下载选项</h4>
+                <p class="text-xs text-gray-500 dark:text-gray-400">这些选项可以帮助您更精细地控制下载过程</p>
+              </div>
+
+              <div class="p-4">
+                <!-- 基础参数区块 -->
+                <div class="mb-4">
+                  <h5 class="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wide">视频和音频质量</h5>
+                  <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <!-- 视频清晰度 -->
+                    <div>
+                      <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1">视频清晰度</label>
+                      <CustomDropdown
+                        v-model="advancedOptions.video_quality"
+                        :options="videoQualityOptions"
+                        :selected-text="getVideoQualityText(advancedOptions.video_quality)"
+                        custom-class="w-full text-xs"
+                      />
+                      <div class="text-xs text-gray-500 dark:text-gray-400 mt-1 text-[10px]">
+                        yutto会尽可能满足清晰度要求，如不存在会自动调节
+                      </div>
+                    </div>
+
+                    <!-- 音频码率 -->
+                    <div>
+                      <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1">音频码率</label>
+                      <CustomDropdown
+                        v-model="advancedOptions.audio_quality"
+                        :options="audioQualityOptions"
+                        :selected-text="getAudioQualityText(advancedOptions.audio_quality)"
+                        custom-class="w-full text-xs"
+                      />
+                    </div>
+
+                    <!-- 输出格式 -->
+                    <div>
+                      <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1">输出格式</label>
+                      <CustomDropdown
+                        v-model="advancedOptions.output_format"
+                        :options="outputFormatOptions"
+                        :selected-text="getOutputFormatText(advancedOptions.output_format)"
+                        custom-class="w-full text-xs"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 编码参数区块 -->
+                <div class="mb-4">
+                  <h5 class="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wide">编码选项</h5>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <!-- 视频编码 -->
+                    <div>
+                      <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1">视频编码</label>
+                      <CustomDropdown
+                        v-model="advancedOptions.vcodec"
+                        :options="vcodecOptions"
+                        :selected-text="getVcodecText(advancedOptions.vcodec)"
+                        custom-class="w-full text-xs"
+                      />
+                    </div>
+
+                    <!-- 音频编码 -->
+                    <div>
+                      <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1">音频编码</label>
+                      <CustomDropdown
+                        v-model="advancedOptions.acodec"
+                        :options="acodecOptions"
+                        :selected-text="getAcodecText(advancedOptions.acodec)"
+                        custom-class="w-full text-xs"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 资源选项区块 -->
+                <div>
+                  <h5 class="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wide">资源选择</h5>
+                  <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                    <!-- 第一行 -->
+                    <label class="flex items-center space-x-2 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        v-model="advancedOptions.video_only"
+                        class="w-4 h-4 text-[#fb7299] border-gray-300 rounded focus:ring-[#fb7299]"
+                        :disabled="onlyAudio"
+                      >
+                      <span class="text-xs text-gray-700 dark:text-gray-300">仅下载视频流</span>
+                    </label>
+
+                    <label class="flex items-center space-x-2 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        v-model="advancedOptions.no_danmaku"
+                        class="w-4 h-4 text-[#fb7299] border-gray-300 rounded focus:ring-[#fb7299]"
+                        :disabled="advancedOptions.danmaku_only"
+                      >
+                      <span class="text-xs text-gray-700 dark:text-gray-300">不生成弹幕</span>
+                    </label>
+
+                    <label class="flex items-center space-x-2 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        v-model="advancedOptions.danmaku_only"
+                        class="w-4 h-4 text-[#fb7299] border-gray-300 rounded focus:ring-[#fb7299]"
+                        :disabled="advancedOptions.no_danmaku"
+                      >
+                      <span class="text-xs text-gray-700 dark:text-gray-300">仅生成弹幕</span>
+                    </label>
+
+                    <label class="flex items-center space-x-2 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        v-model="advancedOptions.no_subtitle"
+                        class="w-4 h-4 text-[#fb7299] border-gray-300 rounded focus:ring-[#fb7299]"
+                        :disabled="advancedOptions.subtitle_only"
+                      >
+                      <span class="text-xs text-gray-700 dark:text-gray-300">不生成字幕</span>
+                    </label>
+
+                    <!-- 第二行 -->
+                    <label class="flex items-center space-x-2 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        v-model="advancedOptions.subtitle_only"
+                        class="w-4 h-4 text-[#fb7299] border-gray-300 rounded focus:ring-[#fb7299]"
+                        :disabled="advancedOptions.no_subtitle"
+                      >
+                      <span class="text-xs text-gray-700 dark:text-gray-300">仅生成字幕</span>
+                    </label>
+
+                    <label class="flex items-center space-x-2 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        v-model="advancedOptions.with_metadata"
+                        class="w-4 h-4 text-[#fb7299] border-gray-300 rounded focus:ring-[#fb7299]"
+                        :disabled="advancedOptions.metadata_only"
+                      >
+                      <span class="text-xs text-gray-700 dark:text-gray-300">生成元数据</span>
+                    </label>
+
+                    <label class="flex items-center space-x-2 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        v-model="advancedOptions.metadata_only"
+                        class="w-4 h-4 text-[#fb7299] border-gray-300 rounded focus:ring-[#fb7299]"
+                        :disabled="advancedOptions.with_metadata"
+                      >
+                      <span class="text-xs text-gray-700 dark:text-gray-300">仅生成元数据</span>
+                    </label>
+
+                    <label class="flex items-center space-x-2 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        v-model="advancedOptions.no_cover"
+                        class="w-4 h-4 text-[#fb7299] border-gray-300 rounded focus:ring-[#fb7299]"
+                        :disabled="!downloadCover || advancedOptions.save_cover || advancedOptions.cover_only"
+                      >
+                      <span class="text-xs text-gray-700 dark:text-gray-300">不生成封面</span>
+                    </label>
+
+                    <!-- 第三行 -->
+                    <label class="flex items-center space-x-2 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        v-model="advancedOptions.save_cover"
+                        class="w-4 h-4 text-[#fb7299] border-gray-300 rounded focus:ring-[#fb7299]"
+                        :disabled="!downloadCover || advancedOptions.cover_only || advancedOptions.no_cover"
+                      >
+                      <span class="text-xs text-gray-700 dark:text-gray-300">单独保存封面</span>
+                    </label>
+
+                    <label class="flex items-center space-x-2 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        v-model="advancedOptions.cover_only"
+                        class="w-4 h-4 text-[#fb7299] border-gray-300 rounded focus:ring-[#fb7299]"
+                        :disabled="!downloadCover || advancedOptions.save_cover || advancedOptions.no_cover"
+                      >
+                      <span class="text-xs text-gray-700 dark:text-gray-300">仅生成封面</span>
+                    </label>
+
+                    <label class="flex items-center space-x-2 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        v-model="advancedOptions.no_chapter_info"
+                        class="w-4 h-4 text-[#fb7299] border-gray-300 rounded focus:ring-[#fb7299]"
+                      >
+                      <span class="text-xs text-gray-700 dark:text-gray-300">不生成章节</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 下载日志 -->
+            <div class="w-full h-[calc(100vh-600px)] min-h-[150px] bg-gray-50 dark:bg-gray-900 rounded-lg p-3 font-mono text-xs overflow-y-auto border border-gray-200 dark:border-gray-700" ref="logContainer">
+              <div v-if="!downloadStarted" class="text-gray-500 dark:text-gray-400 flex items-center justify-center h-full">
+                <div class="text-center">
+                  <svg class="w-8 h-8 mx-auto mb-2 text-gray-400 dark:text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  <p>点击下方按钮开始下载...</p>
+                </div>
+              </div>
+              <div v-else>
+                <div v-for="(log, index) in downloadLogs" :key="index" class="whitespace-pre break-all leading-5 py-0.5" :class="{
+                  'text-gray-600 dark:text-gray-400': !log.includes('ERROR') && !log.includes('下载完成') && !log.includes('WARN'),
+                  'text-red-500 dark:text-red-400': log.includes('ERROR'),
+                  'text-green-500 dark:text-green-400': log.includes('下载完成'),
+                  'text-yellow-500 dark:text-yellow-400': log.includes('WARN'),
+                }">{{ log }}</div>
+              </div>
+            </div>
           </div>
         </div>
 
-        <!-- 视频信息 -->
-        <div class="p-4 pt-2 flex flex-col space-y-2">
-          <!-- 视频基本信息 -->
-          <div class="flex items-start space-x-3">
-            <div class="w-28 h-20 flex-shrink-0">
-              <img :src="currentVideoCover" :alt="currentVideoTitle" class="w-full h-full object-cover rounded-lg">
-            </div>
-            <div class="flex-1 min-w-0">
-              <h4 class="text-base font-medium text-gray-900 truncate whitespace-nowrap overflow-hidden">{{ currentVideoTitle }}</h4>
-              <p v-if="!isFavoriteFolder" class="text-xs text-gray-500">UP主：{{ props.videoInfo.author || '未知' }}</p>
-              <p v-if="!isFavoriteFolder" class="text-xs text-gray-500">BV号：{{ props.videoInfo.bvid || '未知' }}</p>
-              <!-- 基础下载选项 -->
-              <div class="flex flex-wrap gap-3 items-start text-xs text-gray-600 relative mt-1">
-                <div>
-                  <label class="flex items-center space-x-1 cursor-pointer select-none">
-                    <input
-                      type="checkbox"
-                      v-model="downloadCover"
-                      class="w-3 h-3 text-[#fb7299] border-gray-300 rounded focus:ring-[#fb7299]"
-                    >
-                    <span>下载并合成视频封面</span>
-                  </label>
-                  <div class="text-xs text-gray-500 ml-4 text-[10px]">
-                    提示：FFmpeg版本过低时可能导致封面合成失败
-                  </div>
-                </div>
-                <label class="flex items-center space-x-1 cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    v-model="onlyAudio"
-                    class="w-3 h-3 text-[#fb7299] border-gray-300 rounded focus:ring-[#fb7299]"
-                  >
-                  <span>仅下载音频</span>
-                </label>
-              </div>
-            </div>
+        <!-- 页脚区域：状态和按钮 -->
+        <div class="bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-4 flex items-center justify-between">
+          <div class="text-sm font-medium" :class="{
+            'text-gray-500 dark:text-gray-400': !downloadStarted,
+            'text-red-500 dark:text-red-400': downloadError,
+            'text-green-500 dark:text-green-400': !isDownloading && downloadStarted && !downloadError,
+            'text-[#fb7299]': isDownloading
+          }">
+            {{ downloadStatus }}
           </div>
-
-          <!-- 高级下载选项标题 -->
-          <div class="flex justify-between items-center">
-            <h4 class="text-xs font-medium text-gray-800">高级下载选项</h4>
-            <p class="text-xs text-gray-500">以下选项可以帮助您更精细地控制视频下载过程</p>
-          </div>
-
-          <!-- 基础参数和资源选择参数 -->
-          <div class="grid grid-cols-6 gap-2 mb-1">
-            <!-- 第一列：视频清晰度 -->
-            <div class="col-span-2">
-              <label class="block text-xs text-gray-600 mb-0.5">视频清晰度</label>
-              <CustomDropdown
-                v-model="advancedOptions.video_quality"
-                :options="videoQualityOptions"
-                :selected-text="getVideoQualityText(advancedOptions.video_quality)"
-                custom-class="w-full text-xs"
-              />
-              <div class="text-xs text-gray-500 mt-0.5 text-[10px]">
-                yutto会尽可能满足您的清晰度要求，如果不存在指定清晰度，会自动调节
-              </div>
-            </div>
-
-            <!-- 第二列：音频码率 -->
-            <div>
-              <label class="block text-xs text-gray-600 mb-0.5">音频码率</label>
-              <CustomDropdown
-                v-model="advancedOptions.audio_quality"
-                :options="audioQualityOptions"
-                :selected-text="getAudioQualityText(advancedOptions.audio_quality)"
-                custom-class="w-full text-xs"
-              />
-            </div>
-
-            <!-- 第三列：视频编码 -->
-            <div>
-              <label class="block text-xs text-gray-600 mb-0.5">视频编码</label>
-              <CustomDropdown
-                v-model="advancedOptions.vcodec"
-                :options="vcodecOptions"
-                :selected-text="getVcodecText(advancedOptions.vcodec)"
-                custom-class="w-full text-xs"
-              />
-            </div>
-
-            <!-- 第四列：音频编码 -->
-            <div>
-              <label class="block text-xs text-gray-600 mb-0.5">音频编码</label>
-              <CustomDropdown
-                v-model="advancedOptions.acodec"
-                :options="acodecOptions"
-                :selected-text="getAcodecText(advancedOptions.acodec)"
-                custom-class="w-full text-xs"
-              />
-            </div>
-
-            <!-- 第五列：输出格式 -->
-            <div>
-              <label class="block text-xs text-gray-600 mb-0.5">输出格式</label>
-              <CustomDropdown
-                v-model="advancedOptions.output_format"
-                :options="outputFormatOptions"
-                :selected-text="getOutputFormatText(advancedOptions.output_format)"
-                custom-class="w-full text-xs"
-              />
-            </div>
-          </div>
-
-          <!-- 资源选择参数 -->
-          <div class="grid grid-cols-6 gap-1 mb-1">
-            <label class="flex items-center space-x-1 cursor-pointer select-none">
-              <input
-                type="checkbox"
-                v-model="advancedOptions.video_only"
-                class="w-3 h-3 text-[#fb7299] border-gray-300 rounded focus:ring-[#fb7299]"
-                :disabled="onlyAudio"
-              >
-              <span class="text-xs">仅下载视频流</span>
-            </label>
-
-            <label class="flex items-center space-x-1 cursor-pointer select-none">
-              <input
-                type="checkbox"
-                v-model="advancedOptions.no_danmaku"
-                class="w-3 h-3 text-[#fb7299] border-gray-300 rounded focus:ring-[#fb7299]"
-                :disabled="advancedOptions.danmaku_only"
-              >
-              <span class="text-xs">不生成弹幕</span>
-            </label>
-
-            <label class="flex items-center space-x-1 cursor-pointer select-none">
-              <input
-                type="checkbox"
-                v-model="advancedOptions.danmaku_only"
-                class="w-3 h-3 text-[#fb7299] border-gray-300 rounded focus:ring-[#fb7299]"
-                :disabled="advancedOptions.no_danmaku"
-              >
-              <span class="text-xs">仅生成弹幕</span>
-            </label>
-
-            <label class="flex items-center space-x-1 cursor-pointer select-none">
-              <input
-                type="checkbox"
-                v-model="advancedOptions.no_subtitle"
-                class="w-3 h-3 text-[#fb7299] border-gray-300 rounded focus:ring-[#fb7299]"
-                :disabled="advancedOptions.subtitle_only"
-              >
-              <span class="text-xs">不生成字幕</span>
-            </label>
-
-            <label class="flex items-center space-x-1 cursor-pointer select-none">
-              <input
-                type="checkbox"
-                v-model="advancedOptions.subtitle_only"
-                class="w-3 h-3 text-[#fb7299] border-gray-300 rounded focus:ring-[#fb7299]"
-                :disabled="advancedOptions.no_subtitle"
-              >
-              <span class="text-xs">仅生成字幕</span>
-            </label>
-
-            <label class="flex items-center space-x-1 cursor-pointer select-none">
-              <input
-                type="checkbox"
-                v-model="advancedOptions.with_metadata"
-                class="w-3 h-3 text-[#fb7299] border-gray-300 rounded focus:ring-[#fb7299]"
-                :disabled="advancedOptions.metadata_only"
-              >
-              <span class="text-xs">生成元数据</span>
-            </label>
-          </div>
-
-          <div class="grid grid-cols-6 gap-1 mb-1">
-            <label class="flex items-center space-x-1 cursor-pointer select-none">
-              <input
-                type="checkbox"
-                v-model="advancedOptions.metadata_only"
-                class="w-3 h-3 text-[#fb7299] border-gray-300 rounded focus:ring-[#fb7299]"
-                :disabled="advancedOptions.with_metadata"
-              >
-              <span class="text-xs">仅生成元数据</span>
-            </label>
-
-            <label class="flex items-center space-x-1 cursor-pointer select-none">
-              <input
-                type="checkbox"
-                v-model="advancedOptions.no_cover"
-                class="w-3 h-3 text-[#fb7299] border-gray-300 rounded focus:ring-[#fb7299]"
-                :disabled="!downloadCover || advancedOptions.save_cover || advancedOptions.cover_only"
-              >
-              <span class="text-xs">不生成封面</span>
-            </label>
-
-            <label class="flex items-center space-x-1 cursor-pointer select-none">
-              <input
-                type="checkbox"
-                v-model="advancedOptions.save_cover"
-                class="w-3 h-3 text-[#fb7299] border-gray-300 rounded focus:ring-[#fb7299]"
-                :disabled="!downloadCover || advancedOptions.cover_only || advancedOptions.no_cover"
-              >
-              <span class="text-xs">单独保存封面</span>
-            </label>
-
-            <label class="flex items-center space-x-1 cursor-pointer select-none">
-              <input
-                type="checkbox"
-                v-model="advancedOptions.cover_only"
-                class="w-3 h-3 text-[#fb7299] border-gray-300 rounded focus:ring-[#fb7299]"
-                :disabled="!downloadCover || advancedOptions.save_cover || advancedOptions.no_cover"
-              >
-              <span class="text-xs">仅生成封面</span>
-            </label>
-
-            <label class="flex items-center space-x-1 cursor-pointer select-none">
-              <input
-                type="checkbox"
-                v-model="advancedOptions.no_chapter_info"
-                class="w-3 h-3 text-[#fb7299] border-gray-300 rounded focus:ring-[#fb7299]"
-              >
-              <span class="text-xs">不生成章节</span>
-            </label>
-          </div>
-
-          <!-- 下载日志 -->
-          <div class="w-full h-[calc(100vh-400px)] bg-gray-50 rounded-lg p-3 font-mono text-xs overflow-y-auto mt-2" ref="logContainer">
-            <div v-if="!downloadStarted" class="text-gray-500">
-              点击下方按钮开始下载...
-            </div>
-            <div v-else>
-              <div v-for="(log, index) in downloadLogs" :key="index" class="whitespace-pre break-all leading-5" :class="{
-                'text-gray-600': !log.includes('ERROR'),
-                'text-red-500': log.includes('ERROR'),
-                'text-green-500': log.includes('下载完成'),
-                'text-yellow-500': log.includes('WARN'),
-              }">{{ log }}</div>
-            </div>
-          </div>
-
-          <!-- 状态和按钮 -->
-          <div class="w-full flex items-center justify-between mt-2">
-            <div class="text-xs" :class="{
-              'text-gray-500': !downloadStarted,
-              'text-red-500': downloadError,
-              'text-green-500': !isDownloading && downloadStarted && !downloadError,
-              'text-[#fb7299]': isDownloading
-            }">
-              {{ downloadStatus }}
-            </div>
-            <div class="flex space-x-3">
-              <button
-                @click="handleClose"
-                class="px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-                :disabled="isDownloading"
-              >
-                {{ isDownloading ? '下载中...' : '关闭' }}
-              </button>
-              <button
-                v-if="!downloadStarted || downloadError"
-                @click="startDownload"
-                class="px-3 py-1.5 text-xs font-medium text-white bg-[#fb7299] rounded-md hover:bg-[#fb7299]/90 disabled:opacity-50"
-                :disabled="isDownloading"
-              >
-                {{ downloadError ? '重试' : '开始下载' }}
-              </button>
-            </div>
+          <div class="flex space-x-3">
+            <button
+              @click="handleClose"
+              class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+              :disabled="isDownloading"
+            >
+              {{ isDownloading ? '下载中...' : '关闭' }}
+            </button>
+            <button
+              v-if="!downloadStarted || downloadError"
+              @click="startDownload"
+              class="px-4 py-2 text-sm font-medium text-white bg-[#fb7299] rounded-md hover:bg-[#fb7299]/90 disabled:opacity-50 transition-colors"
+              :disabled="isDownloading"
+            >
+              {{ downloadError ? '重试' : '开始下载' }}
+            </button>
           </div>
         </div>
       </div>
