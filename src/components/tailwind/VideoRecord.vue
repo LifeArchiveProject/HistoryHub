@@ -93,7 +93,7 @@
               <span>已下载</span>
             </div>
           </div>
-          
+
           <!-- 收藏状态标识 -->
           <div v-if="isVideoFavorited"
                class="absolute right-0 top-0 z-10">
@@ -104,7 +104,7 @@
               <span>已收藏</span>
             </div>
           </div>
-          
+
           <img
             :src="record.cover || record.covers[0]"
             class="h-full w-full object-cover transition-all duration-300"
@@ -203,7 +203,7 @@
               <span>已下载</span>
             </div>
           </div>
-          
+
           <!-- 收藏状态标识 -->
           <div v-if="isVideoFavorited"
                class="absolute right-0 top-0 z-10">
@@ -214,7 +214,7 @@
               <span>已收藏</span>
             </div>
           </div>
-          
+
           <img
             v-if="record.cover"
             :src="record.cover"
@@ -319,7 +319,7 @@
             >
               {{ record.tag_name }}
             </span>
-            
+
             <!-- 备注输入框 -->
             <div class="flex-1 relative group" @click.stop>
               <div class="flex items-center space-x-1">
@@ -427,7 +427,7 @@
 import { computed, ref, onMounted, watch } from 'vue'
 import { usePrivacyStore } from '../../store/privacy'
 import { showDialog, showNotify } from 'vant'
-import { batchDeleteHistory, updateVideoRemark } from '../../api/api'
+import { batchDeleteHistory, updateVideoRemark, deleteBilibiliHistory } from '../../api/api'
 import 'vant/es/dialog/style'
 import 'vant/es/popup/style'
 import 'vant/es/field/style'
@@ -621,15 +621,67 @@ const getProgressWidth = (progress, duration) => {
 // 处理删除事件
 const handleDelete = async () => {
   try {
+    // 检查是否需要同步删除B站历史记录
+    const syncDeleteToBilibili = localStorage.getItem('syncDeleteToBilibili') === 'true'
+
+    // 根据是否同步删除B站历史记录，显示不同的确认信息
     await showDialog({
       title: '确认删除',
-      message: '确定要删除这条记录吗？此操作不可恢复。',
+      message: syncDeleteToBilibili
+        ? '确定要删除这条记录吗？此操作将同时删除B站服务器上的历史记录，不可恢复。'
+        : '确定要删除这条记录吗？此操作不可恢复。',
       showCancelButton: true,
       confirmButtonText: '确认删除',
       cancelButtonText: '取消',
       confirmButtonColor: '#fb7299'
     })
 
+    if (syncDeleteToBilibili) {
+      try {
+        // 构建kid
+        let kid = ''
+        const business = props.record.business || 'archive'
+
+        // 根据业务类型构建kid
+        switch (business) {
+          case 'archive':
+            // 使用oid而不是bvid
+            kid = `${business}_${props.record.oid}`
+            break
+          case 'live':
+            kid = `${business}_${props.record.oid}`
+            break
+          case 'article':
+            kid = `${business}_${props.record.oid}`
+            break
+          case 'pgc':
+            kid = `${business}_${props.record.oid || props.record.ssid}`
+            break
+          case 'article-list':
+            kid = `${business}_${props.record.oid || props.record.rlid}`
+            break
+          default:
+            kid = `${business}_${props.record.oid || props.record.bvid}`
+            break
+        }
+
+        if (kid) {
+          // 调用B站历史记录删除API
+          const biliResponse = await deleteBilibiliHistory(kid, true)
+          if (biliResponse.data.status === 'success') {
+            console.log('B站历史记录删除成功:', biliResponse.data)
+          } else {
+            console.error('B站历史记录删除失败:', biliResponse.data)
+            throw new Error(biliResponse.data.message || '删除B站历史记录失败')
+          }
+        }
+      } catch (error) {
+        console.error('B站历史记录删除失败:', error)
+        // 即使B站删除失败，也继续删除本地记录
+      }
+    }
+
+    // 删除本地记录
     const response = await batchDeleteHistory([{
       bvid: props.record.bvid,
       view_at: props.record.view_at
@@ -637,7 +689,7 @@ const handleDelete = async () => {
     if (response.data.status === 'success') {
       showNotify({
         type: 'success',
-        message: response.data.message
+        message: response.data.message + (syncDeleteToBilibili ? '，并已同步删除B站历史记录' : '')
       })
       emit('refresh-data')
     } else {

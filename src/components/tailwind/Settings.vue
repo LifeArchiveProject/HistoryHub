@@ -139,25 +139,25 @@
                     </p>
                   </div>
                   <label class="relative inline-flex items-center cursor-pointer">
-                    <input 
-                      type="checkbox" 
-                      v-model="usePixelImage" 
-                      class="sr-only peer" 
+                    <input
+                      type="checkbox"
+                      v-model="usePixelImage"
+                      class="sr-only peer"
                       @change="handlePixelImageChange"
                     >
                     <div class="w-11 h-6 bg-gray-200 peer-focus:ring-4 peer-focus:ring-[#fb7299]/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#fb7299]"></div>
                   </label>
                 </div>
-                
+
                 <div v-if="usePixelImage" class="mt-3">
                   <label class="block text-sm font-medium text-gray-700 mb-2">像素化程度</label>
                   <div class="flex items-center space-x-3">
-                    <input 
-                      type="range" 
-                      min="5" 
-                      max="70" 
-                      step="5" 
-                      v-model="pixelQuality" 
+                    <input
+                      type="range"
+                      min="5"
+                      max="70"
+                      step="5"
+                      v-model="pixelQuality"
                       class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                       @change="handlePixelQualityChange"
                     />
@@ -180,6 +180,20 @@
                   </div>
                   <label class="relative inline-flex items-center cursor-pointer">
                     <input type="checkbox" v-model="syncDeleted" class="sr-only peer">
+                    <div class="w-11 h-6 bg-gray-200 peer-focus:ring-4 peer-focus:ring-[#fb7299]/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#fb7299]"></div>
+                  </label>
+                </div>
+              </div>
+
+              <!-- 同步删除B站历史记录 -->
+              <div class="p-4 transition-colors duration-200 hover:bg-gray-50">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <h3 class="text-base font-medium text-gray-900">同步删除B站历史记录</h3>
+                    <p class="text-sm text-gray-500">开启后删除本地历史记录时，同时删除B站服务器上的对应记录</p>
+                  </div>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" v-model="syncDeleteToBilibili" class="sr-only peer" @change="handleSyncDeleteToBilibiliChange">
                     <div class="w-11 h-6 bg-gray-200 peer-focus:ring-4 peer-focus:ring-[#fb7299]/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#fb7299]"></div>
                   </label>
                 </div>
@@ -698,6 +712,18 @@ watch(syncDeleted, (newVal) => {
   })
 })
 
+// 同步删除B站历史记录
+const syncDeleteToBilibili = ref(localStorage.getItem('syncDeleteToBilibili') === 'true')
+
+// 处理同步删除B站历史记录变更
+const handleSyncDeleteToBilibiliChange = () => {
+  localStorage.setItem('syncDeleteToBilibili', syncDeleteToBilibili.value.toString())
+  showNotify({
+    type: 'success',
+    message: syncDeleteToBilibili.value ? '已开启同步删除B站历史记录' : '已关闭同步删除B站历史记录'
+  })
+}
+
 // 首页默认布局设置 - 网格布局或列表布局
 const isGridLayout = ref(localStorage.getItem('defaultLayout') === 'list' ? false : true) // 默认为网格视图
 
@@ -715,29 +741,29 @@ const handlePixelImageChange = () => {
     privacyMode.value = false
     setPrivacyMode(false)
     privacyManager.disable()
-    
+
     showNotify({
       type: 'info',
       message: '已自动关闭隐私模式'
     })
   }
-  
+
   localStorage.setItem('usePixelImage', usePixelImage.value.toString())
-  
+
   // 触发全局事件，通知其他组件更新图片
   try {
-    const event = new CustomEvent('pixel-image-changed', { 
-      detail: { 
+    const event = new CustomEvent('pixel-image-changed', {
+      detail: {
         usePixelImage: usePixelImage.value,
-        pixelQuality: pixelQuality.value 
-      } 
+        pixelQuality: pixelQuality.value
+      }
     })
     window.dispatchEvent(event)
     console.log('已触发图片像素化设置更新事件:', usePixelImage.value, pixelQuality.value)
   } catch (error) {
     console.error('触发图片像素化设置更新事件失败:', error)
   }
-  
+
   showNotify({
     type: 'success',
     message: `已${usePixelImage.value ? '启用' : '禁用'}图片像素化`
@@ -747,21 +773,21 @@ const handlePixelImageChange = () => {
 // 处理像素化质量变更
 const handlePixelQualityChange = () => {
   localStorage.setItem('pixelQuality', pixelQuality.value.toString())
-  
+
   // 触发全局事件，通知其他组件更新图片
   try {
-    const event = new CustomEvent('pixel-image-changed', { 
-      detail: { 
+    const event = new CustomEvent('pixel-image-changed', {
+      detail: {
         usePixelImage: usePixelImage.value,
-        pixelQuality: pixelQuality.value 
-      } 
+        pixelQuality: pixelQuality.value
+      }
     })
     window.dispatchEvent(event)
     console.log('已触发图片像素化质量更新事件:', pixelQuality.value)
   } catch (error) {
     console.error('触发图片像素化质量更新事件失败:', error)
   }
-  
+
   showNotify({
     type: 'success',
     message: `已调整像素化质量为${pixelQuality.value}%`
@@ -771,21 +797,21 @@ const handlePixelQualityChange = () => {
 // 处理像素字体变更
 const handlePixelFontChange = () => {
   localStorage.setItem('usePixelFont', usePixelFont.value.toString())
-  
+
   // 触发全局事件，通知其他组件更新字体
   try {
-    const event = new CustomEvent('pixel-font-changed', { 
-      detail: { usePixelFont: usePixelFont.value } 
+    const event = new CustomEvent('pixel-font-changed', {
+      detail: { usePixelFont: usePixelFont.value }
     })
     window.dispatchEvent(event)
     console.log('已触发像素字体设置更新事件:', usePixelFont.value)
   } catch (error) {
     console.error('触发像素字体设置更新事件失败:', error)
   }
-  
+
   // 应用字体更改
   document.documentElement.classList.toggle('use-pixel-font', usePixelFont.value)
-  
+
   showNotify({
     type: 'success',
     message: `已${usePixelFont.value ? '启用' : '禁用'}Ark像素字体`
@@ -797,18 +823,18 @@ const handleLayoutChange = () => {
   // 更新localStorage，保存用户选择的布局模式
   const newLayout = isGridLayout.value ? 'grid' : 'list'
   localStorage.setItem('defaultLayout', newLayout)
-  
+
   // 触发全局事件，通知其他组件更新布局
   try {
-    const event = new CustomEvent('layout-setting-changed', { 
-      detail: { layout: newLayout } 
+    const event = new CustomEvent('layout-setting-changed', {
+      detail: { layout: newLayout }
     })
     window.dispatchEvent(event)
     console.log('已触发布局设置更新事件:', newLayout)
   } catch (error) {
     console.error('触发布局设置更新事件失败:', error)
   }
-  
+
   showNotify({
     type: 'success',
     message: `已切换到${isGridLayout.value ? '网格' : '列表'}视图`
@@ -819,29 +845,29 @@ const handleLayoutChange = () => {
 watch(privacyMode, (newVal) => {
   // 更新store中的隐私模式状态
   setPrivacyMode(newVal)
-  
+
   // 更新localStorage中的隐私模式状态并触发自定义事件
   if (newVal) {
     privacyManager.enable()
-    
+
     // 隐私模式开启时，如果图片像素化已开启则自动关闭它
     if (usePixelImage.value) {
       usePixelImage.value = false
-      
+
       // 更新localStorage并触发事件，但不显示额外通知
       localStorage.setItem('usePixelImage', 'false')
       try {
-        const event = new CustomEvent('pixel-image-changed', { 
-          detail: { 
+        const event = new CustomEvent('pixel-image-changed', {
+          detail: {
             usePixelImage: false,
-            pixelQuality: pixelQuality.value 
-          } 
+            pixelQuality: pixelQuality.value
+          }
         })
         window.dispatchEvent(event)
       } catch (error) {
         console.error('触发图片像素化设置更新事件失败:', error)
       }
-      
+
       showNotify({
         type: 'info',
         message: '已自动关闭图片像素化'
@@ -858,18 +884,18 @@ const showSidebar = ref(localStorage.getItem('showSidebar') !== 'false') // 默�
 // 处理侧边栏设置变更
 const handleSidebarChange = () => {
   localStorage.setItem('showSidebar', showSidebar.value.toString())
-  
+
   // 触发全局事件，通知侧边栏组件更新设置
   try {
-    const event = new CustomEvent('sidebar-setting-changed', { 
-      detail: { showSidebar: showSidebar.value } 
+    const event = new CustomEvent('sidebar-setting-changed', {
+      detail: { showSidebar: showSidebar.value }
     })
     window.dispatchEvent(event)
     console.log('已触发侧边栏设置更新事件:', showSidebar.value)
   } catch (error) {
     console.error('触发侧边栏设置更新事件失败:', error)
   }
-  
+
   showNotify({
     type: 'success',
     message: `已${showSidebar.value ? '启用' : '禁用'}侧边栏显示`
@@ -879,28 +905,28 @@ const handleSidebarChange = () => {
 // 初始化服务器地址
 onMounted(async () => {
   console.log('Settings组件开始挂载')
-  
+
   // 添加隐私模式监听器
   privacyManager.addListener((isEnabled) => {
     console.log('Settings组件接收到隐私模式变化:', isEnabled)
-    
+
     // 更新组件内的隐私模式状态
     if (privacyMode.value !== isEnabled) {
       privacyMode.value = isEnabled
     }
-    
+
     // 如果隐私模式开启且图片像素化已开启，则自动关闭图片像素化
     if (isEnabled && usePixelImage.value) {
       usePixelImage.value = false
-      
+
       // 更新localStorage并触发事件
       localStorage.setItem('usePixelImage', 'false')
       try {
-        const event = new CustomEvent('pixel-image-changed', { 
-          detail: { 
+        const event = new CustomEvent('pixel-image-changed', {
+          detail: {
             usePixelImage: false,
-            pixelQuality: pixelQuality.value 
-          } 
+            pixelQuality: pixelQuality.value
+          }
         })
         window.dispatchEvent(event)
       } catch (error) {
@@ -908,45 +934,45 @@ onMounted(async () => {
       }
     }
   })
-  
+
   // 同步当前隐私模式状态
   const currentPrivacyMode = privacyManager.isEnabled()
   if (privacyMode.value !== currentPrivacyMode) {
     privacyMode.value = currentPrivacyMode
   }
-  
+
   // 检查当前隐私模式状态与像素化设置的一致性
   if (currentPrivacyMode && usePixelImage.value) {
     usePixelImage.value = false
-    
+
     // 更新localStorage并触发事件
     localStorage.setItem('usePixelImage', 'false')
     try {
-      const event = new CustomEvent('pixel-image-changed', { 
-        detail: { 
+      const event = new CustomEvent('pixel-image-changed', {
+        detail: {
           usePixelImage: false,
-          pixelQuality: pixelQuality.value 
-        } 
+          pixelQuality: pixelQuality.value
+        }
       })
       window.dispatchEvent(event)
     } catch (error) {
       console.error('触发图片像素化设置更新事件失败:', error)
     }
   }
-  
+
   try {
     serverUrl.value = getCurrentBaseUrl()
     console.log('当前服务器地址:', serverUrl.value)
-    
+
     // 初始化像素字体设置
     document.documentElement.classList.toggle('use-pixel-font', usePixelFont.value)
-    
+
     // 监听侧边栏切换事件
     window.addEventListener('sidebar-toggle-changed', handleSidebarToggleEvent)
-    
+
     // 监听布局切换事件
     window.addEventListener('layout-changed', handleLayoutChangedEvent)
-    
+
     // 获取可用年份数据
     await getAvailableYears().then(response => {
       if (response.data.status === 'success') {

@@ -102,11 +102,11 @@
 
             <!-- 网格布局的视频卡片 -->
             <div class="bg-white/50 dark:bg-white/5 backdrop-blur-sm rounded-lg overflow-hidden border border-gray-200/50 hover:border-[#FF6699] hover:shadow-md transition-all duration-200 relative group"
-                 :class="{ 'ring-2 ring-[#fb7299]': selectedRecords.has(`${record.bvid}_${record.view_at}`) }">
+                 :class="{ 'ring-2 ring-[#fb7299]': selectedRecords.has(`${record.bvid}_${record.view_at}`), 'cursor-pointer': isBatchMode }"
+                 @click="isBatchMode ? toggleRecordSelection(record) : null">
               <!-- 多选框 -->
               <div v-if="isBatchMode"
-                   class="absolute top-2 left-2 z-10"
-                   @click.stop="toggleRecordSelection(record)">
+                   class="absolute top-2 left-2 z-10">
                 <div class="w-5 h-5 rounded border-2 flex items-center justify-center"
                      :class="selectedRecords.has(`${record.bvid}_${record.view_at}`) ? 'bg-[#fb7299] border-[#fb7299]' : 'border-white bg-black/20'">
                   <svg v-if="selectedRecords.has(`${record.bvid}_${record.view_at}`)" class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -116,7 +116,7 @@
               </div>
 
               <!-- 封面图片 -->
-              <div class="relative aspect-video cursor-pointer" @click="handleVideoClick(record)">
+              <div class="relative aspect-video" :class="{ 'cursor-pointer': !isBatchMode }" @click="!isBatchMode ? handleVideoClick(record) : null">
                 <!-- 下载状态标识 -->
                 <div v-if="isVideoDownloaded(record.cid) && record.business === 'archive'"
                      class="absolute left-0 top-0 z-20">
@@ -202,10 +202,10 @@
               <!-- 视频信息 -->
               <div class="p-3 flex flex-col space-y-1">
                 <!-- 标题 - 单行显示 -->
-                <div class="line-clamp-1 text-sm text-gray-900 cursor-pointer"
+                <div class="line-clamp-1 text-sm text-gray-900"
                      v-html="isPrivacyMode ? '******' : highlightText(record.title)"
-                     :class="{ 'blur-sm': isPrivacyMode }"
-                     @click="handleVideoClick(record)">
+                     :class="{ 'blur-sm': isPrivacyMode, 'cursor-pointer': !isBatchMode }"
+                     @click="!isBatchMode ? handleVideoClick(record) : null">
                 </div>
                 <!-- 分区标签 - 单行显示 -->
                 <div class="text-xs text-gray-500 truncate flex items-center space-x-1">
@@ -220,15 +220,15 @@
                   <div class="flex items-center space-x-2 min-w-0 flex-1">
                     <img v-if="record.business !== 'cheese' && record.business !== 'pgc'"
                          :src="record.author_face"
-                         :class="{ 'blur-md': isPrivacyMode }"
-                         class="w-4 h-4 rounded-full flex-shrink-0 cursor-pointer"
-                         @click="handleAuthorClick(record)"
+                         :class="{ 'blur-md': isPrivacyMode, 'cursor-pointer': !isBatchMode }"
+                         class="w-4 h-4 rounded-full flex-shrink-0"
+                         @click="!isBatchMode ? handleAuthorClick(record) : null"
                          :title="isPrivacyMode ? '隐私模式已开启' : `访问 ${record.author_name} 的个人空间`"
                     />
                     <span v-html="isPrivacyMode ? '******' : highlightText(record.author_name)"
-                          :class="{ 'blur-sm': isPrivacyMode }"
-                          class="cursor-pointer hover:text-[#fb7299] transition-colors duration-200 truncate"
-                          @click="handleAuthorClick(record)">
+                          :class="{ 'blur-sm': isPrivacyMode, 'cursor-pointer': !isBatchMode }"
+                          class="hover:text-[#fb7299] transition-colors duration-200 truncate"
+                          @click="!isBatchMode ? handleAuthorClick(record) : null">
                     </span>
                   </div>
                   <div class="flex items-center space-x-2 flex-shrink-0">
@@ -456,7 +456,8 @@ import {
   checkVideoDownload,
   batchCheckFavoriteStatus,
   favoriteResource,
-  localBatchFavoriteResource
+  localBatchFavoriteResource,
+  batchDeleteBilibiliHistory
 } from '../../api/api.js'
 import { showNotify, showDialog } from 'vant'
 import 'vant/es/dialog/style'
@@ -576,9 +577,15 @@ const handleBatchDelete = async () => {
   }
 
   try {
+    // 检查是否需要同步删除B站历史记录
+    const syncDeleteToBilibili = localStorage.getItem('syncDeleteToBilibili') === 'true'
+
+    // 根据是否同步删除B站历史记录，显示不同的确认信息
     await showDialog({
       title: '确认删除',
-      message: `确定要删除选中的 ${selectedRecords.value.size} 条记录吗？此操作不可恢复。`,
+      message: syncDeleteToBilibili
+        ? `确定要删除选中的 ${selectedRecords.value.size} 条记录吗？此操作将同时删除B站服务器上的历史记录，不可恢复。`
+        : `确定要删除选中的 ${selectedRecords.value.size} 条记录吗？此操作不可恢复。`,
       showCancelButton: true,
       confirmButtonText: '确认删除',
       cancelButtonText: '取消',
@@ -594,11 +601,72 @@ const handleBatchDelete = async () => {
       }
     })
 
+    if (syncDeleteToBilibili) {
+      // 构建B站历史记录删除请求的items
+      const biliItems = items.map(item => {
+        // 查找对应的完整记录以获取业务类型
+        const record = records.value.find(r => r.bvid === item.bvid && r.view_at === item.view_at)
+        if (!record) return null
+
+        // 根据业务类型构建kid
+        const business = record.business || 'archive'
+        let kid = ''
+
+        switch (business) {
+          case 'archive':
+            // 使用oid而不是bvid
+            kid = `${business}_${record.oid}`
+            break
+          case 'live':
+            kid = `${business}_${record.oid}`
+            break
+          case 'article':
+            kid = `${business}_${record.oid}`
+            break
+          case 'pgc':
+            kid = `${business}_${record.oid || record.ssid}`
+            break
+          case 'article-list':
+            kid = `${business}_${record.oid || record.rlid}`
+            break
+          default:
+            kid = `${business}_${record.oid || record.bvid}`
+            break
+        }
+
+        if (!kid) {
+          return null
+        }
+
+        return {
+          kid,
+          sync_to_bilibili: true
+        }
+      }).filter(item => item !== null)
+
+      if (biliItems.length > 0) {
+        try {
+          // 调用B站历史记录删除API
+          const biliResponse = await batchDeleteBilibiliHistory(biliItems)
+          if (biliResponse.data.status === 'success' || biliResponse.data.status === 'partial_success') {
+            console.log('B站历史记录删除成功或部分成功:', biliResponse.data)
+          } else {
+            console.error('B站历史记录删除失败:', biliResponse.data)
+            throw new Error(biliResponse.data.message || '删除B站历史记录失败')
+          }
+        } catch (error) {
+          console.error('B站历史记录删除失败:', error)
+          // 即使B站删除失败，也继续删除本地记录
+        }
+      }
+    }
+
+    // 删除本地记录
     const response = await batchDeleteHistory(items)
     if (response.data.status === 'success') {
       showNotify({
         type: 'success',
-        message: response.data.message
+        message: response.data.message + (syncDeleteToBilibili ? '，并已同步删除B站历史记录' : '')
       })
       selectedRecords.value.clear()
       await fetchHistoryByDateRange()
@@ -1214,14 +1282,64 @@ const highlightText = (text) => {
 // 处理删除记录
 const handleDelete = async (record) => {
   try {
+    // 检查是否需要同步删除B站历史记录
+    const syncDeleteToBilibili = localStorage.getItem('syncDeleteToBilibili') === 'true'
+
     await showDialog({
       title: '确认删除',
-      message: '确定要删除这条记录吗？此操作不可恢复。',
+      message: syncDeleteToBilibili
+        ? '确定要删除这条记录吗？此操作将同时删除B站服务器上的历史记录，不可恢复。'
+        : '确定要删除这条记录吗？此操作不可恢复。',
       showCancelButton: true,
       confirmButtonText: '确认删除',
       cancelButtonText: '取消',
       confirmButtonColor: '#fb7299'
     })
+
+    // 如果需要同步删除B站历史记录
+    if (syncDeleteToBilibili) {
+      // 构建B站历史记录删除请求
+      const business = record.business || 'archive'
+      let kid = ''
+
+      switch (business) {
+        case 'archive':
+          // 使用oid而不是bvid
+          kid = `${business}_${record.oid}`
+          break
+        case 'live':
+          kid = `${business}_${record.oid}`
+          break
+        case 'article':
+          kid = `${business}_${record.oid}`
+          break
+        case 'pgc':
+          kid = `${business}_${record.oid || record.ssid}`
+          break
+        case 'article-list':
+          kid = `${business}_${record.oid || record.rlid}`
+          break
+        default:
+          kid = `${business}_${record.oid || record.bvid}`
+          break
+      }
+
+      if (kid) {
+        try {
+          // 调用B站历史记录删除API
+          const biliResponse = await deleteBilibiliHistory(kid, true)
+          if (biliResponse.data.status === 'success') {
+            console.log('B站历史记录删除成功:', biliResponse.data)
+          } else {
+            console.error('B站历史记录删除失败:', biliResponse.data)
+            // 即使B站删除失败，也继续删除本地记录
+          }
+        } catch (error) {
+          console.error('B站历史记录删除失败:', error)
+          // 即使B站删除失败，也继续删除本地记录
+        }
+      }
+    }
 
     const response = await batchDeleteHistory([{
       bvid: record.bvid,
@@ -1230,7 +1348,7 @@ const handleDelete = async (record) => {
     if (response.data.status === 'success') {
       showNotify({
         type: 'success',
-        message: response.data.message
+        message: response.data.message + (syncDeleteToBilibili ? '，并已同步删除B站历史记录' : '')
       })
       fetchHistoryByDateRange()
     } else {

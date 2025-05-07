@@ -375,6 +375,25 @@ export const batchDeleteHistory = (items) => {
   })
 }
 
+// 删除B站历史记录
+export const deleteBilibiliHistory = (kid, syncToBilibili = true) => {
+  return instance.delete(`/bilibili/history/single`, {
+    params: {
+      kid,
+      sync_to_bilibili: syncToBilibili
+    }
+  })
+}
+
+// 批量删除B站历史记录
+export const batchDeleteBilibiliHistory = (items) => {
+  return instance.delete('/bilibili/history/batch', {
+    data: {
+      items
+    }
+  })
+}
+
 // 数据库管理相关接口
 // 重置数据库
 export const resetDatabase = () => {
