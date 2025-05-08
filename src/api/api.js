@@ -77,6 +77,48 @@ const instance = axios.create({
   baseURL: BASE_URL,
 })
 
+// 请求拦截器 - 添加API密钥到请求头
+instance.interceptors.request.use(
+  (config) => {
+    // 从本地存储获取API密钥
+    const apiKey = localStorage.getItem('apiKey')
+
+    // 如果存在API密钥，添加到请求头
+    if (apiKey) {
+      config.headers['X-API-Key'] = apiKey
+    }
+
+    return config
+  },
+  (error) => {
+    return Promise.reject(error)
+  }
+)
+
+// 响应拦截器 - 处理API密钥错误
+instance.interceptors.response.use(
+  (response) => {
+    return response
+  },
+  (error) => {
+    // 如果是401错误（未授权），可能是API密钥无效
+    if (error.response && error.response.status === 401) {
+      console.error('API密钥验证失败:', error.response.data)
+
+      // 显示错误通知（如果有Vant的Notify组件）
+      if (window.vant && window.vant.Notify) {
+        window.vant.Notify({
+          type: 'danger',
+          message: '未授权：API密钥无效',
+          duration: 3000
+        })
+      }
+    }
+
+    return Promise.reject(error)
+  }
+)
+
 // 更新 axios 实例的 baseURL
 export const updateInstanceBaseUrl = (newBaseUrl) => {
   instance.defaults.baseURL = newBaseUrl
@@ -760,6 +802,24 @@ export const setDeepSeekApiKey = (apiKey) => {
 
 export const getDeepSeekBalance = () => {
   return instance.get('/deepseek/balance')
+}
+
+// API安全相关接口
+export const checkApiKey = () => {
+  return instance.get('/api/security/check')
+}
+
+export const updateApiKey = (apiKey) => {
+  return instance.post('/api/security/update_key', {
+    api_key: apiKey
+  })
+}
+
+export const verifyAndUpdateApiKey = (currentApiKey, newApiKey) => {
+  return instance.post('/api/security/verify_and_update', {
+    current_api_key: currentApiKey,
+    new_api_key: newApiKey
+  })
 }
 
 // 检查视频是否已下载
