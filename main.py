@@ -13,6 +13,7 @@ warnings.filterwarnings("ignore", category=SyntaxWarning, message="invalid escap
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from loguru import logger
+from middleware.api_key_middleware import APIKeyMiddleware
 
 from routers import (
     analysis,
@@ -41,7 +42,8 @@ from routers import (
     data_sync,
     favorite,
     popular_videos,
-    bilibili_history_delete
+    bilibili_history_delete,
+    api_security
 )
 from scripts.scheduler_db_enhanced import EnhancedSchedulerDB
 from scripts.scheduler_manager import SchedulerManager
@@ -339,13 +341,16 @@ async def health_check():
         "scheduler_status": "running" if scheduler_manager and scheduler_manager.is_running else "stopped"
     }
 
-# 添加 CORS 中间件
+# 添加 API 密钥验证中间件
+app.add_middleware(APIKeyMiddleware)
+
+# 添加 CORS 中间件（放在API密钥中间件之后，这样CORS中间件会先执行）
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # 允许所有来源
     allow_credentials=True,
     allow_methods=["*"],  # 允许所有方法
-    allow_headers=["*"],  # 允许所有头部
+    allow_headers=["*", "X-API-Key"],  # 明确允许X-API-Key头部
 )
 
 # 注册路由
@@ -376,6 +381,7 @@ app.include_router(data_sync.router, prefix="/data_sync", tags=["数据同步与
 app.include_router(favorite.router, prefix="/favorite", tags=["收藏夹管理"])
 app.include_router(popular_videos.router, prefix="/bilibili", tags=["B站热门"])
 app.include_router(bilibili_history_delete.router, prefix="/bilibili/history", tags=["B站历史记录删除"])
+app.include_router(api_security.router, prefix="/api/security", tags=["API安全"])
 
 # 入口点，启动应用
 if __name__ == "__main__":
