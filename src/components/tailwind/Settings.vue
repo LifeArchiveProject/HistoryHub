@@ -594,6 +594,14 @@
                     <li><a href="https://www.aicu.cc/" target="_blank" rel="noopener noreferrer" class="text-[#fb7299] hover:underline">aicu.cc</a> - 第三方B站用户评论API</li>
                     <li><a href="https://github.com/TakWolf/ark-pixel-font" target="_blank" rel="noopener noreferrer" class="text-[#fb7299] hover:underline">方舟像素字体</a> - 开源的泛中日韩像素字体</li>
                     <li><a href="https://github.com/TakWolf/fusion-pixel-font" target="_blank" rel="noopener noreferrer" class="text-[#fb7299] hover:underline">缝合像素字体</a> - 混搭风格的像素字体</li>
+                    <li>
+                      <div class="flex items-center">
+                        <a href="https://www.xiaoheihe.cn/app/bbs/link/153880174" target="_blank" rel="noopener noreferrer" class="flex items-center hover:opacity-80 transition-opacity mr-1.5">
+                          <span class="text-[#fb7299] hover:underline">shengyI</span>
+                        </a>
+                        - 视频观看总时长功能思路提供者
+                      </div>
+                    </li>
                     <li>所有贡献者</li>
                   </ul>
                 </div>

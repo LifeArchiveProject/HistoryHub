@@ -1,130 +1,126 @@
 <template>
-  <div class="min-h-screen bg-gray-50/30">
-    <div class="py-6">
-      <div class="max-w-7xl mx-auto px-4">
-        <!-- 页面标题 -->
-        <div class="flex items-center justify-between mb-8">
-          <div class="flex items-center space-x-3 text-gray-900">
-            <svg class="w-7 h-7 text-[#fb7299]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-            </svg>
-            <h1 class="text-2xl font-medium">我的备注</h1>
-          </div>
-          <div class="text-sm text-gray-500">
-            共 {{ total }} 条备注
-          </div>
-        </div>
+  <div>
+    <!-- 页面标题 -->
+    <div class="flex items-center justify-between mb-8">
+      <div class="flex items-center space-x-3 text-gray-900">
+        <svg class="w-7 h-7 text-[#fb7299]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+        </svg>
+        <h1 class="text-2xl font-medium">我的备注</h1>
+      </div>
+      <div class="text-sm text-gray-500">
+        共 {{ total }} 条备注
+      </div>
+    </div>
 
-        <!-- 备注列表 -->
-        <div v-if="remarkRecords.length > 0" class="grid grid-cols-1 gap-6">
-          <div v-for="record in remarkRecords"
-               :key="record.bvid + record.view_at"
-               class="bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300">
-            <div class="flex p-4 space-x-6">
-              <!-- 左侧：视频信息 -->
-              <div class="w-64 flex-shrink-0">
-                <!-- 视频封面 -->
-                <div class="relative w-full aspect-video overflow-hidden rounded-lg mb-3">
-                  <img
-                    :src="record.cover"
-                    :class="{ 'blur-md': isPrivacyMode }"
-                    class="w-full h-full object-cover"
-                    alt=""
-                  />
-                  <!-- 视频时长 -->
-                  <div class="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
-                    {{ formatDuration(record.duration) }}
-                  </div>
-                  <!-- 观看进度条 -->
-                  <div class="absolute bottom-0 left-0 w-full h-1 bg-gray-200">
-                    <div
-                      class="h-full bg-[#fb7299]"
-                      :style="{ width: getProgressWidth(record.progress, record.duration) }"
-                    ></div>
-                  </div>
-                </div>
+    <!-- 备注列表 -->
+    <div v-if="remarkRecords.length > 0" class="grid grid-cols-1 gap-6">
+      <div v-for="record in remarkRecords"
+            :key="record.bvid + record.view_at"
+            class="bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300">
+        <div class="flex p-4 space-x-6">
+          <!-- 左侧：视频信息 -->
+          <div class="w-64 flex-shrink-0">
+            <!-- 视频封面 -->
+            <div class="relative w-full aspect-video overflow-hidden rounded-lg mb-3">
+              <img
+                :src="record.cover"
+                :class="{ 'blur-md': isPrivacyMode }"
+                class="w-full h-full object-cover"
+                alt=""
+              />
+              <!-- 视频时长 -->
+              <div class="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
+                {{ formatDuration(record.duration) }}
+              </div>
+              <!-- 观看进度条 -->
+              <div class="absolute bottom-0 left-0 w-full h-1 bg-gray-200">
+                <div
+                  class="h-full bg-[#fb7299]"
+                  :style="{ width: getProgressWidth(record.progress, record.duration) }"
+                ></div>
+              </div>
+            </div>
 
-                <!-- 视频标题 -->
-                <h3 class="text-sm font-medium text-gray-900 mb-2 line-clamp-2 hover:line-clamp-none"
+            <!-- 视频标题 -->
+            <h3 class="text-sm font-medium text-gray-900 mb-2 line-clamp-2 hover:line-clamp-none"
+                :class="{ 'blur-sm': isPrivacyMode }"
+                v-html="isPrivacyMode ? '******' : record.title">
+            </h3>
+
+            <!-- UP主信息和时间 -->
+            <div class="flex items-center space-x-2 mb-2">
+              <img
+                :src="record.author_face"
+                :class="{ 'blur-md': isPrivacyMode }"
+                class="w-4 h-4 rounded-full"
+                alt=""
+              />
+              <span class="text-xs text-gray-600"
                     :class="{ 'blur-sm': isPrivacyMode }"
-                    v-html="isPrivacyMode ? '******' : record.title">
-                </h3>
+                    v-text="isPrivacyMode ? '******' : record.author_name">
+              </span>
+            </div>
+            <div class="flex items-center justify-between text-xs text-gray-400">
+              <span>{{ formatTimestamp(record.view_at) }}</span>
+              <button
+                @click="openVideo(record)"
+                class="inline-flex items-center space-x-1 text-[#fb7299] hover:text-[#fb7299]/80 transition-colors duration-200"
+              >
+                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>查看视频</span>
+              </button>
+            </div>
+          </div>
 
-                <!-- UP主信息和时间 -->
-                <div class="flex items-center space-x-2 mb-2">
-                  <img
-                    :src="record.author_face"
-                    :class="{ 'blur-md': isPrivacyMode }"
-                    class="w-4 h-4 rounded-full"
-                    alt=""
-                  />
-                  <span class="text-xs text-gray-600"
-                        :class="{ 'blur-sm': isPrivacyMode }"
-                        v-text="isPrivacyMode ? '******' : record.author_name">
-                  </span>
-                </div>
-                <div class="flex items-center justify-between text-xs text-gray-400">
-                  <span>{{ formatTimestamp(record.view_at) }}</span>
-                  <button
-                    @click="openVideo(record)"
-                    class="inline-flex items-center space-x-1 text-[#fb7299] hover:text-[#fb7299]/80 transition-colors duration-200"
-                  >
-                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span>查看视频</span>
-                  </button>
-                </div>
-              </div>
-
-              <!-- 右侧：备注内容 -->
-              <div class="flex-1 min-w-0 relative">
-                <van-field
-                  v-model="record.remark"
-                  :disabled="isPrivacyMode"
-                  @blur="handleRemarkUpdate(record)"
-                  type="textarea"
-                  rows="8"
-                  :autosize="{ minHeight: 160 }"
-                  :placeholder="'添加备注...'"
-                  class="remarks-field !bg-transparent"
-                />
-                <div v-if="record.remark_time" class="absolute bottom-1 right-2 text-xs text-gray-400">
-                  最后更新: {{ formatRemarkTime(record.remark_time) }}
-                </div>
-              </div>
+          <!-- 右侧：备注内容 -->
+          <div class="flex-1 min-w-0 relative">
+            <van-field
+              v-model="record.remark"
+              :disabled="isPrivacyMode"
+              @blur="handleRemarkUpdate(record)"
+              type="textarea"
+              rows="8"
+              :autosize="{ minHeight: 160 }"
+              :placeholder="'添加备注...'"
+              class="remarks-field !bg-transparent"
+            />
+            <div v-if="record.remark_time" class="absolute bottom-1 right-2 text-xs text-gray-400">
+              最后更新: {{ formatRemarkTime(record.remark_time) }}
             </div>
           </div>
         </div>
-
-        <!-- 空状态显示 -->
-        <div v-else class="flex flex-col items-center justify-center py-16 bg-white rounded-lg">
-          <svg class="w-20 h-20 text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-          </svg>
-          <h3 class="text-xl font-medium text-gray-600 mb-2">暂无备注</h3>
-          <p class="text-gray-500 mb-6">当你添加备注后，将在这里显示</p>
-          <button 
-            class="px-4 py-2 bg-[#fb7299] text-white rounded-md hover:bg-[#fb7299]/90 transition-colors duration-200 flex items-center space-x-2"
-            @click="$router.push('/')">
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-            </svg>
-            <span>返回视频列表</span>
-          </button>
-        </div>
-
-        <!-- 分页组件 -->
-        <div v-if="remarkRecords.length > 0" class="mt-8">
-          <Pagination
-            :current-page="page"
-            :total-pages="totalPages"
-            :use-routing="false"
-            @page-change="handlePageChange"
-          />
-        </div>
       </div>
+    </div>
+
+    <!-- 空状态显示 -->
+    <div v-else class="flex flex-col items-center justify-center py-16 bg-white rounded-lg">
+      <svg class="w-20 h-20 text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+      </svg>
+      <h3 class="text-xl font-medium text-gray-600 mb-2">暂无备注</h3>
+      <p class="text-gray-500 mb-6">当你添加备注后，将在这里显示</p>
+      <button 
+        class="px-4 py-2 bg-[#fb7299] text-white rounded-md hover:bg-[#fb7299]/90 transition-colors duration-200 flex items-center space-x-2"
+        @click="$router.push('/')">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+        <span>返回视频列表</span>
+      </button>
+    </div>
+
+    <!-- 分页组件 -->
+    <div v-if="remarkRecords.length > 0" class="mt-8">
+      <Pagination
+        :current-page="page"
+        :total-pages="totalPages"
+        :use-routing="false"
+        @page-change="handlePageChange"
+      />
     </div>
   </div>
 </template>

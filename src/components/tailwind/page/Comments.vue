@@ -1,7 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gray-50/30">
-    <div class="py-6">
-      <div class="max-w-5xl mx-auto px-4">
+  <div>
         <!-- 致谢 -->
         <div class="mb-4">
           <div class="bg-[#fb7299]/5 border border-[#fb7299]/20 px-3 py-0 rounded-md w-full flex items-center justify-center h-9">
@@ -26,7 +24,7 @@
 
         <!-- 搜索和筛选 -->
         <div class="mb-6 bg-transparent">
-          <div class="p-4 md:p-0 mb-4">
+      <div class="mb-4">
             <!-- 总评论数显示 -->
             <div class="mb-3 flex items-center text-sm text-gray-600">
               <span>共</span>
@@ -142,8 +140,6 @@
             :total-pages="totalPages"
             @page-change="handlePageChange"
           />
-        </div>
-      </div>
     </div>
   </div>
 </template>

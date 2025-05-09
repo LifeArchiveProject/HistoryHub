@@ -38,9 +38,15 @@ watch(
     if (path === '/settings') {
       currentContent.value = 'settings'
       showRemarks.value = false
-    } else if (path === '/remarks') {
-      currentContent.value = 'remarks'
-      showRemarks.value = true
+    } else if (path === '/media') {
+      currentContent.value = 'media'
+      
+      // 如果是通过备注路由重定向过来的，需要显示备注
+      if (route.query.tab === 'remarks') {
+        showRemarks.value = true
+      } else {
+        showRemarks.value = false
+      }
     } else if (path === '/' || path.startsWith('/page/')) {
       currentContent.value = 'history'
       showRemarks.value = false
@@ -52,9 +58,6 @@ watch(
       showRemarks.value = false
     } else if (path === '/scheduler') {
       currentContent.value = 'scheduler'
-      showRemarks.value = false
-    } else if (path === '/media') {
-      currentContent.value = 'media'
       showRemarks.value = false
     } else if (path === '/video-downloader') {
       currentContent.value = 'video-downloader'

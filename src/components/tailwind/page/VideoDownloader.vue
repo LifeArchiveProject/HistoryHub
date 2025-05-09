@@ -1,9 +1,9 @@
 <!-- 视频下载界面 -->
 <template>
-  <div class="p-6 bg-white min-h-screen">
+  <div class="mt-10">
     <!-- 搜索区域 - 使用与首页一致的搜索栏，去掉背景、边框和顶部内容 -->
-    <div class="mx-auto max-w-6xl mb-6 mt-12">
-      <div class="p-4">
+    <div class="mx-auto max-w-6xl">
+      <div>
         <!-- 搜索框和类型选择 -->
         <div class="flex flex-col md:flex-row gap-4">
           <!-- 搜索框容器 -->

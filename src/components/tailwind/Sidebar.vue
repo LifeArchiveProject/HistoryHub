@@ -35,40 +35,6 @@
             <span v-show="!isCollapsed" class="truncate">历史记录</span>
           </button>
 
-          <!-- 我的备注 -->
-          <button
-            @click="changeContent('remarks')"
-            :title="isCollapsed ? '我的备注' : ''"
-            class="w-full flex items-center py-1.5 text-gray-700 transition-all duration-300 ease-in-out text-sm"
-            :class="[
-              { 'bg-[#fb7299]/10 text-[#fb7299]': currentContent === 'remarks' || (currentContent === 'history' && showRemarks) },
-              { 'justify-center': isCollapsed },
-              isCollapsed ? 'px-2' : 'px-3 rounded-lg'
-            ]"
-          >
-            <svg class="w-5 h-5 flex-shrink-0" :class="{ 'mr-3': !isCollapsed }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-            </svg>
-            <span v-show="!isCollapsed" class="truncate">我的备注</span>
-          </button>
-
-          <!-- 我的评论 -->
-          <router-link
-            to="/comments"
-            :title="isCollapsed ? '我的评论' : ''"
-            class="flex items-center py-1.5 text-gray-700 transition-all duration-300 ease-in-out text-sm"
-            :class="[
-              { 'bg-[#fb7299]/10 text-[#fb7299]': currentContent === 'comments' },
-              { 'justify-center': isCollapsed },
-              isCollapsed ? 'px-2' : 'px-3 rounded-lg'
-            ]"
-          >
-            <svg class="w-5 h-5 flex-shrink-0" :class="{ 'mr-3': !isCollapsed }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-            </svg>
-            <span v-show="!isCollapsed" class="truncate">我的评论</span>
-          </router-link>
-
           <!-- 我的收藏 -->
           <router-link
             to="/favorites"
@@ -120,21 +86,21 @@
             <span v-show="!isCollapsed" class="truncate">媒体管理</span>
           </router-link>
 
-          <!-- 视频下载 -->
+          <!-- B站助手 -->
           <router-link
-            to="/video-downloader"
-            :title="isCollapsed ? '视频下载' : ''"
+            to="/bili-tools"
+            :title="isCollapsed ? 'B站助手' : ''"
             class="flex items-center py-1.5 text-gray-700 transition-all duration-300 ease-in-out text-sm"
             :class="[
-              { 'bg-[#fb7299]/10 text-[#fb7299]': currentContent === 'video-downloader' },
+              { 'bg-[#fb7299]/10 text-[#fb7299]': currentContent === 'bili-tools' },
               { 'justify-center': isCollapsed },
               isCollapsed ? 'px-2' : 'px-3 rounded-lg'
             ]"
           >
             <svg class="w-5 h-5 flex-shrink-0" :class="{ 'mr-3': !isCollapsed }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
-            <span v-show="!isCollapsed" class="truncate">视频下载</span>
+            <span v-show="!isCollapsed" class="truncate">B站助手</span>
           </router-link>
 
           <!-- 计划任务 -->
@@ -333,14 +299,12 @@ const currentContent = computed(() => {
   if (path.startsWith('/search')) return 'search'
   if (path.startsWith('/analytics')) return 'analytics'
   if (path.startsWith('/settings')) return 'settings'
-  if (path.startsWith('/remarks')) return 'remarks'
   if (path.startsWith('/images')) return 'images'
   if (path.startsWith('/scheduler')) return 'scheduler'
   if (path.startsWith('/downloads')) return 'downloads'
-  if (path.startsWith('/comments')) return 'comments'
   if (path.startsWith('/media')) return 'media'
   if (path.startsWith('/favorites')) return 'favorites'
-  if (path.startsWith('/video-downloader')) return 'video-downloader'
+  if (path.startsWith('/bili-tools')) return 'bili-tools'
   return 'history' // 默认返回历史记录
 })
 const props = defineProps({
@@ -357,18 +321,16 @@ watch(
   (path) => {
     if (path === '/settings') {
       currentContent.value = 'settings'
-    } else if (path === '/remarks') {
-      currentContent.value = 'remarks'
     } else if (path === '/media') {
       currentContent.value = 'media'
     } else if (path === '/analytics') {
       currentContent.value = 'analytics'
     } else if (path === '/scheduler') {
       currentContent.value = 'scheduler'
-    } else if (path === '/comments') {
-      currentContent.value = 'comments'
     } else if (path === '/favorites' || path.startsWith('/favorites/')) {
       currentContent.value = 'favorites'
+    } else if (path === '/bili-tools') {
+      currentContent.value = 'bili-tools'
     } else if (path === '/' || path.startsWith('/page/')) {
       currentContent.value = 'history'
     }
@@ -377,22 +339,18 @@ watch(
 
 // 切换内容
 const changeContent = (content) => {
-  if (content === 'remarks') {
-    emit('change-content', 'history')
-    emit('update:showRemarks', true)
-    router.push('/remarks')
-  } else {
+  if (content === 'history') {
     emit('change-content', content)
     emit('update:showRemarks', false)
 
     // 更新路由
-    if (content === 'history') {
       if (route.path !== '/' && !route.path.startsWith('/page/')) {
         router.push('/')
       }
     } else if (content === 'settings') {
+    emit('change-content', content)
+    emit('update:showRemarks', false)
       router.push('/settings')
-    }
   }
 }
 
@@ -409,14 +367,14 @@ const toggleCollapse = () => {
   isCollapsed.value = !isCollapsed.value
   // 保存当前侧边栏状态
   localStorage.setItem('sidebarCollapsed', isCollapsed.value.toString())
-  
+
   // 如果用户手动收起侧边栏，将showSidebar设置为false
   if (isCollapsed.value) {
     localStorage.setItem('showSidebar', 'false')
     // 触发全局事件，通知设置组件更新
     try {
-      const event = new CustomEvent('sidebar-toggle-changed', { 
-        detail: { showSidebar: false } 
+      const event = new CustomEvent('sidebar-toggle-changed', {
+        detail: { showSidebar: false }
       })
       window.dispatchEvent(event)
     } catch (error) {
@@ -427,8 +385,8 @@ const toggleCollapse = () => {
     localStorage.setItem('showSidebar', 'true')
     // 触发全局事件，通知设置组件更新
     try {
-      const event = new CustomEvent('sidebar-toggle-changed', { 
-        detail: { showSidebar: true } 
+      const event = new CustomEvent('sidebar-toggle-changed', {
+        detail: { showSidebar: true }
       })
       window.dispatchEvent(event)
     } catch (error) {
@@ -643,7 +601,7 @@ onMounted(async () => {
 
   // 添加全局事件监听器，当登录状态变化时更新侧边栏的登录状态
   window.addEventListener('login-status-changed', handleLoginStatusChange)
-  
+
   // 添加侧边栏设置变更事件监听
   window.addEventListener('sidebar-setting-changed', handleSidebarSettingChange)
 })

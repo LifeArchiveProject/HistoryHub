@@ -34,6 +34,32 @@
               </button>
 
               <button 
+                @click="activeTab = 'remarks'"
+                class="py-3 px-1 border-b-2 font-medium text-sm flex items-center space-x-2"
+                :class="activeTab === 'remarks' 
+                  ? 'border-[#fb7299] text-[#fb7299]' 
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+              >
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                <span>我的备注</span>
+              </button>
+
+              <button 
+                @click="activeTab = 'comments'"
+                class="py-3 px-1 border-b-2 font-medium text-sm flex items-center space-x-2"
+                :class="activeTab === 'comments' 
+                  ? 'border-[#fb7299] text-[#fb7299]' 
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+              >
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                </svg>
+                <span>我的评论</span>
+              </button>
+
+              <button 
                 @click="activeTab = 'details'"
                 class="py-3 px-1 border-b-2 font-medium text-sm flex items-center space-x-2"
                 :class="activeTab === 'details' 
@@ -77,6 +103,16 @@
               <Downloads />
             </div>
 
+            <!-- 我的备注 -->
+            <div v-if="activeTab === 'remarks'" class="animate-fadeIn">
+              <History :defaultShowRemarks="true" />
+            </div>
+
+            <!-- 我的评论 -->
+            <div v-if="activeTab === 'comments'" class="animate-fadeIn">
+              <Comments />
+            </div>
+
             <!-- 视频详情管理 -->
             <div v-if="activeTab === 'details'" class="animate-fadeIn">
               <VideoDetailsManager />
@@ -89,13 +125,37 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import Images from './Images.vue'
 import Downloads from './Downloads.vue'
 import VideoDetailsManager from './VideoDetailsManager.vue'
+import History from './History.vue'
+import Comments from './Comments.vue'
+
+const route = useRoute()
 
 // 当前激活的标签
 const activeTab = ref('images')
+
+// 监听路由变化以更新激活的标签
+watch(
+  () => route.query.tab,
+  (tab) => {
+    if (tab && ['images', 'videos', 'remarks', 'comments', 'details'].includes(tab)) {
+      activeTab.value = tab
+    }
+  },
+  { immediate: true }
+)
+
+// 组件挂载时根据URL初始化标签
+onMounted(() => {
+  const { tab } = route.query
+  if (tab && ['images', 'videos', 'remarks', 'comments', 'details'].includes(tab)) {
+    activeTab.value = tab
+  }
+})
 </script>
 
 <style scoped>

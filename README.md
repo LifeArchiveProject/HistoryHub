@@ -83,7 +83,10 @@ npm run build
 <img src="./public/SingleVideo.png" alt="">
 <img src="./public/MultipleVideos.png" alt="">
 
-**8. 年度总结页面**
+**8. 视频观看总时长**
+<img src="./public/viewtime.png" alt="">
+
+**9. 年度总结页面**
 
 开场页
 <img src="public/HeroPage.png" alt="">
@@ -163,6 +166,9 @@ UP 主完成率
 - [DeepSeek](https://github.com/deepseek-ai/DeepSeek-R1) - DeepSeek AI API
 - [ArtPlayer](https://github.com/zhw2590582/ArtPlayer) - 强大且灵活的 HTML5 视频播放器
 - [aicu.cc](https://www.aicu.cc/) - 第三方 B 站用户评论 API
+- [方舟像素字体](https://github.com/TakWolf/ark-pixel-font) - 开源的泛中日韩像素字体
+- [缝合像素字体](https://github.com/TakWolf/fusion-pixel-font) - 混搭风格的像素字体
+- [小黑盒用户 shengyI](https://www.xiaoheihe.cn/app/bbs/link/153880174) - 视频观看总时长功能思路提供者
 - 所有贡献者
 
 ## Star History

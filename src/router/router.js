@@ -7,10 +7,9 @@ import MainLayout from '../components/tailwind/layout/MainLayout.vue'
 import Images from '../components/tailwind/page/Images.vue'
 import SchedulerTasks from '../components/tailwind/page/SchedulerTasks.vue'
 import Downloads from '../components/tailwind/page/Downloads.vue'
-import Comments from '../components/tailwind/page/Comments.vue'
 import MediaManager from '../components/tailwind/page/MediaManager.vue'
 import Favorites from '../components/tailwind/page/Favorites.vue'
-import VideoDownloader from '../components/tailwind/page/VideoDownloader.vue'
+import BiliTools from '../components/tailwind/page/BiliTools.vue'
 
 const routes = [
   {
@@ -48,8 +47,7 @@ const routes = [
       {
         path: 'remarks',
         name: 'Remarks',
-        component: History,
-        props: { defaultShowRemarks: true }
+        redirect: '/media?tab=remarks'
       },
       {
         path: 'images',
@@ -69,7 +67,7 @@ const routes = [
       {
         path: 'comments',
         name: 'Comments',
-        component: Comments
+        redirect: '/media?tab=comments'
       },
       {
         path: 'media',
@@ -89,7 +87,12 @@ const routes = [
       {
         path: 'video-downloader',
         name: 'VideoDownloader',
-        component: VideoDownloader
+        redirect: '/bili-tools?tab=video-download'
+      },
+      {
+        path: 'bili-tools',
+        name: 'BiliTools',
+        component: BiliTools
       }
     ]
   }

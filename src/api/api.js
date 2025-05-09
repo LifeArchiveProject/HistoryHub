@@ -1358,3 +1358,16 @@ export const createVideoDetailsProgressSSE = (params) => {
 export const getVideoDetailsStats = () => {
   return instance.get('/fetch/video-details-stats')
 }
+
+/**
+ * 获取视频观看时长信息（合集视频）
+ * @param {Object} params 参数对象
+ * @param {string} params.bvid 视频的bvid
+ * @param {boolean} [params.use_sessdata=true] 是否使用登录状态查询
+ * @returns {Promise<object>} 包含视频合集观看时长信息的响应
+ */
+export const getVideoSeasonInfo = (params) => {
+  return instance.get('/download/video_season_info', {
+    params
+  })
+}
