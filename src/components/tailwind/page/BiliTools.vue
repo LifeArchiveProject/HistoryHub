@@ -7,11 +7,11 @@
           <!-- 标签导航 -->
           <div class="border-b border-gray-200">
             <nav class="-mb-px flex px-6 overflow-x-auto" aria-label="B站工具选项卡">
-              <button 
+              <button
                 @click="activeTab = 'video-stats'"
                 class="py-4 px-3 border-b-2 font-medium text-sm flex items-center space-x-2"
-                :class="activeTab === 'video-stats' 
-                  ? 'border-[#fb7299] text-[#fb7299]' 
+                :class="activeTab === 'video-stats'
+                  ? 'border-[#fb7299] text-[#fb7299]'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
               >
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -19,12 +19,12 @@
                 </svg>
                 <span>视频观看总时长</span>
               </button>
-              
-              <button 
+
+              <button
                 @click="activeTab = 'video-download'"
                 class="ml-8 py-4 px-3 border-b-2 font-medium text-sm flex items-center space-x-2"
-                :class="activeTab === 'video-download' 
-                  ? 'border-[#fb7299] text-[#fb7299]' 
+                :class="activeTab === 'video-download'
+                  ? 'border-[#fb7299] text-[#fb7299]'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
               >
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -32,12 +32,12 @@
                 </svg>
                 <span>视频下载</span>
               </button>
-              
-              <button 
+
+              <button
                 @click="activeTab = 'comment-query'"
                 class="ml-8 py-4 px-3 border-b-2 font-medium text-sm flex items-center space-x-2"
-                :class="activeTab === 'comment-query' 
-                  ? 'border-[#fb7299] text-[#fb7299]' 
+                :class="activeTab === 'comment-query'
+                  ? 'border-[#fb7299] text-[#fb7299]'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
               >
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -47,7 +47,7 @@
               </button>
             </nav>
           </div>
-          
+
           <!-- 内容区域 -->
           <div class="transition-all duration-300">
             <!-- 视频观看时长信息 -->
@@ -59,9 +59,9 @@
                     <img src="https://imgheybox.max-c.com/avatar/2025/02/16/20a399e3b78c0db29b5ec14361b3e348.png?imageMogr2/thumbnail/400x400%3E" alt="shengyI头像" class="h-5 w-5 rounded-full mr-1.5" />
                   </a>
                   <span class="text-xs text-gray-700">感谢小黑盒用户
-                    <a 
-                      href="https://www.xiaoheihe.cn/app/bbs/link/153880174" 
-                      target="_blank" 
+                    <a
+                      href="https://www.xiaoheihe.cn/app/bbs/link/153880174"
+                      target="_blank"
                       rel="noopener noreferrer"
                       class="text-[#fb7299] font-medium hover:underline"
                     >
@@ -70,16 +70,16 @@
                     提供思路
                   </span>
                 </div>
-                
+
                 <!-- 输入表单 -->
                 <div class="px-4 py-4 border-b border-gray-100">
                   <h2 class="text-base font-medium text-gray-900 mb-2">视频时长信息查询</h2>
                   <p class="text-xs text-gray-600 mb-3">
                     输入B站视频BV号，查询该视频的观看时长信息。<span class="text-[#fb7299] font-medium">注意：只有被UP主添加到合集(season_id)的视频才能查询到观看时长数据。</span>
                   </p>
-                  
+
                   <div class="relative">
-                    <input 
+                    <input
                       v-model="bvid"
                       type="text"
                       placeholder="输入视频BV号，例如：BV1MASFY1EHQ"
@@ -93,9 +93,9 @@
                       </svg>
                     </div>
                   </div>
-                  
+
                   <div class="mt-3 flex items-center">
-                    <input 
+                    <input
                       type="checkbox"
                       id="use-sessdata"
                       v-model="useSessdata"
@@ -107,7 +107,7 @@
                     </label>
                   </div>
                 </div>
-                
+
                 <!-- 结果展示 -->
                 <div v-if="videoStats" class="px-6 py-5">
                   <!-- 如果是合集视频 -->
@@ -115,8 +115,8 @@
                     <!-- 合集信息 -->
                     <div class="mb-4 bg-gray-50 rounded-lg overflow-hidden">
                       <div class="p-3 flex items-start">
-                        <img 
-                          :src="videoStats.season_cover" 
+                        <img
+                          :src="videoStats.season_cover"
                           class="w-20 h-20 object-cover rounded-md shadow-sm"
                           alt="合集封面"
                         />
@@ -144,7 +144,7 @@
                         </div>
                       </div>
                     </div>
-                    
+
                     <!-- 查询的视频信息 -->
                     <div v-if="queriedVideo" class="mb-4 bg-white border border-[#fb7299]/20 rounded-lg overflow-hidden">
                       <div class="bg-[#fb7299]/5 px-3 py-2 border-b border-[#fb7299]/20">
@@ -158,8 +158,8 @@
                       <div class="p-3">
                         <div class="flex flex-col md:flex-row">
                           <div class="md:w-52 flex-shrink-0 mb-3 md:mb-0">
-                            <img 
-                              :src="queriedVideo.cover" 
+                            <img
+                              :src="queriedVideo.cover"
                               class="w-full h-28 md:h-32 object-cover rounded shadow-sm"
                               alt="视频封面"
                             />
@@ -169,7 +169,7 @@
                               <a :href="`https://www.bilibili.com/video/${queriedVideo.bvid}`" target="_blank">{{ queriedVideo.title }}</a>
                             </h4>
                             <p class="text-xs text-gray-500 mt-1">BV: {{ queriedVideo.bvid }}</p>
-                            
+
                             <div class="mt-3 grid grid-cols-2 md:grid-cols-4 gap-2">
                               <div class="bg-gray-50 p-2 rounded-lg">
                                 <p class="text-xs text-gray-500">视频时长</p>
@@ -189,20 +189,20 @@
                               <div class="bg-gray-50 p-2 rounded-lg">
                                 <p class="text-xs text-gray-500">平均观看时长</p>
                                 <p class="text-sm font-semibold text-gray-900">
-                                  {{ formatDuration(Math.round(queriedVideo.vt / queriedVideo.vv)) }}
+                                  {{ formatDuration(Math.round((queriedVideo.vt * 60) / queriedVideo.vv)) }}
                                 </p>
                                 <p class="text-xs text-gray-500">
-                                  {{ secondsToPercent(Math.round(queriedVideo.vt / queriedVideo.vv), queriedVideo.duration) }}% 完播率
+                                  {{ secondsToPercent(Math.round((queriedVideo.vt * 60) / queriedVideo.vv), queriedVideo.duration) }}% 完播率
                                 </p>
                               </div>
                             </div>
-                            
+
                             <div class="mt-3">
                               <p class="text-xs text-gray-500 mb-1">完播率</p>
                               <div class="w-full bg-gray-200 rounded-full h-1.5">
-                                <div 
-                                  class="bg-[#fb7299] h-1.5 rounded-full" 
-                                  :style="`width: ${Math.min(100, Math.round((queriedVideo.vt / queriedVideo.vv) / queriedVideo.duration * 100))}%`"
+                                <div
+                                  class="bg-[#fb7299] h-1.5 rounded-full"
+                                  :style="`width: ${Math.min(100, Math.round(((queriedVideo.vt * 60) / queriedVideo.vv) / queriedVideo.duration * 100))}%`"
                                 ></div>
                               </div>
                             </div>
@@ -210,7 +210,7 @@
                         </div>
                       </div>
                     </div>
-                    
+
                     <!-- 视频列表 -->
                     <div class="mt-4">
                       <h3 class="text-base font-medium text-gray-900 mb-3 flex items-center">
@@ -224,101 +224,101 @@
                           <thead class="bg-gray-50">
                             <tr>
                               <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">视频信息</th>
-                              <th 
-                                scope="col" 
+                              <th
+                                scope="col"
                                 class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
                                 @click="sortBy('duration')"
                               >
                                 <div class="flex items-center">
                                   时长
-                                  <svg 
-                                    v-if="sortKey === 'duration'" 
-                                    class="w-3 h-3 ml-1" 
-                                    fill="none" 
-                                    viewBox="0 0 24 24" 
+                                  <svg
+                                    v-if="sortKey === 'duration'"
+                                    class="w-3 h-3 ml-1"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
                                     stroke="currentColor"
                                   >
-                                    <path 
-                                      stroke-linecap="round" 
-                                      stroke-linejoin="round" 
-                                      stroke-width="2" 
-                                      :d="sortDirection === 'asc' 
-                                        ? 'M5 15l7-7 7 7' 
+                                    <path
+                                      stroke-linecap="round"
+                                      stroke-linejoin="round"
+                                      stroke-width="2"
+                                      :d="sortDirection === 'asc'
+                                        ? 'M5 15l7-7 7 7'
                                         : 'M19 9l-7 7-7-7'"
                                     />
                                   </svg>
                                 </div>
                               </th>
-                              <th 
-                                scope="col" 
+                              <th
+                                scope="col"
                                 class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
                                 @click="sortBy('vv')"
                               >
                                 <div class="flex items-center">
                                   观看次数
-                                  <svg 
-                                    v-if="sortKey === 'vv'" 
-                                    class="w-3 h-3 ml-1" 
-                                    fill="none" 
-                                    viewBox="0 0 24 24" 
+                                  <svg
+                                    v-if="sortKey === 'vv'"
+                                    class="w-3 h-3 ml-1"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
                                     stroke="currentColor"
                                   >
-                                    <path 
-                                      stroke-linecap="round" 
-                                      stroke-linejoin="round" 
-                                      stroke-width="2" 
-                                      :d="sortDirection === 'asc' 
-                                        ? 'M5 15l7-7 7 7' 
+                                    <path
+                                      stroke-linecap="round"
+                                      stroke-linejoin="round"
+                                      stroke-width="2"
+                                      :d="sortDirection === 'asc'
+                                        ? 'M5 15l7-7 7 7'
                                         : 'M19 9l-7 7-7-7'"
                                     />
                                   </svg>
                                 </div>
                               </th>
-                              <th 
-                                scope="col" 
+                              <th
+                                scope="col"
                                 class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
                                 @click="sortBy('vt')"
                               >
                                 <div class="flex items-center">
                                   总观看时长
-                                  <svg 
-                                    v-if="sortKey === 'vt'" 
-                                    class="w-3 h-3 ml-1" 
-                                    fill="none" 
-                                    viewBox="0 0 24 24" 
+                                  <svg
+                                    v-if="sortKey === 'vt'"
+                                    class="w-3 h-3 ml-1"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
                                     stroke="currentColor"
                                   >
-                                    <path 
-                                      stroke-linecap="round" 
-                                      stroke-linejoin="round" 
-                                      stroke-width="2" 
-                                      :d="sortDirection === 'asc' 
-                                        ? 'M5 15l7-7 7 7' 
+                                    <path
+                                      stroke-linecap="round"
+                                      stroke-linejoin="round"
+                                      stroke-width="2"
+                                      :d="sortDirection === 'asc'
+                                        ? 'M5 15l7-7 7 7'
                                         : 'M19 9l-7 7-7-7'"
                                     />
                                   </svg>
                                 </div>
                               </th>
-                              <th 
-                                scope="col" 
+                              <th
+                                scope="col"
                                 class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
                                 @click="sortBy('avgWatchTime')"
                               >
                                 <div class="flex items-center">
                                   平均观看时长
-                                  <svg 
-                                    v-if="sortKey === 'avgWatchTime'" 
-                                    class="w-3 h-3 ml-1" 
-                                    fill="none" 
-                                    viewBox="0 0 24 24" 
+                                  <svg
+                                    v-if="sortKey === 'avgWatchTime'"
+                                    class="w-3 h-3 ml-1"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
                                     stroke="currentColor"
                                   >
-                                    <path 
-                                      stroke-linecap="round" 
-                                      stroke-linejoin="round" 
-                                      stroke-width="2" 
-                                      :d="sortDirection === 'asc' 
-                                        ? 'M5 15l7-7 7 7' 
+                                    <path
+                                      stroke-linecap="round"
+                                      stroke-linejoin="round"
+                                      stroke-width="2"
+                                      :d="sortDirection === 'asc'
+                                        ? 'M5 15l7-7 7 7'
                                         : 'M19 9l-7 7-7-7'"
                                     />
                                   </svg>
@@ -354,10 +354,10 @@
                                 <div class="text-xs text-gray-500">{{ formatDurationDays(video.vt) }}</div>
                               </td>
                               <td class="px-3 py-2 whitespace-nowrap">
-                                <div class="text-xs text-gray-900">{{ formatDuration(Math.round(video.vt / video.vv)) }}</div>
-                                <div class="text-xs text-gray-500">{{ secondsToPercent(Math.round(video.vt / video.vv), video.duration) }}%完播率</div>
+                                <div class="text-xs text-gray-900">{{ formatDuration(Math.round((video.vt * 60) / video.vv)) }}</div>
+                                <div class="text-xs text-gray-500">{{ secondsToPercent(Math.round((video.vt * 60) / video.vv), video.duration) }}%完播率</div>
                                 <div class="w-full bg-gray-200 rounded-full h-1 mt-1">
-                                  <div class="bg-[#fb7299] h-1 rounded-full" :style="`width: ${Math.min(100, Math.round((video.vt / video.vv) / video.duration * 100))}%`"></div>
+                                  <div class="bg-[#fb7299] h-1 rounded-full" :style="`width: ${Math.min(100, Math.round(((video.vt * 60) / video.vv) / video.duration * 100))}%`"></div>
                                 </div>
                               </td>
                             </tr>
@@ -366,7 +366,7 @@
                       </div>
                     </div>
                   </div>
-                  
+
                   <!-- 如果不是合集视频 -->
                   <div v-else-if="videoStats.status === 'info'" class="p-5">
                     <div class="bg-blue-50 p-4 rounded-lg flex">
@@ -376,7 +376,7 @@
                       <p class="text-sm text-blue-700">{{ videoStats.message }}</p>
                     </div>
                   </div>
-                  
+
                   <!-- 如果发生错误 -->
                   <div v-else-if="videoStats.status === 'error'" class="p-5">
                     <div class="bg-red-50 p-4 rounded-lg flex">
@@ -387,13 +387,13 @@
                     </div>
                   </div>
                 </div>
-                
+
                 <!-- 加载中状态 -->
                 <div v-if="loading && !videoStats" class="flex justify-center items-center py-16">
                   <div class="animate-spin h-10 w-10 border-4 border-[#fb7299] border-t-transparent rounded-full"></div>
                   <p class="ml-4 text-gray-600">正在获取视频数据...</p>
                 </div>
-                
+
                 <!-- 空状态 -->
                 <div v-if="!loading && !videoStats" class="flex flex-col items-center justify-center py-16 px-6 text-center">
                   <svg class="w-16 h-16 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -403,12 +403,12 @@
                 </div>
               </div>
             </div>
-            
+
             <!-- 视频下载 -->
             <div v-if="activeTab === 'video-download'" class="animate-fadeIn">
               <VideoDownloader />
             </div>
-            
+
             <!-- 评论查询 -->
             <div v-if="activeTab === 'comment-query'" class="animate-fadeIn">
               <div class="bg-white p-6">
@@ -418,11 +418,11 @@
                   <p class="text-sm text-gray-600 mb-4">
                     输入B站用户UID，查询该用户的全部评论记录。
                   </p>
-                  
+
                   <div class="flex space-x-3">
                     <div class="flex-1">
                       <div class="relative">
-                        <input 
+                        <input
                           v-model="queryUserId"
                           type="text"
                           placeholder="输入用户UID，例如：12345678"
@@ -448,7 +448,7 @@
                     </div>
                   </div>
                 </div>
-                
+
                 <!-- 筛选区域 -->
                 <div v-if="comments.length > 0 || commentLoading" class="mb-6 bg-transparent">
                   <div class="mb-4">
@@ -470,7 +470,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                               </svg>
                             </div>
-                            
+
                             <!-- 输入框 -->
                             <input
                               v-model="commentKeyword"
@@ -486,7 +486,7 @@
                       <!-- 评论类型筛选 -->
                       <div class="w-24 flex-shrink-0">
                         <div class="relative">
-                          <button 
+                          <button
                             @click="toggleCommentTypeDropdown"
                             type="button"
                             class="w-full py-1.5 px-2 border border-gray-300 rounded-md text-xs text-gray-800 focus:border-[#fb7299] focus:outline-none focus:ring focus:ring-[#fb7299]/20 flex items-center justify-between bg-white transition-colors duration-200 h-9 whitespace-nowrap overflow-hidden"
@@ -496,15 +496,15 @@
                               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                             </svg>
                           </button>
-                          
+
                           <!-- 评论类型下拉菜单 -->
-                          <div 
-                            v-if="showCommentTypeDropdown" 
+                          <div
+                            v-if="showCommentTypeDropdown"
                             class="absolute z-10 mt-1 w-full rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
                           >
                             <div class="py-1">
                               <button
-                                v-for="option in commentTypeOptions" 
+                                v-for="option in commentTypeOptions"
                                 :key="option.value"
                                 @click="selectCommentType(option.value)"
                                 class="w-full px-2 py-1 text-xs text-left hover:bg-[#fb7299]/5 hover:text-[#fb7299] transition-colors flex items-center whitespace-nowrap"
@@ -520,7 +520,7 @@
                       <!-- 内容类型筛选 -->
                       <div class="w-24 flex-shrink-0">
                         <div class="relative">
-                          <button 
+                          <button
                             @click="toggleContentTypeDropdown"
                             type="button"
                             class="w-full py-1.5 px-2 border border-gray-300 rounded-md text-xs text-gray-800 focus:border-[#fb7299] focus:outline-none focus:ring focus:ring-[#fb7299]/20 flex items-center justify-between bg-white transition-colors duration-200 h-9 whitespace-nowrap overflow-hidden"
@@ -530,15 +530,15 @@
                               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                             </svg>
                           </button>
-                          
+
                           <!-- 内容类型下拉菜单 -->
-                          <div 
-                            v-if="showContentTypeDropdown" 
+                          <div
+                            v-if="showContentTypeDropdown"
                             class="absolute z-10 mt-1 w-full rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
                           >
                             <div class="py-1">
                               <button
-                                v-for="option in contentTypeOptions" 
+                                v-for="option in contentTypeOptions"
                                 :key="option.value"
                                 @click="selectContentType(option.value)"
                                 class="w-full px-2 py-1 text-xs text-left hover:bg-[#fb7299]/5 hover:text-[#fb7299] transition-colors flex items-center whitespace-nowrap"
@@ -553,7 +553,7 @@
                     </div>
                   </div>
                 </div>
-                
+
                 <!-- 评论列表 -->
                 <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
                   <!-- 评论项 -->
@@ -725,12 +725,12 @@ const totalWatchTime = computed(() => {
 // 排序后的视频列表
 const sortedVideos = computed(() => {
   if (!videoStats.value || !videoStats.value.videos) return []
-  
+
   const videos = [...videoStats.value.videos]
-  
+
   return videos.sort((a, b) => {
     let aValue, bValue
-    
+
     if (sortKey.value === 'avgWatchTime') {
       aValue = a.vt / a.vv
       bValue = b.vt / b.vv
@@ -738,7 +738,7 @@ const sortedVideos = computed(() => {
       aValue = a[sortKey.value]
       bValue = b[sortKey.value]
     }
-    
+
     if (sortDirection.value === 'asc') {
       return aValue - bValue
     } else {
@@ -775,10 +775,10 @@ const fetchVideoStats = async () => {
   if (!bvid.value || bvid.value.trim().length < 10) {
     return
   }
-  
+
   loading.value = true
   videoStats.value = null
-  
+
   try {
     // 使用api.js中定义的方法
     const response = await getVideoSeasonInfo({
@@ -786,7 +786,7 @@ const fetchVideoStats = async () => {
       use_sessdata: useSessdata.value
     })
     videoStats.value = response.data
-    
+
     // 初始设置合适的排序
     if (videoStats.value && videoStats.value.status === 'success') {
       sortKey.value = 'vt'
@@ -808,33 +808,55 @@ const formatNumber = (num) => {
   return new Intl.NumberFormat('zh-CN').format(num)
 }
 
-// 格式化时长 (秒 -> mm:ss)
-const formatDuration = (seconds) => {
-  const minutes = Math.floor(seconds / 60)
-  const remainingSeconds = seconds % 60
-  return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`
+// 格式化时长 (分钟 -> mm:ss)
+const formatDuration = (minutes) => {
+  // 视频时长仍然是秒级的，所以保持不变
+  const mins = Math.floor(minutes / 60)
+  const remainingSeconds = minutes % 60
+  return `${mins}:${remainingSeconds.toString().padStart(2, '0')}`
 }
 
-// 格式化时长 (秒 -> 小时)
-const formatDurationHours = (seconds) => {
-  const hours = Math.floor(seconds / 3600)
-  const minutes = Math.floor((seconds % 3600) / 60)
-  return `${hours} 小时 ${minutes} 分钟`
+// 格式化时长 (分钟 -> 小时)
+const formatDurationHours = (minutes) => {
+  // 后端返回的是分钟级别的数据
+  const hours = Math.floor(minutes / 60)
+  const remainingMinutes = minutes % 60
+  return `${hours} 小时 ${remainingMinutes} 分钟`
 }
 
-// 格式化时长 (秒 -> 天)，超过24小时显示为天
-const formatDurationDays = (seconds) => {
-  const days = Math.floor(seconds / 86400) // 86400 = 24 * 60 * 60
-  if (days > 0) {
-    const hours = Math.floor((seconds % 86400) / 3600)
+// 格式化时长 (分钟 -> 天/月/年)
+const formatDurationDays = (minutes) => {
+  const days = Math.floor(minutes / (60 * 24)) // 一天有 24*60 分钟
+
+  if (days >= 365) {
+    // 超过365天显示为年
+    const years = Math.floor(days / 365)
+    const remainingDays = days % 365
+    if (remainingDays > 30) {
+      const months = Math.floor(remainingDays / 30)
+      return `约 ${years} 年 ${months} 个月`
+    } else {
+      return `约 ${years} 年 ${remainingDays} 天`
+    }
+  } else if (days >= 30) {
+    // 超过30天显示为月
+    const months = Math.floor(days / 30)
+    const remainingDays = days % 30
+    return `约 ${months} 个月 ${remainingDays} 天`
+  } else if (days > 0) {
+    // 显示为天和小时
+    const hours = Math.floor((minutes % (60 * 24)) / 60)
     return `约 ${days} 天 ${hours} 小时`
   }
+
   return '' // 如果不足1天，不显示
 }
 
 // 计算完播率百分比
 const secondsToPercent = (watchedSeconds, totalSeconds) => {
   if (!totalSeconds) return 0
+  // watchedSeconds 是从分钟转换为秒的平均观看时长
+  // totalSeconds 是视频总时长（秒）
   return Math.min(100, Math.round((watchedSeconds / totalSeconds) * 100))
 }
 
@@ -953,9 +975,9 @@ const fetchUserComments = async () => {
     })
     return
   }
-  
+
   commentLoading.value = true
-  
+
   try {
     const response = await getComments(
       queryUserId.value,
@@ -1032,4 +1054,4 @@ const clearCommentFilters = () => {
   from { opacity: 0; }
   to { opacity: 1; }
 }
-</style> 
+</style>
