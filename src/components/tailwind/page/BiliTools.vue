@@ -82,7 +82,7 @@
                     <input
                       v-model="bvid"
                       type="text"
-                      placeholder="输入视频BV号，例如：BV1MASFY1EHQ"
+                      placeholder="输入视频BV号，例如：BV1hu411h7ot"
                       class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#fb7299] focus:border-transparent pr-10"
                       @input="debouncedFetchVideoStats"
                     />
@@ -112,39 +112,6 @@
                 <div v-if="videoStats" class="px-6 py-5">
                   <!-- 如果是合集视频 -->
                   <div v-if="videoStats.status === 'success'">
-                    <!-- 合集信息 -->
-                    <div class="mb-4 bg-gray-50 rounded-lg overflow-hidden">
-                      <div class="p-3 flex items-start">
-                        <img
-                          :src="videoStats.season_cover"
-                          class="w-20 h-20 object-cover rounded-md shadow-sm"
-                          alt="合集封面"
-                        />
-                        <div class="ml-4 flex-1">
-                          <h3 class="text-base font-medium text-gray-900">{{ videoStats.season_title }}</h3>
-                          <div class="mt-2 grid grid-cols-3 gap-3">
-                            <div class="bg-white p-3 rounded-lg shadow-sm">
-                              <p class="text-xs text-gray-500">合集ID</p>
-                              <p class="text-base font-semibold text-gray-900">{{ videoStats.season_id }}</p>
-                            </div>
-                            <div class="bg-white p-3 rounded-lg shadow-sm">
-                              <p class="text-xs text-gray-500">视频数量</p>
-                              <p class="text-base font-semibold text-gray-900">{{ videoStats.videos.length }} 个</p>
-                            </div>
-                            <div class="bg-white p-3 rounded-lg shadow-sm">
-                              <p class="text-xs text-gray-500">总观看时长</p>
-                              <p class="text-base font-semibold text-[#fb7299]">
-                                {{ formatDurationHours(totalWatchTime) }}
-                              </p>
-                              <p class="text-xs text-gray-500">
-                                {{ formatDurationDays(totalWatchTime) }}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
                     <!-- 查询的视频信息 -->
                     <div v-if="queriedVideo" class="mb-4 bg-white border border-[#fb7299]/20 rounded-lg overflow-hidden">
                       <div class="bg-[#fb7299]/5 px-3 py-2 border-b border-[#fb7299]/20">
@@ -170,7 +137,7 @@
                             </h4>
                             <p class="text-xs text-gray-500 mt-1">BV: {{ queriedVideo.bvid }}</p>
 
-                            <div class="mt-3 grid grid-cols-2 md:grid-cols-4 gap-2">
+                            <div class="mt-3 grid grid-cols-2 md:grid-cols-5 gap-2">
                               <div class="bg-gray-50 p-2 rounded-lg">
                                 <p class="text-xs text-gray-500">视频时长</p>
                                 <p class="text-sm font-semibold text-gray-900">{{ formatDuration(queriedVideo.duration) }}</p>
@@ -191,19 +158,18 @@
                                 <p class="text-sm font-semibold text-gray-900">
                                   {{ formatDuration(Math.round((queriedVideo.vt * 60) / queriedVideo.vv)) }}
                                 </p>
-                                <p class="text-xs text-gray-500">
-                                  {{ secondsToPercent(Math.round((queriedVideo.vt * 60) / queriedVideo.vv), queriedVideo.duration) }}% 完播率
-                                </p>
                               </div>
-                            </div>
-
-                            <div class="mt-3">
-                              <p class="text-xs text-gray-500 mb-1">完播率</p>
-                              <div class="w-full bg-gray-200 rounded-full h-1.5">
-                                <div
-                                  class="bg-[#fb7299] h-1.5 rounded-full"
-                                  :style="`width: ${Math.min(100, Math.round(((queriedVideo.vt * 60) / queriedVideo.vv) / queriedVideo.duration * 100))}%`"
-                                ></div>
+                              <div class="bg-gray-50 p-2 rounded-lg">
+                                <p class="text-xs text-gray-500">完播率</p>
+                                <p class="text-sm font-semibold text-gray-900">
+                                  {{ secondsToPercent(Math.round((queriedVideo.vt * 60) / queriedVideo.vv), queriedVideo.duration) }}%
+                                </p>
+                                <div class="w-full bg-gray-200 rounded-full h-1.5 mt-1">
+                                  <div
+                                    class="bg-[#fb7299] h-1.5 rounded-full"
+                                    :style="`width: ${Math.min(100, Math.round(((queriedVideo.vt * 60) / queriedVideo.vv) / queriedVideo.duration * 100))}%`"
+                                  ></div>
+                                </div>
                               </div>
                             </div>
                           </div>
@@ -324,6 +290,32 @@
                                   </svg>
                                 </div>
                               </th>
+                              <th
+                                scope="col"
+                                class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                                @click="sortBy('finishRate')"
+                              >
+                                <div class="flex items-center">
+                                  完播率
+                                  <svg
+                                    v-if="sortKey === 'finishRate'"
+                                    class="w-3 h-3 ml-1"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                  >
+                                    <path
+                                      stroke-linecap="round"
+                                      stroke-linejoin="round"
+                                      stroke-width="2"
+                                      :d="sortDirection === 'asc'
+                                        ? 'M5 15l7-7 7 7'
+                                        : 'M19 9l-7 7-7-7'"
+                                    />
+                                  </svg>
+                                </div>
+                              </th>
+
                             </tr>
                           </thead>
                           <tbody class="bg-white divide-y divide-gray-200">
@@ -355,14 +347,18 @@
                               </td>
                               <td class="px-3 py-2 whitespace-nowrap">
                                 <div class="text-xs text-gray-900">{{ formatDuration(Math.round((video.vt * 60) / video.vv)) }}</div>
-                                <div class="text-xs text-gray-500">{{ secondsToPercent(Math.round((video.vt * 60) / video.vv), video.duration) }}%完播率</div>
+                              </td>
+                              <td class="px-3 py-2 whitespace-nowrap">
+                                <div class="text-xs text-gray-900">{{ secondsToPercent(Math.round((video.vt * 60) / video.vv), video.duration) }}%</div>
                                 <div class="w-full bg-gray-200 rounded-full h-1 mt-1">
                                   <div class="bg-[#fb7299] h-1 rounded-full" :style="`width: ${Math.min(100, Math.round(((video.vt * 60) / video.vv) / video.duration * 100))}%`"></div>
                                 </div>
                               </td>
+
                             </tr>
                           </tbody>
                         </table>
+
                       </div>
                     </div>
                   </div>
@@ -734,6 +730,10 @@ const sortedVideos = computed(() => {
     if (sortKey.value === 'avgWatchTime') {
       aValue = a.vt / a.vv
       bValue = b.vt / b.vv
+    } else if (sortKey.value === 'finishRate') {
+      // 计算完播率：平均观看时长(秒) / 视频时长(秒) * 100
+      aValue = Math.min(100, Math.round(((a.vt * 60) / a.vv) / a.duration * 100))
+      bValue = Math.min(100, Math.round(((b.vt * 60) / b.vv) / b.duration * 100))
     } else {
       aValue = a[sortKey.value]
       bValue = b[sortKey.value]
@@ -1043,6 +1043,8 @@ const clearCommentFilters = () => {
   commentCurrentPage.value = 1
   fetchUserComments()
 }
+
+
 </script>
 
 <style scoped>
