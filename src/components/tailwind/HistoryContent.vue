@@ -364,6 +364,17 @@
             </svg>
             <span>取消收藏 {{ favoritedCount }} 条记录</span>
           </button>
+
+          <!-- 复制链接按钮 - 始终显示 -->
+          <button
+            @click="handleCopyLinks"
+            class="px-4 py-2 bg-[#fb7299] text-white rounded-full shadow-lg hover:bg-[#fb7299]/90 transition-colors duration-200 flex items-center space-x-2"
+          >
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+            </svg>
+            <span>复制链接 {{ selectedRecords.size }} 条记录</span>
+          </button>
         </div>
       </div>
     </div>
@@ -1658,6 +1669,85 @@ const isAllFavorited = computed(() => {
 const isAllUnfavorited = computed(() => {
   return selectedRecords.value.size > 0 && unfavoritedCount.value === selectedRecords.value.size
 })
+
+// 复制选中视频的链接到剪贴板
+const handleCopyLinks = async () => {
+  if (selectedRecords.value.size === 0) {
+    showNotify({
+      type: 'warning',
+      message: '请先选择要复制链接的记录'
+    })
+    return
+  }
+
+  try {
+    // 从选中的记录中提取视频信息
+    const videoRecords = [...selectedRecords.value].map(key => {
+      const [bvid, timestamp] = key.split('_')
+      return records.value.find(r => r.bvid === bvid && String(r.view_at) === timestamp)
+    }).filter(record => record) // 过滤掉未找到的记录
+
+    // 生成链接列表
+    const links = videoRecords.map(record => {
+      let url = ''
+      switch (record.business) {
+        case 'archive':
+          url = `https://www.bilibili.com/video/${record.bvid}`
+          break
+        case 'article':
+          url = `https://www.bilibili.com/read/cv${record.oid}`
+          break
+        case 'article-list':
+          url = `https://www.bilibili.com/read/readlist/rl${record.oid}`
+          break
+        case 'live':
+          url = `https://live.bilibili.com/${record.oid}`
+          break
+        case 'pgc':
+          url = record.uri || `https://www.bilibili.com/bangumi/play/ep${record.epid}`
+          break
+        case 'cheese':
+          url = record.uri || `https://www.bilibili.com/cheese/play/ep${record.epid}`
+          break
+        default:
+          console.warn('未知的业务类型:', record.business)
+          return null
+      }
+      return url
+    }).filter(url => url) // 过滤掉无效的URL
+
+    // 复制到剪贴板
+    if (links.length > 0) {
+      await copyToClipboard(links.join('\n'))
+      showNotify({
+        type: 'success',
+        message: `已复制 ${links.length} 个链接到剪贴板`
+      })
+    } else {
+      showNotify({
+        type: 'warning',
+        message: '没有找到有效的链接'
+      })
+    }
+  } catch (error) {
+    console.error('复制链接失败:', error)
+    showNotify({
+      type: 'danger',
+      message: '复制链接失败: ' + (error.message || '未知错误')
+    })
+  }
+}
+
+// 复制到剪贴板函数
+const copyToClipboard = async (text) => {
+  try {
+    await navigator.clipboard.writeText(text)
+    return true
+  } catch (err) {
+    console.error('复制失败:', err)
+    throw new Error('复制到剪贴板失败，请检查浏览器权限')
+  }
+}
 
 // 批量取消收藏选中的记录
 const handleBatchUnfavorite = async () => {
