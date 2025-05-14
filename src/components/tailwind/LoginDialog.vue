@@ -3,11 +3,11 @@
   <div v-if="show" class="fixed inset-0 z-50 flex items-center justify-center">
     <!-- 遮罩层 -->
     <div class="absolute inset-0 bg-black/50" @click="handleClose"></div>
-    
+
     <!-- 弹窗内容 -->
     <div class="relative bg-white rounded-lg shadow-xl w-[360px] max-h-[90vh] overflow-y-auto">
       <!-- 关闭按钮 -->
-      <button 
+      <button
         @click="handleClose"
         class="absolute right-4 top-4 text-gray-400 hover:text-gray-500"
       >
@@ -37,12 +37,12 @@
             </button>
           </div>
         </div>
-        
+
         <!-- 状态提示 -->
         <div class="text-sm" :class="statusClass">
           {{ loginStatusText }}
         </div>
-        
+
         <!-- 刷新按钮 -->
         <button
           v-if="!qrcodeKey || qrcodeExpired"
@@ -59,9 +59,10 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { showNotify } from 'vant'
-import { 
+import {
   generateLoginQRCode,
   getQRCodeImageURL,
+  getQRCodeImageBlob,
   pollQRCodeStatus,
   getLoginStatus
 } from '../../api/api'
@@ -118,11 +119,11 @@ const startPolling = () => {
   if (pollingInterval.value) {
     clearInterval(pollingInterval.value)
   }
-  
+
   let attempts = 0
   const maxAttempts = 90 // 180秒内尝试90次
   pollingErrors.value = 0 // 重置错误计数
-  
+
   pollingInterval.value = setInterval(async () => {
     try {
       if (!qrcodeKey.value) {
@@ -136,7 +137,7 @@ const startPolling = () => {
       }
 
       const response = await pollQRCodeStatus(qrcodeKey.value)
-      
+
       if (!response?.data) {
         throw new Error('服务器响应格式错误')
       }
@@ -149,7 +150,7 @@ const startPolling = () => {
 
         loginStatus.value = code
         pollingErrors.value = 0
-        
+
         if (loginStatus.value === 0) {
           // 登录成功
           clearInterval(pollingInterval.value)
@@ -157,7 +158,7 @@ const startPolling = () => {
             type: 'success',
             message: '登录成功'
           })
-          
+
           // 获取用户信息并发送登录成功事件
           try {
             const userResponse = await getLoginStatus()
@@ -174,7 +175,7 @@ const startPolling = () => {
             // 如果出错，仍然发送登录成功事件
             emit('login-success')
           }
-          
+
           // 关闭弹窗
           setTimeout(() => {
             handleClose()
@@ -198,7 +199,7 @@ const startPolling = () => {
         const errorMsg = response.data.detail || response.data.message || '获取状态失败'
         throw new Error(errorMsg)
       }
-      
+
       attempts++
       if (attempts >= maxAttempts) {
         clearInterval(pollingInterval.value)
@@ -212,7 +213,7 @@ const startPolling = () => {
     } catch (error) {
       console.error('轮询出错:', error)
       pollingErrors.value++
-      
+
       if (error.response?.status === 500) {
         clearInterval(pollingInterval.value)
         qrcodeExpired.value = true
@@ -222,7 +223,7 @@ const startPolling = () => {
         })
         return
       }
-      
+
       if (pollingErrors.value >= 3) {
         clearInterval(pollingInterval.value)
         qrcodeExpired.value = true
@@ -239,14 +240,23 @@ const startPolling = () => {
 const getQRCode = async () => {
   try {
     const response = await generateLoginQRCode()
-    
+
     if (!response?.data) {
       throw new Error('服务器响应格式错误')
     }
 
     if (response.data.status === 'success' && response.data.data?.qrcode_key) {
       qrcodeKey.value = response.data.data.qrcode_key
-      qrcodeImageUrl.value = getQRCodeImageURL()
+
+      try {
+        // 使用axios获取二维码图片（带API密钥验证）
+        qrcodeImageUrl.value = await getQRCodeImageBlob()
+      } catch (imgError) {
+        console.error('获取二维码图片失败:', imgError)
+        // 如果获取图片失败，回退到直接使用URL
+        qrcodeImageUrl.value = getQRCodeImageURL()
+      }
+
       qrcodeExpired.value = false
       loginStatus.value = 86101
       pollingErrors.value = 0
@@ -259,8 +269,8 @@ const getQRCode = async () => {
     console.error('获取二维码失败:', error)
     showNotify({
       type: 'danger',
-      message: error.response?.status === 500 ? 
-        '服务器错误,请稍后重试' : 
+      message: error.response?.status === 500 ?
+        '服务器错误,请稍后重试' :
         `获取二维码失败: ${error.message}`
     })
     qrcodeExpired.value = true
@@ -282,6 +292,12 @@ const handleClose = () => {
   if (pollingInterval.value) {
     clearInterval(pollingInterval.value)
   }
+
+  // 如果是blob URL，需要释放
+  if (qrcodeImageUrl.value && qrcodeImageUrl.value.startsWith('blob:')) {
+    URL.revokeObjectURL(qrcodeImageUrl.value)
+  }
+
   // 重置状态
   qrcodeKey.value = ''
   qrcodeImageUrl.value = ''
@@ -299,10 +315,15 @@ watch(() => props.show, (newVal) => {
   }
 })
 
-// 组件卸载时清除轮询
+// 组件卸载时清除轮询和释放资源
 onUnmounted(() => {
   if (pollingInterval.value) {
     clearInterval(pollingInterval.value)
+  }
+
+  // 释放blob URL
+  if (qrcodeImageUrl.value && qrcodeImageUrl.value.startsWith('blob:')) {
+    URL.revokeObjectURL(qrcodeImageUrl.value)
   }
 })
 
@@ -310,4 +331,4 @@ onUnmounted(() => {
 defineOptions({
   name: 'LoginDialog'
 })
-</script> 
+</script>

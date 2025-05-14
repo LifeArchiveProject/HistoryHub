@@ -369,6 +369,24 @@ export const getQRCodeImageURL = () => {
   return `${BASE_URL}/login/qrcode/image`
 }
 
+// 获取二维码图片（返回blob URL）
+export const getQRCodeImageBlob = async () => {
+  try {
+    const response = await instance.get('/login/qrcode/image', {
+      responseType: 'blob'
+    })
+
+    // 创建blob URL
+    const blob = new Blob([response.data], {
+      type: response.headers['content-type'] || 'image/png'
+    })
+    return URL.createObjectURL(blob)
+  } catch (error) {
+    console.error('获取二维码图片失败:', error)
+    throw error
+  }
+}
+
 // 轮询二维码状态
 export const pollQRCodeStatus = (qrcodeKey) => {
   return instance.get('/login/qrcode/poll', {
@@ -515,11 +533,22 @@ export const downloadVideo = async (bvid, sessdata = null, onMessage, downloadCo
     ...options
   }
 
+  // 从本地存储获取API密钥
+  const apiKey = localStorage.getItem('apiKey')
+
+  // 准备请求头
+  const headers = {
+    'Content-Type': 'application/json',
+  }
+
+  // 如果存在API密钥，添加到请求头
+  if (apiKey) {
+    headers['X-API-Key'] = apiKey
+  }
+
   const response = await fetch(`${BASE_URL}/download/download_video`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers,
     body: JSON.stringify(requestBody)
   })
 
@@ -896,7 +925,20 @@ export const checkServerHealth = () => {
 export const getVideoStream = (file_path) => {
   if (!file_path) return ''
   const baseUrl = instance.defaults.baseURL
-  return `${baseUrl}/download/stream_video?file_path=${encodeURIComponent(file_path)}&t=${Date.now()}`
+
+  // 从本地存储获取API密钥
+  const apiKey = localStorage.getItem('apiKey')
+
+  // 构建基本URL
+  let url = `${baseUrl}/download/stream_video?file_path=${encodeURIComponent(file_path)}&t=${Date.now()}`
+
+  // 如果存在API密钥，添加到URL查询参数中
+  // 注意：这里使用URL参数是因为视频流通常直接在video标签的src属性中使用，无法添加请求头
+  if (apiKey) {
+    url += `&api_key=${encodeURIComponent(apiKey)}`
+  }
+
+  return url
 }
 
 /**
@@ -1147,11 +1189,22 @@ export const downloadFavorites = async (options, onMessage) => {
     ...advancedOptions
   }
 
+  // 从本地存储获取API密钥
+  const apiKey = localStorage.getItem('apiKey')
+
+  // 准备请求头
+  const headers = {
+    'Content-Type': 'application/json',
+  }
+
+  // 如果存在API密钥，添加到请求头
+  if (apiKey) {
+    headers['X-API-Key'] = apiKey
+  }
+
   const response = await fetch(`${BASE_URL}/download/download_favorites`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers,
     body: JSON.stringify(requestBody)
   })
 
@@ -1220,11 +1273,22 @@ export const downloadUserVideos = async (options, onMessage) => {
     ...advancedOptions
   }
 
+  // 从本地存储获取API密钥
+  const apiKey = localStorage.getItem('apiKey')
+
+  // 准备请求头
+  const headers = {
+    'Content-Type': 'application/json',
+  }
+
+  // 如果存在API密钥，添加到请求头
+  if (apiKey) {
+    headers['X-API-Key'] = apiKey
+  }
+
   const response = await fetch(`${BASE_URL}/download/download_user_videos`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers,
     body: JSON.stringify(requestBody)
   })
 
@@ -1347,7 +1411,18 @@ export const createVideoDetailsProgressSSE = (params) => {
   }
 
   const baseUrl = instance.defaults.baseURL
-  const url = `${baseUrl}/fetch/fetch-video-details-progress?update_interval=${updateInterval}`
+
+  // 从本地存储获取API密钥
+  const apiKey = localStorage.getItem('apiKey')
+
+  // 构建基本URL
+  let url = `${baseUrl}/fetch/fetch-video-details-progress?update_interval=${updateInterval}`
+
+  // 如果存在API密钥，添加到URL查询参数中
+  if (apiKey) {
+    url += `&api_key=${encodeURIComponent(apiKey)}`
+  }
+
   return new EventSource(url)
 }
 
