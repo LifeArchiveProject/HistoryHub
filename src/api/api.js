@@ -439,7 +439,9 @@ export const batchDeleteHistory = (items) => {
 export const deleteBilibiliHistory = (kid, syncToBilibili = true) => {
   return instance.delete(`/bilibili/history/single`, {
     params: {
-      kid,
+      kid
+    },
+    data: {
       sync_to_bilibili: syncToBilibili
     }
   })

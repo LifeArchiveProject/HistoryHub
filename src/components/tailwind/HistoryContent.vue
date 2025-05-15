@@ -468,12 +468,13 @@ import {
   batchCheckFavoriteStatus,
   favoriteResource,
   localBatchFavoriteResource,
-  batchDeleteBilibiliHistory
-} from '../../api/api.js'
+  batchDeleteBilibiliHistory,
+  deleteBilibiliHistory
+} from '@/api/api.js'
 import { showNotify, showDialog } from 'vant'
 import 'vant/es/dialog/style'
 import VideoRecord from './VideoRecord.vue'
-import { usePrivacyStore } from '../../store/privacy'
+import { usePrivacyStore } from '@/store/privacy.js'
 import VideoDetailDialog from './VideoDetailDialog.vue'
 import LoginDialog from './LoginDialog.vue'
 import DownloadDialog from './DownloadDialog.vue'
