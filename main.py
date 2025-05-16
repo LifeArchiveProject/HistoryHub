@@ -277,6 +277,27 @@ async def lifespan(app: FastAPI):
         # 创建异步任务运行调度器
         scheduler_task = asyncio.create_task(scheduler_manager.run_scheduler())
 
+        # 加载配置并决定是否执行数据完整性校验
+        current_config = load_config()
+        check_on_startup = current_config.get('server', {}).get('data_integrity', {}).get('check_on_startup', True)
+        if check_on_startup:
+            logger.info("正在执行启动时数据完整性校验...")
+            try:
+                from scripts.check_data_integrity import check_data_integrity
+                result = check_data_integrity()
+                if result["success"]:
+                    if result["difference"] == 0:
+                        logger.success("数据完整性校验通过，数据库和JSON文件记录数一致")
+                    else:
+                        logger.warning(f"数据完整性校验发现差异: {result['difference']} 条记录")
+                        logger.info(f"详细报告已保存到 {result['report_file']}")
+                else:
+                    logger.error("数据完整性校验失败")
+            except Exception as e:
+                logger.error(f"执行数据完整性校验时出错: {str(e)}")
+        else:
+            logger.info("已跳过启动时数据完整性校验")
+
         logger.success("=== 应用启动完成 ===")
         logger.info(f"启动时间: {datetime.now().isoformat()}")
 
