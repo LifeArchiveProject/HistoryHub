@@ -199,6 +199,20 @@
                 </div>
               </div>
 
+              <!-- 启动时数据完整性校验 -->
+              <div class="p-4 transition-colors duration-200 hover:bg-gray-50">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <h3 class="text-base font-medium text-gray-900">启动时数据完整性校验</h3>
+                    <p class="text-sm text-gray-500">开启后每次启动应用时都会进行数据完整性校验，关闭可加快启动速度</p>
+                  </div>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" v-model="checkIntegrityOnStartup" class="sr-only peer" @change="handleIntegrityCheckChange">
+                    <div class="w-11 h-6 bg-gray-200 peer-focus:ring-4 peer-focus:ring-[#fb7299]/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#fb7299]"></div>
+                  </label>
+                </div>
+              </div>
+
               <!-- 邮件配置 -->
               <div class="p-4 transition-colors duration-200 hover:bg-gray-50">
                 <div class="flex items-center justify-between mb-2">
@@ -632,7 +646,9 @@ import {
   testEmailConfig as testEmailApi,
   checkDeepSeekApiKey,
   setDeepSeekApiKey,
-  getDeepSeekBalance
+  getDeepSeekBalance,
+  getIntegrityCheckConfig,
+  updateIntegrityCheckConfig
 } from '../../api/api'
 import { setBaseUrl, getCurrentBaseUrl } from '../../api/api'
 import { usePrivacyStore } from '../../store/privacy'
@@ -743,6 +759,32 @@ const handleSyncDeleteToBilibiliChange = () => {
     type: 'success',
     message: syncDeleteToBilibili.value ? '已开启同步删除B站历史记录' : '已关闭同步删除B站历史记录'
   })
+}
+
+// 启动时数据完整性校验
+const checkIntegrityOnStartup = ref(true)
+
+// 处理数据完整性校验设置变更
+const handleIntegrityCheckChange = async () => {
+  try {
+    const response = await updateIntegrityCheckConfig(checkIntegrityOnStartup.value)
+    if (response.data && response.data.success) {
+      showNotify({
+        type: 'success',
+        message: checkIntegrityOnStartup.value ? '已开启启动时数据完整性校验' : '已关闭启动时数据完整性校验'
+      })
+    } else {
+      throw new Error(response.data?.message || '更新配置失败')
+    }
+  } catch (error) {
+    console.error('更新数据完整性校验配置失败:', error)
+    showNotify({
+      type: 'danger',
+      message: `更新配置失败: ${error.message}`
+    })
+    // 恢复原值
+    checkIntegrityOnStartup.value = !checkIntegrityOnStartup.value
+  }
 }
 
 // 首页默认布局设置 - 网格布局或列表布局
@@ -1052,6 +1094,23 @@ onMounted(async () => {
         await checkDeepSeekApiKeyStatus()
         await refreshDeepSeekBalance()
         console.log('DeepSeek配置获取完成')
+      })(),
+      (async () => {
+        console.log('开始获取数据完整性校验配置')
+        try {
+          const response = await getIntegrityCheckConfig()
+          if (response.data && response.data.success) {
+            checkIntegrityOnStartup.value = response.data.check_on_startup
+            console.log('数据完整性校验配置获取成功:', checkIntegrityOnStartup.value)
+          } else {
+            throw new Error(response.data?.message || '获取配置失败')
+          }
+        } catch (error) {
+          console.error('获取数据完整性校验配置失败:', error)
+          // 使用默认值
+          checkIntegrityOnStartup.value = true
+        }
+        console.log('数据完整性校验配置获取完成')
       })()
     ])
     console.log('Settings组件初始化完成')

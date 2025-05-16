@@ -995,14 +995,24 @@ export const getSyncResult = () => {
  * @param {string} db_path - 数据库文件路径
  * @param {string} json_path - JSON文件根目录
  * @param {boolean} async_mode - 是否异步执行
+ * @param {boolean} force_check - 是否强制执行检查，忽略配置设置
  * @returns {Promise} - API响应
  */
-export const checkDataIntegrity = (db_path = 'output/bilibili_history.db', json_path = 'output/history_by_date', async_mode = false) => {
+export const checkDataIntegrity = (db_path = 'output/bilibili_history.db', json_path = 'output/history_by_date', async_mode = false, force_check = false) => {
   return instance.post('/data_sync/check', {
     db_path,
     json_path,
-    async_mode
+    async_mode,
+    force_check
   })
+}
+
+/**
+ * 获取数据完整性校验配置API
+ * @returns {Promise} - API响应
+ */
+export const getIntegrityCheckConfig = () => {
+  return instance.get('/data_sync/config')
 }
 
 /**
@@ -1011,6 +1021,17 @@ export const checkDataIntegrity = (db_path = 'output/bilibili_history.db', json_
  */
 export const getIntegrityReport = () => {
   return instance.get('/data_sync/report')
+}
+
+/**
+ * 更新数据完整性校验配置API
+ * @param {boolean} checkOnStartup - 是否在启动时进行数据完整性校验
+ * @returns {Promise} - API响应
+ */
+export const updateIntegrityCheckConfig = (checkOnStartup) => {
+  return instance.post('/data_sync/config', {
+    check_on_startup: checkOnStartup
+  })
 }
 
 /**

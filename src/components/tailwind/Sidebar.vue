@@ -219,16 +219,19 @@
                 <span
                   class="w-1.5 h-1.5 rounded-full mr-1"
                   :class="integrityStatus.status === 'consistent' ? 'bg-green-500' :
-                        integrityStatus.status === 'inconsistent' ? 'bg-yellow-500' : 'bg-gray-400'"
+                        integrityStatus.status === 'inconsistent' ? 'bg-yellow-500' :
+                        integrityStatus.status === 'disabled' ? 'bg-gray-500' : 'bg-gray-400'"
                 ></span>
                 <span
                   class="cursor-pointer hover:underline"
                   :class="integrityStatus.status === 'consistent' ? 'text-green-600' :
-                        integrityStatus.status === 'inconsistent' ? 'text-yellow-600' : 'text-gray-400'"
+                        integrityStatus.status === 'inconsistent' ? 'text-yellow-600' :
+                        integrityStatus.status === 'disabled' ? 'text-gray-500' : 'text-gray-400'"
                   @click="openDataSyncManager('integrity')"
                 >
                   {{ integrityStatus.status === 'consistent' ? '一致' :
-                    integrityStatus.status === 'inconsistent' ? '不一致' : '未检查' }}
+                    integrityStatus.status === 'inconsistent' ? '不一致' :
+                    integrityStatus.status === 'disabled' ? '未开启' : '未检查' }}
                 </span>
               </div>
             </div>
@@ -282,7 +285,7 @@
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { usePrivacyStore } from '@/store/privacy.js'
-import { getLoginStatus, logout, getSqliteVersion, checkServerHealth, checkDataIntegrity } from '../../api/api'
+import { getLoginStatus, logout, getSqliteVersion, checkServerHealth, checkDataIntegrity, getIntegrityCheckConfig } from '../../api/api'
 import { showNotify } from 'vant'
 import { showDialog } from 'vant'
 import 'vant/es/notify/style'
@@ -539,16 +542,46 @@ const checkServerHealthStatus = async () => {
 // 获取数据完整性状态
 const fetchIntegrityStatus = async () => {
   try {
+    // 首先获取数据完整性校验配置
+    const configResponse = await getIntegrityCheckConfig()
+
+    // 检查是否启用了数据完整性校验
+    if (configResponse.data && configResponse.data.success) {
+      const checkEnabled = configResponse.data.check_on_startup
+
+      if (!checkEnabled) {
+        // 如果未启用数据完整性校验，显示"未开启"状态
+        integrityStatus.value = {
+          status: 'disabled',
+          difference: 0,
+          lastCheck: new Date().toISOString()
+        }
+        return
+      }
+    }
+
+    // 如果启用了数据完整性校验，获取校验结果
     const response = await checkDataIntegrity('output/bilibili_history.db', 'output/history_by_date', false)
+
     if (response.data && response.data.success) {
-      integrityStatus.value = {
-        status: response.data.difference === 0 ? 'consistent' : 'inconsistent',
-        difference: response.data.difference || 0,
-        lastCheck: response.data.timestamp
+      // 检查是否有消息提示（可能是配置禁用了校验）
+      if (response.data.message && response.data.message.includes('数据完整性校验已在配置中禁用')) {
+        integrityStatus.value = {
+          status: 'disabled',
+          difference: 0,
+          lastCheck: response.data.timestamp
+        }
+      } else {
+        integrityStatus.value = {
+          status: response.data.difference === 0 ? 'consistent' : 'inconsistent',
+          difference: response.data.difference || 0,
+          lastCheck: response.data.timestamp
+        }
       }
     }
   } catch (error) {
     console.error('获取完整性状态失败:', error)
+    // 出错时保持当前状态不变
   }
 }
 
