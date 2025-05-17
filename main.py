@@ -81,7 +81,8 @@ def setup_logging():
             # 只有以特定字符开头的信息才输出到控制台
             isinstance(record["message"], str) and
             record["message"].startswith(("===", "正在", "已", "成功", "错误:", "警告:"))
-        )
+        ),
+        enqueue=True  # 确保控制台输出也是进程安全的
     )
 
     # 添加文件处理器（完整日志信息）
@@ -91,11 +92,11 @@ def setup_logging():
         format="[{time:YYYY-MM-DD HH:mm:ss}] [{level}] [{extra[app_name]}] [v{extra[version]}] [进程:{process}] [线程:{thread}] [{name}] [{file.name}:{line}] [{function}] {message}\n{exception}",
         encoding="utf-8",
         enqueue=True,  # 启用进程安全的队列
+        diagnose=False,  # 禁用诊断信息，避免不必要的栈跟踪导致的死锁
+        backtrace=False,  # 禁用异常回溯，避免不必要的栈跟踪
         rotation="00:00",  # 每天午夜轮转
         retention="30 days",  # 保留30天的日志
-        compression="zip",  # 压缩旧日志
-        backtrace=True,  # 启用异常回溯
-        diagnose=True    # 启用诊断信息
+        compression="zip"  # 压缩旧日志
     )
 
     # 专门用于记录错误级别日志的处理器
@@ -105,20 +106,20 @@ def setup_logging():
         format="[{time:YYYY-MM-DD HH:mm:ss}] [{level}] [{extra[app_name]}] [{name}] [{file.name}:{line}] [{function}] {message}\n{exception}",
         encoding="utf-8",
         enqueue=True,
+        diagnose=False,  # 禁用诊断信息
+        backtrace=False,  # 禁用异常回溯
         rotation="00:00",  # 每天午夜轮转
         retention="30 days",
-        compression="zip",
-        backtrace=True,
-        diagnose=True
+        compression="zip"
     )
 
-    # 重定向系统异常到日志
+    # 重定向系统异常到日志 - 使用简化版本
     logger.add(
         lambda msg: sys.__stderr__.write(f"{msg}\n"),
         level="ERROR",
         format="<red>系统错误: {message}</red>",
-        backtrace=True,
-        diagnose=True
+        backtrace=False,
+        diagnose=False
     )
 
     # 重定向 print 输出到日志
@@ -127,6 +128,7 @@ def setup_logging():
             self.stdout = stdout
             self._line_buffer = []
             self._is_shutting_down = False  # 标记系统是否正在关闭
+            self._logging_in_progress = False  # 防止日志重入
 
         def write(self, buf):
             # 如果系统正在关闭，直接写入原始stdout而不经过logger
@@ -148,21 +150,37 @@ def setup_logging():
             if "应用关闭" in buf or "Shutting down" in buf:
                 self._is_shutting_down = True
 
+            # 防止日志重入 - 如果已经在记录日志中，直接写入原始stdout
+            if self._logging_in_progress:
+                self.stdout.write(buf)
+                return
+
             # 收集完整的行
             for c in buf:
                 if c == '\n':
                     line = ''.join(self._line_buffer).rstrip()
                     if line:  # 只记录非空行
                         try:
+                            # 设置日志记录锁
+                            self._logging_in_progress = True
                             # 使用loguru记录，但保持控制台干净
                             if not self._is_shutting_down:
-                                logger.opt(depth=1).log("INFO", line)
+                                try:
+                                    logger.opt(depth=1).log("INFO", line)
+                                except Exception as e:
+                                    # 记录失败，写入原始stdout
+                                    self.stdout.write(f"日志记录失败: {e}\n")
+                                    self.stdout.write(f"{line}\n")
                             else:
                                 # 关闭阶段直接写入控制台
                                 self.stdout.write(f"{line}\n")
-                        except Exception:
+                        except Exception as e:
                             # 如果记录失败，写入原始stdout
+                            self.stdout.write(f"日志异常: {e}\n")
                             self.stdout.write(f"{line}\n")
+                        finally:
+                            # 释放日志记录锁
+                            self._logging_in_progress = False
                     self._line_buffer = []
                 else:
                     self._line_buffer.append(c)
@@ -171,13 +189,23 @@ def setup_logging():
             if self._line_buffer:
                 line = ''.join(self._line_buffer).rstrip()
                 if line:
-                    if not self._is_shutting_down:
+                    # 防止日志重入
+                    if self._logging_in_progress:
+                        self.stdout.write(f"{line}\n")
+                    else:
                         try:
-                            logger.opt(depth=1).log("INFO", line)
+                            self._logging_in_progress = True
+                            if not self._is_shutting_down:
+                                try:
+                                    logger.opt(depth=1).log("INFO", line)
+                                except Exception:
+                                    self.stdout.write(f"{line}\n")
+                            else:
+                                self.stdout.write(f"{line}\n")
                         except Exception:
                             self.stdout.write(f"{line}\n")
-                    else:
-                        self.stdout.write(f"{line}\n")
+                        finally:
+                            self._logging_in_progress = False
                 self._line_buffer = []
             self.stdout.flush()
 
@@ -332,9 +360,29 @@ async def lifespan(app: FastAPI):
 
         # 清理日志处理器，防止关闭时的死锁
         # 注意：必须在所有日志记录之后调用
-        logger_handlers = logger._core.handlers.copy()  # 复制处理器列表
-        for handler_id in logger_handlers:
-            logger.remove(handler_id)
+        try:
+            print("正在安全关闭日志系统...")
+            # 复制处理器列表，避免在迭代过程中修改
+            logger_handlers = list(logger._core.handlers.keys())
+            # 设置最小日志级别为ERROR，避免继续记录非关键日志
+            for handler_id in logger_handlers:
+                try:
+                    # 修改处理器的最小记录级别为ERROR (40)
+                    handler = logger._core.handlers.get(handler_id)
+                    if handler:
+                        handler._levelno = 40  # ERROR级别
+                except Exception:
+                    # 忽略修改失败的情况
+                    pass
+            # 逐个移除处理器
+            for handler_id in logger_handlers:
+                try:
+                    logger.remove(handler_id)
+                except Exception as log_ex:
+                    print(f"移除日志处理器时出错 (忽略): {log_ex}")
+            print("日志系统已安全关闭")
+        except Exception as e:
+            print(f"关闭日志系统时出错 (忽略): {e}")
 
     except Exception as e:
         logger.error(f"\n=== 应用生命周期出错 ===")
@@ -413,8 +461,16 @@ if __name__ == "__main__":
     # 配置日志系统
     log_info = setup_logging()
 
+    # 标记是否正在关闭
+    is_shutting_down = False
+
     # 信号处理函数
     def signal_handler(sig, frame):
+        global is_shutting_down
+        if is_shutting_down:
+            print("正在关闭中，请稍候...")
+            return
+        is_shutting_down = True
         print(f"\n接收到信号 {sig}，正在优雅关闭...")
         # 标记stdout为关闭状态
         if hasattr(sys.stdout, 'mark_shutdown'):
@@ -428,18 +484,25 @@ if __name__ == "__main__":
     # 注册退出时清理函数
     @atexit.register
     def cleanup_at_exit():
+        global is_shutting_down
+        if is_shutting_down:
+            return
+        is_shutting_down = True
         print("程序退出，正在清理资源...")
         # 恢复原始stdout
         if hasattr(sys.stdout, 'stdout'):
             sys.stdout = sys.stdout.stdout
         # 移除所有日志处理器
-        logger.info("正在关闭日志系统...")
-        handlers = list(logger._core.handlers.keys())
-        for handler_id in handlers:
-            try:
-                logger.remove(handler_id)
-            except:
-                pass
+        print("正在关闭日志系统...")
+        try:
+            handlers = list(logger._core.handlers.keys())
+            for handler_id in handlers:
+                try:
+                    logger.remove(handler_id)
+                except Exception as e:
+                    print(f"移除日志处理器时出错 (忽略): {e}")
+        except Exception as e:
+            print(f"获取日志处理器时出错 (忽略): {e}")
         print("日志系统已关闭")
 
     # 加载配置

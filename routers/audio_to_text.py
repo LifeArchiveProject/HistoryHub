@@ -54,12 +54,13 @@ except ImportError as e:
 except Exception as e:
     logger.error(f"导入模块时出错: {str(e)}")
 
-# 添加信号处理
+# 资源清理函数
 def handle_interrupt(signum, frame):
-    """处理中断信号"""
+    """处理中断信号，清理资源"""
     global whisper_model
-    print("\n正在清理资源...")
+    print(f"接收到信号 {signum}，清理资源...")
     try:
+        # 释放模型资源
         if whisper_model is not None:
             del whisper_model
             whisper_model = None
@@ -67,10 +68,6 @@ def handle_interrupt(signum, frame):
     except Exception as e:
         print(f"清理资源时出错: {str(e)}")
     # 不再调用 os._exit(0)，让服务继续运行
-
-# 注册信号处理器
-signal.signal(signal.SIGINT, handle_interrupt)
-signal.signal(signal.SIGTERM, handle_interrupt)
 
 # 定义请求和响应模型
 class TranscribeRequest(BaseModel):
