@@ -16,6 +16,7 @@ services:
       - "8899:8899"
     environment:
       - TZ=Asia/Shanghai
+      - DOCKER_ENV=true
 
   # 前端服务
   frontend:

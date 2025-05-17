@@ -17,8 +17,10 @@ from pydantic import BaseModel, Field
 from scripts.utils import load_config
 
 # 设置日志格式
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO, force=True)
+# 避免日志循环，禁用传播
 logger = logging.getLogger(__name__)
+logger.propagate = False
 
 # 创建API路由
 router = APIRouter()

@@ -82,7 +82,8 @@ def setup_logging():
             isinstance(record["message"], str) and
             record["message"].startswith(("===", "正在", "已", "成功", "错误:", "警告:"))
         ),
-        enqueue=True  # 确保控制台输出也是进程安全的
+        enqueue=True,  # 确保控制台输出也是进程安全的
+        diagnose=False  # 禁用诊断以避免日志循环
     )
 
     # 添加文件处理器（完整日志信息）
@@ -129,10 +130,11 @@ def setup_logging():
             self._line_buffer = []
             self._is_shutting_down = False  # 标记系统是否正在关闭
             self._logging_in_progress = False  # 防止日志重入
+            self._is_docker = os.environ.get('DOCKER_ENV') == 'true'  # 检测是否在Docker环境
 
         def write(self, buf):
-            # 如果系统正在关闭，直接写入原始stdout而不经过logger
-            if self._is_shutting_down:
+            # 如果系统正在关闭或在Docker环境中，直接写入原始stdout而不经过logger
+            if self._is_shutting_down or self._is_docker:
                 self.stdout.write(buf)
                 return
 
@@ -203,11 +205,11 @@ def setup_logging():
                             else:
                                 self.stdout.write(f"{line}\n")
                         except Exception:
-                            self.stdout.write(f"{line}\n")
+                                                            self.stdout.write(f"{line}\n")
                         finally:
                             self._logging_in_progress = False
-                self._line_buffer = []
-            self.stdout.flush()
+                    self._line_buffer = []
+                self.stdout.flush()
 
         def isatty(self):
             return self.stdout.isatty()
@@ -227,7 +229,17 @@ def setup_logging():
     # 拦截标准库logging
     import logging
     class InterceptHandler(logging.Handler):
+        def __init__(self):
+            super().__init__()
+            self._is_docker = os.environ.get('DOCKER_ENV') == 'true'
+            
         def emit(self, record):
+            # 在Docker环境中，简化处理以避免循环
+            if self._is_docker:
+                # 使用原始的logging输出，不进行重定向
+                print(f"[{record.levelname}] {record.getMessage()}")
+                return
+                
             # 获取对应的Loguru级别名称
             try:
                 level = logger.level(record.levelname).name
