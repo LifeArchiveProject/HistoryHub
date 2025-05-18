@@ -77,17 +77,9 @@ const instance = axios.create({
   baseURL: BASE_URL,
 })
 
-// 请求拦截器 - 添加API密钥到请求头
+// 请求拦截器
 instance.interceptors.request.use(
   (config) => {
-    // 从本地存储获取API密钥
-    const apiKey = localStorage.getItem('apiKey')
-
-    // 如果存在API密钥，添加到请求头
-    if (apiKey) {
-      config.headers['X-API-Key'] = apiKey
-    }
-
     return config
   },
   (error) => {
@@ -95,26 +87,12 @@ instance.interceptors.request.use(
   }
 )
 
-// 响应拦截器 - 处理API密钥错误
+// 响应拦截器
 instance.interceptors.response.use(
   (response) => {
     return response
   },
   (error) => {
-    // 如果是401错误（未授权），可能是API密钥无效
-    if (error.response && error.response.status === 401) {
-      console.error('API密钥验证失败:', error.response.data)
-
-      // 显示错误通知（如果有Vant的Notify组件）
-      if (window.vant && window.vant.Notify) {
-        window.vant.Notify({
-          type: 'danger',
-          message: '未授权：API密钥无效',
-          duration: 3000
-        })
-      }
-    }
-
     return Promise.reject(error)
   }
 )
@@ -835,23 +813,7 @@ export const getDeepSeekBalance = () => {
   return instance.get('/deepseek/balance')
 }
 
-// API安全相关接口
-export const checkApiKey = () => {
-  return instance.get('/api/security/check')
-}
-
-export const updateApiKey = (apiKey) => {
-  return instance.post('/api/security/update_key', {
-    api_key: apiKey
-  })
-}
-
-export const verifyAndUpdateApiKey = (currentApiKey, newApiKey) => {
-  return instance.post('/api/security/verify_and_update', {
-    current_api_key: currentApiKey,
-    new_api_key: newApiKey
-  })
-}
+// API安全相关接口已移除
 
 // 检查视频是否已下载
 export const checkVideoDownload = (cids) => {
@@ -928,17 +890,8 @@ export const getVideoStream = (file_path) => {
   if (!file_path) return ''
   const baseUrl = instance.defaults.baseURL
 
-  // 从本地存储获取API密钥
-  const apiKey = localStorage.getItem('apiKey')
-
   // 构建基本URL
   let url = `${baseUrl}/download/stream_video?file_path=${encodeURIComponent(file_path)}&t=${Date.now()}`
-
-  // 如果存在API密钥，添加到URL查询参数中
-  // 注意：这里使用URL参数是因为视频流通常直接在video标签的src属性中使用，无法添加请求头
-  if (apiKey) {
-    url += `&api_key=${encodeURIComponent(apiKey)}`
-  }
 
   return url
 }
@@ -1212,17 +1165,9 @@ export const downloadFavorites = async (options, onMessage) => {
     ...advancedOptions
   }
 
-  // 从本地存储获取API密钥
-  const apiKey = localStorage.getItem('apiKey')
-
   // 准备请求头
   const headers = {
     'Content-Type': 'application/json',
-  }
-
-  // 如果存在API密钥，添加到请求头
-  if (apiKey) {
-    headers['X-API-Key'] = apiKey
   }
 
   const response = await fetch(`${BASE_URL}/download/download_favorites`, {
@@ -1296,17 +1241,9 @@ export const downloadUserVideos = async (options, onMessage) => {
     ...advancedOptions
   }
 
-  // 从本地存储获取API密钥
-  const apiKey = localStorage.getItem('apiKey')
-
   // 准备请求头
   const headers = {
     'Content-Type': 'application/json',
-  }
-
-  // 如果存在API密钥，添加到请求头
-  if (apiKey) {
-    headers['X-API-Key'] = apiKey
   }
 
   const response = await fetch(`${BASE_URL}/download/download_user_videos`, {
@@ -1435,16 +1372,8 @@ export const createVideoDetailsProgressSSE = (params) => {
 
   const baseUrl = instance.defaults.baseURL
 
-  // 从本地存储获取API密钥
-  const apiKey = localStorage.getItem('apiKey')
-
   // 构建基本URL
   let url = `${baseUrl}/fetch/fetch-video-details-progress?update_interval=${updateInterval}`
-
-  // 如果存在API密钥，添加到URL查询参数中
-  if (apiKey) {
-    url += `&api_key=${encodeURIComponent(apiKey)}`
-  }
 
   return new EventSource(url)
 }

@@ -539,12 +539,7 @@
             </div>
           </section>
 
-          <!-- API安全设置 -->
-          <section v-if="activeTab === 'security'">
-            <div class="space-y-4">
-              <ApiKeySettings />
-            </div>
-          </section>
+
 
           <!-- 关于页面 -->
           <section v-if="activeTab === 'about'">
@@ -655,7 +650,6 @@ import { usePrivacyStore } from '../../store/privacy'
 import { showDialog } from 'vant'
 import SummaryConfig from './SummaryConfig.vue'
 import PixelPreview from './PixelPreview.vue'
-import ApiKeySettings from './ApiKeySettings.vue'
 import { useRoute } from 'vue-router'
 import privacyManager from '../../utils/privacyManager'
 
@@ -665,11 +659,6 @@ const settingTabs = [
     key: 'basic',
     label: '基础设置',
     icon: '<svg class="text-[#fb7299]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2m-2-4h.01M17 16h.01" /></svg>'
-  },
-  {
-    key: 'security',
-    label: 'API安全',
-    icon: '<svg class="text-[#fb7299]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>'
   },
   {
     key: 'ai',
