@@ -407,6 +407,7 @@
           cover: record.cover || record.covers?.[0],
           cid: record.cid
         }"
+        :is-batch-download="false"
       />
     </Teleport>
 

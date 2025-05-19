@@ -120,7 +120,7 @@
                 <!-- 下载状态标识 -->
                 <div v-if="isVideoDownloaded(record.cid) && record.business === 'archive'"
                      class="absolute left-0 top-0 z-20">
-                  <div class="bg-gradient-to-r from-[#fb7299] to-[#fc9b7a] text-white font-semibold px-2 py-0.5 text-xs flex items-center space-x-1.5 rounded-br-md shadow-md">
+                  <div class="bg-gradient-to-r from-green-500 to-green-400 text-white font-semibold px-2 py-0.5 text-xs flex items-center space-x-1.5 rounded-br-md shadow-md">
                     <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                     </svg>
@@ -322,58 +322,69 @@
 
     <!-- 批量操作按钮区域 -->
     <div v-if="isBatchMode && selectedRecords.size > 0"
-         class="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50">
-      <div class="flex flex-col space-y-2">
+         class="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50 w-[90vw] max-w-[1200px]">
+      <div class="flex flex-col space-y-2 w-full">
         <!-- 删除模式切换按钮 -->
         <div class="flex justify-center mb-1">
           <!-- 已移除本地/远程收藏模式切换 -->
         </div>
 
-        <div class="flex space-x-4">
+        <div class="flex flex-wrap gap-3 justify-center w-full mt-2">
           <!-- 批量删除按钮 -->
           <button
             @click="handleBatchDelete"
-            class="px-4 py-2 bg-[#fb7299] text-white rounded-full shadow-lg hover:bg-[#fb7299]/90 transition-colors duration-200 flex items-center space-x-2"
+            class="w-28 py-2 bg-red-500 text-white rounded-lg shadow-md hover:bg-red-600 transition-all duration-200 flex items-center justify-center space-x-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-opacity-50"
           >
-            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
             </svg>
-            <span>删除选中的 {{ selectedRecords.size }} 条记录</span>
+            <span>删除({{ selectedRecords.size }})</span>
+          </button>
+
+          <!-- 批量下载按钮 - 始终显示 -->
+          <button
+            @click="handleBatchDownload"
+            class="w-28 py-2 bg-green-500 text-white rounded-lg shadow-md hover:bg-green-600 transition-all duration-200 flex items-center justify-center space-x-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-50"
+          >
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            <span>下载({{ selectedRecords.size }})</span>
           </button>
 
           <!-- 批量收藏按钮 - 仅在有未收藏的视频时显示 -->
           <button
             v-if="!isAllFavorited && unfavoritedCount > 0"
             @click="handleBatchFavorite"
-            class="px-4 py-2 bg-[#fb7299] text-white rounded-full shadow-lg hover:bg-[#fb7299]/90 transition-colors duration-200 flex items-center space-x-2"
+            class="w-28 py-2 bg-[#fb7299] text-white rounded-lg shadow-md hover:bg-[#fb7299]/90 transition-all duration-200 flex items-center justify-center space-x-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-400 focus:ring-opacity-50"
           >
-            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
             </svg>
-            <span>收藏选中的 {{ unfavoritedCount }} 条记录</span>
+            <span>收藏({{ unfavoritedCount }})</span>
           </button>
 
           <!-- 批量取消收藏按钮 - 仅在有已收藏的视频时显示 -->
           <button
             v-if="hasFavoritedVideos"
             @click="handleBatchUnfavorite"
-            class="px-4 py-2 bg-[#fb7299] text-white rounded-full shadow-lg hover:bg-[#fb7299]/90 transition-colors duration-200 flex items-center space-x-2"
+            class="w-28 py-2 bg-orange-500 text-white rounded-lg shadow-md hover:bg-orange-600 transition-all duration-200 flex items-center justify-center space-x-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-opacity-50"
           >
-            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
-            <span>取消收藏 {{ favoritedCount }} 条记录</span>
+            <span>取消收藏({{ favoritedCount }})</span>
           </button>
 
           <!-- 复制链接按钮 - 始终显示 -->
           <button
             @click="handleCopyLinks"
-            class="px-4 py-2 bg-[#fb7299] text-white rounded-full shadow-lg hover:bg-[#fb7299]/90 transition-colors duration-200 flex items-center space-x-2"
+            class="w-28 py-2 bg-blue-500 text-white rounded-lg shadow-md hover:bg-blue-600 transition-all duration-200 flex items-center justify-center space-x-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-50"
           >
-            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
             </svg>
-            <span>复制链接 {{ selectedRecords.size }} 条记录</span>
+            <span>复制链接({{ selectedRecords.size }})</span>
           </button>
         </div>
       </div>
@@ -402,6 +413,9 @@
         cover: selectedRecord?.cover || selectedRecord?.covers?.[0] || '',
         cid: selectedRecord?.cid || ''
       }"
+      :is-batch-download="isBatchDownload"
+      :batch-videos="batchVideos"
+      v-model:currentVideoIndex="currentVideoIndex"
       @download-complete="handleDownloadComplete"
     />
   </Teleport>
@@ -1434,7 +1448,74 @@ const openVideoDetail = (record) => {
 const handleDownloadGrid = (record) => {
   console.log('handleDownloadGrid - 处理网格视图下载按钮点击')
   selectedRecord.value = record
+  // 确保设置为单个视频下载模式，而非批量下载
+  isBatchDownload.value = false
   showDownloadDialog.value = true
+}
+
+// 批量下载视频列表
+const batchVideos = ref([])
+const isBatchDownload = ref(false)
+const currentVideoIndex = ref(0)
+
+// 批量下载处理函数
+const handleBatchDownload = async () => {
+  if (selectedRecords.value.size === 0) {
+    showNotify({
+      type: 'warning',
+      message: '请先选择要下载的记录'
+    })
+    return
+  }
+
+  try {
+    // 从选中的记录中提取视频信息
+    const videoRecords = [...selectedRecords.value].map(key => {
+      const [bvid, timestamp] = key.split('_')
+      return records.value.find(r => r.bvid === bvid && String(r.view_at) === timestamp)
+    }).filter(record => record && record.business === 'archive') // 过滤掉未找到的记录和非视频记录
+
+    if (videoRecords.length === 0) {
+      showNotify({
+        type: 'warning',
+        message: '选中的记录中没有有效的视频'
+      })
+      return
+    }
+
+    // 准备批量下载的视频列表
+    batchVideos.value = videoRecords.map(record => ({
+      bvid: record.bvid,
+      cid: record.cid,
+      title: record.title,
+      author: record.author_name,
+      cover: record.cover
+    }))
+
+    // 设置批量下载模式
+    isBatchDownload.value = true
+    currentVideoIndex.value = 0
+
+    // 显示下载对话框
+    if (batchVideos.value.length > 0) {
+      // 设置第一个视频作为当前下载视频
+      const firstVideo = batchVideos.value[0]
+      selectedRecord.value = {
+        title: firstVideo.title,
+        author_name: firstVideo.author,
+        bvid: firstVideo.bvid,
+        cover: firstVideo.cover,
+        cid: firstVideo.cid
+      }
+      showDownloadDialog.value = true
+    }
+  } catch (error) {
+    console.error('批量下载准备失败:', error)
+    showNotify({
+      type: 'danger',
+      message: '批量下载准备失败: ' + (error.message || '未知错误')
+    })
+  }
 }
 
 // 处理下载完成

@@ -93,7 +93,9 @@
           <div class="p-6">
             <!-- 标题 -->
             <div class="mb-4">
-              <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ isFavoriteFolder ? '下载收藏夹' : '下载视频' }}</h3>
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                {{ props.isBatchDownload ? '批量下载视频' : (isFavoriteFolder ? '下载收藏夹' : '下载视频') }}
+              </h3>
               <p v-if="downloadStarted" class="text-sm text-gray-500 dark:text-gray-400">
                 {{ isDownloading ? '正在下载：' : (downloadError ? '下载出错：' : '下载完成：') }} {{ currentVideoTitle }}
               </p>
@@ -103,6 +105,10 @@
               <!-- 收藏夹视频总数 -->
               <p v-if="isFavoriteFolder" class="text-sm text-gray-500 dark:text-gray-400 mt-1">
                 共 {{ favoritePageInfo.totalCount || props.videoInfo.total_videos || favoriteVideos.length }} 个视频，当前进度：{{ currentVideoIndex + 1 }}/{{ favoritePageInfo.totalCount || props.videoInfo.total_videos || favoriteVideos.length }}
+              </p>
+              <!-- 批量下载视频总数 -->
+              <p v-if="props.isBatchDownload" class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                共 {{ props.batchVideos.length }} 个视频，当前进度：{{ props.currentVideoIndex + 1 }}/{{ props.batchVideos.length }}
               </p>
             </div>
 
@@ -114,9 +120,9 @@
                 </div>
                 <div class="flex-1 min-w-0">
                   <h4 class="text-base font-medium text-gray-900 dark:text-gray-100 truncate whitespace-nowrap overflow-hidden">{{ currentVideoTitle }}</h4>
-                  <p v-if="!isFavoriteFolder" class="text-xs text-gray-500 dark:text-gray-400 mt-1">UP主：{{ props.videoInfo.author || '未知' }}</p>
-                  <p v-if="!isFavoriteFolder" class="text-xs text-gray-500 dark:text-gray-400">BV号：{{ props.videoInfo.bvid || '未知' }}</p>
-                  
+                  <p v-if="!isFavoriteFolder" class="text-xs text-gray-500 dark:text-gray-400 mt-1">UP主：{{ props.isBatchDownload ? currentVideoAuthor : props.videoInfo.author || '未知' }}</p>
+                  <p v-if="!isFavoriteFolder" class="text-xs text-gray-500 dark:text-gray-400">BV号：{{ props.isBatchDownload ? currentVideoBvid : props.videoInfo.bvid || '未知' }}</p>
+
                   <!-- 基础下载选项 -->
                   <div class="flex flex-wrap gap-4 items-center mt-3">
                     <label class="flex items-center space-x-2 cursor-pointer select-none">
@@ -140,12 +146,37 @@
               </div>
             </div>
 
+            <!-- 高级选项切换按钮 - 始终显示，放在右边 -->
+            <div v-if="!showAdvancedOptions" class="mb-4 flex justify-end">
+              <button
+                @click="showAdvancedOptions = true"
+                class="text-xs text-[#fb7299] hover:text-[#fb7299]/80 flex items-center space-x-1"
+              >
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+                <span>显示高级选项</span>
+              </button>
+            </div>
+
             <!-- 高级下载选项区域 -->
-            <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 mb-4 overflow-hidden">
+            <div v-show="showAdvancedOptions" class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 mb-4 overflow-hidden">
               <!-- 高级选项标题 -->
               <div class="bg-gray-50 dark:bg-gray-700/50 p-3 flex justify-between items-center border-b border-gray-200 dark:border-gray-700">
                 <h4 class="text-sm font-medium text-gray-800 dark:text-gray-200">高级下载选项</h4>
-                <p class="text-xs text-gray-500 dark:text-gray-400">这些选项可以帮助您更精细地控制下载过程</p>
+                <div class="flex items-center space-x-4">
+                  <p class="text-xs text-gray-500 dark:text-gray-400">这些选项可以帮助您更精细地控制下载过程</p>
+                  <!-- 始终显示隐藏按钮 -->
+                  <button
+                    @click="showAdvancedOptions = false"
+                    class="text-xs text-[#fb7299] hover:text-[#fb7299]/80 flex items-center space-x-1"
+                  >
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+                    </svg>
+                    <span>隐藏选项</span>
+                  </button>
+                </div>
               </div>
 
               <div class="p-4">
@@ -340,7 +371,10 @@
             </div>
 
             <!-- 下载日志 -->
-            <div class="w-full h-[calc(100vh-600px)] min-h-[150px] bg-gray-50 dark:bg-gray-900 rounded-lg p-3 font-mono text-xs overflow-y-auto border border-gray-200 dark:border-gray-700" ref="logContainer">
+            <div
+              class="w-full bg-gray-50 dark:bg-gray-900 rounded-lg p-3 font-mono text-xs overflow-y-auto border border-gray-200 dark:border-gray-700"
+              :class="showAdvancedOptions ? 'h-[calc(100vh-600px)] min-h-[150px]' : 'h-[calc(100vh-450px)] min-h-[200px]'"
+              ref="logContainer">
               <div v-if="!downloadStarted" class="text-gray-500 dark:text-gray-400 flex items-center justify-center h-full">
                 <div class="text-center">
                   <svg class="w-8 h-8 mx-auto mb-2 text-gray-400 dark:text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -396,7 +430,7 @@
 
 <script setup>
 import { ref, computed, watch, onUnmounted, nextTick } from 'vue'
-import { downloadVideo, checkFFmpeg, downloadFavorites, getFavoriteContents, downloadUserVideos } from '@/api/api.js'
+import { downloadVideo, checkFFmpeg, downloadFavorites, getFavoriteContents, downloadUserVideos, batchDownloadVideos } from '@/api/api.js'
 import { showNotify } from 'vant'
 import 'vant/es/notify/style'
 import CustomDropdown from '@/components/tailwind/CustomDropdown.vue'
@@ -425,16 +459,32 @@ const props = defineProps({
   upUserVideos: {
     type: Array,
     default: () => []
+  },
+  // 批量下载参数
+  isBatchDownload: {
+    type: Boolean,
+    default: false
+  },
+  batchVideos: {
+    type: Array,
+    default: () => []
+  },
+  // 当前下载的视频索引
+  currentVideoIndex: {
+    type: Number,
+    default: 0
   }
 })
 
-const emit = defineEmits(['update:show', 'download-complete'])
+const emit = defineEmits(['update:show', 'download-complete', 'update:currentVideoIndex'])
 
 // 下载相关状态
 const downloadStarted = ref(false)
 const isDownloading = ref(false)
 const downloadError = ref(false)
 const downloadLogs = ref([])
+// 控制高级选项的显示状态
+const showAdvancedOptions = ref(true)
 
 // 下载状态文本
 const downloadStatus = computed(() => {
@@ -497,9 +547,11 @@ const advancedOptions = ref({
   no_chapter_info: false
 })
 
-// 当前正在下载的视频标题
+// 当前正在下载的视频信息
 const currentVideoTitle = ref('')
 const currentVideoCover = ref('')
+const currentVideoAuthor = ref('')
+const currentVideoBvid = ref('')
 
 const videoTitles = ref([]) // 存储所有检测到的视频标题
 
@@ -779,6 +831,8 @@ watch(() => props.show, async (isVisible) => {
     // 初始化
     currentVideoTitle.value = props.videoInfo.title
     currentVideoCover.value = props.videoInfo.pic || props.videoInfo.cover
+    currentVideoAuthor.value = props.videoInfo.author || ''
+    currentVideoBvid.value = props.videoInfo.bvid || ''
     console.log('设置封面图片路径:', currentVideoCover.value)
     videoTitles.value = []
     currentVideoIndex.value = -1
@@ -802,9 +856,13 @@ const resetState = () => {
   downloadLogs.value = []
   currentVideoTitle.value = props.videoInfo.title
   currentVideoCover.value = props.videoInfo.pic || props.videoInfo.cover
+  currentVideoAuthor.value = props.videoInfo.author || ''
+  currentVideoBvid.value = props.videoInfo.bvid || ''
   videoTitles.value = []
   currentVideoIndex.value = -1
   favoriteVideos.value = []
+  // 重置高级选项的显示状态
+  showAdvancedOptions.value = true
 
   // 重置高级选项
   advancedOptions.value = {
@@ -858,6 +916,9 @@ const startDownload = async () => {
     isDownloading.value = true
     downloadError.value = false
     downloadLogs.value = []
+
+    // 隐藏高级选项，让日志显示在更靠上的位置
+    showAdvancedOptions.value = false
 
     // 首次显示正在使用预加载的视频
     if (isFavoriteFolder.value && favoriteVideos.value.length > 0) {
@@ -999,8 +1060,78 @@ const startDownload = async () => {
           scrollToBottom()
         })
       })
+    } else if (props.isBatchDownload && props.batchVideos.length > 0) {
+      // 批量下载多个视频
+      downloadLogs.value.push(`INFO 开始批量下载，共 ${props.batchVideos.length} 个视频`)
+
+      // 设置初始视频信息
+      if (props.batchVideos.length > 0 && props.currentVideoIndex < props.batchVideos.length) {
+        const currentVideo = props.batchVideos[props.currentVideoIndex]
+        currentVideoTitle.value = currentVideo.title || currentVideo.bvid
+        currentVideoCover.value = currentVideo.cover || props.videoInfo.cover
+        currentVideoAuthor.value = currentVideo.author || props.videoInfo.author || ''
+        currentVideoBvid.value = currentVideo.bvid || props.videoInfo.bvid || ''
+      }
+
+      // 发起批量下载请求
+      await batchDownloadVideos({
+        videos: props.batchVideos,
+        download_cover: downloadCover.value,
+        only_audio: onlyAudio.value,
+        // 添加高级选项
+        ...advancedOptions.value
+      }, (content) => {
+        console.log('收到批量下载消息:', content)
+        downloadLogs.value.push(content)
+
+        // 检查是否包含当前下载的视频信息
+        const currentVideoMatch = content.match(/正在下载第\s+(\d+)\/(\d+)\s+个视频:\s+(.+)/)
+        if (currentVideoMatch) {
+          const index = parseInt(currentVideoMatch[1], 10) - 1
+          const total = parseInt(currentVideoMatch[2], 10)
+          const title = currentVideoMatch[3].trim()
+
+          console.log(`正在下载第 ${index + 1}/${total} 个视频: ${title}`)
+
+          // 更新当前视频信息
+          if (index >= 0 && index < props.batchVideos.length) {
+            currentVideoIndex.value = index
+            currentVideoTitle.value = title
+            const video = props.batchVideos[index]
+            if (video) {
+              if (video.cover) {
+                currentVideoCover.value = video.cover
+              }
+              if (video.author) {
+                currentVideoAuthor.value = video.author
+              }
+              if (video.bvid) {
+                currentVideoBvid.value = video.bvid
+              }
+            }
+            // 通知父组件当前视频索引已更新
+            emit('update:currentVideoIndex', index)
+          }
+        }
+
+        // 检查下载状态
+        if (content.includes('批量下载完成') || (content.includes('下载完成') && !content.includes('INFO'))) {
+          isDownloading.value = false
+          // 显示下载完成通知
+          showDownloadCompleteNotify()
+          emit('download-complete')
+        } else if (content.includes('ERROR')) {
+          downloadError.value = true
+          isDownloading.value = false
+        }
+
+        // 自动滚动到底部
+        nextTick(() => {
+          scrollToBottom()
+        })
+      })
     } else {
-      // 发起视频下载请求并处理实时消息
+      // 发起单个视频下载请求并处理实时消息
       await downloadVideo(
         props.videoInfo.bvid,
         null,

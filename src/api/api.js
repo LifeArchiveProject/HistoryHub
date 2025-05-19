@@ -1217,6 +1217,72 @@ export const downloadFavorites = async (options, onMessage) => {
 }
 
 /**
+ * 批量下载多个视频
+ * @param {Object} options 下载选项
+ * @param {Array} options.videos 要下载的视频列表，每个视频包含bvid、cid、title、author、cover
+ * @param {string} [options.sessdata] 用户的SESSDATA，不提供则从配置文件读取
+ * @param {boolean} [options.download_cover] 是否下载封面，默认true
+ * @param {boolean} [options.only_audio] 是否仅下载音频，默认false
+ * @param {Function} onMessage 消息处理回调函数
+ * @returns {Promise<void>}
+ */
+export const batchDownloadVideos = async (options, onMessage) => {
+  console.log('调用批量下载API, 参数:', options)
+
+  // 提取基本选项和高级选项
+  const { videos, sessdata, download_cover, only_audio, ...advancedOptions } = options
+
+  const requestBody = {
+    videos,
+    sessdata,
+    download_cover: download_cover ?? true,
+    only_audio: only_audio ?? false,
+    // 添加高级选项
+    ...advancedOptions
+  }
+
+  // 准备请求头
+  const headers = {
+    'Content-Type': 'application/json',
+  }
+
+  const response = await fetch(`${BASE_URL}/download/batch_download`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(requestBody)
+  })
+
+  if (!response.ok) {
+    const errorData = await response.json()
+    throw new Error(errorData.detail || '批量下载请求失败')
+  }
+
+  const reader = response.body.getReader()
+  const decoder = new TextDecoder()
+  let buffer = ''
+
+  while (true) {
+    const { value, done } = await reader.read()
+    if (done) break
+
+    buffer += decoder.decode(value, { stream: true })
+
+    // 处理缓冲区中的完整行
+    const lines = buffer.split('\n')
+    buffer = lines.pop() // 保留最后一个不完整的行
+
+    for (const line of lines) {
+      if (line.startsWith('data: ')) {
+        const content = line.substring(6).trim()
+        if (content && content !== 'close') {
+          onMessage(content)
+        }
+      }
+    }
+  }
+}
+
+/**
  * 下载用户全部投稿视频
  * @param {Object} options 下载选项
  * @param {string} options.user_id 用户UID
