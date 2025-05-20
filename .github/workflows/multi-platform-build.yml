@@ -234,11 +234,56 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/')
 
     steps:
+    - name: 检出代码
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # 获取完整历史记录
+
     - name: 下载所有构建产物
       uses: actions/download-artifact@v4
 
     - name: 列出下载的文件
       run: find . -type f -name "*.zip"
+      shell: bash
+
+    - name: 获取上一个标签
+      id: get_previous_tag
+      run: |
+        # 获取当前标签排序后的前一个标签
+        CURRENT_TAG="${{ github.ref_name }}"
+        PREVIOUS_TAG=$(git tag --sort=-version:refname | grep -A 1 "^$CURRENT_TAG$" | tail -n 1)
+        
+        # 如果当前标签就是最早的标签，则使用初始提交
+        if [ "$CURRENT_TAG" = "$PREVIOUS_TAG" ]; then
+          PREVIOUS_TAG=$(git rev-list --max-parents=0 HEAD)
+        fi
+        
+        echo "previous_tag=$PREVIOUS_TAG" >> $GITHUB_OUTPUT
+        echo "找到上一个标签: $PREVIOUS_TAG"
+      shell: bash
+
+    - name: 生成提交日志
+      id: generate_changelog
+      run: |
+        echo "正在生成从 ${{ steps.get_previous_tag.outputs.previous_tag }} 到 ${{ github.ref_name }} 的提交日志"
+        
+        # 使用不同的格式直接生成所需格式的提交日志
+        {
+          echo "## ${{ github.ref_name }} 更新内容"
+          echo ""
+          
+          # 使用git log直接格式化输出，避免复杂的解析
+          git log "${{ steps.get_previous_tag.outputs.previous_tag }}..${{ github.ref_name }}" --pretty=format:"* %s in [\`%h\`](https://github.com/${{ github.repository }}/commit/%H)" --reverse
+          
+        } > release_notes.md
+        
+        cat release_notes.md
+        
+        # 将生成的提交日志传递给后续步骤
+        CHANGELOG=$(cat release_notes.md)
+        echo "changelog<<EOF" >> $GITHUB_OUTPUT
+        echo "$CHANGELOG" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
       shell: bash
 
     - name: 创建GitHub发布
@@ -249,12 +294,6 @@ jobs:
           ./BilibiliHistoryFetcher-macos-latest/BilibiliHistoryFetcher-macos.zip
           ./BilibiliHistoryFetcher-ubuntu-latest/BilibiliHistoryFetcher-linux.zip
         name: Release ${{ github.ref_name }}
-        body: |
-          BilibiliHistoryFetcher ${{ github.ref_name }} 发布
-
-          ## 下载
-          - [Windows版](./BilibiliHistoryFetcher-windows.zip)
-          - [macOS版](./BilibiliHistoryFetcher-macos.zip)
-          - [Linux版](./BilibiliHistoryFetcher-linux.zip)
+        body: ${{ steps.generate_changelog.outputs.changelog }}
       env:
         GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
