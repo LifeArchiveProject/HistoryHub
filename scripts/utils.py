@@ -22,13 +22,17 @@ def setup_logger(log_level: str = "INFO") -> Dict:
     """
     global _logger_initialized
 
+    # 获取当前日志文件路径
+    current_date = datetime.now().strftime("%Y/%m/%d")
+    year_month = current_date.rsplit("/", 1)[0]  # 年/月 部分
+    day_only = current_date.split('/')[-1]  # 只取日期中的"日"部分
+    log_dir = f'output/logs/{year_month}/{day_only}'
+    
+    # 确保初始日志目录存在
+    os.makedirs(log_dir, exist_ok=True)
+
     # 如果日志系统已初始化，直接返回
     if _logger_initialized:
-        # 获取当前日志文件路径
-        current_date = datetime.now().strftime("%Y/%m/%d")
-        year_month = current_date.rsplit("/", 1)[0]  # 年/月 部分
-        day_only = current_date.split('/')[-1]  # 只取日期中的"日"部分
-        log_dir = f'output/logs/{year_month}/{day_only}'
         main_log_file = f'{log_dir}/{day_only}.log'
         error_log_file = f'{log_dir}/error_{day_only}.log'
 
@@ -37,19 +41,6 @@ def setup_logger(log_level: str = "INFO") -> Dict:
             "main_log_file": main_log_file,
             "error_log_file": error_log_file
         }
-
-    # 创建日志目录
-    current_date = datetime.now().strftime("%Y/%m/%d")
-    year_month = current_date.rsplit("/", 1)[0]  # 年/月 部分
-    day_only = current_date.split('/')[-1]  # 只取日期中的"日"部分
-
-    # 日志文件夹路径(年/月/日)
-    log_dir = f'output/logs/{year_month}/{day_only}'
-    os.makedirs(log_dir, exist_ok=True)
-
-    # 日志文件路径
-    main_log_file = f'{log_dir}/{day_only}.log'
-    error_log_file = f'{log_dir}/error_{day_only}.log'
 
     # 移除默认处理器
     logger.remove()
@@ -71,9 +62,15 @@ def setup_logger(log_level: str = "INFO") -> Dict:
         diagnose=False  # 禁用诊断以避免日志循环
     )
 
+    # 使用动态路径格式，确保日志按日期自动分割到正确的目录中
+    # {time:YYYY} - 年份目录
+    # {time:MM} - 月份目录
+    # {time:DD} - 日期目录和文件名
+    dynamic_log_path = "output/logs/{time:YYYY}/{time:MM}/{time:DD}/{time:DD}.log"
+    
     # 添加文件处理器（完整日志信息）
     logger.add(
-        main_log_file,
+        dynamic_log_path,  # 使用动态路径
         level=log_level,
         format="[{time:YYYY-MM-DD HH:mm:ss}] [{level}] [{extra[app_name]}] [v{extra[version]}] [进程:{process}] [线程:{thread}] [{name}] [{file.name}:{line}] [{function}] {message}\n{exception}",
         encoding="utf-8",
@@ -85,9 +82,12 @@ def setup_logger(log_level: str = "INFO") -> Dict:
         compression="zip"  # 压缩旧日志
     )
 
+    # 错误日志也使用动态路径
+    dynamic_error_log_path = "output/logs/{time:YYYY}/{time:MM}/{time:DD}/error_{time:DD}.log"
+    
     # 专门用于记录错误级别日志的处理器
     logger.add(
-        error_log_file,
+        dynamic_error_log_path,  # 使用动态路径
         level="ERROR",  # 只记录ERROR及以上级别
         format="[{time:YYYY-MM-DD HH:mm:ss}] [{level}] [{extra[app_name]}] [{name}] [{file.name}:{line}] [{function}] {message}\n{exception}",
         encoding="utf-8",
@@ -101,6 +101,12 @@ def setup_logger(log_level: str = "INFO") -> Dict:
 
     # 标记日志系统已初始化
     _logger_initialized = True
+
+    # 记录一条启动日志，测试日志系统
+    logger.info("=== 日志系统初始化完成 ===")
+
+    main_log_file = f'{log_dir}/{day_only}.log'
+    error_log_file = f'{log_dir}/error_{day_only}.log'
 
     return {
         "log_dir": log_dir,
@@ -225,14 +231,26 @@ def get_database_path(*paths: str) -> str:
     return full_path
 
 def get_logs_path() -> str:
-    """获取日志文件路径"""
+    """
+    获取当前日期的日志文件路径
+    
+    根据当前日期动态生成日志文件路径，与setup_logger函数中的动态路径格式保持一致
+    
+    Returns:
+        str: 当前日期对应的日志文件路径
+    """
     current_time = datetime.now()
-    log_path = get_output_path(
-        'logs',
-        str(current_time.year),
-        f"{current_time.month:02d}",
-        f"{current_time.day:02d}.log"
-    )
+    year = str(current_time.year)
+    month = f"{current_time.month:02d}"
+    day = f"{current_time.day:02d}"
+    
+    # 构建与setup_logger中动态路径格式一致的路径
+    log_path = f"output/logs/{year}/{month}/{day}/{day}.log"
+    
+    # 确保日志目录存在
+    log_dir = os.path.dirname(log_path)
+    os.makedirs(log_dir, exist_ok=True)
+    
     return log_path
 
 def get_db():

@@ -1,6 +1,6 @@
 import os
 import smtplib
-from datetime import datetime, timedelta
+from datetime import datetime
 from email.header import Header
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -8,7 +8,7 @@ from typing import Optional, Dict
 
 from loguru import logger
 
-from scripts.utils import load_config, get_logs_path, setup_logger
+from scripts.utils import load_config, setup_logger, get_logs_path
 
 # 确保日志系统已初始化
 setup_logger()
@@ -16,36 +16,51 @@ setup_logger()
 
 def get_task_execution_logs() -> str:
     """
-    获取任务执行期间的日志
+    获取最近一次计划任务执行期间的完整日志内容
 
-    通过查找日志文件中的任务执行标记，提取出任务执行期间的日志内容
+    从当前日志文件中查找最近一次任务执行的日志，
+    包含从任务开始到文件结尾的所有日志内容。
 
     Returns:
-        str: 任务执行期间的日志内容
+        str: 最近一次计划任务执行的完整日志内容，如果没有找到则返回提示信息
     """
+    # 获取当前日志文件路径
     log_file = get_logs_path()
+    
+    # 检查日志文件是否存在
     if not os.path.exists(log_file):
         return "今日暂无日志记录"
 
     with open(log_file, 'r', encoding='utf-8') as f:
         log_lines = f.readlines()
+    
+    # 如果日志为空
+    if not log_lines:
+        return "今日暂无日志记录"
 
-    # 查找最近一次任务执行的开始和结束位置
+    # 查找最近一次计划任务执行的开始位置
     start_index = -1
-    end_index = len(log_lines)
-
+    end_index = len(log_lines)  # 默认到文件末尾
+    
+    # 计划任务开始的标记
+    task_start_markers = [
+        "=== 执行任务链:",         # 主任务链开始
+        "=== 执行任务:",          # 单个任务开始
+        "=== 调度器触发任务执行"    # 调度器触发的任务
+    ]
+    
     # 从后向前查找最近的任务执行开始标记
     for i in range(len(log_lines) - 1, -1, -1):
         line = log_lines[i]
-        if "=== 执行任务链:" in line or "=== 执行任务:" in line:
+        if any(marker in line for marker in task_start_markers):
             start_index = i
             break
-
-    # 如果找不到任务执行标记，则返回空字符串
+    
+    # 如果找不到任务执行开始标记，则返回提示信息
     if start_index == -1:
         return "未找到任务执行记录"
-
-    # 提取任务执行期间的日志
+    
+    # 提取任务执行期间的日志 - 从开始标记一直到文件结束
     task_logs = log_lines[start_index:end_index]
     return "".join(task_logs)
 
@@ -136,27 +151,23 @@ async def send_email(subject: str, content: Optional[str] = None, to_email: Opti
         return {"status": "error", "message": error_msg}
 
 def get_today_logs():
-    """获取今日日志"""
-    current_date = datetime.now().strftime("%Y/%m/%d")
-    yesterday = (datetime.now() - timedelta(days=1)).strftime("%Y/%m/%d")
-
+    """
+    获取今日全部日志内容
+    
+    从当前日志文件获取所有日志行
+    
+    Returns:
+        list: 今日的全部日志行
+    """
+    # 获取当前日志文件路径
+    log_file = get_logs_path()
     logs = []
-
-    # 检查昨天的日志（如果在0点前后）
-    yesterday_log = f'output/logs/{yesterday}.log'
-    if os.path.exists(yesterday_log):
-        with open(yesterday_log, 'r', encoding='utf-8') as f:
-            content = f.read()
-            # 只获取最后一天的日志
-            logs.extend([line for line in content.splitlines()
-                        if line.startswith(datetime.now().strftime("%Y-%m-%d"))])
-
-    # 检查今天的日志
-    today_log = f'output/logs/{current_date}.log'
-    if os.path.exists(today_log):
-        with open(today_log, 'r', encoding='utf-8') as f:
-            logs.extend(f.read().splitlines())
-
+    
+    # 检查今天的日志文件
+    if os.path.exists(log_file):
+        with open(log_file, 'r', encoding='utf-8') as f:
+            logs = f.read().splitlines()
+    
     return logs
 
 # 测试代码
