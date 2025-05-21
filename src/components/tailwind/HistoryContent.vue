@@ -29,7 +29,8 @@
     <!-- 登录状态空状态 -->
     <div v-else-if="!isLoggedIn" class="flex flex-col items-center justify-center py-16 bg-white rounded-lg shadow-sm">
       <svg class="w-24 h-24 text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+              d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
       </svg>
       <h3 class="text-xl font-medium text-gray-600 mb-2">请先登录</h3>
       <p class="text-gray-500 mb-6">登录B站账号后才能查看您的历史记录</p>
@@ -37,16 +38,19 @@
         class="px-4 py-2 bg-[#fb7299] text-white rounded-md hover:bg-[#fb7299]/90 transition-colors duration-200 flex items-center space-x-2"
         @click="openLoginDialog">
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
         </svg>
         <span>点击登录</span>
       </button>
     </div>
 
     <!-- 数据为空状态 -->
-    <div v-else-if="isLoggedIn && records.length === 0" class="flex flex-col items-center justify-center py-16 bg-white rounded-lg">
+    <div v-else-if="isLoggedIn && records.length === 0"
+         class="flex flex-col items-center justify-center py-16 bg-white rounded-lg">
       <svg class="w-24 h-24 text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
       <h3 class="text-xl font-medium text-gray-600 mb-2">暂无历史记录</h3>
       <p class="text-gray-500 mb-6">点击下方按钮从B站获取您的历史记录</p>
@@ -54,7 +58,8 @@
         class="px-4 py-2 bg-[#fb7299] text-white rounded-md hover:bg-[#fb7299]/90 transition-colors duration-200 flex items-center space-x-2"
         @click="refreshData">
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
         </svg>
         <span>获取历史记录</span>
       </button>
@@ -64,7 +69,9 @@
     <div v-else class="overflow-hidden">
       <transition name="float" mode="out-in">
         <!-- 网格布局（仅PC端） -->
-        <div v-if="layout === 'grid'" class="hidden sm:grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 px-4 mx-auto transition-all duration-300 ease-in-out transform-gpu" style="max-width: 1152px;" key="grid-layout">
+        <div v-if="layout === 'grid'"
+             class="hidden sm:grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 px-4 mx-auto transition-all duration-300 ease-in-out transform-gpu"
+             style="max-width: 1152px;" key="grid-layout">
           <template v-for="(record, index) in records" :key="`grid-${record.id}-${record.view_at}`">
             <!-- 日期分割线和视频数量 -->
             <div v-if="shouldShowDivider(index)" class="col-span-full relative py-1">
@@ -74,26 +81,27 @@
                     <div class="w-full border-t border-gray-300" />
                   </div>
                   <div class="relative flex items-center justify-between">
-                    <div class="bg-white dark:bg-gray-800 pr-3 flex items-center space-x-2">
+                    <div class="bg-white pr-3 flex items-center space-x-2">
                       <!-- 添加当天记录的勾选框 -->
                       <div v-if="isBatchMode"
                            class="flex items-center justify-center cursor-pointer"
                            @click.stop="toggleDaySelection(record.view_at)">
                         <div class="w-5 h-5 rounded border-2 flex items-center justify-center"
                              :class="isDaySelected(record.view_at) ? 'bg-[#fb7299] border-[#fb7299]' : 'border-gray-300 bg-white'">
-                          <svg v-if="isDaySelected(record.view_at)" class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <svg v-if="isDaySelected(record.view_at)" class="w-3 h-3 text-white" fill="none"
+                               viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
                           </svg>
                         </div>
                       </div>
                       <span class="lm:text-xs">
-                        {{ formatDividerDate(record.view_at) }}
-                      </span>
+ {{ formatDividerDate(record.view_at) }}
+ </span>
                     </div>
-                    <div class="bg-white dark:bg-gray-800 pl-3">
-                      <span class="lm:text-xs text-[#FF6699]">
-                        {{ getDailyStatsForDate(record.view_at) }}条数据
-                      </span>
+                    <div class="bg-white pl-3">
+ <span class="lm:text-xs text-[#FF6699]">
+ {{ getDailyStatsForDate(record.view_at) }}条数据
+ </span>
                     </div>
                   </div>
                 </div>
@@ -101,75 +109,94 @@
             </div>
 
             <!-- 网格布局的视频卡片 -->
-            <div class="bg-white/50 dark:bg-white/5 backdrop-blur-sm rounded-lg overflow-hidden border border-gray-200/50 hover:border-[#FF6699] hover:shadow-md transition-all duration-200 relative group"
-                 :class="{ 'ring-2 ring-[#fb7299]': selectedRecords.has(`${record.bvid}_${record.view_at}`), 'cursor-pointer': isBatchMode }"
-                 @click="isBatchMode ? toggleRecordSelection(record) : null">
+            <div
+              class="bg-white/50 backdrop-blur-sm rounded-lg overflow-hidden border border-gray-200/50 hover:border-[#FF6699] hover:shadow-md transition-all duration-200 relative group"
+              :class="{ 'ring-2 ring-[#fb7299]': selectedRecords.has(`${record.bvid}_${record.view_at}`), 'cursor-pointer': isBatchMode }"
+              @click="isBatchMode ? toggleRecordSelection(record) : null">
               <!-- 多选框 -->
               <div v-if="isBatchMode"
                    class="absolute top-2 left-2 z-10">
                 <div class="w-5 h-5 rounded border-2 flex items-center justify-center"
                      :class="selectedRecords.has(`${record.bvid}_${record.view_at}`) ? 'bg-[#fb7299] border-[#fb7299]' : 'border-white bg-black/20'">
-                  <svg v-if="selectedRecords.has(`${record.bvid}_${record.view_at}`)" class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg v-if="selectedRecords.has(`${record.bvid}_${record.view_at}`)" class="w-3 h-3 text-white"
+                       fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
               </div>
 
               <!-- 封面图片 -->
-              <div class="relative aspect-video" :class="{ 'cursor-pointer': !isBatchMode }" @click="!isBatchMode ? handleVideoClick(record) : null">
+              <div class="relative aspect-video" :class="{ 'cursor-pointer': !isBatchMode }"
+                   @click="!isBatchMode ? handleVideoClick(record) : null">
                 <!-- 下载状态标识 -->
                 <div v-if="isVideoDownloaded(record.cid) && record.business === 'archive'"
                      class="absolute left-0 top-0 z-20">
-                  <div class="bg-gradient-to-r from-green-500 to-green-400 text-white font-semibold px-2 py-0.5 text-xs flex items-center space-x-1.5 rounded-br-md shadow-md">
+                  <div
+                    class="bg-gradient-to-r from-green-500 to-green-400 text-white font-semibold px-2 py-0.5 text-xs flex items-center space-x-1.5 rounded-br-md shadow-md">
                     <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                     </svg>
                     <span>已下载</span>
                   </div>
                 </div>
 
-                <!-- 收藏状态标识 -->
-                <div v-if="isVideoFavorited(parseInt(record.aid || record.avid || (record.business === 'archive' ? record.oid : 0), 10))"
-                     class="absolute right-0 top-0 z-20">
-                  <div class="bg-gradient-to-r from-amber-500 to-yellow-400 text-white font-semibold px-2 py-0.5 text-xs flex items-center space-x-1.5 rounded-bl-md shadow-md">
+                <!-- 收藏状态标识 - 不对直播类型显示 -->
+                <div
+                  v-if="isVideoFavorited(parseInt(record.aid || record.avid || (record.business === 'archive' ? record.oid : 0), 10)) && record.business !== 'live'"
+                  class="absolute right-0 top-0 z-20">
+                  <div
+                    class="bg-gradient-to-r from-amber-500 to-yellow-400 text-white font-semibold px-2 py-0.5 text-xs flex items-center space-x-1.5 rounded-bl-md shadow-md">
                     <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
                     </svg>
                     <span>已收藏</span>
                   </div>
                 </div>
 
-                <!-- 删除按钮 -->
+                <!-- 按钮组 -->
                 <div v-if="!isBatchMode"
-                     class="absolute right-2 top-2 z-20 hidden group-hover:flex items-center justify-center w-7 h-7 bg-[#7d7c75]/60 backdrop-blur-sm hover:bg-[#7d7c75]/80 rounded-md cursor-pointer transition-all duration-200"
-                     @click.stop="handleDelete(record)">
-                  <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                </div>
-                <!-- 详情按钮 -->
-                <div v-if="!isBatchMode"
-                     class="absolute right-11 top-2 z-20 hidden group-hover:flex items-center justify-center w-7 h-7 bg-[#7d7c75]/60 backdrop-blur-sm hover:bg-[#7d7c75]/80 rounded-md cursor-pointer transition-all duration-200"
-                     @click.stop="openVideoDetail(record)">
-                  <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                <!-- 下载按钮 - 只对视频类型显示 -->
-                <div v-if="!isBatchMode && record.business === 'archive'"
-                     class="absolute right-20 top-2 z-20 hidden group-hover:flex items-center justify-center w-7 h-7 bg-[#7d7c75]/60 backdrop-blur-sm hover:bg-[#7d7c75]/80 rounded-md cursor-pointer transition-all duration-200"
-                     @click.stop.prevent="handleDownloadGrid(record)">
-                  <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                  </svg>
-                </div>
-                <!-- 收藏按钮 -->
-                <div v-if="!isBatchMode"
-                     class="absolute right-[116px] top-2 z-20 hidden group-hover:flex items-center justify-center w-7 h-7 bg-[#7d7c75]/60 backdrop-blur-sm hover:bg-[#7d7c75]/80 rounded-md cursor-pointer transition-all duration-200"
-                     @click.stop.prevent="handleFavoriteGrid(record)">
-                  <svg class="w-4 h-4" :class="isVideoFavorited(parseInt(record.aid || record.avid || (record.business === 'archive' ? record.oid : 0), 10)) ? 'text-yellow-400' : 'text-white'" :fill="isVideoFavorited(parseInt(record.aid || record.avid || (record.business === 'archive' ? record.oid : 0), 10)) ? 'currentColor' : 'none'" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-                  </svg>
+                     class="absolute right-2 top-2 z-20 hidden group-hover:flex flex-row items-center space-x-2">
+                  <!-- 收藏按钮 - 不对直播类型显示 -->
+                  <div v-if="record.business !== 'live'"
+                       class="flex items-center justify-center w-7 h-7 bg-[#7d7c75]/60 backdrop-blur-sm hover:bg-[#7d7c75]/80 rounded-md cursor-pointer transition-all duration-200"
+                       @click.stop.prevent="handleFavoriteGrid(record)">
+                    <svg class="w-4 h-4"
+                         :class="isVideoFavorited(parseInt(record.aid || record.avid || (record.business === 'archive' ? record.oid : 0), 10)) ? 'text-yellow-400' : 'text-white'"
+                         :fill="isVideoFavorited(parseInt(record.aid || record.avid || (record.business === 'archive' ? record.oid : 0), 10)) ? 'currentColor' : 'none'"
+                         viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                    </svg>
+                  </div>
+                  <!-- 下载按钮 - 只对视频类型显示 -->
+                  <div v-if="record.business === 'archive'"
+                       class="flex items-center justify-center w-7 h-7 bg-[#7d7c75]/60 backdrop-blur-sm hover:bg-[#7d7c75]/80 rounded-md cursor-pointer transition-all duration-200"
+                       @click.stop.prevent="handleDownloadGrid(record)">
+                    <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                  </div>
+                  <!-- 详情按钮 - 只对普通视频类型显示 -->
+                  <div v-if="record.business === 'archive'"
+                       class="flex items-center justify-center w-7 h-7 bg-[#7d7c75]/60 backdrop-blur-sm hover:bg-[#7d7c75]/80 rounded-md cursor-pointer transition-all duration-200"
+                       @click.stop="openVideoDetail(record)">
+                    <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <!-- 删除按钮 -->
+                  <div
+                    class="flex items-center justify-center w-7 h-7 bg-[#7d7c75]/60 backdrop-blur-sm hover:bg-[#7d7c75]/80 rounded-md cursor-pointer transition-all duration-200"
+                    @click.stop="handleDelete(record)">
+                    <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </div>
                 </div>
                 <img
                   :src="record.cover || record.covers?.[0]"
@@ -178,9 +205,11 @@
                   alt=""
                 />
                 <!-- 视频进度条 -->
-                <div v-if="record.business !== 'article-list' && record.business !== 'article' && record.business !== 'live'"
-                     class="absolute bottom-0 left-0 w-full">
-                  <div class="absolute bottom-1 right-1 rounded bg-black/50 px-1 py-1 text-[10px] font-semibold text-white">
+                <div
+                  v-if="record.business !== 'article-list' && record.business !== 'article' && record.business !== 'live'"
+                  class="absolute bottom-0 left-0 w-full">
+                  <div
+                    class="absolute bottom-1 right-1 rounded bg-black/50 px-1 py-1 text-[10px] font-semibold text-white">
                     <span>{{ formatDuration(record.progress) }}</span>
                     <span>/</span>
                     <span>{{ formatDuration(record.duration) }}</span>
@@ -209,11 +238,12 @@
                 </div>
                 <!-- 分区标签 - 单行显示 -->
                 <div class="text-xs text-gray-500 truncate flex items-center space-x-1">
-                  <span class="inline-flex items-center rounded-md bg-[#f1f2f3] px-2 py-1 text-xs text-[#71767d]">
-                    {{ record.business === 'archive' ? record.tag_name : getBusinessType(record.business) }}
-                  </span>
+ <span class="inline-flex items-center rounded-md bg-[#f1f2f3] px-2 py-1 text-xs text-[#71767d]">
+ {{ record.business === 'archive' ? record.tag_name : getBusinessType(record.business) }}
+ </span>
                   <span v-if="record.business === 'archive'" class="text-gray-400">·</span>
-                  <span v-if="record.business === 'archive' && record.name" class="text-[#71767d]">{{ record.name }}</span>
+                  <span v-if="record.business === 'archive' && record.name" class="text-[#71767d]">{{ record.name
+                    }}</span>
                 </div>
                 <!-- UP主和时间信息 - 单行显示 -->
                 <div class="flex items-center justify-between text-xs text-gray-600">
@@ -229,7 +259,7 @@
                           :class="{ 'blur-sm': isPrivacyMode, 'cursor-pointer': !isBatchMode }"
                           class="hover:text-[#fb7299] transition-colors duration-200 truncate"
                           @click="!isBatchMode ? handleAuthorClick(record) : null">
-                    </span>
+ </span>
                   </div>
                   <div class="flex items-center space-x-2 flex-shrink-0">
                     <img v-if="record.dt === 1 || record.dt === 3 || record.dt === 5 || record.dt === 7"
@@ -256,7 +286,8 @@
         </div>
 
         <!-- 列表布局（移动端始终显示，PC端在list模式下显示） -->
-        <div v-else :class="{'sm:hidden': layout === 'grid'}" class="transition-all duration-300 ease-in-out transform-gpu" key="list-layout">
+        <div v-else :class="{'sm:hidden': layout === 'grid'}"
+             class="transition-all duration-300 ease-in-out transform-gpu" key="list-layout">
           <template v-for="(record, index) in records" :key="`list-${record.id}-${record.view_at}`">
             <!-- 日期分割线和视频数量 -->
             <div v-if="shouldShowDivider(index)" class="relative py-1 max-w-4xl mx-auto">
@@ -266,26 +297,27 @@
                     <div class="w-full border-t border-gray-300" />
                   </div>
                   <div class="relative flex items-center justify-between">
-                    <div class="bg-white dark:bg-gray-800 pr-3 flex items-center space-x-2">
+                    <div class="bg-white pr-3 flex items-center space-x-2">
                       <!-- 添加当天记录的勾选框 -->
                       <div v-if="isBatchMode"
                            class="flex items-center justify-center cursor-pointer"
                            @click.stop="toggleDaySelection(record.view_at)">
                         <div class="w-5 h-5 rounded border-2 flex items-center justify-center"
                              :class="isDaySelected(record.view_at) ? 'bg-[#fb7299] border-[#fb7299]' : 'border-gray-300 bg-white'">
-                          <svg v-if="isDaySelected(record.view_at)" class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <svg v-if="isDaySelected(record.view_at)" class="w-3 h-3 text-white" fill="none"
+                               viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
                           </svg>
                         </div>
                       </div>
                       <span class="lm:text-xs">
-                        {{ formatDividerDate(record.view_at) }}
-                      </span>
+ {{ formatDividerDate(record.view_at) }}
+ </span>
                     </div>
-                    <div class="bg-white dark:bg-gray-800 pl-3">
-                      <span class="lm:text-xs text-[#FF6699]">
-                        {{ getDailyStatsForDate(record.view_at) }}条数据
-                      </span>
+                    <div class="bg-white pl-3">
+ <span class="lm:text-xs text-[#FF6699]">
+ {{ getDailyStatsForDate(record.view_at) }}条数据
+ </span>
                     </div>
                   </div>
                 </div>
@@ -336,7 +368,8 @@
             class="w-28 py-2 bg-red-500 text-white rounded-lg shadow-md hover:bg-red-600 transition-all duration-200 flex items-center justify-center space-x-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-opacity-50"
           >
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
             </svg>
             <span>删除({{ selectedRecords.size }})</span>
           </button>
@@ -347,7 +380,8 @@
             class="w-28 py-2 bg-green-500 text-white rounded-lg shadow-md hover:bg-green-600 transition-all duration-200 flex items-center justify-center space-x-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-50"
           >
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
             </svg>
             <span>下载({{ selectedRecords.size }})</span>
           </button>
@@ -359,7 +393,8 @@
             class="w-28 py-2 bg-[#fb7299] text-white rounded-lg shadow-md hover:bg-[#fb7299]/90 transition-all duration-200 flex items-center justify-center space-x-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-400 focus:ring-opacity-50"
           >
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
             </svg>
             <span>收藏({{ unfavoritedCount }})</span>
           </button>
@@ -382,7 +417,8 @@
             class="w-28 py-2 bg-blue-500 text-white rounded-lg shadow-md hover:bg-blue-600 transition-all duration-200 flex items-center justify-center space-x-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-50"
           >
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
             </svg>
             <span>复制链接({{ selectedRecords.size }})</span>
           </button>
@@ -407,12 +443,12 @@
     <DownloadDialog
       v-model:show="showDownloadDialog"
       :video-info="{
-        title: selectedRecord?.title || '',
-        author: selectedRecord?.author_name || '',
-        bvid: selectedRecord?.bvid || '',
-        cover: selectedRecord?.cover || selectedRecord?.covers?.[0] || '',
-        cid: selectedRecord?.cid || ''
-      }"
+ title: selectedRecord?.title || '',
+ author: selectedRecord?.author_name || '',
+ bvid: selectedRecord?.bvid || '',
+ cover: selectedRecord?.cover || selectedRecord?.covers?.[0] || '',
+ cid: selectedRecord?.cid || ''
+ }"
       :is-batch-download="isBatchDownload"
       :batch-videos="batchVideos"
       v-model:currentVideoIndex="currentVideoIndex"
@@ -483,7 +519,7 @@ import {
   favoriteResource,
   localBatchFavoriteResource,
   batchDeleteBilibiliHistory,
-  deleteBilibiliHistory
+  deleteBilibiliHistory,
 } from '@/api/api.js'
 import { showNotify, showDialog } from 'vant'
 import 'vant/es/dialog/style'
@@ -499,44 +535,44 @@ const { isPrivacyMode } = usePrivacyStore()
 const props = defineProps({
   selectedYear: {
     type: Number,
-    default: new Date().getFullYear()
+    default: new Date().getFullYear(),
   },
   page: {
     type: Number,
-    default: 1
+    default: 1,
   },
   show: {
     type: Boolean,
-    default: false
+    default: false,
   },
   showBottom: {
     type: Boolean,
-    default: false
+    default: false,
   },
   layout: {
     type: String,
-    default: 'list'
+    default: 'list',
   },
   searchKeyword: {
     type: String,
-    default: ''
+    default: '',
   },
   date: {
     type: String,
-    default: ''
+    default: '',
   },
   category: {
     type: String,
-    default: ''
+    default: '',
   },
   business: {
     type: String,
-    default: ''
+    default: '',
   },
   isBatchMode: {
     type: Boolean,
-    default: false
-  }
+    default: false,
+  },
 })
 
 const emit = defineEmits([
@@ -597,7 +633,7 @@ const handleBatchDelete = async () => {
   if (selectedRecords.value.size === 0) {
     showNotify({
       type: 'warning',
-      message: '请先选择要删除的记录'
+      message: '请先选择要删除的记录',
     })
     return
   }
@@ -615,7 +651,7 @@ const handleBatchDelete = async () => {
       showCancelButton: true,
       confirmButtonText: '确认删除',
       cancelButtonText: '取消',
-      confirmButtonColor: '#fb7299'
+      confirmButtonColor: '#fb7299',
     })
 
     // 从记录中找到对应的完整信息
@@ -623,7 +659,7 @@ const handleBatchDelete = async () => {
       const [bvid, view_at] = key.split('_')
       return {
         bvid,
-        view_at: parseInt(view_at)
+        view_at: parseInt(view_at),
       }
     })
 
@@ -666,7 +702,7 @@ const handleBatchDelete = async () => {
 
         return {
           kid,
-          sync_to_bilibili: true
+          sync_to_bilibili: true,
         }
       }).filter(item => item !== null)
 
@@ -692,7 +728,7 @@ const handleBatchDelete = async () => {
     if (response.data.status === 'success') {
       showNotify({
         type: 'success',
-        message: response.data.message + (syncDeleteToBilibili ? '，并已同步删除B站历史记录' : '')
+        message: response.data.message + (syncDeleteToBilibili ? '，并已同步删除B站历史记录' : ''),
       })
       selectedRecords.value.clear()
       await fetchHistoryByDateRange()
@@ -704,7 +740,7 @@ const handleBatchDelete = async () => {
 
     showNotify({
       type: 'danger',
-      message: error.response?.data?.detail || error.message || '删除失败'
+      message: error.response?.data?.detail || error.message || '删除失败',
     })
   }
 }
@@ -891,7 +927,7 @@ const batchCheckFavorites = async () => {
       results.forEach(item => {
         favoriteStatus.value[item.oid] = {
           is_favorited: item.is_favorited,
-          favorite_folders: item.favorite_folders || []
+          favorite_folders: item.favorite_folders || [],
         }
       })
 
@@ -916,7 +952,7 @@ const fetchHistoryByDateRange = async () => {
       mainCategory.value,
       dateRange.value || '',
       localStorage.getItem('useLocalImages') === 'true',
-      props.business
+      props.business,
     )
 
     if (response.data && response.data.data) {
@@ -929,7 +965,7 @@ const fetchHistoryByDateRange = async () => {
       if (records.value.length > 0) {
         const batchRecords = records.value.map(record => ({
           bvid: record.bvid,
-          view_at: record.view_at
+          view_at: record.view_at,
         }))
         const remarksResponse = await batchGetRemarks(batchRecords)
         if (remarksResponse.data.status === 'success') {
@@ -984,7 +1020,7 @@ watch(
         }
       }
     }
-  }
+  },
 )
 
 // 监听父组件的 category 变化
@@ -1002,15 +1038,15 @@ watch(
     }
     // 这里会触发数据获取
     fetchHistoryByDateRange()
-  }
+  },
 )
 
 // 监听父组件的 business 变化
 watch(
   () => props.business,
-  (newBusiness) => {
+  () => {
     fetchHistoryByDateRange()
-  }
+  },
 )
 
 // 获取每日统计数据
@@ -1080,8 +1116,8 @@ const handleLoginSuccess = async (userData) => {
       window.dispatchEvent(new CustomEvent('login-status-changed', {
         detail: {
           isLoggedIn: true,
-          userInfo: userData
-        }
+          userInfo: userData,
+        },
       }))
     } else {
       // 如果没有传递用户数据，则调用API获取
@@ -1093,8 +1129,8 @@ const handleLoginSuccess = async (userData) => {
         window.dispatchEvent(new CustomEvent('login-status-changed', {
           detail: {
             isLoggedIn: true,
-            userInfo: response.data.data
-          }
+            userInfo: response.data.data,
+          },
         }))
       }
     }
@@ -1137,7 +1173,7 @@ const refreshData = async () => {
     console.error('刷新数据失败:', error)
     showNotify({
       type: 'danger',
-      message: error.response?.data?.message || error.message || '获取历史记录失败'
+      message: error.response?.data?.message || error.message || '获取历史记录失败',
     })
   } finally {
     isLoading.value = false
@@ -1164,7 +1200,7 @@ onMounted(async () => {
 defineExpose({
   fetchHistoryByDateRange,
   refreshData,
-  checkLoginStatus
+  checkLoginStatus,
 })
 
 // 格式化分割线日期
@@ -1319,7 +1355,7 @@ const handleDelete = async (record) => {
       showCancelButton: true,
       confirmButtonText: '确认删除',
       cancelButtonText: '取消',
-      confirmButtonColor: '#fb7299'
+      confirmButtonColor: '#fb7299',
     })
 
     // 如果需要同步删除B站历史记录
@@ -1369,12 +1405,12 @@ const handleDelete = async (record) => {
 
     const response = await batchDeleteHistory([{
       bvid: record.bvid,
-      view_at: record.view_at
+      view_at: record.view_at,
     }])
     if (response.data.status === 'success') {
       showNotify({
         type: 'success',
-        message: response.data.message + (syncDeleteToBilibili ? '，并已同步删除B站历史记录' : '')
+        message: response.data.message + (syncDeleteToBilibili ? '，并已同步删除B站历史记录' : ''),
       })
       fetchHistoryByDateRange()
     } else {
@@ -1385,7 +1421,7 @@ const handleDelete = async (record) => {
 
     showNotify({
       type: 'danger',
-      message: error.response?.data?.detail || error.message || '删除失败'
+      message: error.response?.data?.detail || error.message || '删除失败',
     })
   }
 }
@@ -1397,11 +1433,11 @@ const isDaySelected = (timestamp) => {
   const dayEnd = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1).getTime() / 1000 - 1
 
   const dayRecords = records.value.filter(record =>
-    record.view_at >= dayStart && record.view_at <= dayEnd
+    record.view_at >= dayStart && record.view_at <= dayEnd,
   )
 
   return dayRecords.every(record =>
-    selectedRecords.value.has(`${record.bvid}_${record.view_at}`)
+    selectedRecords.value.has(`${record.bvid}_${record.view_at}`),
   )
 }
 
@@ -1412,7 +1448,7 @@ const toggleDaySelection = (timestamp) => {
   const dayEnd = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1).getTime() / 1000 - 1
 
   const dayRecords = records.value.filter(record =>
-    record.view_at >= dayStart && record.view_at <= dayEnd
+    record.view_at >= dayStart && record.view_at <= dayEnd,
   )
 
   const allSelected = isDaySelected(timestamp)
@@ -1434,7 +1470,7 @@ const handleRemarkUpdate = (data) => {
     bvid: data.bvid,
     view_at: data.view_at,
     remark: data.remark,
-    remark_time: data.remark_time
+    remark_time: data.remark_time,
   }
 }
 
@@ -1463,7 +1499,7 @@ const handleBatchDownload = async () => {
   if (selectedRecords.value.size === 0) {
     showNotify({
       type: 'warning',
-      message: '请先选择要下载的记录'
+      message: '请先选择要下载的记录',
     })
     return
   }
@@ -1478,7 +1514,7 @@ const handleBatchDownload = async () => {
     if (videoRecords.length === 0) {
       showNotify({
         type: 'warning',
-        message: '选中的记录中没有有效的视频'
+        message: '选中的记录中没有有效的视频',
       })
       return
     }
@@ -1489,7 +1525,7 @@ const handleBatchDownload = async () => {
       cid: record.cid,
       title: record.title,
       author: record.author_name,
-      cover: record.cover
+      cover: record.cover,
     }))
 
     // 设置批量下载模式
@@ -1505,7 +1541,7 @@ const handleBatchDownload = async () => {
         author_name: firstVideo.author,
         bvid: firstVideo.bvid,
         cover: firstVideo.cover,
-        cid: firstVideo.cid
+        cid: firstVideo.cid,
       }
       showDownloadDialog.value = true
     }
@@ -1513,7 +1549,7 @@ const handleBatchDownload = async () => {
     console.error('批量下载准备失败:', error)
     showNotify({
       type: 'danger',
-      message: '批量下载准备失败: ' + (error.message || '未知错误')
+      message: '批量下载准备失败: ' + (error.message || '未知错误'),
     })
   }
 }
@@ -1535,7 +1571,7 @@ const debugVideoCids = () => {
       console.log({
         title: record.title,
         cid: record.cid,
-        downloaded: isVideoDownloaded(record.cid)
+        downloaded: isVideoDownloaded(record.cid),
       })
     })
   }
@@ -1561,7 +1597,7 @@ const handleFavoriteGrid = (record) => {
     showDialog({
       title: '取消收藏',
       message: '确定要取消收藏该视频吗？',
-      showCancelButton: true
+      showCancelButton: true,
     }).then(async () => {
       // 获取视频的收藏夹列表
       const folders = getVideoFavoriteFolders(videoId)
@@ -1572,7 +1608,7 @@ const handleFavoriteGrid = (record) => {
           // 发送取消收藏请求
           const response = await favoriteResource({
             rid: videoId,
-            del_media_ids: folderIds.join(',')
+            del_media_ids: folderIds.join(','),
           })
 
           // 如果远程操作成功，同步本地数据库（不提示用户）
@@ -1581,16 +1617,16 @@ const handleFavoriteGrid = (record) => {
               await localBatchFavoriteResource({
                 rids: videoId.toString(),
                 del_media_ids: folderIds.join(','),
-                operation_type: 'local'  // 只在本地操作
-              });
+                operation_type: 'local', // 只在本地操作
+              })
             } catch (syncError) {
-              console.error('本地同步取消收藏失败，但不影响用户体验:', syncError);
+              console.error('本地同步取消收藏失败，但不影响用户体验:', syncError)
             }
 
             // 更新收藏状态
             favoriteStatus.value[videoId] = {
               is_favorited: false,
-              favorite_folders: []
+              favorite_folders: [],
             }
 
             showNotify({ type: 'success', message: '已取消收藏' })
@@ -1621,11 +1657,11 @@ const handleFavoriteDone = async (result) => {
   if (result && result.success) {
     if (result.isBatch) {
       // 批量收藏完成
-      showNotify({ type: 'success', message: `批量收藏完成，已添加${result.videoInfo.selectedCount}个视频到收藏夹` });
+      showNotify({ type: 'success', message: `批量收藏完成，已添加${result.videoInfo.selectedCount}个视频到收藏夹` })
 
       // 更新收藏状态
       if (result.videoInfo.batchIds) {
-        const videoIds = result.videoInfo.batchIds.split(',').map(id => parseInt(id.trim(), 10)).filter(id => !isNaN(id));
+        const videoIds = result.videoInfo.batchIds.split(',').map(id => parseInt(id.trim(), 10)).filter(id => !isNaN(id))
 
         // 为每个视频ID更新收藏状态
         videoIds.forEach(videoId => {
@@ -1633,28 +1669,28 @@ const handleFavoriteDone = async (result) => {
             is_favorited: true,
             favorite_folders: result.folders.map(folderId => ({
               media_id: folderId,
-              title: "收藏夹"
-            }))
-          };
-        });
+              title: '收藏夹',
+            })),
+          }
+        })
 
         // 取消批量模式并清空选择
-        selectedRecords.value.clear();
+        selectedRecords.value.clear()
 
         // 刷新收藏状态
-        await batchCheckFavorites();
+        await batchCheckFavorites()
       }
     } else {
       // 单个视频收藏完成
-      showNotify({ type: 'success', message: '收藏成功' });
+      showNotify({ type: 'success', message: '收藏成功' })
 
       // 更新收藏状态
       let videoId = result.videoInfo.aid || result.videoInfo.avid ||
-                   (result.videoInfo.business === 'archive' ? result.videoInfo.oid : null);
+        (result.videoInfo.business === 'archive' ? result.videoInfo.oid : null)
 
       if (videoId) {
         // 确保ID是整数
-        videoId = parseInt(videoId, 10);
+        videoId = parseInt(videoId, 10)
 
         if (!isNaN(videoId)) {
           // 设置为已收藏状态
@@ -1662,12 +1698,12 @@ const handleFavoriteDone = async (result) => {
             is_favorited: true,
             favorite_folders: result.folders.map(folderId => ({
               media_id: folderId,
-              title: "收藏夹" // 由于API返回的是ID列表，我们不知道具体名称，所以用通用名称
-            }))
-          };
+              title: '收藏夹', // 由于API返回的是ID列表，我们不知道具体名称，所以用通用名称
+            })),
+          }
 
           // 重新获取精确的收藏夹信息
-          await batchCheckFavorites();
+          await batchCheckFavorites()
         }
       }
     }
@@ -1679,7 +1715,7 @@ const handleBatchFavorite = async () => {
   if (selectedRecords.value.size === 0) {
     showNotify({
       type: 'warning',
-      message: '请先选择要收藏的记录'
+      message: '请先选择要收藏的记录',
     })
     return
   }
@@ -1692,25 +1728,25 @@ const handleBatchFavorite = async () => {
 
   // 提取视频ID
   const oids = videoRecords.map(record => {
-    const id = record.aid || record.avid || (record.business === 'archive' ? record.oid : null);
-    return id ? parseInt(id, 10) : null;
-  }).filter(oid => oid !== null && !isNaN(oid));
+    const id = record.aid || record.avid || (record.business === 'archive' ? record.oid : null)
+    return id ? parseInt(id, 10) : null
+  }).filter(oid => oid !== null && !isNaN(oid))
 
   if (oids.length === 0) {
     showNotify({
       type: 'warning',
-      message: '选中的记录中没有有效的视频ID'
+      message: '选中的记录中没有有效的视频ID',
     })
     return
   }
 
   // 打开收藏夹选择对话框
-  showFavoriteDialog.value = true;
+  showFavoriteDialog.value = true
   favoriteVideoInfo.value = {
     isBatch: true,
     batchIds: oids.join(','),
-    selectedCount: oids.length
-  };
+    selectedCount: oids.length,
+  }
 }
 
 // 计算选中记录中已收藏的数量
@@ -1757,7 +1793,7 @@ const handleCopyLinks = async () => {
   if (selectedRecords.value.size === 0) {
     showNotify({
       type: 'warning',
-      message: '请先选择要复制链接的记录'
+      message: '请先选择要复制链接的记录',
     })
     return
   }
@@ -1803,19 +1839,19 @@ const handleCopyLinks = async () => {
       await copyToClipboard(links.join('\n'))
       showNotify({
         type: 'success',
-        message: `已复制 ${links.length} 个链接到剪贴板`
+        message: `已复制 ${links.length} 个链接到剪贴板`,
       })
     } else {
       showNotify({
         type: 'warning',
-        message: '没有找到有效的链接'
+        message: '没有找到有效的链接',
       })
     }
   } catch (error) {
     console.error('复制链接失败:', error)
     showNotify({
       type: 'danger',
-      message: '复制链接失败: ' + (error.message || '未知错误')
+      message: '复制链接失败: ' + (error.message || '未知错误'),
     })
   }
 }
@@ -1836,7 +1872,7 @@ const handleBatchUnfavorite = async () => {
   if (selectedRecords.value.size === 0) {
     showNotify({
       type: 'warning',
-      message: '请先选择要取消收藏的记录'
+      message: '请先选择要取消收藏的记录',
     })
     return
   }
@@ -1846,7 +1882,7 @@ const handleBatchUnfavorite = async () => {
     await showDialog({
       title: '确认取消收藏',
       message: `确定要取消${favoritedCount.value}个视频的收藏吗？`,
-      showCancelButton: true
+      showCancelButton: true,
     })
 
     // 从选中的记录中提取视频ID
@@ -1864,7 +1900,7 @@ const handleBatchUnfavorite = async () => {
     if (favoritedRecords.length === 0) {
       showNotify({
         type: 'warning',
-        message: '选中的记录中不包含已收藏的视频'
+        message: '选中的记录中不包含已收藏的视频',
       })
       return
     }
@@ -1878,26 +1914,26 @@ const handleBatchUnfavorite = async () => {
     if (videoIds.length === 0) {
       showNotify({
         type: 'warning',
-        message: '无法获取有效的视频ID'
+        message: '无法获取有效的视频ID',
       })
       return
     }
 
     // 获取每个视频的收藏夹列表和执行取消收藏操作
-    let results = [];
+    let results = []
 
     // 获取每个视频的收藏夹列表
     const unfavoritePromises = videoIds.map(async videoId => {
-      const folders = getVideoFavoriteFolders(videoId);
+      const folders = getVideoFavoriteFolders(videoId)
       if (folders.length > 0) {
         // 获取收藏夹ID
-        const folderIds = folders.map(folder => folder.media_id);
+        const folderIds = folders.map(folder => folder.media_id)
 
         // 发送取消收藏请求
         const response = await favoriteResource({
           rid: videoId,
-          del_media_ids: folderIds.join(',')
-        });
+          del_media_ids: folderIds.join(','),
+        })
 
         // 如果远程操作成功，同步本地数据库（不提示用户）
         if (response.data.status === 'success') {
@@ -1905,56 +1941,56 @@ const handleBatchUnfavorite = async () => {
             await localBatchFavoriteResource({
               rids: videoId.toString(),
               del_media_ids: folderIds.join(','),
-              operation_type: 'local'  // 只在本地操作
-            });
+              operation_type: 'local', // 只在本地操作
+            })
           } catch (syncError) {
-            console.error('本地同步取消收藏失败，但不影响用户体验:', syncError);
+            console.error('本地同步取消收藏失败，但不影响用户体验:', syncError)
           }
         }
 
-        return { videoId, success: response.data.status === 'success' };
+        return { videoId, success: response.data.status === 'success' }
       }
-      return { videoId, success: false, reason: '没有找到收藏夹' };
-    });
+      return { videoId, success: false, reason: '没有找到收藏夹' }
+    })
 
-    results = await Promise.all(unfavoritePromises);
-    const successCount = results.filter(r => r.success).length;
+    results = await Promise.all(unfavoritePromises)
+    const successCount = results.filter(r => r.success).length
 
     if (successCount > 0) {
       showNotify({
         type: 'success',
-        message: `成功取消${successCount}个视频的收藏`
-      });
+        message: `成功取消${successCount}个视频的收藏`,
+      })
 
       // 更新收藏状态
       results.forEach(result => {
         if (result.success) {
           favoriteStatus.value[result.videoId] = {
             is_favorited: false,
-            favorite_folders: []
-          };
+            favorite_folders: [],
+          }
         }
-      });
+      })
 
       // 刷新收藏状态
-      await batchCheckFavorites();
+      await batchCheckFavorites()
 
       // 取消选择
-      selectedRecords.value.clear();
+      selectedRecords.value.clear()
     } else {
       showNotify({
         type: 'danger',
-        message: '取消收藏失败'
-      });
+        message: '取消收藏失败',
+      })
     }
   } catch (error) {
-    if (error.toString().includes('cancel')) return;
+    if (error.toString().includes('cancel')) return
 
-    console.error('批量取消收藏失败:', error);
+    console.error('批量取消收藏失败:', error)
     showNotify({
       type: 'danger',
-      message: '批量取消收藏失败: ' + (error.message || '未知错误')
-    });
+      message: '批量取消收藏失败: ' + (error.message || '未知错误'),
+    })
   }
 }
 
@@ -1975,7 +2011,7 @@ const handleFavorite = (record) => {
     showDialog({
       title: '取消收藏',
       message: '确定要取消收藏该视频吗？',
-      showCancelButton: true
+      showCancelButton: true,
     }).then(async () => {
       // 获取视频的收藏夹列表
       const folders = getVideoFavoriteFolders(parsedVideoId)
@@ -1986,7 +2022,7 @@ const handleFavorite = (record) => {
           // 发送取消收藏请求
           const response = await favoriteResource({
             rid: parsedVideoId,
-            del_media_ids: folderIds.join(',')
+            del_media_ids: folderIds.join(','),
           })
 
           // 如果远程操作成功，同步本地数据库（不提示用户）
@@ -1995,16 +2031,16 @@ const handleFavorite = (record) => {
               await localBatchFavoriteResource({
                 rids: parsedVideoId.toString(),
                 del_media_ids: folderIds.join(','),
-                operation_type: 'local'  // 只在本地操作
-              });
+                operation_type: 'local', // 只在本地操作
+              })
             } catch (syncError) {
-              console.error('本地同步取消收藏失败，但不影响用户体验:', syncError);
+              console.error('本地同步取消收藏失败，但不影响用户体验:', syncError)
             }
 
             // 更新收藏状态
             favoriteStatus.value[parsedVideoId] = {
               is_favorited: false,
-              favorite_folders: []
+              favorite_folders: [],
             }
 
             showNotify({ type: 'success', message: '已取消收藏' })

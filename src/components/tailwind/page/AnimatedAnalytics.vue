@@ -8,8 +8,8 @@
             <div class="flex justify-between items-center h-16">
               <!-- 添加返回按钮 -->
               <div class="flex items-center">
-                <button 
-                  @click="goToHome" 
+                <button
+                  @click="goToHome"
                   class="mr-3 p-1 rounded-full hover:bg-white/20 dark:hover:bg-black/20 transition-colors"
                   title="返回首页"
                 >
@@ -457,9 +457,5 @@ select:focus {
   box-shadow: 0 0 0 2px rgba(251, 114, 153, 0.2);
 }
 
-@media (prefers-color-scheme: dark) {
-  select {
-    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
-  }
-}
+/* 移除深色模式媒体查询，始终使用浅色模式 */
 </style>

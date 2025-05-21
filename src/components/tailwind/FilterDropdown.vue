@@ -14,21 +14,22 @@
           {{ label }}
         </button>
       </div>
-      
+
       <!-- 右侧操作区 -->
       <div class="flex items-center space-x-2 sm:space-x-3 ml-1 sm:ml-2">
         <!-- 总视频数显示 -->
-        <div class="text-xs text-gray-500 dark:text-gray-400">
+        <div class="text-xs text-gray-500 ">
           总视频数: <span class="text-[#FF6699] font-medium">{{ total }}</span>
         </div>
-        
+
         <!-- 筛选图标按钮 -->
-        <button 
+        <button
           @click="showFilterPopup = true"
-          class="p-1 sm:p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
+          class="p-1 sm:p-1.5 rounded-md hover:bg-gray-100 transition-colors duration-200"
         >
-          <svg class="w-4 h-4 sm:w-5 sm:h-5 text-gray-600 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+          <svg class="w-4 h-4 sm:w-5 sm:h-5 text-gray-600 " fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
           </svg>
         </button>
       </div>
@@ -51,21 +52,24 @@
           <!-- 条目类型筛选 -->
           <div class="mb-4 sm:mb-6">
             <div class="flex items-center mb-2">
-              <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">条目类型</h4>
+              <h4 class="text-sm font-medium text-gray-700 ">条目类型</h4>
               <div class="flex items-center ml-2 flex-1">
-                <span class="text-xs sm:text-sm text-[#fb7299] font-medium truncate max-w-[80%]">{{ businessLabel || '全部' }}</span>
-                <button 
+                <span
+                  class="text-xs sm:text-sm text-[#fb7299] font-medium truncate max-w-[80%]">{{ businessLabel || '全部'
+                  }}</span>
+                <button
                   v-if="business"
                   @click="clearBusiness"
                   class="ml-1 sm:ml-2 p-1 rounded-full hover:bg-gray-100"
                 >
-                  <svg class="w-3 h-3 sm:w-4 sm:h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg class="w-3 h-3 sm:w-4 sm:h-4 text-gray-500" fill="none" viewBox="0 0 24 24"
+                       stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
               </div>
             </div>
-            
+
             <div class="grid grid-cols-3 gap-1.5 sm:gap-2">
               <div
                 v-for="(label, type) in businessTypeMap"
@@ -89,21 +93,23 @@
           <!-- 日期筛选 -->
           <div class="mb-4 sm:mb-6">
             <div class="flex items-center mb-2">
-              <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">日期区间</h4>
+              <h4 class="text-sm font-medium text-gray-700 ">日期区间</h4>
               <div class="flex items-center ml-2 flex-1">
-                <span class="text-xs sm:text-sm text-[#fb7299] font-medium truncate max-w-[80%]">{{ date || '全部' }}</span>
-                <button 
+                <span class="text-xs sm:text-sm text-[#fb7299] font-medium truncate max-w-[80%]">{{ date || '全部'
+                  }}</span>
+                <button
                   v-if="date"
                   @click="clearDate"
                   class="ml-1 sm:ml-2 p-1 rounded-full hover:bg-gray-100"
                 >
-                  <svg class="w-3 h-3 sm:w-4 sm:h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg class="w-3 h-3 sm:w-4 sm:h-4 text-gray-500" fill="none" viewBox="0 0 24 24"
+                       stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
               </div>
             </div>
-            
+
             <div class="flex items-center space-x-2">
               <div class="relative flex-1">
                 <input
@@ -132,28 +138,30 @@
           <!-- 视频分区筛选 -->
           <div>
             <div class="flex items-center mb-2">
-              <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">视频分区</h4>
+              <h4 class="text-sm font-medium text-gray-700 ">视频分区</h4>
               <div class="flex items-center ml-2 flex-1">
-                <span class="text-xs sm:text-sm text-[#fb7299] font-medium truncate max-w-[80%]">{{ category || '全部' }}</span>
-                <button 
+                <span class="text-xs sm:text-sm text-[#fb7299] font-medium truncate max-w-[80%]">{{ category || '全部'
+                  }}</span>
+                <button
                   v-if="category"
                   @click="clearCategory"
                   class="ml-1 sm:ml-2 p-1 rounded-full hover:bg-gray-100"
                 >
-                  <svg class="w-3 h-3 sm:w-4 sm:h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg class="w-3 h-3 sm:w-4 sm:h-4 text-gray-500" fill="none" viewBox="0 0 24 24"
+                       stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
               </div>
             </div>
-            
+
             <!-- 分区选择器 -->
             <div class="border border-gray-300 rounded-md overflow-hidden">
               <!-- 主分区选择 -->
               <div class="flex h-48 sm:h-56">
                 <div class="w-1/3 border-r border-gray-300 overflow-y-auto">
-                  <div 
-                    v-for="(category, index) in videoCategories" 
+                  <div
+                    v-for="(category, index) in videoCategories"
                     :key="category.text"
                     class="p-1.5 sm:p-2 text-xs sm:text-sm cursor-pointer transition-colors duration-200 truncate"
                     :class="activeMainCategory === index ? 'bg-[#fb7299]/10 text-[#fb7299] font-medium' : 'hover:bg-gray-100'"
@@ -162,22 +170,22 @@
                     {{ category.text }}
                   </div>
                 </div>
-                
+
                 <!-- 子分区选择 -->
                 <div class="w-2/3 overflow-y-auto">
                   <div class="grid grid-cols-2 gap-1.5 sm:gap-2 p-1 sm:p-2">
                     <!-- 主分区选项 -->
-                    <div 
+                    <div
                       class="p-1 sm:p-2 text-xs sm:text-sm border rounded-md cursor-pointer transition-colors duration-200 truncate"
                       :class="category === videoCategories[activeMainCategory]?.text ? 'border-[#fb7299] bg-[#fb7299]/10 text-[#fb7299]' : 'border-gray-300 hover:bg-gray-100'"
                       @click="selectVideoCategory({text: videoCategories[activeMainCategory]?.text, type: 'main'})"
                     >
                       {{ videoCategories[activeMainCategory]?.text || '全部' }}
                     </div>
-                    
+
                     <!-- 子分区选项 -->
-                    <div 
-                      v-for="subCategory in videoCategories[activeMainCategory]?.children" 
+                    <div
+                      v-for="subCategory in videoCategories[activeMainCategory]?.children"
                       :key="subCategory.id"
                       class="p-1 sm:p-2 text-xs sm:text-sm border rounded-md cursor-pointer transition-colors duration-200 truncate"
                       :class="category === subCategory.text ? 'border-[#fb7299] bg-[#fb7299]/10 text-[#fb7299]' : 'border-gray-300 hover:bg-gray-100'"
@@ -205,24 +213,24 @@ import 'vant/es/notify/style'
 const props = defineProps({
   business: {
     type: String,
-    default: ''
+    default: '',
   },
   businessLabel: {
     type: String,
-    default: ''
+    default: '',
   },
   date: {
     type: String,
-    default: ''
+    default: '',
   },
   category: {
     type: String,
-    default: ''
+    default: '',
   },
   total: {
     type: Number,
-    default: 0
-  }
+    default: 0,
+  },
 })
 
 const emit = defineEmits([
@@ -230,7 +238,7 @@ const emit = defineEmits([
   'update:businessLabel',
   'update:date',
   'update:category',
-  'refresh-data'
+  'refresh-data',
 ])
 
 // 底部弹出筛选栏的显示状态
@@ -267,30 +275,30 @@ const fetchVideoCategories = async () => {
 
 // 选择视频分区
 const selectVideoCategory = (item) => {
-  const isMainName = videoCategories.value.some(cat => 
-    cat.text === item.text && item.type === 'main'
+  const isMainName = videoCategories.value.some(cat =>
+    cat.text === item.text && item.type === 'main',
   )
-  
+
   let categoryText = ''
   if (item.type === 'main' || (item.type === 'sub' && isMainName)) {
     categoryText = item.text
   } else if (item.type === 'sub') {
     categoryText = item.text
   }
-  
+
   // 打印日志，帮助调试
   console.log('选择分区:', {
     item,
     categoryText,
-    isMainName
+    isMainName,
   })
-  
+
   // 先更新分类，然后重置页码
   emit('update:category', categoryText)
-  
+
   // 重置页码到第一页，而不是触发实时更新
   emit('update:page', 1)
-  
+
   showNotify({
     type: 'success',
     message: `已筛选分区: ${categoryText || '全部'}`,
@@ -344,7 +352,7 @@ const businessTypeMap = {
   'pgc': '番剧',
   'live': '直播',
   'article': '文章',
-  'article-list': '文集'
+  'article-list': '文集',
 }
 
 // 选择业务类型（快速切换区域）
@@ -353,7 +361,7 @@ const selectBusiness = (type) => {
   emit('update:businessLabel', businessTypeMap[type])
   // 移除实时更新触发，改为只更新当前数据
   emit('update:page', 1) // 重置页码到第一页
-  
+
   showNotify({
     type: 'success',
     message: `已切换到${businessTypeMap[type]}`,
@@ -367,7 +375,7 @@ const selectBusinessFromPopup = (type) => {
   emit('update:businessLabel', businessTypeMap[type])
   // 移除实时更新触发，改为只更新当前数据
   emit('update:page', 1) // 重置页码到第一页
-  
+
   showNotify({
     type: 'success',
     message: `已切换到${businessTypeMap[type]}`,
@@ -380,13 +388,13 @@ const applyDateFilter = () => {
   if (startDate.value && endDate.value) {
     const formattedStartDate = formatDateForDisplay(startDate.value)
     const formattedEndDate = formatDateForDisplay(endDate.value)
-    
+
     if (formattedStartDate && formattedEndDate) {
       const dateRange = `${formattedStartDate} 至 ${formattedEndDate}`
       console.log('设置日期区间:', dateRange)
       emit('update:date', dateRange)
       emit('update:page', 1) // 重置页码到第一页，而不是触发实时更新
-      
+
       showNotify({
         type: 'success',
         message: `已筛选日期: ${dateRange}`,
@@ -426,7 +434,7 @@ const clearCategory = () => {
   // 先更新分类，然后重置页码
   emit('update:category', '')
   emit('update:page', 1) // 重置页码到第一页，而不是触发实时更新
-  
+
   showNotify({
     type: 'success',
     message: '已清除分区筛选',
@@ -440,7 +448,7 @@ const clearDate = () => {
   // 先更新日期，然后重置页码
   emit('update:date', '')
   emit('update:page', 1) // 重置页码到第一页，而不是触发实时更新
-  
+
   showNotify({
     type: 'success',
     message: '已清除日期筛选',
@@ -455,7 +463,7 @@ const clearBusiness = () => {
   emit('update:business', '')
   emit('update:businessLabel', '')
   emit('update:page', 1) // 重置页码到第一页，而不是触发实时更新
-  
+
   showNotify({
     type: 'success',
     message: '已清除业务类型筛选',
@@ -490,4 +498,4 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   opacity: 0;
   cursor: pointer;
 }
-</style> 
+</style>

@@ -379,26 +379,7 @@ const handleUpdate = async () => {
     background: #f6f7f8;
   }
 
-  /* PC端暗色模式滚动条 */
-  @media (prefers-color-scheme: dark) {
-    ::-webkit-scrollbar-track {
-      background: #1f1f1f;
-    }
-
-    ::-webkit-scrollbar-thumb {
-      background: #2f2f2f;
-      border: 3px solid #1f1f1f;
-    }
-
-    ::-webkit-scrollbar-thumb:hover {
-      background: #fb7299;
-      border: 3px solid #1f1f1f;
-    }
-
-    ::-webkit-scrollbar-corner {
-      background: #1f1f1f;
-    }
-  }
+  /* 移除深色模式滚动条样式，始终使用浅色模式 */
 }
 
 /* 如果需要添加特定样式可以在这里添加 */

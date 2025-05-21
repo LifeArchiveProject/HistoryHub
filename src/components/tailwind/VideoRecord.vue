@@ -26,7 +26,7 @@
           <!-- 删除按钮 -->
           <div v-if="!isBatchMode"
                class="absolute right-0 top-0 z-20 hidden group-hover:flex flex-row items-center justify-end pt-1 pr-1">
-            <div class="flex items-center space-x-2">
+            <div class="flex items-center justify-end space-x-2">
               <!-- 下载按钮 - 只对视频类型显示 -->
               <div v-if="record.business === 'archive'"
                    class="flex items-center justify-center w-7 h-7 bg-[#7d7c75]/60 backdrop-blur-sm hover:bg-[#7d7c75]/80 rounded-md cursor-pointer transition-all duration-200"
@@ -36,8 +36,9 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                 </svg>
               </div>
-              <!-- 收藏按钮 -->
-              <div class="flex items-center justify-center w-7 h-7 bg-[#7d7c75]/60 backdrop-blur-sm hover:bg-[#7d7c75]/80 rounded-md cursor-pointer transition-all duration-200"
+              <!-- 收藏按钮 - 不对直播类型显示 -->
+              <div v-if="record.business !== 'live'"
+                   class="flex items-center justify-center w-7 h-7 bg-[#7d7c75]/60 backdrop-blur-sm hover:bg-[#7d7c75]/80 rounded-md cursor-pointer transition-all duration-200"
                    @click.stop.prevent="handleFavorite"
                    title="收藏视频">
                 <svg class="w-4 h-4" :class="isVideoFavorited ? 'text-yellow-400' : 'text-white'" :fill="isVideoFavorited ? 'currentColor' : 'none'" viewBox="0 0 24 24" stroke="currentColor">
@@ -52,7 +53,7 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>
               </div>
-              <!-- 详情按钮 - 只对视频类型显示 -->
+              <!-- 详情按钮 - 只对普通视频类型显示 -->
               <div v-if="record.business === 'archive'"
                    class="flex items-center justify-center w-7 h-7 bg-[#7d7c75]/60 backdrop-blur-sm hover:bg-[#7d7c75]/80 rounded-md cursor-pointer transition-all duration-200"
                    @click.stop="showDetailDialog = true"
@@ -74,8 +75,8 @@
               </svg>
             </div>
           </div>
-          <!-- 批量模式下的收藏状态图标 -->
-          <div v-if="isBatchMode"
+          <!-- 批量模式下的收藏状态图标 - 不对直播类型显示 -->
+          <div v-if="isBatchMode && record.business !== 'live'"
                class="absolute right-2 top-2 z-10">
             <div class="flex items-center justify-center w-6 h-6 rounded-full bg-black/40 backdrop-blur-sm">
               <svg class="w-4 h-4" :class="isVideoFavorited ? 'text-yellow-400' : 'text-white'" :fill="isVideoFavorited ? 'currentColor' : 'none'" viewBox="0 0 24 24" stroke="currentColor">
@@ -94,8 +95,8 @@
             </div>
           </div>
 
-          <!-- 收藏状态标识 -->
-          <div v-if="isVideoFavorited"
+          <!-- 收藏状态标识 - 不对直播类型显示 -->
+          <div v-if="isVideoFavorited && record.business !== 'live'"
                class="absolute right-0 top-0 z-10">
             <div class="bg-gradient-to-r from-amber-500 to-yellow-400 text-white font-semibold px-2 py-0.5 text-xs flex items-center space-x-1.5 rounded-bl-md shadow-md">
               <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor">
@@ -184,8 +185,8 @@
               </svg>
             </div>
           </div>
-          <!-- 批量模式下的收藏状态图标 -->
-          <div v-if="isBatchMode"
+          <!-- 批量模式下的收藏状态图标 - 不对直播类型显示 -->
+          <div v-if="isBatchMode && record.business !== 'live'"
                class="absolute right-2 top-2 z-10">
             <div class="flex items-center justify-center w-6 h-6 rounded-full bg-black/40 backdrop-blur-sm">
               <svg class="w-4 h-4" :class="isVideoFavorited ? 'text-yellow-400' : 'text-white'" :fill="isVideoFavorited ? 'currentColor' : 'none'" viewBox="0 0 24 24" stroke="currentColor">
@@ -204,8 +205,8 @@
             </div>
           </div>
 
-          <!-- 收藏状态标识 -->
-          <div v-if="isVideoFavorited"
+          <!-- 收藏状态标识 - 不对直播类型显示 -->
+          <div v-if="isVideoFavorited && record.business !== 'live'"
                class="absolute right-0 top-0 z-10">
             <div class="bg-gradient-to-r from-amber-500 to-yellow-400 text-white font-semibold px-2 py-0.5 text-xs flex items-center space-x-1.5 rounded-bl-md shadow-md">
               <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor">
@@ -268,7 +269,7 @@
           <!-- 删除按钮 -->
           <div v-if="!isBatchMode"
                class="absolute right-0 top-0 z-20 hidden group-hover:flex flex-row items-center justify-end pt-1 pr-1">
-            <div class="flex items-center space-x-2">
+            <div class="flex items-center justify-end space-x-2">
               <!-- 下载按钮 - 只对视频类型显示 -->
               <div v-if="record.business === 'archive'"
                    class="flex items-center justify-center w-7 h-7 bg-[#7d7c75]/60 backdrop-blur-sm hover:bg-[#7d7c75]/80 rounded-md cursor-pointer transition-all duration-200"
@@ -278,8 +279,9 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                 </svg>
               </div>
-              <!-- 收藏按钮 -->
-              <div class="flex items-center justify-center w-7 h-7 bg-[#7d7c75]/60 backdrop-blur-sm hover:bg-[#7d7c75]/80 rounded-md cursor-pointer transition-all duration-200"
+              <!-- 收藏按钮 - 不对直播类型显示 -->
+              <div v-if="record.business !== 'live'"
+                   class="flex items-center justify-center w-7 h-7 bg-[#7d7c75]/60 backdrop-blur-sm hover:bg-[#7d7c75]/80 rounded-md cursor-pointer transition-all duration-200"
                    @click.stop.prevent="handleFavorite"
                    title="收藏视频">
                 <svg class="w-4 h-4" :class="isVideoFavorited ? 'text-yellow-400' : 'text-white'" :fill="isVideoFavorited ? 'currentColor' : 'none'" viewBox="0 0 24 24" stroke="currentColor">
@@ -294,7 +296,7 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>
               </div>
-              <!-- 详情按钮 - 只对视频类型显示 -->
+              <!-- 详情按钮 - 只对普通视频类型显示 -->
               <div v-if="record.business === 'archive'"
                    class="flex items-center justify-center w-7 h-7 bg-[#7d7c75]/60 backdrop-blur-sm hover:bg-[#7d7c75]/80 rounded-md cursor-pointer transition-all duration-200"
                    @click.stop="showDetailDialog = true"

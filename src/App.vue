@@ -1,7 +1,9 @@
 <script setup>
 import { onMounted, onUnmounted, ref } from 'vue'
+import { ConfigProvider } from 'vant'
 import 'vant/es/notify/style'
 import 'vant/es/dialog/style'
+import 'vant/es/config-provider/style'
 import { globalPixelate } from './utils/globalPixelate'
 import privacyManager from './utils/privacyManager'
 
@@ -157,10 +159,13 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div>
-    <!-- 主应用内容 -->
-    <router-view></router-view>
-  </div>
+  <!-- 使用ConfigProvider强制使用浅色主题，禁用深色模式 -->
+  <ConfigProvider theme="light">
+    <div>
+      <!-- 主应用内容 -->
+      <router-view></router-view>
+    </div>
+  </ConfigProvider>
 </template>
 
 <style scoped>
