@@ -33,7 +33,7 @@
   - [x] 批量收藏
   - [x] 修复失效视频
   - [x] 一键下载收藏夹所有视频
-- [x] 获取视频观看总时长
+- [x] 获取视频被全站观看的总时长
 
 ## 后续开发计划
 
@@ -48,8 +48,8 @@
 
 ## 快速开始
 
-#### 使用 Docker 安装 由 [@eli-yip](https://github.com/eli-yip) 实现 ([#30](https://github.com/LifeArchiveProject/HistoryHub/pull/30))
-
+#### 使用 Docker 安装
+由 [@eli-yip](https://github.com/eli-yip) 实现 ([#30](https://github.com/LifeArchiveProject/HistoryHub/pull/30))
 1. 安装 [Docker](https://docs.docker.com/get-started/get-docker/)
 2. 根据您的系统构建 Docker 镜像：
    ```bash
@@ -99,64 +99,17 @@
    - 后端API：http://localhost:8899
    - API文档：http://localhost:8899/docs
 
-5. 管理Docker Compose服务：
-   ```bash
-   # 查看服务状态
-   docker-compose ps
+#### [通过 1Panel 部署](https://github.com/LifeArchiveProject/HistoryHub/discussions/65)
+由社区贡献者 [@QYG2297248353](https://github.com/QYG2297248353) 实现 ([#66](https://github.com/LifeArchiveProject/HistoryHub/pull/66))
 
-   # 查看日志
-   docker-compose logs -f
-
-   # 停止服务
-   docker-compose stop
-
-   # 重启服务
-   docker-compose restart
-
-   # 重新构建并启动服务
-   docker-compose up -d --build
-   ```
-
-#### 使用 uv 安装 由 [@eli-yip](https://github.com/eli-yip) 实现 ([#30](https://github.com/LifeArchiveProject/HistoryHub/pull/30))
+#### 使用 uv 安装 
+由社区贡献者 [@eli-yip](https://github.com/eli-yip) 实现 ([#30](https://github.com/LifeArchiveProject/HistoryHub/pull/30))
 
 1. 安装 [uv](https://docs.astral.sh/uv/getting-started/installation/)
 2. 在项目根目录运行：
    ```bash
    # 安装依赖
    uv sync
-
-   # 运行程序
-   uv run main.py
-   ```
-
-   **Linux/macOS系统:**
-   ```bash
-   # 安装 PyTorch（使用 NVIDIA 显卡）
-   UV_TORCH_BACKEND=auto uv pip install torch torchaudio torchvision
-   ```
-   ```bash
-   # 安装 PyTorch（使用 CPU）
-   UV_TORCH_BACKEND=cpu uv pip install torch torchaudio torchvision
-   ```
-
-   **Windows系统:**
-   ```powershell
-   # PowerShell中安装 PyTorch（使用 NVIDIA 显卡）
-   $env:UV_TORCH_BACKEND="auto"; uv pip install torch torchaudio torchvision
-   ```
-   ```powershell
-   # PowerShell中安装 PyTorch（使用 CPU）
-   $env:UV_TORCH_BACKEND="cpu"; uv pip install torch torchaudio torchvision
-   ```
-   ```cmd
-   # CMD中安装 PyTorch（使用 NVIDIA 显卡）
-   set UV_TORCH_BACKEND=auto
-   uv pip install torch torchaudio torchvision
-   ```
-   ```cmd
-   # CMD中安装 PyTorch（使用 CPU）
-   set UV_TORCH_BACKEND=cpu
-   uv pip install torch torchaudio torchvision
    ```
 
    ```bash
@@ -231,15 +184,6 @@ python build.py
 BilibiliHistoryAnalyzer.exe
 ```
 
-首次运行注意事项：
-
-1. 打开 `_internal/config/config.yaml` 文件
-2. 将示例值替换为您的实际配置信息：
-   - 填写您的 B 站 `SESSDATA`
-   - 配置邮箱信息（如需使用邮件通知功能）
-   - 配置 DeepSeek API 密钥（如需使用 AI 摘要功能）
-3. 保存配置文件后重新启动应用
-
 ## 贡献指南
 
 1. Fork 项目
@@ -258,7 +202,9 @@ BilibiliHistoryAnalyzer.exe
 - [方舟像素字体](https://github.com/TakWolf/ark-pixel-font) - 开源的泛中日韩像素字体
 - [缝合像素字体](https://github.com/TakWolf/fusion-pixel-font) - 混搭风格的像素字体
 - [小黑盒用户 shengyI](https://www.xiaoheihe.cn/app/bbs/link/153880174) - 视频观看总时长功能思路提供者
-- 所有贡献者，特别感谢 [@eli-yip](https://github.com/eli-yip) 对 Docker 部署的贡献
+- 所有贡献者，特别感谢:
+  - [@eli-yip](https://github.com/eli-yip) 对 Docker 部署的贡献
+  - [@QYG2297248353](https://github.com/QYG2297248353) 对 1Panel 部署的贡献
 
 ## Star History
 
