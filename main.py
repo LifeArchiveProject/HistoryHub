@@ -41,7 +41,8 @@ from routers import (
     data_sync,
     favorite,
     popular_videos,
-    bilibili_history_delete
+    bilibili_history_delete,
+    video_details
 )
 from scripts.scheduler_db_enhanced import EnhancedSchedulerDB
 from scripts.scheduler_manager import SchedulerManager
@@ -431,6 +432,7 @@ app.include_router(data_sync.router, prefix="/data_sync", tags=["数据同步与
 app.include_router(favorite.router, prefix="/favorite", tags=["收藏夹管理"])
 app.include_router(popular_videos.router, prefix="/bilibili", tags=["B站热门"])
 app.include_router(bilibili_history_delete.router, prefix="/bilibili/history", tags=["B站历史记录删除"])
+app.include_router(video_details.router, prefix="/video_details", tags=["视频详情"])
 
 # 入口点，启动应用
 if __name__ == "__main__":
