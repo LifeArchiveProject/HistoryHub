@@ -20,6 +20,21 @@
             <span>{{ isFetching ? '获取中...' : (stats.pendingVideosCount === 0 ? '无需获取' : '获取视频详情') }}</span>
           </div>
         </button>
+
+        <!-- 停止按钮 -->
+        <button
+          v-if="isFetching && progress.isProcessing && !progress.isComplete"
+          @click="stopFetching"
+          class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-all duration-200 border border-red-600/20"
+        >
+          <div class="flex items-center space-x-2">
+            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10h6v4H9z" />
+            </svg>
+            <span>停止获取</span>
+          </div>
+        </button>
       </div>
 
       <!-- 下载选项 -->
@@ -153,7 +168,7 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
-import { getVideoDetailsStats, fetchVideoDetails, createVideoDetailsProgressSSE } from '../../../api/api'
+import { getVideoDetailsStats, fetchVideoDetails, createVideoDetailsProgressSSE, stopVideoDetailsFetch } from '../../../api/api'
 import { showNotify } from 'vant'
 import 'vant/es/notify/style'
 
@@ -196,13 +211,13 @@ const fetchStats = async () => {
       // 确保数据结构完整
       const data = response.data.data || {}
       stats.value = {
-        totalHistoryVideos: data.total_history_videos || 0,
-        existingVideosCount: data.existing_videos_count || 0,
-        invalidVideosCount: data.invalid_videos_count || 0,
-        pendingVideosCount: data.pending_videos_count || 0,
+        totalHistoryVideos: data.total_videos || 0,
+        existingVideosCount: data.videos_with_details || 0,
+        invalidVideosCount: 0, // 后端暂时没有这个字段
+        pendingVideosCount: data.videos_without_details || 0,
         completionPercentage: data.completion_percentage || 0,
-        errorTypeStats: data.error_type_stats || {},
-        pendingVideos: data.pending_videos || []
+        errorTypeStats: {}, // 后端暂时没有这个字段
+        pendingVideos: [] // 后端暂时没有这个字段
       }
     } else {
       throw new Error(response.data.message || '获取统计数据失败')
@@ -253,7 +268,7 @@ const startFetchingDetails = async () => {
         totalVideos: data.total_videos || 0,
         processedVideos: data.processed_videos || 0,
         successCount: data.success_count || 0,
-        failedCount: data.fail_count || 0,
+        failedCount: data.failed_count || 0,
         errorVideos: data.error_videos || [],
         skippedInvalidCount: data.skipped_invalid_count || 0,
         progressPercentage: data.progress_percentage || 0,
@@ -276,6 +291,48 @@ const startFetchingDetails = async () => {
     showNotify({
       type: 'danger',
       message: error.message || '启动获取失败'
+    })
+  }
+}
+
+// 停止获取
+const stopFetching = async () => {
+  try {
+    const response = await stopVideoDetailsFetch()
+    if (response.data.status === 'success') {
+      // 立即重置前端状态
+      closeProgressStream()
+      isFetching.value = false
+
+      // 重置进度状态到初始状态
+      progress.value = {
+        isProcessing: false,
+        totalVideos: 0,
+        processedVideos: 0,
+        successCount: 0,
+        failedCount: 0,
+        errorVideos: [],
+        skippedInvalidCount: 0,
+        progressPercentage: 0,
+        elapsedTime: '',
+        isComplete: false
+      }
+
+      showNotify({
+        type: 'success',
+        message: '任务已停止'
+      })
+
+      // 刷新统计数据
+      fetchStats()
+    } else {
+      throw new Error(response.data.message || '停止失败')
+    }
+  } catch (error) {
+    console.error('停止视频详情获取失败:', error)
+    showNotify({
+      type: 'danger',
+      message: error.message || '停止失败'
     })
   }
 }

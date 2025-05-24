@@ -1388,7 +1388,7 @@ export const getUserVideos = (params) => {
 }
 
 /**
- * 批量获取视频详情
+ * 批量获取视频详情（使用新的超详细接口）
  * @param {object} params - 请求参数
  * @param {number} params.max_videos - 最多处理的视频数量，0表示全部
  * @param {string} params.specific_videos - 要获取的特定视频ID列表，用逗号分隔（可选）
@@ -1411,7 +1411,8 @@ export const fetchVideoDetails = (params) => {
     specificVideos = arguments[1] || ''
   }
 
-  return instance.get('/fetch/fetch-video-details', {
+  // 使用新的超详细视频详情接口
+  return instance.get('/video_details/batch_fetch_from_history', {
     params: {
       max_videos: maxVideos,
       specific_videos: specificVideos,
@@ -1421,7 +1422,7 @@ export const fetchVideoDetails = (params) => {
 }
 
 /**
- * 创建视频详情进度的SSE连接
+ * 创建视频详情进度的SSE连接（使用新的超详细接口）
  * @param {object|number} params - 请求参数或更新间隔
  * @param {number} params.update_interval - 更新间隔，单位秒
  * @returns {EventSource} - SSE事件源对象
@@ -1438,18 +1439,34 @@ export const createVideoDetailsProgressSSE = (params) => {
 
   const baseUrl = instance.defaults.baseURL
 
-  // 构建基本URL
-  let url = `${baseUrl}/fetch/fetch-video-details-progress?update_interval=${updateInterval}`
+  // 构建基本URL，使用新的超详细接口
+  let url = `${baseUrl}/video_details/progress?update_interval=${updateInterval}`
 
   return new EventSource(url)
 }
 
 /**
- * 获取视频详情统计数据
+ * 获取视频详情统计数据（使用新的超详细接口）
  * @returns {Promise<object>} - 包含视频详情统计的响应
  */
 export const getVideoDetailsStats = () => {
-  return instance.get('/fetch/video-details-stats')
+  return instance.get('/video_details/stats')
+}
+
+/**
+ * 停止视频详情获取任务
+ * @returns {Promise<object>} - 包含停止结果的响应
+ */
+export const stopVideoDetailsFetch = () => {
+  return instance.post('/video_details/stop')
+}
+
+/**
+ * 重置视频详情获取状态
+ * @returns {Promise<object>} - 包含重置结果的响应
+ */
+export const resetVideoDetailsStatus = () => {
+  return instance.post('/video_details/reset')
 }
 
 /**
