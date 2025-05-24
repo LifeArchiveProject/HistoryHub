@@ -529,6 +529,7 @@ import VideoDetailDialog from './VideoDetailDialog.vue'
 import LoginDialog from './LoginDialog.vue'
 import DownloadDialog from './DownloadDialog.vue'
 import FavoriteDialog from './FavoriteDialog.vue'
+import { openInBrowser } from '@/utils/openUrl.js'
 
 const { isPrivacyMode } = usePrivacyStore()
 
@@ -1231,7 +1232,7 @@ const shouldShowDivider = (index) => {
 }
 
 // 处理视频点击
-const handleVideoClick = (record) => {
+const handleVideoClick = async (record) => {
   let url = ''
 
   switch (record.business) {
@@ -1259,14 +1260,14 @@ const handleVideoClick = (record) => {
   }
 
   if (url) {
-    window.open(url, '_blank')
+    await openInBrowser(url)
   }
 }
 
 // 处理UP主点击
-const handleAuthorClick = (record) => {
+const handleAuthorClick = async (record) => {
   const url = `https://space.bilibili.com/${record.author_mid}`
-  window.open(url, '_blank')
+  await openInBrowser(url)
 }
 
 // 格式化时长

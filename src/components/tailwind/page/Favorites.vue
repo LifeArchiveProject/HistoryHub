@@ -487,6 +487,7 @@ import {
   repairFavoriteVideos,
   downloadFavorites
 } from '../../../api/api'
+import { openInBrowser } from '@/utils/openUrl.js'
 
 const router = useRouter()
 
@@ -846,12 +847,12 @@ async function loadContents() {
 }
 
 // 打开视频
-function openVideo(video) {
+async function openVideo(video) {
   // 使用BV号或视频ID打开视频，跳转到B站
   const videoId = video.bvid || video.id
   if (videoId) {
-    // 打开B站视频链接
-    window.open(`https://www.bilibili.com/video/${videoId}`, '_blank')
+    // 在系统默认浏览器中打开B站视频链接
+    await openInBrowser(`https://www.bilibili.com/video/${videoId}`)
   }
 }
 

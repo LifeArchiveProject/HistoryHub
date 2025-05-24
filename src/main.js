@@ -15,8 +15,26 @@ window.addEventListener('api-baseurl-updated', (event) => {
   console.log('API BaseURL 已更新:', event.detail?.url)
 })
 
-// 判断是否在 Tauri 环境中
-const isTauri = window && window.__TAURI__
+// 初始化Tauri API
+let isTauri = false
+async function initTauri() {
+  try {
+    // 尝试导入Tauri core API
+    const { invoke } = await import('@tauri-apps/api/core')
+    if (typeof invoke === 'function') {
+      // 设置全局标识
+      window.__TAURI_INVOKE__ = invoke
+      window.__TAURI__ = true
+      isTauri = true
+      console.log('Tauri API 初始化成功')
+    }
+  } catch (error) {
+    isTauri = false
+  }
+}
+
+// 立即初始化Tauri
+await initTauri()
 
 
 // 在 Tauri 环境中设置所有链接在当前窗口打开
@@ -29,7 +47,7 @@ if (isTauri) {
       if (target.tagName === 'A' && target.getAttribute('href')) {
         // 获取链接地址
         const href = target.getAttribute('href');
-        
+
         // 如果是外部链接或绝对路径，则在当前窗口打开
         if (href.startsWith('http') || href.startsWith('//') || href.startsWith('/')) {
           e.preventDefault();

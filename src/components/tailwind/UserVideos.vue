@@ -84,7 +84,7 @@
 import { ref, onMounted, watch } from 'vue'
 import { getUserVideos } from '@/api/api'
 import Pagination from './Pagination.vue'
-import { useRouter } from 'vue-router'
+import { openInBrowser } from '@/utils/openUrl.js'
 
 export default {
   name: 'UserVideos',
@@ -98,7 +98,6 @@ export default {
     },
   },
   setup(props) {
-    const router = useRouter()
     const videos = ref([])
     const isLoading = ref(false)
     const currentPage = ref(1)
@@ -129,8 +128,8 @@ export default {
       fetchVideos()
     }
 
-    const handleVideoClick = (video) => {
-      window.open(`https://www.bilibili.com/video/${video.bvid}`, '_blank')
+    const handleVideoClick = async (video) => {
+      await openInBrowser(`https://www.bilibili.com/video/${video.bvid}`)
     }
 
     const formatNumber = (num) => {

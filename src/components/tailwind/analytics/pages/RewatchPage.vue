@@ -15,7 +15,7 @@
           </div>
 
           <!-- 没有重复观看数据的提示 -->
-          <div v-if="!viewingData?.watch_counts?.most_watched_videos?.length" 
+          <div v-if="!viewingData?.watch_counts?.most_watched_videos?.length"
                class="mt-8 text-center py-10 bg-white/50 dark:bg-white/5 backdrop-blur-sm rounded-lg border border-gray-300/50 dark:border-gray-500/50">
             <svg class="w-16 h-16 mx-auto text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -92,6 +92,7 @@
 <script setup>
 import { onMounted, nextTick, watch, ref } from 'vue'
 import gsap from 'gsap'
+import { openInBrowser } from '@/utils/openUrl.js'
 
 const props = defineProps({
   viewingData: {
@@ -103,8 +104,8 @@ const props = defineProps({
 // 用于存储当前视频列表的引用
 const videoList = ref([])
 
-const handleVideoClick = (bvid) => {
-  window.open(`https://www.bilibili.com/video/${bvid}`, '_blank')
+const handleVideoClick = async (bvid) => {
+  await openInBrowser(`https://www.bilibili.com/video/${bvid}`)
 }
 
 // 初始化动画
@@ -130,7 +131,7 @@ const initAnimation = () => {
 watch(() => props.viewingData?.watch_counts?.most_watched_videos, (newVal) => {
   // 先清空现有数据
   videoList.value = []
-  
+
   // 在下一个 tick 中更新数据
   nextTick(() => {
     if (newVal) {

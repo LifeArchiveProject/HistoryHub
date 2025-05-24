@@ -689,6 +689,7 @@ import VideoSummary from './VideoSummary.vue'
 import EnvironmentCheck from './EnvironmentCheck.vue'
 import DownloadDialog from './DownloadDialog.vue'
 import 'vant/es/dialog/style'
+import { openInBrowser } from '@/utils/openUrl.js'
 
 const props = defineProps({
   modelValue: {
@@ -878,7 +879,7 @@ const handleRemarkBlur = async () => {
 }
 
 // 在B站打开视频
-const openInBilibili = () => {
+const openInBilibili = async () => {
   if (!props.video) return
 
   let url = ''
@@ -908,15 +909,15 @@ const openInBilibili = () => {
   }
 
   if (url) {
-    window.open(url, '_blank')
+    await openInBrowser(url)
   }
 }
 
 // 打开UP主页面
-const openAuthorPage = () => {
+const openAuthorPage = async () => {
   if (!props.video || !props.video.author_mid) return
   const url = `https://space.bilibili.com/${props.video.author_mid}`
-  window.open(url, '_blank')
+  await openInBrowser(url)
 }
 
 // 监听video变化，初始化备注
@@ -1298,7 +1299,7 @@ const hasTimeStamp = (text) => {
   return /\d{2}:\d{2}[-–]\d{2}:\d{2}/.test(text)
 }
 
-const handleTimeClick = (section) => {
+const handleTimeClick = async (section) => {
   const timeMatch = section.match(/(\d{2}):(\d{2})[-–](\d{2}):(\d{2})/)
   if (timeMatch) {
     const startMinutes = parseInt(timeMatch[1])
@@ -1307,7 +1308,7 @@ const handleTimeClick = (section) => {
 
     // 构建B站视频URL并跳转
     const url = `https://www.bilibili.com/video/${props.video.bvid}?t=${startTime}`
-    window.open(url, '_blank')
+    await openInBrowser(url)
   }
 }
 

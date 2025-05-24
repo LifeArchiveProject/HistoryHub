@@ -436,6 +436,7 @@ import 'vant/es/popup/style'
 import 'vant/es/field/style'
 import DownloadDialog from './DownloadDialog.vue'
 import VideoDetailDialog from './VideoDetailDialog.vue'
+import { openInBrowser } from '@/utils/openUrl.js'
 
 const { isPrivacyMode } = usePrivacyStore()
 
@@ -531,7 +532,7 @@ const handleClick = () => {
 }
 
 // 处理内容点击事件
-const handleContentClick = () => {
+const handleContentClick = async () => {
   let url = ''
 
   switch (props.record.business) {
@@ -559,14 +560,14 @@ const handleContentClick = () => {
   }
 
   if (url) {
-    window.open(url, '_blank')
+    await openInBrowser(url)
   }
 }
 
 // 处理UP主点击事件
-const handleAuthorClick = () => {
+const handleAuthorClick = async () => {
   const url = `https://space.bilibili.com/${props.record.author_mid}`
-  window.open(url, '_blank')
+  await openInBrowser(url)
 }
 
 // 修改时间戳显示相关的代码
