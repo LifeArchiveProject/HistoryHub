@@ -10,3 +10,4 @@ respond /health 200 {
 
 root * /app
 file_server
+try_files {path} /index.html

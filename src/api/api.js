@@ -1,8 +1,10 @@
 import axios from 'axios'
 
 // 你的服务器地址
+const DEFAULT_FALLBACK_URL = 'http://localhost:8899';
+const VITE_CONFIGURED_DEFAULT_URL = import.meta.env.VITE_DEFAULT_BACKEND_URL || DEFAULT_FALLBACK_URL;
 const getBaseUrl = () => {
-  return localStorage.getItem('baseUrl') || 'http://localhost:8899'
+  return localStorage.getItem('baseUrl') || VITE_CONFIGURED_DEFAULT_URL
 }
 
 const BASE_URL = getBaseUrl()
@@ -13,6 +15,10 @@ const SERVER_URLS = [
   'http://localhost:8899',
   'http://0.0.0.0:8899'
 ]
+
+if (!SERVER_URLS.includes(VITE_CONFIGURED_DEFAULT_URL)) {
+  SERVER_URLS.unshift(VITE_CONFIGURED_DEFAULT_URL)
+}
 
 // 尝试连接多个服务器地址，返回第一个可用的
 export const tryConnectServers = async () => {

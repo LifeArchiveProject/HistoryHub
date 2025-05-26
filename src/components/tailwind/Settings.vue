@@ -1249,7 +1249,8 @@ const saveServerUrl = () => {
 }
 
 // 在script setup部分添加重置功能
-const DEFAULT_SERVER_URL = 'http://localhost:8899'
+const FALLBACK_DEFAULT_SERVER_URL = 'http://localhost:8899';
+const DEFAULT_SERVER_URL = import.meta.env.VITE_DEFAULT_BACKEND_URL || FALLBACK_DEFAULT_SERVER_URL;
 
 // 重置服务器地址
 const resetServerUrl = () => {
