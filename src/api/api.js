@@ -1487,3 +1487,66 @@ export const getVideoSeasonInfo = (params) => {
     params
   })
 }
+
+/**
+ * 检查视频是否为合集
+ * @param {string} url 视频URL
+ * @param {string} [sessdata] 可选的SESSDATA用于认证
+ * @returns {Promise<object>} 包含合集信息的响应
+ */
+export const checkCollection = (url, sessdata = null) => {
+  const params = { url }
+  if (sessdata) {
+    params.sessdata = sessdata
+  }
+  return instance.get('/collection/check_collection', {
+    params
+  })
+}
+
+/**
+ * 下载整个合集
+ * @param {Object} params 下载参数
+ * @param {string} params.url 合集URL
+ * @param {number} params.cid 视频的CID
+ * @param {Function} onMessage 消息回调函数
+ * @returns {Promise<void>}
+ */
+export const downloadCollection = async (params, onMessage) => {
+  try {
+    const response = await fetch(`${BASE_URL}/collection/download_collection`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(params)
+    })
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+
+    const reader = response.body.getReader()
+    const decoder = new TextDecoder()
+
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+
+      const chunk = decoder.decode(value)
+      const lines = chunk.split('\n')
+
+      for (const line of lines) {
+        if (line.startsWith('data: ')) {
+          const message = line.slice(6)
+          if (message && onMessage) {
+            onMessage(message)
+          }
+        }
+      }
+    }
+  } catch (error) {
+    console.error('下载合集失败:', error)
+    throw error
+  }
+}

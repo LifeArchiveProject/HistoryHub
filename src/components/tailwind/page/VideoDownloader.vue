@@ -253,6 +253,17 @@
                 </div>
               </div>
 
+              <!-- 合集信息调试 -->
+              <div v-if="collectionInfo.is_collection" class="mb-5 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                <h4 class="text-sm font-semibold text-blue-900 mb-2">🎬 检测到合集</h4>
+                <p class="text-sm text-blue-800">
+                  <strong>{{ collectionInfo.collection_title }}</strong>
+                </p>
+                <p class="text-xs text-blue-600 mt-1">
+                  共 {{ collectionInfo.total_videos }} 个视频，当前是第 {{ collectionInfo.current_video_index }} 个
+                </p>
+              </div>
+
               <!-- 多 P 信息 -->
               <div v-if="videoInfo.pages && videoInfo.pages.length > 1" class="mb-5">
                 <h4 class="text-sm font-semibold text-gray-900 mb-5">分 P 列表</h4>
@@ -292,6 +303,61 @@
       :up-user-videos="upUserVideosList"
       @download-complete="handleDownloadComplete"
     />
+
+    <!-- 合集选择对话框 -->
+    <Teleport to="body">
+      <div v-if="showCollectionChoice" class="fixed inset-0 z-50 flex items-center justify-center">
+        <!-- 背景遮罩 -->
+        <div class="absolute inset-0 bg-black/50" @click="showCollectionChoice = false"></div>
+
+        <!-- 对话框内容 -->
+        <div class="relative bg-white rounded-lg border border-gray-200 w-[500px] z-10 p-6">
+          <h3 class="text-lg font-medium text-gray-900 mb-4">检测到合集视频</h3>
+
+          <div class="mb-4">
+            <p class="text-gray-600 mb-2">
+              此视频属于合集：<span class="font-medium text-gray-800">{{ collectionInfo.collection_title }}</span>
+            </p>
+            <p class="text-sm text-gray-500 mb-4">
+              合集共包含 {{ collectionInfo.total_videos }} 个视频，当前是第 {{ collectionInfo.current_video_index }} 个
+            </p>
+
+            <p class="text-gray-600 mb-4">
+              请选择下载方式：
+            </p>
+          </div>
+
+          <!-- 选择按钮 -->
+          <div class="flex flex-col gap-3 mb-6">
+            <button
+              @click="handleCollectionChoice('single')"
+              class="w-full px-4 py-3 text-left border border-gray-200 rounded-md hover:border-[#fb7299] hover:bg-[#fb7299]/5 transition-colors"
+            >
+              <div class="font-medium text-gray-900">只下载当前视频</div>
+              <div class="text-sm text-gray-500">仅下载当前播放的这个视频</div>
+            </button>
+
+            <button
+              @click="handleCollectionChoice('collection')"
+              class="w-full px-4 py-3 text-left border border-gray-200 rounded-md hover:border-[#fb7299] hover:bg-[#fb7299]/5 transition-colors"
+            >
+              <div class="font-medium text-gray-900">下载整个合集</div>
+              <div class="text-sm text-gray-500">下载合集中的所有 {{ collectionInfo.total_videos }} 个视频</div>
+            </button>
+          </div>
+
+          <!-- 取消按钮 -->
+          <div class="flex justify-end">
+            <button
+              @click="showCollectionChoice = false"
+              class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+            >
+              取消
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -299,7 +365,7 @@
 import { ref, computed, watch } from 'vue'
 import { showNotify } from 'vant'
 import 'vant/es/notify/style'
-import { getLoginStatus, downloadVideo, downloadUserVideos, getVideoInfo } from '../../../api/api'
+import { getLoginStatus, downloadVideo, downloadUserVideos, getVideoInfo, checkCollection, downloadCollection } from '../../../api/api'
 import DownloadDialog from '../DownloadDialog.vue'
 import SimpleSearchBar from '../SimpleSearchBar.vue'
 import CustomDropdown from '../CustomDropdown.vue'
@@ -339,6 +405,11 @@ const showDownloadDialog = ref(false)
 // 视频信息
 const videoInfo = ref({})
 const hasVideoInfo = computed(() => !!videoInfo.value?.bvid)
+
+// 合集信息
+const collectionInfo = ref({})
+const isCollection = computed(() => collectionInfo.value?.is_collection || false)
+const showCollectionChoice = ref(false)
 
 // 下载对话框的视频信息
 const downloadVideoInfo = ref({})
@@ -387,6 +458,9 @@ const handleVideoInfo = async (bvid) => {
     if (response.data.status === 'success') {
       videoInfo.value = response.data.data
       console.log('获取到视频信息：', videoInfo.value)
+
+      // 检查是否为合集
+      await checkVideoCollection(inputValue.value)
     } else {
       throw new Error(response.data.message || '获取视频信息失败')
     }
@@ -398,6 +472,27 @@ const handleVideoInfo = async (bvid) => {
   }
 }
 
+// 检查视频是否为合集
+const checkVideoCollection = async (url) => {
+  try {
+    console.log('开始检查合集，URL:', url)
+    const response = await checkCollection(url)
+    console.log('合集检测API响应：', response)
+    if (response.data.status === 'success') {
+      collectionInfo.value = response.data.data
+      console.log('合集检测结果：', collectionInfo.value)
+      console.log('是否为合集：', collectionInfo.value.is_collection)
+    } else {
+      console.log('合集检测API返回失败状态：', response.data)
+      collectionInfo.value = { is_collection: false }
+    }
+  } catch (error) {
+    console.error('检查合集失败：', error)
+    // 不显示错误，因为这不是关键功能
+    collectionInfo.value = { is_collection: false }
+  }
+}
+
 // 处理下载
 const handleDownload = async () => {
   try {
@@ -406,15 +501,42 @@ const handleDownload = async () => {
     isDownloading.value = true
 
     if (downloadType.value === 'video') {
-      // 如果已有视频信息，直接开始下载
+      // 如果已有视频信息，检查是否为合集
       if (hasVideoInfo.value) {
-        startDownload()
+        console.log('已有视频信息，检查是否为合集')
+        console.log('isCollection.value:', isCollection.value)
+        console.log('collectionInfo.value:', collectionInfo.value)
+        if (isCollection.value) {
+          // 是合集，显示选择对话框
+          console.log('检测到合集，显示选择对话框')
+          isDownloading.value = false
+          showCollectionChoice.value = true
+          return
+        } else {
+          // 不是合集，直接下载
+          console.log('不是合集，直接下载')
+          startDownload()
+        }
       } else {
         // 没有视频信息，先获取信息再开始下载
+        console.log('没有视频信息，先获取信息')
         const extractedBvid = extractBvid(inputValue.value)
         await handleVideoInfo(extractedBvid)
         if (hasVideoInfo.value) {
-          startDownload()
+          console.log('获取视频信息后，检查是否为合集')
+          console.log('isCollection.value:', isCollection.value)
+          console.log('collectionInfo.value:', collectionInfo.value)
+          if (isCollection.value) {
+            // 是合集，显示选择对话框
+            console.log('检测到合集，显示选择对话框')
+            isDownloading.value = false
+            showCollectionChoice.value = true
+            return
+          } else {
+            // 不是合集，直接下载
+            console.log('不是合集，直接下载')
+            startDownload()
+          }
         }
       }
     } else {
@@ -631,6 +753,38 @@ const startDownload = () => {
     console.error('开始下载失败：', error)
     showNotify({ type: 'danger', message: error.message || '开始下载失败' })
   }
+}
+
+// 处理合集选择
+const handleCollectionChoice = (choice) => {
+  showCollectionChoice.value = false
+
+  if (choice === 'single') {
+    // 下载单个视频
+    startDownload()
+  } else if (choice === 'collection') {
+    // 下载整个合集
+    startCollectionDownload()
+  }
+}
+
+// 开始合集下载
+const startCollectionDownload = () => {
+  // 设置合集下载信息
+  downloadVideoInfo.value = {
+    title: collectionInfo.value.collection_title || videoInfo.value.title,
+    author: videoInfo.value.owner?.name || '',
+    bvid: videoInfo.value.bvid,
+    cover: videoInfo.value.pic || '',
+    cid: videoInfo.value.cid || 0,
+    // 特殊字段标识这是合集下载
+    is_collection_download: true,
+    collection_info: collectionInfo.value,
+    original_url: inputValue.value
+  }
+
+  // 显示下载对话框
+  showDownloadDialog.value = true
 }
 
 // 处理下载完成

@@ -105,7 +105,7 @@
             <!-- 标题 -->
             <div class="mb-4">
               <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                {{ props.isBatchDownload ? '批量下载视频' : (isFavoriteFolder ? '下载收藏夹' : '下载视频') }}
+                {{ getDownloadTitle() }}
               </h3>
               <p v-if="downloadStarted" class="text-sm text-gray-500 dark:text-gray-400">
                 {{ isDownloading ? '正在下载：' : (downloadError ? '下载出错：' : '下载完成：') }} {{ currentVideoTitle }}
@@ -504,6 +504,7 @@ import {
   getFavoriteContents,
   downloadUserVideos,
   batchDownloadVideos,
+  downloadCollection,
 } from '@/api/api.js'
 import { showNotify } from 'vant'
 import 'vant/es/notify/style'
@@ -567,6 +568,19 @@ const downloadStatus = computed(() => {
   if (isDownloading.value) return '下载中...'
   return '下载完成'
 })
+
+// 获取下载标题
+const getDownloadTitle = () => {
+  if (props.videoInfo.is_collection_download) {
+    return '下载合集'
+  } else if (props.isBatchDownload) {
+    return '批量下载视频'
+  } else if (isFavoriteFolder.value) {
+    return '下载收藏夹'
+  } else {
+    return '下载视频'
+  }
+}
 
 // 日志容器引用
 const logContainer = ref(null)
@@ -1190,6 +1204,37 @@ const startDownload = async () => {
 
         // 检查下载状态
         if (content.includes('批量下载完成') || (content.includes('下载完成') && !content.includes('INFO'))) {
+          isDownloading.value = false
+          // 显示下载完成通知
+          showDownloadCompleteNotify()
+          emit('download-complete')
+        } else if (content.includes('ERROR')) {
+          downloadError.value = true
+          isDownloading.value = false
+        }
+
+        // 自动滚动到底部
+        nextTick(() => {
+          scrollToBottom()
+        })
+      })
+    } else if (props.videoInfo.is_collection_download) {
+      // 合集下载
+      console.log('开始合集下载:', props.videoInfo)
+
+      await downloadCollection({
+        url: props.videoInfo.original_url,
+        cid: props.videoInfo.cid,
+        download_cover: downloadCover.value,
+        only_audio: onlyAudio.value,
+        // 添加高级选项
+        ...advancedOptions.value,
+      }, (content) => {
+        console.log('收到合集下载消息:', content)
+        downloadLogs.value.push(content)
+
+        // 检查下载状态
+        if (content.includes('下载完成')) {
           isDownloading.value = false
           // 显示下载完成通知
           showDownloadCompleteNotify()
