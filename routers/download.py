@@ -1014,6 +1014,143 @@ async def list_downloaded_videos(search_term: Optional[str] = None, limit: int =
                     except Exception as e:
                         print(f"获取视频信息时出错：{str(e)}")
 
+                # 检查是否为合集或多P视频
+                is_collection = False
+                collection_type = "single"  # single, multipart, collection
+                collection_info = None
+
+                if len(video_files) > 1:
+                    # 检查是否为同一个视频的多个文件（不同格式/质量）
+                    unique_titles = set()
+                    unique_bvids = set()
+                    for file_info in video_files:
+                        # 从文件名中提取标题部分（去掉CID和扩展名）
+                        file_name = file_info["file_name"]
+                        # 移除文件扩展名
+                        name_without_ext = os.path.splitext(file_name)[0]
+                        # 尝试移除CID部分（假设CID在文件名末尾）
+                        if f"_{cid}" in name_without_ext:
+                            title_part = name_without_ext.replace(f"_{cid}", "")
+                        else:
+                            title_part = name_without_ext
+                        unique_titles.add(title_part)
+
+                        # 尝试从文件名或目录名中提取BVID
+                        bv_match = re.search(r'BV[a-zA-Z0-9]+', file_name)
+                        if not bv_match:
+                            bv_match = re.search(r'BV[a-zA-Z0-9]+', dir_name)
+                        if bv_match:
+                            unique_bvids.add(bv_match.group())
+
+                    if len(unique_titles) > 1 or len(unique_bvids) > 1:
+                        is_collection = True
+                        collection_type = "collection"  # 真正的合集
+
+                        # 尝试从目录名中提取合集信息
+                        if "_collection" in dir_name:
+                            collection_title = dir_name.split("_collection")[0]
+                        elif "_multipart" in dir_name:
+                            collection_title = dir_name.split("_multipart")[0]
+                            collection_type = "multipart"
+                        else:
+                            collection_title = dir_name
+
+                        collection_info = {
+                            "type": collection_type,
+                            "title": collection_title,
+                            "total_videos": len(unique_titles) if len(unique_titles) > 1 else len(unique_bvids),
+                            "video_list": []
+                        }
+
+                        # 构建合集中的视频列表
+                        for file_info in video_files:
+                            file_name = file_info["file_name"]
+                            name_without_ext = os.path.splitext(file_name)[0]
+
+                            # 提取视频标题
+                            if f"_{cid}" in name_without_ext:
+                                video_title = name_without_ext.replace(f"_{cid}", "")
+                            else:
+                                video_title = name_without_ext
+
+                            # 提取BVID
+                            bv_match = re.search(r'BV[a-zA-Z0-9]+', file_name)
+                            if not bv_match:
+                                bv_match = re.search(r'BV[a-zA-Z0-9]+', dir_name)
+                            video_bvid = bv_match.group() if bv_match else ""
+
+                            # 尝试为每个子视频获取独立的封面信息
+                            video_cover = None
+                            video_author_face = None
+                            video_author_name = None
+                            video_author_mid = None
+
+                            # 查找对应的.nfo文件
+                            nfo_file_path = os.path.join(root, f"{name_without_ext}.nfo")
+                            if os.path.exists(nfo_file_path):
+                                try:
+                                    import xml.etree.ElementTree as ET
+                                    tree = ET.parse(nfo_file_path)
+                                    nfo_root = tree.getroot()
+
+                                    # 提取封面
+                                    thumb_elem = nfo_root.find('thumb')
+                                    if thumb_elem is not None and thumb_elem.text:
+                                        video_cover = thumb_elem.text
+
+                                    # 提取作者信息
+                                    actor_elem = nfo_root.find('actor')
+                                    if actor_elem is not None:
+                                        actor_name = actor_elem.find('name')
+                                        if actor_name is not None and actor_name.text:
+                                            video_author_name = actor_name.text
+
+                                        actor_thumb = actor_elem.find('thumb')
+                                        if actor_thumb is not None and actor_thumb.text:
+                                            video_author_face = actor_thumb.text
+
+                                        actor_profile = actor_elem.find('profile')
+                                        if actor_profile is not None and actor_profile.text:
+                                            profile_url = actor_profile.text
+                                            mid_match = re.search(r"space\.bilibili\.com/(\d+)", profile_url)
+                                            if mid_match:
+                                                video_author_mid = int(mid_match.group(1))
+
+                                    # 处理图片URL
+                                    if _process_image_url:
+                                        if video_cover:
+                                            video_cover = _process_image_url(video_cover, 'covers', use_local_images)
+                                        if video_author_face:
+                                            video_author_face = _process_image_url(video_author_face, 'avatars', use_local_images)
+                                    elif use_local_images:
+                                        import hashlib
+                                        if video_cover:
+                                            cover_hash = hashlib.md5(video_cover.encode()).hexdigest()
+                                            video_cover = f"http://localhost:8899/images/local/covers/{cover_hash}"
+                                        if video_author_face:
+                                            avatar_hash = hashlib.md5(video_author_face.encode()).hexdigest()
+                                            video_author_face = f"http://localhost:8899/images/local/avatars/{avatar_hash}"
+
+                                except Exception as e:
+                                    print(f"解析子视频NFO文件时出错：{str(e)}")
+
+                            collection_info["video_list"].append({
+                                "title": video_title,
+                                "bvid": video_bvid,
+                                "file_info": file_info,
+                                "cover": video_cover,
+                                "author_face": video_author_face,
+                                "author_name": video_author_name,
+                                "author_mid": video_author_mid
+                            })
+                    else:
+                        collection_type = "multipart"  # 多P或不同格式的同一视频
+
+                # 添加合集信息到video_info
+                video_info["is_collection"] = is_collection
+                video_info["collection_type"] = collection_type
+                video_info["collection_info"] = collection_info
+
                 videos.append(video_info)
 
         # 如果数据库连接已打开，关闭它

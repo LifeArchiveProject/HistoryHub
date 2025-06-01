@@ -24,6 +24,7 @@ from routers import (
     heatmap,
     send_log,
     download,
+    collection_download,
     history,
     categories,
     viewing_analytics,
@@ -415,6 +416,7 @@ app.include_router(import_data_sqlite.router, prefix="/importSqlite", tags=["SQL
 app.include_router(heatmap.router, prefix="/heatmap", tags=["热力图生成"])
 app.include_router(send_log.router, prefix="/log", tags=["日志发送"])
 app.include_router(download.router, prefix="/download", tags=["视频下载"])
+app.include_router(collection_download.router, prefix="/collection", tags=["合集下载"])
 app.include_router(history.router, prefix="/history", tags=["历史记录管理"])
 app.include_router(categories.router, prefix="/categories", tags=["分类管理"])
 app.include_router(viewing_analytics.router, prefix="/viewing", tags=["观看时间分析"])
