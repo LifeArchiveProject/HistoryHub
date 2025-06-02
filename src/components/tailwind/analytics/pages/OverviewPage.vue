@@ -6,6 +6,12 @@
     </h3>
     
     <div class="text-base text-center text-gray-600 dark:text-gray-300 space-y-3">
+      <!-- 总体活动总结（放在最前面） -->
+      <div v-if="viewingData?.insights?.overall_activity"
+        v-html="formatInsightText(viewingData.insights.overall_activity)"
+      >
+      </div>
+
       <!-- 按指定顺序合并所有总结，用逗号分隔 -->
       <div>
         <span v-if="viewingBehaviorData?.report?.total_summary" v-html="formatInsightText(viewingBehaviorData.report.total_summary)"></span>
@@ -19,12 +25,6 @@
         <span v-if="viewingBehaviorData?.report?.time_slot_summary" v-html="formatInsightText(viewingBehaviorData.report.time_slot_summary)"></span>
         <span v-if="(viewingBehaviorData?.report?.total_summary || viewingBehaviorData?.report?.category_summary || viewingBehaviorData?.report?.device_summary || viewingBehaviorData?.report?.up_summary || viewingBehaviorData?.report?.time_slot_summary) && viewingBehaviorData?.report?.late_night_summary">, </span>
         <span v-if="viewingBehaviorData?.report?.late_night_summary" v-html="formatInsightText(viewingBehaviorData.report.late_night_summary)"></span>
-      </div>
-      
-      <!-- 整体活动总结 -->
-      <div v-if="viewingData?.insights?.overall_activity" 
-        v-html="formatInsightText(viewingData.insights.overall_activity)"
-      >
       </div>
     </div>
 

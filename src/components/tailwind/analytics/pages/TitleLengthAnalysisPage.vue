@@ -6,9 +6,9 @@
         <h2 class="text-3xl font-bold bg-gradient-to-r from-[#fb7299] to-[#fc9b7a] bg-clip-text text-transparent">
           标题长度分析
         </h2>
-        <div class="mt-4 text-gray-600 max-w-3xl mx-auto">
-          <p class="mb-2">{{ titleAnalytics.length_analysis.insights[0] }}</p>
-          <p>{{ titleAnalytics.length_analysis.insights[1] }}</p>
+        <div class="mt-4 text-gray-600 max-w-3xl mx-auto" v-if="titleAnalytics && titleAnalytics.length_analysis">
+          <p class="mb-2" v-if="titleAnalytics.length_analysis.insights && titleAnalytics.length_analysis.insights[0]">{{ titleAnalytics.length_analysis.insights[0] }}</p>
+          <p v-if="titleAnalytics.length_analysis.insights && titleAnalytics.length_analysis.insights[1]">{{ titleAnalytics.length_analysis.insights[1] }}</p>
         </div>
       </div>
 
@@ -48,10 +48,10 @@ let completionChart = null
 
 // 初始化标题长度分布图
 const initDistributionChart = () => {
-  if (!distributionChartRef.value) return
+  if (!distributionChartRef.value || !props.titleAnalytics?.length_analysis?.length_stats) return
 
   distributionChart = echarts.init(distributionChartRef.value)
-  
+
   const lengthStats = props.titleAnalytics.length_analysis.length_stats
   const data = Object.entries(lengthStats)
     .sort(([a], [b]) => {
@@ -104,10 +104,10 @@ const initDistributionChart = () => {
 
 // 初始化完成率分析图
 const initCompletionChart = () => {
-  if (!completionChartRef.value) return
+  if (!completionChartRef.value || !props.titleAnalytics?.length_analysis?.length_stats) return
 
   completionChart = echarts.init(completionChartRef.value)
-  
+
   const lengthStats = props.titleAnalytics.length_analysis.length_stats
   const data = Object.entries(lengthStats)
     .sort(([a], [b]) => {

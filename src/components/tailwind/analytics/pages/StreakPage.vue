@@ -11,22 +11,27 @@
     >
     </div>
 
-    <div class="grid grid-cols-2 gap-8">
+    <div v-if="viewingData?.viewing_continuity" class="grid grid-cols-2 gap-8">
       <div class="bg-white/50 dark:bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-gray-300/50 dark:border-gray-500/50">
-        <div class="text-4xl font-bold bg-gradient-to-r from-[#fb7299] to-[#fc9b7a] bg-clip-text text-transparent streak-number">{{ viewingData.viewing_continuity.max_streak }}天</div>
+        <div class="text-4xl font-bold bg-gradient-to-r from-[#fb7299] to-[#fc9b7a] bg-clip-text text-transparent streak-number">{{ viewingData.viewing_continuity.max_streak || 0 }}天</div>
         <div class="text-lg text-gray-600 dark:text-gray-400 mt-2">最长连续观看</div>
-        <div class="mt-4 text-sm text-gray-500">
+        <div v-if="viewingData.viewing_continuity.longest_streak_period" class="mt-4 text-sm text-gray-500">
           {{ viewingData.viewing_continuity.longest_streak_period.start }} 至
           {{ viewingData.viewing_continuity.longest_streak_period.end }}
         </div>
       </div>
       <div class="bg-white/50 dark:bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-gray-300/50 dark:border-gray-500/50">
-        <div class="text-4xl font-bold bg-gradient-to-r from-[#fb7299] to-[#fc9b7a] bg-clip-text text-transparent streak-number">{{ viewingData.viewing_continuity.current_streak }}天</div>
+        <div class="text-4xl font-bold bg-gradient-to-r from-[#fb7299] to-[#fc9b7a] bg-clip-text text-transparent streak-number">{{ viewingData.viewing_continuity.current_streak || 0 }}天</div>
         <div class="text-lg text-gray-600 dark:text-gray-400 mt-2">当前连续观看</div>
-        <div class="mt-4 text-sm text-gray-500">
+        <div v-if="viewingData.viewing_continuity.current_streak_start" class="mt-4 text-sm text-gray-500">
           开始于 {{ viewingData.viewing_continuity.current_streak_start }}
         </div>
       </div>
+    </div>
+
+    <!-- 数据加载中或无数据时的提示 -->
+    <div v-else class="text-center text-gray-500 dark:text-gray-400">
+      正在加载连续观看数据...
     </div>
   </div>
 </template>

@@ -6,9 +6,9 @@
         <h2 class="text-3xl font-bold bg-gradient-to-r from-[#fb7299] to-[#fc9b7a] bg-clip-text text-transparent">
           标题互动分析
         </h2>
-        <div class="mt-4 text-gray-600 max-w-3xl mx-auto">
-          <p class="mb-2">{{ titleAnalytics.interaction_analysis.insights[0] }}</p>
-          <p>{{ titleAnalytics.interaction_analysis.insights[1] }}</p>
+        <div class="mt-4 text-gray-600 max-w-3xl mx-auto" v-if="titleAnalytics && titleAnalytics.interaction_analysis">
+          <p class="mb-2" v-if="titleAnalytics.interaction_analysis.insights && titleAnalytics.interaction_analysis.insights[0]">{{ titleAnalytics.interaction_analysis.insights[0] }}</p>
+          <p v-if="titleAnalytics.interaction_analysis.insights && titleAnalytics.interaction_analysis.insights[1]">{{ titleAnalytics.interaction_analysis.insights[1] }}</p>
         </div>
       </div>
 
@@ -48,10 +48,10 @@ let interactionTypeChart = null
 
 // 初始化关键词互动率图表
 const initKeywordInteractionChart = () => {
-  if (!keywordInteractionChartRef.value) return
+  if (!keywordInteractionChartRef.value || !props.titleAnalytics?.interaction_analysis?.interaction_stats) return
 
   keywordInteractionChart = echarts.init(keywordInteractionChartRef.value)
-  const stats = props.titleAnalytics?.interaction_analysis?.interaction_stats || {}
+  const stats = props.titleAnalytics.interaction_analysis.interaction_stats
   const data = Object.entries(stats)
     .filter(([key]) => key !== '其他') // 过滤掉"其他"类别
     .map(([type, data]) => ({
@@ -124,10 +124,10 @@ const initKeywordInteractionChart = () => {
 
 // 初始化互动类型分布图表
 const initInteractionTypeChart = () => {
-  if (!interactionTypeChartRef.value) return
+  if (!interactionTypeChartRef.value || !props.titleAnalytics?.interaction_analysis?.interaction_stats) return
 
   interactionTypeChart = echarts.init(interactionTypeChartRef.value)
-  const stats = props.titleAnalytics?.interaction_analysis?.interaction_stats || {}
+  const stats = props.titleAnalytics.interaction_analysis.interaction_stats
   const data = Object.entries(stats)
     .map(([type, data]) => ({
       name: type,

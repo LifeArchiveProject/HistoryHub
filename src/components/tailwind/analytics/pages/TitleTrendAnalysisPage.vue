@@ -6,9 +6,9 @@
         <h2 class="text-3xl font-bold bg-gradient-to-r from-[#fb7299] to-[#fc9b7a] bg-clip-text text-transparent">
           标题趋势分析
         </h2>
-        <div class="mt-3 text-gray-600 max-w-3xl mx-auto">
-          <p class="mb-2">{{ titleAnalytics.trend_analysis.insights[0] }}</p>
-          <p>{{ titleAnalytics.trend_analysis.insights[1] }}</p>
+        <div class="mt-3 text-gray-600 max-w-3xl mx-auto" v-if="titleAnalytics && titleAnalytics.trend_analysis">
+          <p class="mb-2" v-if="titleAnalytics.trend_analysis.insights && titleAnalytics.trend_analysis.insights[0]">{{ titleAnalytics.trend_analysis.insights[0] }}</p>
+          <p v-if="titleAnalytics.trend_analysis.insights && titleAnalytics.trend_analysis.insights[1]">{{ titleAnalytics.trend_analysis.insights[1] }}</p>
         </div>
       </div>
 
@@ -58,6 +58,7 @@ const colors = [
 
 // 获取排序后的月度趋势数据
 const getSortedMonthlyTrends = () => {
+  if (!props.titleAnalytics?.trend_analysis?.monthly_trends) return {}
   const trends = props.titleAnalytics.trend_analysis.monthly_trends
   return Object.fromEntries(
     Object.entries(trends)

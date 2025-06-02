@@ -1,4 +1,6 @@
 import axios from 'axios'
+// 导入通知组件
+import 'vant/es/notify/style'
 
 // 你的服务器地址
 const DEFAULT_FALLBACK_URL = 'http://localhost:8899';
@@ -18,43 +20,6 @@ const SERVER_URLS = [
 
 if (!SERVER_URLS.includes(VITE_CONFIGURED_DEFAULT_URL)) {
   SERVER_URLS.unshift(VITE_CONFIGURED_DEFAULT_URL)
-}
-
-// 尝试连接多个服务器地址，返回第一个可用的
-export const tryConnectServers = async () => {
-  // 如果已经存储了服务器地址，先尝试这个地址
-  const savedUrl = localStorage.getItem('baseUrl')
-  if (savedUrl) {
-    try {
-      const response = await axios.get(`${savedUrl}/health`, { timeout: 3000 })
-      if (response.data && response.data.status === 'running') {
-        // 更新 axios 实例的 baseURL
-        updateInstanceBaseUrl(savedUrl)
-        return { success: true, url: savedUrl }
-      }
-    } catch (error) {
-      console.warn(`尝试连接已保存的服务器 ${savedUrl} 失败:`, error.message)
-    }
-  }
-
-  // 尝试所有预定义服务器
-  for (const url of SERVER_URLS) {
-    try {
-      console.log(`尝试连接服务器: ${url}`)
-      const response = await axios.get(`${url}/health`, { timeout: 3000 })
-      if (response.data && response.data.status === 'running') {
-        // 保存可用的服务器地址
-        localStorage.setItem('baseUrl', url)
-        // 更新 axios 实例的 baseURL
-        updateInstanceBaseUrl(url)
-        return { success: true, url }
-      }
-    } catch (error) {
-      console.warn(`尝试连接服务器 ${url} 失败:`, error.message)
-    }
-  }
-
-  return { success: false, url: null }
 }
 
 // 设置服务器地址
@@ -153,9 +118,16 @@ export const getMainCategories = () => {
   return instance.get(`/categories/main-categories`)
 }
 
-// 标题分析相关接口
-export const getTitleAnalytics = (year, useCache = true) => {
-  return instance.get(`/title/`, {
+// 标题分析相关接口已拆分为以下独立接口：
+// - getTitleKeywordAnalysis: 关键词分析
+// - getTitleLengthAnalysis: 长度分析
+// - getTitleSentimentAnalysis: 情感分析
+// - getTitleTrendAnalysis: 趋势分析
+// - getTitleInteractionAnalysis: 互动分析
+
+// 获取标题关键词分析
+export const getTitleKeywordAnalysis = (year, useCache = true) => {
+  return instance.get(`/title/keyword-analysis`, {
     params: {
       year,
       use_cache: useCache
@@ -163,15 +135,144 @@ export const getTitleAnalytics = (year, useCache = true) => {
   })
 }
 
-// 获取观看时间分布分析
-export const getViewingAnalytics = async (year, useCache = true) => {
-  return instance.get(`/viewing/`, {
+// 获取标题长度分析
+export const getTitleLengthAnalysis = (year, useCache = true) => {
+  return instance.get(`/title/length-analysis`, {
     params: {
       year,
       use_cache: useCache
     }
   })
 }
+
+// 获取标题情感分析
+export const getTitleSentimentAnalysis = (year, useCache = true) => {
+  return instance.get(`/title/sentiment-analysis`, {
+    params: {
+      year,
+      use_cache: useCache
+    }
+  })
+}
+
+// 获取标题趋势分析
+export const getTitleTrendAnalysis = (year, useCache = true) => {
+  return instance.get(`/title/trend-analysis`, {
+    params: {
+      year,
+      use_cache: useCache
+    }
+  })
+}
+
+// 获取标题互动分析
+export const getTitleInteractionAnalysis = (year, useCache = true) => {
+  return instance.get(`/title/interaction-analysis`, {
+    params: {
+      year,
+      use_cache: useCache
+    }
+  })
+}
+
+// 观看时间分析相关接口已拆分为以下独立接口：
+// - getViewingMonthlyStats: 月度统计分析
+// - getViewingWeeklyStats: 周度统计分析
+// - getViewingTimeSlots: 时段分析
+// - getViewingContinuity: 观看连续性分析
+// 更多维度接口将逐步添加...
+
+// 获取月度观看统计分析
+export const getViewingMonthlyStats = (year, useCache = true) => {
+  return instance.get(`/viewing/monthly-stats`, {
+    params: {
+      year,
+      use_cache: useCache
+    }
+  })
+}
+
+// 获取周度观看统计分析
+export const getViewingWeeklyStats = (year, useCache = true) => {
+  return instance.get(`/viewing/weekly-stats`, {
+    params: {
+      year,
+      use_cache: useCache
+    }
+  })
+}
+
+// 获取时段观看分析
+export const getViewingTimeSlots = (year, useCache = true) => {
+  return instance.get(`/viewing/time-slots`, {
+    params: {
+      year,
+      use_cache: useCache
+    }
+  })
+}
+
+// 获取观看连续性分析
+export const getViewingContinuity = (year, useCache = true) => {
+  return instance.get(`/viewing/continuity`, {
+    params: {
+      year,
+      use_cache: useCache
+    }
+  })
+}
+
+// 获取重复观看分析
+export const getViewingWatchCounts = (year, useCache = true) => {
+  return instance.get(`/viewing/watch-counts`, {
+    params: {
+      year,
+      use_cache: useCache
+    }
+  })
+}
+
+// 获取视频完成率分析
+export const getViewingCompletionRates = (year, useCache = true) => {
+  return instance.get(`/viewing/completion-rates`, {
+    params: {
+      year,
+      use_cache: useCache
+    }
+  })
+}
+
+// 获取UP主完成率分析
+export const getViewingAuthorCompletion = (year, useCache = true) => {
+  return instance.get(`/viewing/author-completion`, {
+    params: {
+      year,
+      use_cache: useCache
+    }
+  })
+}
+
+// 获取标签分析
+export const getViewingTagAnalysis = (year, useCache = true) => {
+  return instance.get(`/viewing/tag-analysis`, {
+    params: {
+      year,
+      use_cache: useCache
+    }
+  })
+}
+
+// 获取视频时长分析
+export const getViewingDurationAnalysis = (year, useCache = true) => {
+  return instance.get(`/viewing/duration-analysis`, {
+    params: {
+      year,
+      use_cache: useCache
+    }
+  })
+}
+
+// 原始的观看时间分析接口已删除，现在使用拆分后的独立接口
 
 // 获取观看行为数据分析
 export const getViewingBehavior = async (year, useCache = false) => {
@@ -640,26 +741,11 @@ export const addSubTask = (taskId, subTaskData) => {
     })
 }
 
-export const getSubTasks = (taskId) => {
-  console.log('调用getSubTasks API:', { taskId })
-  return instance.get(`/scheduler/tasks/${taskId}/subtasks`)
-    .then(response => {
-      console.log('getSubTasks API响应:', response)
-      return response
-    })
-    .catch(error => {
-      console.error('getSubTasks API错误:', error)
-      throw error
-    })
-}
 
 export const deleteSubTask = (taskId, subTaskId) => {
   return instance.delete(`/scheduler/tasks/${taskId}/subtasks/${subTaskId}`)
 }
 
-export const updateSubTaskSequence = (taskId, subTaskId, sequence) => {
-  return instance.put(`/scheduler/tasks/${taskId}/subtasks/${subTaskId}/sequence`, { sequence })
-}
 
 // 获取任务历史记录
 export const getTaskHistory = ({
@@ -879,9 +965,6 @@ export const getComments = (uid, page = 1, pageSize = 20, commentType = 'all', k
   return instance.get(`/comment/query/${uid}`, { params })
 }
 
-// 导入通知组件
-import 'vant/es/notify/style'
-
 // 服务器健康检查
 export const checkServerHealth = () => {
   return instance.get('/health')
@@ -897,9 +980,7 @@ export const getVideoStream = (file_path) => {
   const baseUrl = instance.defaults.baseURL
 
   // 构建基本URL
-  let url = `${baseUrl}/download/stream_video?file_path=${encodeURIComponent(file_path)}&t=${Date.now()}`
-
-  return url
+  return `${baseUrl}/download/stream_video?file_path=${encodeURIComponent(file_path)}&t=${Date.now()}`
 }
 
 /**
@@ -914,11 +995,10 @@ export const getDanmakuFile = async (cid = '', file_path = '') => {
     if (cid) params.cid = cid;
     if (file_path) params.file_path = file_path;
 
-    const response = await instance.get(`/download/stream_danmaku`, {
+    return await instance.get(`/download/stream_danmaku`, {
       params,
       responseType: 'text' // 获取纯文本格式的弹幕文件
     });
-    return response;
   } catch (error) {
     console.error('获取弹幕文件失败:', error);
     throw error;
@@ -1466,15 +1546,6 @@ export const getVideoDetailsStats = () => {
 export const stopVideoDetailsFetch = () => {
   return instance.post('/video_details/stop')
 }
-
-/**
- * 重置视频详情获取状态
- * @returns {Promise<object>} - 包含重置结果的响应
- */
-export const resetVideoDetailsStatus = () => {
-  return instance.post('/video_details/reset')
-}
-
 /**
  * 获取视频观看时长信息（合集视频）
  * @param {Object} params 参数对象

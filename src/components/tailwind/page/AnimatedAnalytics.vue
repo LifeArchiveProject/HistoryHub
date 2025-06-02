@@ -123,49 +123,49 @@
             <HeroPage v-if="currentPage === 0" key="hero" :year="selectedYear" />
 
             <!-- 数据概览页 -->
-            <OverviewPage v-else-if="currentPage === 1" key="overview" :viewing-data="viewingData" />
+            <OverviewPage v-else-if="currentPage === 1" key="overview" :viewing-data="monthlyStatsData" />
 
             <!-- 时间分析页 -->
-            <TimeAnalysisPage v-else-if="currentPage === 2" key="time-analysis" :viewing-data="viewingData" :selected-year="selectedYear" />
+            <TimeAnalysisPage v-else-if="currentPage === 2" key="time-analysis" :viewing-data="timeSlotsData" :selected-year="selectedYear" />
 
             <!-- 时间分布分析页 -->
-            <TimeDistributionPage v-else-if="currentPage === 3" key="time-distribution" :viewing-data="viewingData" />
+            <TimeDistributionPage v-else-if="currentPage === 3" key="time-distribution" :viewing-data="weeklyStatsData" />
 
             <!-- 月度趋势页 -->
-            <MonthlyPage v-else-if="currentPage === 4" key="monthly" :viewing-data="viewingData" />
+            <MonthlyPage v-else-if="currentPage === 4" key="monthly" :viewing-data="monthlyStatsData" />
 
             <!-- 连续观看页 -->
-            <StreakPage v-else-if="currentPage === 5" key="streak" :viewing-data="viewingData" :selected-year="selectedYear" />
+            <StreakPage v-else-if="currentPage === 5" key="streak" :viewing-data="continuityData" :selected-year="selectedYear" />
 
             <!-- 最爱重温页 -->
-            <RewatchPage v-else-if="currentPage === 6" key="rewatch" :viewing-data="viewingData" />
+            <RewatchPage v-else-if="currentPage === 6" key="rewatch" :viewing-data="watchCountsData" />
 
             <!-- 视频完成率分析页 -->
-            <OverallCompletionPage v-else-if="currentPage === 7" key="overall-completion" :viewing-data="viewingData" />
+            <OverallCompletionPage v-else-if="currentPage === 7" key="overall-completion" :viewing-data="completionRatesData" />
 
             <!-- UP主完成率分析页 -->
-            <AuthorCompletionPage v-else-if="currentPage === 8" key="author-completion" :viewing-data="viewingData" />
+            <AuthorCompletionPage v-else-if="currentPage === 8" key="author-completion" :viewing-data="authorCompletionData" />
 
             <!-- 标签分析页 -->
-            <TagsPage v-else-if="currentPage === 9" key="tags" :viewing-data="viewingData" />
+            <TagsPage v-else-if="currentPage === 9" key="tags" :viewing-data="tagAnalysisData" />
 
             <!-- 视频时长分析页 -->
-            <DurationAnalysisPage v-else-if="currentPage === 10" key="duration-analysis" :viewing-data="viewingData" />
+            <DurationAnalysisPage v-else-if="currentPage === 10" key="duration-analysis" :viewing-data="durationAnalysisData" />
 
             <!-- 标题分析页 -->
-            <TitleAnalysisPage v-else-if="currentPage === 11" key="title-analysis" :title-analytics="analyticsData" />
+            <TitleAnalysisPage v-else-if="currentPage === 11" key="title-analysis" :title-analytics="keywordAnalyticsData" />
 
             <!-- 标题趋势分析页 -->
-            <TitleTrendAnalysisPage v-else-if="currentPage === 12" key="title-trend-analysis" :title-analytics="analyticsData" />
+            <TitleTrendAnalysisPage v-else-if="currentPage === 12" key="title-trend-analysis" :title-analytics="trendAnalyticsData" />
 
             <!-- 标题长度分析页 -->
-            <TitleLengthAnalysisPage v-else-if="currentPage === 13" key="title-length-analysis" :title-analytics="analyticsData" />
+            <TitleLengthAnalysisPage v-else-if="currentPage === 13" key="title-length-analysis" :title-analytics="lengthAnalyticsData" />
 
             <!-- 标题情感分析页 -->
-            <TitleSentimentAnalysisPage v-else-if="currentPage === 14" key="title-sentiment-analysis" :title-analytics="analyticsData" />
+            <TitleSentimentAnalysisPage v-else-if="currentPage === 14" key="title-sentiment-analysis" :title-analytics="sentimentAnalyticsData" />
 
             <!-- 标题互动分析页 -->
-            <TitleInteractionAnalysisPage v-else-if="currentPage === 15" key="title-interaction-analysis" :title-analytics="analyticsData" />
+            <TitleInteractionAnalysisPage v-else-if="currentPage === 15" key="title-interaction-analysis" :title-analytics="interactionAnalyticsData" />
           </Transition>
         </div>
       </div>
@@ -175,7 +175,7 @@
 
 <script setup>
 import { ref, watch, onMounted, onUnmounted } from 'vue'
-import { getTitleAnalytics, getViewingAnalytics } from '../../../api/api.js'
+import { getTitleKeywordAnalysis, getTitleLengthAnalysis, getTitleSentimentAnalysis, getTitleTrendAnalysis, getTitleInteractionAnalysis, getViewingMonthlyStats, getViewingWeeklyStats, getViewingTimeSlots, getViewingContinuity, getViewingWatchCounts, getViewingCompletionRates, getViewingAuthorCompletion, getViewingTagAnalysis, getViewingDurationAnalysis } from '../../../api/api.js'
 import HeroPage from '../analytics/pages/HeroPage.vue'
 import OverviewPage from '../analytics/pages/OverviewPage.vue'
 import StreakPage from '../analytics/pages/StreakPage.vue'
@@ -221,8 +221,23 @@ const router = useRouter()
 const route = useRoute()
 const selectedYear = ref(new Date().getFullYear())
 const availableYears = ref([])
-const loading = ref(true)
-const analyticsData = ref(null)
+const loading = ref(false)
+// 已删除原有的 analyticsData，现在使用拆分后的独立数据
+const keywordAnalyticsData = ref(null)
+const lengthAnalyticsData = ref(null)
+const sentimentAnalyticsData = ref(null)
+const trendAnalyticsData = ref(null)
+const interactionAnalyticsData = ref(null)
+// 观看时间分析数据（逐步拆分中）
+const monthlyStatsData = ref(null)
+const weeklyStatsData = ref(null)
+const timeSlotsData = ref(null)
+const continuityData = ref(null)
+const watchCountsData = ref(null)
+const completionRatesData = ref(null)
+const authorCompletionData = ref(null)
+const tagAnalysisData = ref(null)
+const durationAnalysisData = ref(null)
 const viewingData = ref(null)
 const currentPage = ref(0)
 const isTransitioning = ref(false)
@@ -276,9 +291,12 @@ watch(currentPage, (newPage) => {
 })
 
 // 修改页面切换处理
-const handlePageTransition = (newPage) => {
+const handlePageTransition = async (newPage) => {
   if (isTransitioning.value) return
   currentPage.value = newPage
+
+  // 切换页面时加载对应的数据
+  await fetchPageData(newPage)
 }
 
 // 修改滚轮事件处理
@@ -343,51 +361,212 @@ const handleTouchEnd = (e) => {
   }
 }
 
-// 获取数据方法
-const fetchAnalyticsData = async (forceRefresh = false) => {
-  if (forceRefresh) {
-    // 清空现有数据
-    analyticsData.value = null
-    viewingData.value = null
-  }
+// 按需加载数据的函数
+const fetchPageData = async (pageNumber, forceRefresh = false) => {
+  if (loading.value) return
 
   loading.value = true
+
   try {
-    console.log('Fetching analytics data for year:', selectedYear.value)
-    const [titleResponse, viewingResponse] = await Promise.all([
-      getTitleAnalytics(selectedYear.value, !forceRefresh),
-      getViewingAnalytics(selectedYear.value, !forceRefresh)
-    ])
+    console.log(`开始获取第${pageNumber}页数据...`)
 
-    if (titleResponse.data.status === 'success') {
-      analyticsData.value = titleResponse.data.data
-      // 更新可用年份
-      if (titleResponse.data.data.available_years) {
-        availableYears.value = titleResponse.data.data.available_years
-        if (!availableYears.value.includes(selectedYear.value)) {
-          selectedYear.value = availableYears.value[0]
+    switch (pageNumber) {
+      case 0: // 开场页 - 不需要加载数据，但需要获取可用年份
+        if (!availableYears.value.length || forceRefresh) {
+          const response = await getViewingMonthlyStats(selectedYear.value, !forceRefresh)
+          if (response.data.status === 'success' && response.data.data.available_years) {
+            availableYears.value = response.data.data.available_years
+            if (!availableYears.value.includes(selectedYear.value)) {
+              selectedYear.value = availableYears.value[0]
+            }
+          }
         }
-      }
+        break
+
+      case 1: // 月度统计页
+        if (!monthlyStatsData.value || forceRefresh) {
+          const response = await getViewingMonthlyStats(selectedYear.value, !forceRefresh)
+          if (response.data.status === 'success') {
+            monthlyStatsData.value = response.data.data
+            // 从第一个接口获取可用年份
+            if (response.data.data.available_years) {
+              availableYears.value = response.data.data.available_years
+              if (!availableYears.value.includes(selectedYear.value)) {
+                selectedYear.value = availableYears.value[0]
+              }
+            }
+          }
+        }
+        break
+
+      case 2: // 时间分析页
+        if (!timeSlotsData.value || forceRefresh) {
+          const response = await getViewingTimeSlots(selectedYear.value, !forceRefresh)
+          if (response.data.status === 'success') {
+            timeSlotsData.value = response.data.data
+          }
+        }
+        break
+
+      case 3: // 时间分布分析页
+        if (!weeklyStatsData.value || forceRefresh) {
+          const response = await getViewingWeeklyStats(selectedYear.value, !forceRefresh)
+          if (response.data.status === 'success') {
+            weeklyStatsData.value = response.data.data
+          }
+        }
+        break
+
+      case 4: // 月度趋势页
+        if (!monthlyStatsData.value || forceRefresh) {
+          const response = await getViewingMonthlyStats(selectedYear.value, !forceRefresh)
+          if (response.data.status === 'success') {
+            monthlyStatsData.value = response.data.data
+          }
+        }
+        break
+
+      case 5: // 连续观看记录页
+        if (!continuityData.value || forceRefresh) {
+          const response = await getViewingContinuity(selectedYear.value, !forceRefresh)
+          if (response.data.status === 'success') {
+            continuityData.value = response.data.data
+          }
+        }
+        break
+
+      case 6: // 最爱重温页
+        if (!watchCountsData.value || forceRefresh) {
+          const response = await getViewingWatchCounts(selectedYear.value, !forceRefresh)
+          if (response.data.status === 'success') {
+            watchCountsData.value = response.data.data
+          }
+        }
+        break
+
+      case 7: // 视频完成率分析页
+        if (!completionRatesData.value || forceRefresh) {
+          const response = await getViewingCompletionRates(selectedYear.value, !forceRefresh)
+          if (response.data.status === 'success') {
+            completionRatesData.value = response.data.data
+          }
+        }
+        break
+
+      case 8: // UP主完成率分析页
+        if (!authorCompletionData.value || forceRefresh) {
+          const response = await getViewingAuthorCompletion(selectedYear.value, !forceRefresh)
+          if (response.data.status === 'success') {
+            authorCompletionData.value = response.data.data
+          }
+        }
+        break
+
+      case 9: // 标签分析页
+        if (!tagAnalysisData.value || forceRefresh) {
+          const response = await getViewingTagAnalysis(selectedYear.value, !forceRefresh)
+          if (response.data.status === 'success') {
+            tagAnalysisData.value = response.data.data
+          }
+        }
+        break
+
+      case 10: // 视频时长分析页
+        if (!durationAnalysisData.value || forceRefresh) {
+          const response = await getViewingDurationAnalysis(selectedYear.value, !forceRefresh)
+          if (response.data.status === 'success') {
+            durationAnalysisData.value = response.data.data
+          }
+        }
+        break
+
+      case 11: // 标题分析页
+        if (!keywordAnalyticsData.value || forceRefresh) {
+          const response = await getTitleKeywordAnalysis(selectedYear.value, !forceRefresh)
+          if (response.data.status === 'success') {
+            keywordAnalyticsData.value = response.data.data
+          }
+        }
+        break
+
+      case 12: // 标题趋势分析页
+        if (!trendAnalyticsData.value || forceRefresh) {
+          const response = await getTitleTrendAnalysis(selectedYear.value, !forceRefresh)
+          if (response.data.status === 'success') {
+            trendAnalyticsData.value = response.data.data
+          }
+        }
+        break
+
+      case 13: // 标题长度分析页
+        if (!lengthAnalyticsData.value || forceRefresh) {
+          const response = await getTitleLengthAnalysis(selectedYear.value, !forceRefresh)
+          if (response.data.status === 'success') {
+            lengthAnalyticsData.value = response.data.data
+          }
+        }
+        break
+
+      case 14: // 标题情感分析页
+        if (!sentimentAnalyticsData.value || forceRefresh) {
+          const response = await getTitleSentimentAnalysis(selectedYear.value, !forceRefresh)
+          if (response.data.status === 'success') {
+            sentimentAnalyticsData.value = response.data.data
+          }
+        }
+        break
+
+      case 15: // 标题互动分析页
+        if (!interactionAnalyticsData.value || forceRefresh) {
+          const response = await getTitleInteractionAnalysis(selectedYear.value, !forceRefresh)
+          if (response.data.status === 'success') {
+            interactionAnalyticsData.value = response.data.data
+          }
+        }
+        break
+
+      default:
+        console.log(`第${pageNumber}页暂未配置数据加载`)
+        break
     }
 
-    if (viewingResponse.data.status === 'success') {
-      viewingData.value = viewingResponse.data.data
-    }
+    console.log(`第${pageNumber}页数据加载完成`)
   } catch (error) {
-    console.error('获取分析数据失败:', error)
+    console.error(`获取第${pageNumber}页数据失败:`, error)
   } finally {
     loading.value = false
   }
 }
 
+// 兼容旧的函数名，用于强制刷新所有数据
+const fetchAnalyticsData = async (forceRefresh = false) => {
+  if (forceRefresh) {
+    // 清空现有数据
+    keywordAnalyticsData.value = null
+    lengthAnalyticsData.value = null
+    sentimentAnalyticsData.value = null
+    trendAnalyticsData.value = null
+    interactionAnalyticsData.value = null
+    monthlyStatsData.value = null
+    weeklyStatsData.value = null
+    timeSlotsData.value = null
+    continuityData.value = null
+    watchCountsData.value = null
+    completionRatesData.value = null
+    authorCompletionData.value = null
+    tagAnalysisData.value = null
+    durationAnalysisData.value = null
+    viewingData.value = null
+  }
+
+  // 只加载当前页面的数据
+  await fetchPageData(currentPage.value, forceRefresh)
+}
+
 // 移除单独的年份获取方法
 const refreshData = async (forceRefresh = false) => {
-  loading.value = true
-  try {
-    await fetchAnalyticsData(forceRefresh)
-  } finally {
-    loading.value = false
-  }
+  // 直接调用 fetchPageData，避免重复设置 loading 状态
+  await fetchPageData(currentPage.value, forceRefresh)
 }
 
 // 强制刷新方法
@@ -399,7 +578,8 @@ const handleForceRefresh = async () => {
 // 监听年份变化
 watch(selectedYear, async (newYear) => {
   if (newYear) {
-    await refreshData()
+    // 年份变化时，重新加载当前页面的数据
+    await fetchPageData(currentPage.value, true) // 强制刷新
   }
 })
 
@@ -411,7 +591,23 @@ onMounted(async () => {
     currentPage.value = pageFromUrl
   }
 
-  await refreshData()
+  // 确保获取可用年份（如果还没有获取）
+  if (!availableYears.value.length) {
+    try {
+      const response = await getViewingMonthlyStats(selectedYear.value, true)
+      if (response.data.status === 'success' && response.data.data.available_years) {
+        availableYears.value = response.data.data.available_years
+        if (!availableYears.value.includes(selectedYear.value)) {
+          selectedYear.value = availableYears.value[0]
+        }
+      }
+    } catch (error) {
+      console.error('获取可用年份失败:', error)
+    }
+  }
+
+  // 只加载当前页面的数据
+  await fetchPageData(currentPage.value)
   window.addEventListener('wheel', handleWheel, { passive: false })
   window.addEventListener('touchstart', handleTouchStart)
   window.addEventListener('touchmove', handleTouchMove, { passive: false })

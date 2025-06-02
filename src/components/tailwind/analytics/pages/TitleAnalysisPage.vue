@@ -6,10 +6,10 @@
         <h2 class="text-3xl font-bold bg-gradient-to-r from-[#fb7299] to-[#fc9b7a] bg-clip-text text-transparent">
           标题关键词分析
         </h2>
-        <div class="mt-4 text-gray-600 max-w-3xl mx-auto">
-          <p class="mb-2">{{ titleAnalytics.insights[0] }}</p>
-          <p class="mb-2">{{ titleAnalytics.insights[1] }}</p>
-          <p>{{ titleAnalytics.insights[2] }}</p>
+        <div class="mt-4 text-gray-600 max-w-3xl mx-auto" v-if="titleAnalytics && titleAnalytics.insights">
+          <p class="mb-2" v-if="titleAnalytics.insights[0]">{{ titleAnalytics.insights[0] }}</p>
+          <p class="mb-2" v-if="titleAnalytics.insights[1]">{{ titleAnalytics.insights[1] }}</p>
+          <p v-if="titleAnalytics.insights[2]">{{ titleAnalytics.insights[2] }}</p>
         </div>
       </div>
 
@@ -48,13 +48,16 @@ let wordCloudChart = null
 let completionChart = null
 
 // 处理完成率数据
-computed(() => {
+const highCompletionRates = computed(() => {
+  if (!props.titleAnalytics?.keyword_analysis?.completion_rates) return {}
   const rates = Object.entries(props.titleAnalytics.keyword_analysis.completion_rates)
     .sort(([, a], [, b]) => b.average_completion_rate - a.average_completion_rate)
     .slice(0, 5)
   return Object.fromEntries(rates)
 })
-computed(() => {
+
+const lowCompletionRates = computed(() => {
+  if (!props.titleAnalytics?.keyword_analysis?.completion_rates) return {}
   const rates = Object.entries(props.titleAnalytics.keyword_analysis.completion_rates)
     .sort(([, a], [, b]) => a.average_completion_rate - b.average_completion_rate)
     .slice(0, 5)
@@ -62,7 +65,7 @@ computed(() => {
 })
 // 初始化词云图
 const initWordCloud = () => {
-  if (!wordCloudRef.value) return
+  if (!wordCloudRef.value || !props.titleAnalytics?.keyword_analysis?.top_keywords) return
 
   wordCloudChart = echarts.init(wordCloudRef.value)
   const wordCloudData = props.titleAnalytics.keyword_analysis.top_keywords.map(item => ({
@@ -123,7 +126,7 @@ const initWordCloud = () => {
 
 // 初始化完成率对比图表
 const initCompletionChart = () => {
-  if (!completionChartRef.value) return
+  if (!completionChartRef.value || !props.titleAnalytics?.keyword_analysis?.completion_rates) return
 
   completionChart = echarts.init(completionChartRef.value)
 

@@ -9,12 +9,16 @@
 
       <!-- 移动到标题下方的总结文字 -->
       <div class="text-center mb-8 mt-4 space-y-2 max-w-5xl mx-auto">
-        <!-- 单日观看记录 -->
-        <div class="text-gray-600 dark:text-gray-300" v-html="formatInsightText('在2025-02-20这一天，你创下了单日观看275个视频的记录！这可能是一个特别的日子，也许是在追番、学习或者在家放松的一天。')">
+        <!-- 单日观看记录洞察 -->
+        <div v-if="viewingData?.insights?.daily_record" class="text-gray-600 dark:text-gray-300" v-html="formatInsightText(viewingData.insights.daily_record)">
         </div>
-        
-        <!-- 完整的观看习惯总结 -->
-        <div class="text-gray-600 dark:text-gray-300 mt-2" v-html="formatInsightText('你最喜欢在下午观看B站视频，特别是13时达到观看高峰。这个时间段的观看习惯很好，既不影响作息，也能享受视频带来的乐趣。')">
+
+        <!-- 时段偏好洞察 -->
+        <div v-if="viewingData?.insights?.time_preference" class="text-gray-600 dark:text-gray-300 mt-2" v-html="formatInsightText(viewingData.insights.time_preference)">
+        </div>
+
+        <!-- 如果没有新洞察，显示默认文本 -->
+        <div v-else class="text-gray-600 dark:text-gray-300" v-html="formatInsightText('正在分析您的观看时间偏好...')">
         </div>
       </div>
 
@@ -28,17 +32,17 @@
           <div class="bg-white/30 dark:bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-gray-300/50 dark:border-gray-500/50">
             <div class="text-sm text-gray-600 dark:text-gray-400">单日最长观看</div>
             <div class="text-lg font-bold bg-gradient-to-r from-[#fb7299] to-[#fc9b7a] bg-clip-text text-transparent mt-2">
-              {{ formatDuration(viewingData.time_investment.max_duration_day.total_duration) }}
+              {{ formatDuration(viewingData?.time_investment?.max_duration_day?.total_duration || 0) }}
             </div>
             <div class="flex justify-between items-center mt-2">
-              <span class="text-sm text-gray-500 dark:text-gray-400">{{ formatDate(viewingData.time_investment.max_duration_day.date) }}</span>
-              <span class="text-sm text-gray-600 dark:text-gray-300" v-html="formatInsightText(viewingData.time_investment.max_duration_day.video_count + '个视频')"></span>
+              <span class="text-sm text-gray-500 dark:text-gray-400">{{ formatDate(viewingData?.time_investment?.max_duration_day?.date || '') }}</span>
+              <span class="text-sm text-gray-600 dark:text-gray-300" v-html="formatInsightText((viewingData?.time_investment?.max_duration_day?.video_count || 0) + '个视频')"></span>
             </div>
           </div>
           <div class="bg-white/30 dark:bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-gray-300/50 dark:border-gray-500/50">
             <div class="text-sm text-gray-600 dark:text-gray-400">日均观看时长</div>
             <div class="text-lg font-bold bg-gradient-to-r from-[#fb7299] to-[#fc9b7a] bg-clip-text text-transparent mt-2">
-              {{ formatDuration(viewingData.time_investment.avg_daily_duration) }}
+              {{ formatDuration(viewingData?.time_investment?.avg_daily_duration || 0) }}
             </div>
           </div>
         </div>
@@ -50,7 +54,6 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue'
 import * as echarts from 'echarts'
-import { getViewingBehavior } from '../../../../api/api'
 
 const props = defineProps({
   viewingData: {
@@ -65,7 +68,6 @@ const props = defineProps({
 
 const timeDistributionChartRef = ref(null)
 let timeDistributionChart = null
-const viewingBehaviorData = ref(null)
 
 // 格式化洞察文本，为数字添加颜色
 const formatInsightText = (text) => {
@@ -94,17 +96,7 @@ const getTimeSlotColor = (slot) => {
   }
 }
 
-// 获取观看行为数据
-const fetchViewingBehavior = async () => {
-  try {
-    const response = await getViewingBehavior(props.selectedYear, true)
-    if (response.data && response.data.status === 'success') {
-      viewingBehaviorData.value = response.data.data
-    }
-  } catch (error) {
-    console.error('获取观看行为数据失败:', error)
-  }
-}
+// 原始观看行为接口已禁用，数据通过props传入
 
 const initTimeDistributionChart = () => {
   if (!timeDistributionChartRef.value || !props.viewingData?.daily_time_slots) return
@@ -191,7 +183,6 @@ const initTimeDistributionChart = () => {
 
 onMounted(() => {
   initTimeDistributionChart()
-  fetchViewingBehavior()
 
   // 监听窗口大小变化
   window.addEventListener('resize', () => {
@@ -203,9 +194,6 @@ onMounted(() => {
 watch(() => props.viewingData, () => {
   initTimeDistributionChart()
 }, { deep: true })
-
-// 监听年份变化
-watch(() => props.selectedYear, fetchViewingBehavior)
 </script>
 
 <style>

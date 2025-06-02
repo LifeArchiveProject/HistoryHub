@@ -6,9 +6,9 @@
         <h2 class="text-3xl font-bold bg-gradient-to-r from-[#fb7299] to-[#fc9b7a] bg-clip-text text-transparent">
           标题情感分析
         </h2>
-        <div class="mt-4 text-gray-600 max-w-3xl mx-auto">
-          <p class="mb-2">{{ titleAnalytics.sentiment_analysis.insights[0] }}</p>
-          <p>{{ titleAnalytics.sentiment_analysis.insights[1] }}</p>
+        <div class="mt-4 text-gray-600 max-w-3xl mx-auto" v-if="titleAnalytics && titleAnalytics.sentiment_analysis">
+          <p class="mb-2" v-if="titleAnalytics.sentiment_analysis.insights && titleAnalytics.sentiment_analysis.insights[0]">{{ titleAnalytics.sentiment_analysis.insights[0] }}</p>
+          <p v-if="titleAnalytics.sentiment_analysis.insights && titleAnalytics.sentiment_analysis.insights[1]">{{ titleAnalytics.sentiment_analysis.insights[1] }}</p>
         </div>
       </div>
 
@@ -48,10 +48,10 @@ let completionChart = null
 
 // 初始化情感分布饼图
 const initDistributionChart = () => {
-  if (!distributionChartRef.value) return
+  if (!distributionChartRef.value || !props.titleAnalytics?.sentiment_analysis?.sentiment_stats) return
 
   distributionChart = echarts.init(distributionChartRef.value)
-  
+
   const sentimentStats = props.titleAnalytics.sentiment_analysis.sentiment_stats
   const data = Object.entries(sentimentStats).map(([sentiment, stats]) => ({
     name: sentiment,
@@ -113,10 +113,10 @@ const initDistributionChart = () => {
 
 // 初始化完成率对比图
 const initCompletionChart = () => {
-  if (!completionChartRef.value) return
+  if (!completionChartRef.value || !props.titleAnalytics?.sentiment_analysis?.sentiment_stats) return
 
   completionChart = echarts.init(completionChartRef.value)
-  
+
   const sentimentStats = props.titleAnalytics.sentiment_analysis.sentiment_stats
   const data = Object.entries(sentimentStats)
     .sort(([, a], [, b]) => b.avg_completion_rate - a.avg_completion_rate)
