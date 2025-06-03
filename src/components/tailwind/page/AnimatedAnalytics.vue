@@ -166,6 +166,21 @@
 
             <!-- 标题互动分析页 -->
             <TitleInteractionAnalysisPage v-else-if="currentPage === 15" key="title-interaction-analysis" :title-analytics="interactionAnalyticsData" />
+
+            <!-- 热门命中率分析页 -->
+            <PopularHitRatePage v-else-if="currentPage === 16" key="popular-hit-rate" :selected-year="selectedYear" :hit-rate-data="popularHitRateData" />
+
+            <!-- 热门预测能力分析页 -->
+            <PopularPredictionPage v-else-if="currentPage === 17" key="popular-prediction" :data="popularPredictionData?.prediction_analysis" />
+
+            <!-- UP主热门关联分析页 -->
+            <AuthorPopularAssociationPage v-else-if="currentPage === 18" key="author-popular-association" :data="authorPopularAssociationData?.association_analysis" />
+
+            <!-- 热门视频分区分布分析页 -->
+            <CategoryPopularDistributionPage v-else-if="currentPage === 19" key="category-popular-distribution" :selected-year="selectedYear" :distribution-data="categoryPopularDistributionData" />
+
+            <!-- 热门视频时长分布分析页 -->
+            <DurationPopularDistributionPage v-else-if="currentPage === 20" key="duration-popular-distribution" :selected-year="selectedYear" :duration-data="durationPopularDistributionData" />
           </Transition>
         </div>
       </div>
@@ -175,7 +190,7 @@
 
 <script setup>
 import { ref, watch, onMounted, onUnmounted } from 'vue'
-import { getTitleKeywordAnalysis, getTitleLengthAnalysis, getTitleSentimentAnalysis, getTitleTrendAnalysis, getTitleInteractionAnalysis, getViewingMonthlyStats, getViewingWeeklyStats, getViewingTimeSlots, getViewingContinuity, getViewingWatchCounts, getViewingCompletionRates, getViewingAuthorCompletion, getViewingTagAnalysis, getViewingDurationAnalysis } from '../../../api/api.js'
+import { getTitleKeywordAnalysis, getTitleLengthAnalysis, getTitleSentimentAnalysis, getTitleTrendAnalysis, getTitleInteractionAnalysis, getViewingMonthlyStats, getViewingWeeklyStats, getViewingTimeSlots, getViewingContinuity, getViewingWatchCounts, getViewingCompletionRates, getViewingAuthorCompletion, getViewingTagAnalysis, getViewingDurationAnalysis, getPopularHitRate, getPopularPredictionAbility, getAuthorPopularAssociation, getCategoryPopularDistribution, getDurationPopularDistribution } from '../../../api/api.js'
 import HeroPage from '../analytics/pages/HeroPage.vue'
 import OverviewPage from '../analytics/pages/OverviewPage.vue'
 import StreakPage from '../analytics/pages/StreakPage.vue'
@@ -192,9 +207,14 @@ import TitleLengthAnalysisPage from '../analytics/pages/TitleLengthAnalysisPage.
 import TitleSentimentAnalysisPage from '../analytics/pages/TitleSentimentAnalysisPage.vue'
 import TitleTrendAnalysisPage from '../analytics/pages/TitleTrendAnalysisPage.vue'
 import TitleInteractionAnalysisPage from '../analytics/pages/TitleInteractionAnalysisPage.vue'
+import PopularHitRatePage from '../analytics/pages/PopularHitRatePage.vue'
+import PopularPredictionPage from '../analytics/pages/PopularPredictionPage.vue'
+import AuthorPopularAssociationPage from '../analytics/pages/AuthorPopularAssociationPage.vue'
+import CategoryPopularDistributionPage from '../analytics/pages/CategoryPopularDistributionPage.vue'
+import DurationPopularDistributionPage from '../analytics/pages/DurationPopularDistributionPage.vue'
 import AnalyticsLayout from '../analytics/layout/AnalyticsLayout.vue'
 import { CanvasRenderer } from 'echarts/renderers'
-import { LineChart, BarChart } from 'echarts/charts'
+import { LineChart, BarChart, PieChart } from 'echarts/charts'
 import {
   GridComponent,
   TooltipComponent,
@@ -210,6 +230,7 @@ use([
   CanvasRenderer,
   LineChart,
   BarChart,
+  PieChart,
   GridComponent,
   TooltipComponent,
   LegendComponent,
@@ -238,6 +259,11 @@ const completionRatesData = ref(null)
 const authorCompletionData = ref(null)
 const tagAnalysisData = ref(null)
 const durationAnalysisData = ref(null)
+const popularHitRateData = ref(null)
+const popularPredictionData = ref(null)
+const authorPopularAssociationData = ref(null)
+const categoryPopularDistributionData = ref(null)
+const durationPopularDistributionData = ref(null)
 const viewingData = ref(null)
 const currentPage = ref(0)
 const isTransitioning = ref(false)
@@ -270,7 +296,13 @@ const pages = [
   { name: '标题趋势分析', color: '#fb7299' },
   { name: '标题长度分析', color: '#fc9b7a' },
   { name: '标题情感分析', color: '#fb7299' },
-  { name: '标题互动分析', color: '#fc9b7a' }
+  { name: '标题互动分析', color: '#fc9b7a' },
+  // 热门视频分析
+  { name: '热门命中率', color: '#fb7299' },
+  { name: '预测能力', color: '#fc9b7a' },
+  { name: 'UP主热门关联', color: '#fb7299' },
+  { name: '分区分布', color: '#fc9b7a' },
+  { name: '时长分布', color: '#fb7299' }
 ]
 
 // 监听页面切换
@@ -525,6 +557,51 @@ const fetchPageData = async (pageNumber, forceRefresh = false) => {
         }
         break
 
+      case 16: // 热门命中率分析页
+        if (!popularHitRateData.value || forceRefresh) {
+          const response = await getPopularHitRate(selectedYear.value, !forceRefresh)
+          if (response.data.status === 'success') {
+            popularHitRateData.value = response.data.data
+          }
+        }
+        break
+
+      case 17: // 热门预测能力分析页
+        if (!popularPredictionData.value || forceRefresh) {
+          const response = await getPopularPredictionAbility(selectedYear.value, !forceRefresh)
+          if (response.data.status === 'success') {
+            popularPredictionData.value = response.data.data
+          }
+        }
+        break
+
+      case 18: // UP主热门关联分析页
+        if (!authorPopularAssociationData.value || forceRefresh) {
+          const response = await getAuthorPopularAssociation(selectedYear.value, !forceRefresh)
+          if (response.data.status === 'success') {
+            authorPopularAssociationData.value = response.data.data
+          }
+        }
+        break
+
+      case 19: // 热门视频分区分布分析页
+        if (!categoryPopularDistributionData.value || forceRefresh) {
+          const response = await getCategoryPopularDistribution(selectedYear.value, !forceRefresh)
+          if (response.data.status === 'success') {
+            categoryPopularDistributionData.value = response.data.data
+          }
+        }
+        break
+
+      case 20: // 热门视频时长分布分析页
+        if (!durationPopularDistributionData.value || forceRefresh) {
+          const response = await getDurationPopularDistribution(selectedYear.value, !forceRefresh)
+          if (response.data.status === 'success') {
+            durationPopularDistributionData.value = response.data.data
+          }
+        }
+        break
+
       default:
         console.log(`第${pageNumber}页暂未配置数据加载`)
         break
@@ -556,6 +633,11 @@ const fetchAnalyticsData = async (forceRefresh = false) => {
     authorCompletionData.value = null
     tagAnalysisData.value = null
     durationAnalysisData.value = null
+    popularHitRateData.value = null
+    popularPredictionData.value = null
+    authorPopularAssociationData.value = null
+    categoryPopularDistributionData.value = null
+    durationPopularDistributionData.value = null
     viewingData.value = null
   }
 

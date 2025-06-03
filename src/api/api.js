@@ -293,6 +293,58 @@ export const getYearlyAnalysis = async (year) => {
   })
 }
 
+// 获取热门视频命中率分析
+export const getPopularHitRate = async (year, useCache = true) => {
+  return instance.get(`/popular/popular-hit-rate`, {
+    params: {
+      year,
+      use_cache: useCache
+    }
+  })
+}
+
+// 获取热门预测能力分析
+export const getPopularPredictionAbility = async (year, useCache = true) => {
+  return instance.get(`/popular/popular-prediction-ability`, {
+    params: {
+      year,
+      use_cache: useCache
+    }
+  })
+}
+
+// 获取UP主热门关联分析
+export const getAuthorPopularAssociation = async (year, useCache = true) => {
+  return instance.get(`/popular/author-popular-association`, {
+    params: {
+      year,
+      use_cache: useCache
+    }
+  })
+}
+
+// 获取热门视频分区分布分析
+export const getCategoryPopularDistribution = async (year, useCache = true) => {
+  return instance.get(`/popular/category-popular-distribution`, {
+    params: {
+      year,
+      use_cache: useCache
+    }
+  })
+}
+
+// 获取热门视频时长分布分析
+export const getDurationPopularDistribution = async (year, useCache = true) => {
+  return instance.get(`/popular/duration-popular-distribution`, {
+    params: {
+      year,
+      use_cache: useCache
+    }
+  })
+}
+
+
+
 // 实时更新历史记录
 export const updateBiliHistoryRealtime = (syncDeleted = false) => {
   return instance.get(`/fetch/bili-history-realtime`, {

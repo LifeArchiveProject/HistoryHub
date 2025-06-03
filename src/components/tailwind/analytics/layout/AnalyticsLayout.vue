@@ -8,7 +8,7 @@
     </div>
 
     <div class="relative min-h-screen flex items-center justify-center">
-      <div class="max-w-6xl w-full mx-auto px-8">
+      <div class="max-w-7xl w-full mx-auto px-8">
         <slot></slot>
       </div>
     </div>
