@@ -89,32 +89,14 @@ npm run build
 <img src="./public/viewtime.png" alt="">
 
 **9. 年度总结页面**
+<img src="./public/QQ20250705-180733.png" alt="">
+<img src="./public/layout-collage-1751711304790.jpg" alt="">
+<img src="./public/layout-collage-1751711351462.jpg" alt="">
+<img src="./public/layout-collage-1751711376523.jpg" alt="">
+<img src="./public/layout-collage-1751711396674.jpg" alt="">
+<img src="./public/layout-collage-1751711408262.jpg" alt="">
 
-开场页
-<img src="public/HeroPage.png" alt="">
-
-年度观看数据
-<img src="./public/OverviewPage.png" alt="">
-
-观看时间
-<img src="./public/viewingtime.png" alt="">
-
-重复观看
-<img src="./public/RewatchPage.png" alt="">
-
-整体完成率
-<img src="./public/OverallCompletionPage.png" alt="">
-
-UP 主完成率
-<img src="./public/AuthorCompletionPage.png" alt="">
-
-标题关键词
-<img src="./public/keyword.png" alt="">
-
-月度关键词
-<img src="./public/MonthlyTitle.png" alt="">
-
-**9. 本地摘要功能**
+**10. 本地摘要功能**
 
 本地摘要功能允许用户在本地生成视频内容摘要，无需依赖 B 站官方 AI 摘要：
 

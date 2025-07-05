@@ -30,7 +30,7 @@
           <h4 class="text-base font-bold bg-gradient-to-r from-[#fb7299] to-[#fc9b7a] bg-clip-text text-transparent mb-2 text-center">
             时长分布统计
           </h4>
-          <div ref="chartRef" class="h-[500px] px-4"></div>
+          <div ref="chartRef" class="h-[320px] px-4"></div>
         </div>
 
         <!-- 热门时长类型列表 -->
@@ -39,7 +39,7 @@
           <h4 class="text-base font-bold bg-gradient-to-r from-[#fb7299] to-[#fc9b7a] bg-clip-text text-transparent mb-2">
             热门时长类型排行 (前4个)
           </h4>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-2 h-[460px] overflow-y-auto">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-2 h-[350px] overflow-y-auto">
             <div v-for="(durationType, index) in durationData.popular_duration_videos" :key="index"
                  class="flex items-center p-2 bg-gray-50/50 dark:bg-gray-800/50 rounded-lg hover:bg-gray-100/50 dark:hover:bg-gray-700/50 transition-colors">
               <div class="flex-1 min-w-0">

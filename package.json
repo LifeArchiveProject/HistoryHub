@@ -32,6 +32,7 @@
     "echarts": "^5.6.0",
     "echarts-wordcloud": "^2.1.0",
     "gsap": "^3.12.5",
+    "html2canvas": "^1.4.1",
     "jsencrypt": "^3.3.2",
     "lottie-web": "^5.12.2",
     "typeit": "^8.8.7",
