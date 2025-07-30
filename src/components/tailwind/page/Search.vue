@@ -8,7 +8,6 @@
           <SearchBar
             :initial-keyword="keyword"
             :initial-search-type="searchType"
-            :initial-sort-by="sortBy"
             @search="handleSearch"
           />
 
@@ -73,7 +72,6 @@ const remarkData = ref({}) // 存储备注数据
 // 搜索相关变量
 const keyword = ref('')  // 初始化为空字符串
 const searchType = ref('all')  // 默认为全部搜索
-const sortBy = ref('relevance')  // 默认按相关度排序
 
 // 处理搜索
 const handleSearch = ({ keyword: searchKeyword, type }) => {
@@ -132,8 +130,6 @@ const fetchSearchResults = async () => {
       searchType.value,        // searchType
       page.value,             // page
       size.value,             // size
-      sortBy.value === 'time' ? 0 : 1,  // sortOrder
-      sortBy.value,           // sortBy
       useLocalImages          // 使用本地图片源
     )
 
