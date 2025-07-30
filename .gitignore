@@ -513,3 +513,7 @@ Temporary Items
 # add your custom gitignore here:
 !.gitignore
 !.gitsubmodules
+/.cursor/
+/cache/
+/.vscode/
+/.idea/.gitignore
