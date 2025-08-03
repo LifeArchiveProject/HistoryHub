@@ -7,8 +7,8 @@
 
     <div v-if="viewingData?.insights?.duration_preference"
       class="text-lg text-center text-gray-600 dark:text-gray-300 mb-8"
+      v-html="formatInsightText(viewingData.insights.duration_preference)"
     >
-      {{ viewingData.insights.duration_preference }}
     </div>
 
     <!-- 时长分布图表 -->
@@ -142,4 +142,10 @@ onMounted(() => {
     })
   }
 })
+
+// 格式化洞察文本，为数字添加颜色
+const formatInsightText = (text) => {
+  if (!text) return '';
+  return text.replace(/(\d+(\.\d+)?)/g, '<span class="text-[#fb7299]">$1</span>')
+}
 </script>

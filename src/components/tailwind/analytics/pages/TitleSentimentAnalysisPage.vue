@@ -7,8 +7,8 @@
           标题情感分析
         </h2>
         <div class="mt-4 text-gray-600 max-w-3xl mx-auto" v-if="titleAnalytics && titleAnalytics.sentiment_analysis">
-          <p class="mb-2" v-if="titleAnalytics.sentiment_analysis.insights && titleAnalytics.sentiment_analysis.insights[0]">{{ titleAnalytics.sentiment_analysis.insights[0] }}</p>
-          <p v-if="titleAnalytics.sentiment_analysis.insights && titleAnalytics.sentiment_analysis.insights[1]">{{ titleAnalytics.sentiment_analysis.insights[1] }}</p>
+          <p class="mb-2" v-if="titleAnalytics.sentiment_analysis.insights && titleAnalytics.sentiment_analysis.insights[0]" v-html="formatInsightText(titleAnalytics.sentiment_analysis.insights[0])"></p>
+          <p v-if="titleAnalytics.sentiment_analysis.insights && titleAnalytics.sentiment_analysis.insights[1]" v-html="formatInsightText(titleAnalytics.sentiment_analysis.insights[1])"></p>
         </div>
       </div>
 
@@ -211,4 +211,10 @@ watch(() => props.titleAnalytics, () => {
     initCompletionChart()
   }
 }, { deep: true })
-</script> 
+
+// 格式化洞察文本，为数字添加颜色
+const formatInsightText = (text) => {
+  if (!text) return '';
+  return text.replace(/(\d+(\.\d+)?)/g, '<span class="text-[#fb7299]">$1</span>')
+}
+</script>

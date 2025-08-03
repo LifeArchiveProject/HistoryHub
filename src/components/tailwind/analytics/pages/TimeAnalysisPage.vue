@@ -105,6 +105,7 @@ let barChart = null
 
 // 格式化洞察文本，为数字添加颜色
 const formatInsightText = (text) => {
+  if (!text) return '';
   return text.replace(/(\d+(\.\d+)?)/g, '<span class="text-[#fb7299]">$1</span>')
 }
 

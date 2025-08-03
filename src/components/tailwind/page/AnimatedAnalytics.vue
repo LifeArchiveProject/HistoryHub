@@ -354,8 +354,15 @@ const handleWheel = (e) => {
   }
 }
 
-// 修改触摸事件处理
+// 检测是否为真正的触摸设备
+const isTouchDevice = () => {
+  return 'ontouchstart' in window && navigator.maxTouchPoints > 0
+}
+
+// 修改触摸事件处理 - 只在真正的触摸设备上启用
 const handleTouchStart = (e) => {
+  // 只在真正的触摸设备上处理触摸事件
+  if (!isTouchDevice()) return
   // 如果正在加载，阻止触摸事件
   if (loading.value || isTransitioning.value) return
   touchStartX = e.touches[0].clientX
@@ -363,6 +370,8 @@ const handleTouchStart = (e) => {
 }
 
 const handleTouchMove = (e) => {
+  // 只在真正的触摸设备上处理触摸事件
+  if (!isTouchDevice()) return
   // 如果正在加载，阻止触摸移动
   if (loading.value) {
     e.preventDefault()
@@ -374,6 +383,8 @@ const handleTouchMove = (e) => {
 }
 
 const handleTouchEnd = (e) => {
+  // 只在真正的触摸设备上处理触摸事件
+  if (!isTouchDevice()) return
   // 如果正在加载，阻止触摸结束事件
   if (loading.value || isTransitioning.value) return
 
@@ -691,16 +702,24 @@ onMounted(async () => {
   // 只加载当前页面的数据
   await fetchPageData(currentPage.value)
   window.addEventListener('wheel', handleWheel, { passive: false })
-  window.addEventListener('touchstart', handleTouchStart)
-  window.addEventListener('touchmove', handleTouchMove, { passive: false })
-  window.addEventListener('touchend', handleTouchEnd)
+  
+  // 只在真正的触摸设备上添加触摸事件监听器
+  if (isTouchDevice()) {
+    window.addEventListener('touchstart', handleTouchStart)
+    window.addEventListener('touchmove', handleTouchMove, { passive: false })
+    window.addEventListener('touchend', handleTouchEnd)
+  }
 })
 
 onUnmounted(() => {
   window.removeEventListener('wheel', handleWheel)
-  window.removeEventListener('touchstart', handleTouchStart)
-  window.removeEventListener('touchmove', handleTouchMove)
-  window.removeEventListener('touchend', handleTouchEnd)
+  
+  // 只在真正的触摸设备上移除触摸事件监听器
+  if (isTouchDevice()) {
+    window.removeEventListener('touchstart', handleTouchStart)
+    window.removeEventListener('touchmove', handleTouchMove)
+    window.removeEventListener('touchend', handleTouchEnd)
+  }
 })
 
 // 添加返回首页的方法

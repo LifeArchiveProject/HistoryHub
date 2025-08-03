@@ -2,33 +2,37 @@
 <template>
   <div class="absolute inset-0">
     <div class="h-full flex items-center justify-center">
-      <div class="max-w-7xl w-full mx-auto px-2 py-6 overflow-y-auto">
-        <div class="space-y-6">
+      <div class="max-w-7xl w-full mx-auto px-2 py-4 overflow-y-auto">
+        <div class="space-y-4">
           <h3 class="text-3xl font-bold text-center bg-gradient-to-r from-[#fb7299] to-[#fc9b7a] bg-clip-text text-transparent">
             UP主完成率分析
           </h3>
 
-          <div class="text-sm text-center text-gray-600 dark:text-gray-300 mb-2 space-y-2 px-4">
-            <div v-if="viewingData?.insights?.most_watched_author" v-html="formatInsightText(viewingData.insights.most_watched_author)">
+          <div class="text-sm text-center text-gray-800 dark:text-gray-200 mb-2 space-y-1 px-4">
+            <div v-if="viewingData?.insights?.most_valuable_author" v-html="formatInsightText(viewingData.insights.most_valuable_author)">
             </div>
             <div v-if="viewingData?.insights?.highest_completion_author" v-html="formatInsightText(viewingData.insights.highest_completion_author)">
+            </div>
+            <div v-if="viewingData?.insights?.potential_discovery" v-html="formatInsightText(viewingData.insights.potential_discovery)">
+            </div>
+            <div v-if="viewingData?.insights?.viewing_behavior_summary" v-html="formatInsightText(viewingData.insights.viewing_behavior_summary)">
             </div>
           </div>
 
           <!-- 图表容器 -->
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <div class="bg-white/50 dark:bg-white/5 backdrop-blur-sm rounded-xl p-3 border border-gray-300/50 dark:border-gray-500/50">
-              <h4 class="text-lg font-bold text-center bg-gradient-to-r from-[#fb7299] to-[#fc9b7a] bg-clip-text text-transparent mb-1">
-                观看最多的UP主
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
+            <div class="bg-white/50 dark:bg-white/5 backdrop-blur-sm rounded-xl p-3 border border-gray-300/50 dark:border-gray-500/50 h-[420px]">
+              <h4 class="text-base font-bold text-center bg-gradient-to-r from-[#fb7299] to-[#fc9b7a] bg-clip-text text-transparent mb-3">
+                最喜欢的UP主
               </h4>
-              <v-chart ref="mostWatchedChartRef" class="h-[320px] w-full" :option="mostWatchedOption" autoresize @click="handleMostWatchedClick" />
+              <v-chart ref="favoriteChartRef" class="h-[360px] w-full" :option="favoriteOption" autoresize @click="handleFavoriteClick" />
             </div>
 
-            <div class="bg-white/50 dark:bg-white/5 backdrop-blur-sm rounded-xl p-3 border border-gray-300/50 dark:border-gray-500/50">
-              <h4 class="text-lg font-bold text-center bg-gradient-to-r from-[#fb7299] to-[#fc9b7a] bg-clip-text text-transparent mb-1">
-                完成率最高的UP主
+            <div class="bg-white/50 dark:bg-white/5 backdrop-blur-sm rounded-xl p-3 border border-gray-300/50 dark:border-gray-500/50 h-[420px]">
+              <h4 class="text-base font-bold text-center bg-gradient-to-r from-[#fb7299] to-[#fc9b7a] bg-clip-text text-transparent mb-3">
+                观看最多的UP主
               </h4>
-              <v-chart ref="highestCompletionChartRef" class="h-[320px] w-full" :option="highestCompletionOption" autoresize @click="handleHighestCompletionClick" />
+              <v-chart ref="mostWatchedChartRef" class="h-[360px] w-full" :option="mostWatchedOption" autoresize @click="handleMostWatchedClick" />
             </div>
           </div>
         </div>
@@ -42,13 +46,14 @@ import { ref, computed, onMounted } from 'vue'
 import VChart from 'vue-echarts'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
-import { BarChart, LineChart } from 'echarts/charts'
+import { BarChart, LineChart, RadarChart } from 'echarts/charts'
 import {
   GridComponent,
   TooltipComponent,
   LegendComponent,
   TitleComponent,
-  DataZoomComponent
+  DataZoomComponent,
+  RadarComponent
 } from 'echarts/components'
 import { use } from 'echarts/core'
 
@@ -57,11 +62,13 @@ use([
   CanvasRenderer,
   BarChart,
   LineChart,
+  RadarChart,
   GridComponent,
   TooltipComponent,
   LegendComponent,
   TitleComponent,
-  DataZoomComponent
+  DataZoomComponent,
+  RadarComponent
 ])
 
 const props = defineProps({
@@ -71,8 +78,17 @@ const props = defineProps({
   }
 })
 
+const favoriteChartRef = ref(null)
 const mostWatchedChartRef = ref(null)
-const highestCompletionChartRef = ref(null)
+
+// 获取最喜欢的UP主数据（使用most_valuable_authors）
+const sortedFavoriteAuthors = computed(() => {
+  if (!props.viewingData?.completion_rates?.most_valuable_authors) return []
+  
+  return Object.entries(props.viewingData.completion_rates.most_valuable_authors)
+    .sort((a, b) => b[1].comprehensive_score - a[1].comprehensive_score)
+    .slice(0, 10) // 显示10个UP主
+})
 
 // 获取观看最多的UP主数据
 const sortedMostWatchedAuthors = computed(() => {
@@ -83,242 +99,198 @@ const sortedMostWatchedAuthors = computed(() => {
     .slice(0, 10)
 })
 
-// 获取完成率最高的UP主数据
-const sortedHighestCompletionAuthors = computed(() => {
-  if (!props.viewingData?.completion_rates?.highest_completion_authors) return []
-  
-  return Object.entries(props.viewingData.completion_rates.highest_completion_authors)
-    .sort((a, b) => b[1].average_completion_rate - a[1].average_completion_rate)
-    .slice(0, 10)
-})
-
-// 观看最多的UP主图表配置
-const mostWatchedOption = computed(() => {
-  const data = sortedMostWatchedAuthors.value.map(([author, stats]) => ({
-    author,
-    videoCount: stats.video_count,
-    completionRate: stats.average_completion_rate,
-    fullyWatched: stats.fully_watched,
+// 最喜欢的UP主雷达图配置
+const favoriteOption = computed(() => {
+  const data = sortedFavoriteAuthors.value.map(([author, stats]) => ({
+    name: author,
+    value: [
+      stats.comprehensive_score,
+      stats.loyalty_score,
+      stats.quality_score,
+      stats.average_completion_rate,
+      stats.fully_watched_rate,
+      stats.video_count / 10 // 缩放视频数量以适应雷达图
+    ],
     authorMid: stats.author_mid
   }))
 
   return {
     tooltip: {
-      trigger: 'axis',
-      axisPointer: { type: 'shadow' },
+      trigger: 'item',
       formatter: (params) => {
-        const videoCount = params.find(p => p.seriesName === '观看视频数')
-        const completionRate = params.find(p => p.seriesName === '平均完成率')
-        const fullyWatched = params.find(p => p.seriesName === '完整观看数')
-        return `${params[0].name}<br/>
-                观看视频数：${videoCount.value}个<br/>
-                完整观看数：${fullyWatched.value}个<br/>
-                平均完成率：${completionRate.value}%`
+        const stats = sortedFavoriteAuthors.value.find(([author]) => author === params.name)?.[1]
+        if (!stats) return ''
+        return `${params.name}<br/>
+                综合评分：${stats.comprehensive_score.toFixed(1)}<br/>
+                喜爱度评分：${stats.loyalty_score.toFixed(1)}<br/>
+                质量评分：${stats.quality_score.toFixed(1)}<br/>
+                平均完成率：${stats.average_completion_rate.toFixed(1)}%<br/>
+                完整观看率：${stats.fully_watched_rate.toFixed(1)}%<br/>
+                视频数量：${stats.video_count}个`
       }
     },
     legend: {
-      data: ['观看视频数', '完整观看数', '平均完成率'],
-      textStyle: { color: '#666' },
-      padding: [0, 0, 5, 0]
+      data: data.map(item => item.name),
+      textStyle: { color: '#666', fontSize: 10 },
+      left: 'left',
+      orient: 'vertical',
+      top: 'middle',
+      type: 'scroll',
+      width: 70
+    },
+    radar: {
+      center: ['65%', '50%'],
+      radius: '65%',
+      indicator: [
+        { name: '综合评分', max: 100 },
+        { name: '喜爱度', max: 100 },
+        { name: '质量评分', max: 100 },
+        { name: '完成率', max: 100 },
+        { name: '完整观看率', max: 100 },
+        { name: '视频数量', max: 20 }
+      ],
+      name: {
+        textStyle: {
+          color: '#999',
+          fontSize: 12,
+          fontWeight: 'bold'
+        }
+      },
+      axisLabel: {
+        color: '#666'
+      },
+      axisLine: {
+        lineStyle: { color: '#ddd' }
+      },
+      splitLine: {
+        lineStyle: { color: '#ddd' }
+      }
+    },
+    series: [{
+      type: 'radar',
+      data: data.map((item, index) => {
+        const colors = [
+          '#fb7299', // 粉色
+          '#40a9ff', // 蓝色
+          '#66d980', // 绿色
+          '#fc9b7a', // 橙色
+          '#9254de', // 紫色
+          '#ffc53d', // 黄色
+          '#ff6b6b', // 红色
+          '#4ecdc4', // 青色
+          '#45b7d1', // 天蓝色
+          '#f39c12'  // 深橙色
+        ]
+        const color = colors[index % colors.length]
+        return {
+          ...item,
+          itemStyle: {
+            color: color
+          },
+          lineStyle: {
+            color: color,
+            width: 2
+          },
+          // 默认不显示背景区域
+          emphasis: {
+            itemStyle: {
+              color: color
+            },
+            lineStyle: {
+              color: color,
+              width: 4
+            },
+            areaStyle: {
+              color: color,
+              opacity: 0.4
+            }
+          }
+        }
+      })
+    }]
+  }
+})
+
+// 观看最多的UP主散点图配置
+const mostWatchedOption = computed(() => {
+  const data = sortedMostWatchedAuthors.value.map(([author, stats]) => ([
+    stats.video_count,
+    stats.average_completion_rate,
+    stats.fully_watched,
+    author,
+    stats.author_mid
+  ]))
+
+  return {
+    tooltip: {
+      trigger: 'item',
+      formatter: (params) => {
+        return `${params.data[3]}<br/>
+                观看视频数：${params.data[0]}个<br/>
+                平均完成率：${params.data[1].toFixed(1)}%<br/>
+                完整观看数：${params.data[2]}个`
+      }
     },
     grid: {
-      top: '40px',
-      left: '3%',
+      top: '10%',
+      left: '12%',
       right: '8%',
-      bottom: '3%',
-      containLabel: true
+      bottom: '15%'
     },
     xAxis: {
       type: 'value',
+      name: '观看视频数',
+      nameLocation: 'middle',
+      nameGap: 25,
       axisLine: { lineStyle: { color: '#666' } },
       axisLabel: { color: '#999' },
       splitLine: { lineStyle: { color: 'rgba(0, 0, 0, 0.1)' } }
     },
     yAxis: {
-      type: 'category',
-      data: data.map(item => item.author),
-      axisLine: { lineStyle: { color: '#666' } },
-      axisLabel: {
-        show: true,
-        color: '#666',
-        formatter: (value) => value
-      },
-      inverse: true,
-      triggerEvent: true,
-      emphasis: {
-        focus: 'series',
-        label: {
-          show: true,
-          color: '#fb7299',
-          fontWeight: 'bold'
-        }
-      }
-    },
-    series: [
-      {
-        name: '观看视频数',
-        type: 'bar',
-        data: data.map((item, index) => ({
-          value: item.videoCount,
-          itemStyle: {
-            color: new echarts.graphic.LinearGradient(1, 0, 0, 0, [
-              { offset: 0, color: `rgba(251, 114, 153, ${Math.max(0.4, 0.9 - index * 0.05)})` },
-              { offset: 1, color: `rgba(252, 155, 122, ${Math.max(0.4, 0.9 - index * 0.05)})` }
-            ])
-          }
-        }))
-      },
-      {
-        name: '完整观看数',
-        type: 'bar',
-        data: data.map((item, index) => ({
-          value: item.fullyWatched,
-          itemStyle: {
-            color: new echarts.graphic.LinearGradient(1, 0, 0, 0, [
-              { offset: 0, color: `rgba(64, 169, 255, ${Math.max(0.4, 0.9 - index * 0.05)})` },
-              { offset: 1, color: `rgba(128, 208, 255, ${Math.max(0.4, 0.9 - index * 0.05)})` }
-            ])
-          }
-        }))
-      },
-      {
-        name: '平均完成率',
-        type: 'line',
-        yAxisIndex: 0,
-        data: data.map(item => ({
-          value: item.completionRate.toFixed(1),
-          symbolSize: 8,
-          itemStyle: { color: '#fc9b7a' }
-        })),
-        lineStyle: { width: 3 },
-        symbol: 'circle'
-      }
-    ]
-  }
-})
-
-// 完成率最高的UP主图表配置
-const highestCompletionOption = computed(() => {
-  const data = sortedHighestCompletionAuthors.value.map(([author, stats]) => ({
-    author,
-    videoCount: stats.video_count,
-    completionRate: stats.average_completion_rate,
-    fullyWatched: stats.fully_watched,
-    fullyWatchedRate: stats.fully_watched_rate,
-    authorMid: stats.author_mid
-  }))
-
-  return {
-    tooltip: {
-      trigger: 'axis',
-      axisPointer: { type: 'shadow' },
-      formatter: (params) => {
-        const completionRate = params.find(p => p.seriesName === '平均完成率')
-        const fullyWatchedRate = params.find(p => p.seriesName === '完整观看率')
-        const videoCount = params.find(p => p.seriesName === '视频数量')
-        return `${params[0].name}<br/>
-                平均完成率：${completionRate.value}%<br/>
-                完整观看率：${fullyWatchedRate.value}%<br/>
-                视频数量：${videoCount.value}个`
-      }
-    },
-    legend: {
-      data: ['平均完成率', '完整观看率', '视频数量'],
-      textStyle: { color: '#666' },
-      padding: [0, 0, 5, 0]
-    },
-    grid: {
-      top: '40px',
-      left: '3%',
-      right: '8%',
-      bottom: '3%',
-      containLabel: true
-    },
-    xAxis: {
       type: 'value',
+      name: '平均完成率(%)',
+      nameLocation: 'middle',
+      nameGap: 35,
       axisLine: { lineStyle: { color: '#666' } },
-      axisLabel: {
-        color: '#999',
-        formatter: '{value}%'
-      },
+      axisLabel: { color: '#999' },
       splitLine: { lineStyle: { color: 'rgba(0, 0, 0, 0.1)' } }
     },
-    yAxis: {
-      type: 'category',
-      data: data.map(item => item.author),
-      axisLine: { lineStyle: { color: '#666' } },
-      axisLabel: {
-        show: true,
-        color: '#666',
-        formatter: (value) => value
+    series: [{
+      type: 'scatter',
+      symbolSize: (data) => Math.sqrt(data[2]) * 3, // 根据完整观看数调整点的大小
+      data: data,
+      itemStyle: {
+        color: (params) => {
+          const colors = ['#fb7299', '#40a9ff', '#66d980', '#fc9b7a', '#9254de', '#ffc53d']
+          return colors[params.dataIndex % colors.length]
+        },
+        opacity: 0.8
       },
-      inverse: true,
-      triggerEvent: true,
       emphasis: {
-        focus: 'series',
-        label: {
-          show: true,
-          color: '#fb7299',
-          fontWeight: 'bold'
+        focus: 'item',
+        itemStyle: {
+          opacity: 1,
+          borderColor: '#333',
+          borderWidth: 2
         }
       }
-    },
-    series: [
-      {
-        name: '平均完成率',
-        type: 'bar',
-        data: data.map((item, index) => ({
-          value: item.completionRate.toFixed(1),
-          itemStyle: {
-            color: new echarts.graphic.LinearGradient(1, 0, 0, 0, [
-              { offset: 0, color: `rgba(251, 114, 153, ${Math.max(0.4, 0.9 - index * 0.05)})` },
-              { offset: 1, color: `rgba(252, 155, 122, ${Math.max(0.4, 0.9 - index * 0.05)})` }
-            ])
-          }
-        }))
-      },
-      {
-        name: '完整观看率',
-        type: 'bar',
-        data: data.map((item, index) => ({
-          value: item.fullyWatchedRate.toFixed(1),
-          itemStyle: {
-            color: new echarts.graphic.LinearGradient(1, 0, 0, 0, [
-              { offset: 0, color: `rgba(64, 169, 255, ${Math.max(0.4, 0.9 - index * 0.05)})` },
-              { offset: 1, color: `rgba(128, 208, 255, ${Math.max(0.4, 0.9 - index * 0.05)})` }
-            ])
-          }
-        }))
-      },
-      {
-        name: '视频数量',
-        type: 'line',
-        yAxisIndex: 0,
-        data: data.map(item => ({
-          value: item.videoCount,
-          symbolSize: 8,
-          itemStyle: { color: '#fc9b7a' }
-        })),
-        lineStyle: { width: 3 },
-        symbol: 'circle'
-      }
-    ]
+    }]
   }
 })
 
 // 点击事件处理函数
-const handleMostWatchedClick = (params) => {
-  if (params.componentType === 'yAxis') {
-    const authorData = sortedMostWatchedAuthors.value.find(([author]) => author === params.value)
+const handleFavoriteClick = (params) => {
+  if (params.componentType === 'series') {
+    const authorData = sortedFavoriteAuthors.value.find(([author]) => author === params.name)
     if (authorData?.[1]?.author_mid) {
       handleAuthorClick(authorData[1].author_mid)
     }
   }
 }
 
-const handleHighestCompletionClick = (params) => {
-  if (params.componentType === 'yAxis') {
-    const authorData = sortedHighestCompletionAuthors.value.find(([author]) => author === params.value)
+const handleMostWatchedClick = (params) => {
+  if (params.componentType === 'series') {
+    const authorData = sortedMostWatchedAuthors.value.find(([author]) => author === params.data[3])
     if (authorData?.[1]?.author_mid) {
       handleAuthorClick(authorData[1].author_mid)
     }
@@ -331,70 +303,28 @@ const handleAuthorClick = (mid) => {
 
 // 添加事件监听
 onMounted(() => {
+  const favoriteChart = favoriteChartRef.value
   const mostWatchedChart = mostWatchedChartRef.value
-  const highestCompletionChart = highestCompletionChartRef.value
 
-  if (mostWatchedChart) {
-    mostWatchedChart.chart.getZr().on('mousemove', (params) => {
-      const pointInPixel = [params.offsetX, params.offsetY]
-      const pointInGrid = mostWatchedChart.chart.convertFromPixel({ yAxisIndex: 0 }, pointInPixel)
-      
-      if (pointInGrid) {
-        const yIndex = Math.floor(pointInGrid[1])
-        const authors = sortedMostWatchedAuthors.value
-        if (yIndex >= 0 && yIndex < authors.length) {
-          mostWatchedChart.chart.getZr().setCursorStyle('pointer')
-        } else {
-          mostWatchedChart.chart.getZr().setCursorStyle('default')
-        }
-      }
-    })
-
-    mostWatchedChart.chart.getZr().on('click', (params) => {
-      const pointInPixel = [params.offsetX, params.offsetY]
-      const pointInGrid = mostWatchedChart.chart.convertFromPixel({ yAxisIndex: 0 }, pointInPixel)
-      
-      if (pointInGrid) {
-        const yIndex = Math.floor(pointInGrid[1])
-        const authors = sortedMostWatchedAuthors.value
-        if (yIndex >= 0 && yIndex < authors.length) {
-          const authorData = authors[yIndex]
-          if (authorData?.[1]?.author_mid) {
-            handleAuthorClick(authorData[1].author_mid)
-          }
+  // 雷达图点击事件（通过ECharts内置事件处理）
+  if (favoriteChart) {
+    favoriteChart.chart.on('click', (params) => {
+      if (params.componentType === 'series') {
+        const authorData = sortedFavoriteAuthors.value.find(([author]) => author === params.name)
+        if (authorData?.[1]?.author_mid) {
+          handleAuthorClick(authorData[1].author_mid)
         }
       }
     })
   }
 
-  if (highestCompletionChart) {
-    highestCompletionChart.chart.getZr().on('mousemove', (params) => {
-      const pointInPixel = [params.offsetX, params.offsetY]
-      const pointInGrid = highestCompletionChart.chart.convertFromPixel({ yAxisIndex: 0 }, pointInPixel)
-      
-      if (pointInGrid) {
-        const yIndex = Math.floor(pointInGrid[1])
-        const authors = sortedHighestCompletionAuthors.value
-        if (yIndex >= 0 && yIndex < authors.length) {
-          highestCompletionChart.chart.getZr().setCursorStyle('pointer')
-        } else {
-          highestCompletionChart.chart.getZr().setCursorStyle('default')
-        }
-      }
-    })
-
-    highestCompletionChart.chart.getZr().on('click', (params) => {
-      const pointInPixel = [params.offsetX, params.offsetY]
-      const pointInGrid = highestCompletionChart.chart.convertFromPixel({ yAxisIndex: 0 }, pointInPixel)
-      
-      if (pointInGrid) {
-        const yIndex = Math.floor(pointInGrid[1])
-        const authors = sortedHighestCompletionAuthors.value
-        if (yIndex >= 0 && yIndex < authors.length) {
-          const authorData = authors[yIndex]
-          if (authorData?.[1]?.author_mid) {
-            handleAuthorClick(authorData[1].author_mid)
-          }
+  // 散点图点击事件（通过ECharts内置事件处理）
+  if (mostWatchedChart) {
+    mostWatchedChart.chart.on('click', (params) => {
+      if (params.componentType === 'series') {
+        const authorData = sortedMostWatchedAuthors.value.find(([author]) => author === params.data[3])
+        if (authorData?.[1]?.author_mid) {
+          handleAuthorClick(authorData[1].author_mid)
         }
       }
     })
@@ -409,9 +339,7 @@ const formatInsightText = (text) => {
 </script>
 
 <style scoped>
-.echarts {
-  :deep(.yAxis) {
-    cursor: pointer;
-  }
+.echarts :deep(.yAxis) {
+  cursor: pointer;
 }
-</style> 
+</style>

@@ -7,8 +7,8 @@
           标题趋势分析
         </h2>
         <div class="mt-3 text-gray-600 max-w-3xl mx-auto" v-if="titleAnalytics && titleAnalytics.trend_analysis">
-          <p class="mb-2" v-if="titleAnalytics.trend_analysis.insights && titleAnalytics.trend_analysis.insights[0]">{{ titleAnalytics.trend_analysis.insights[0] }}</p>
-          <p v-if="titleAnalytics.trend_analysis.insights && titleAnalytics.trend_analysis.insights[1]">{{ titleAnalytics.trend_analysis.insights[1] }}</p>
+          <p class="mb-2" v-if="titleAnalytics.trend_analysis.insights && titleAnalytics.trend_analysis.insights[0]" v-html="formatInsightText(titleAnalytics.trend_analysis.insights[0])"></p>
+          <p v-if="titleAnalytics.trend_analysis.insights && titleAnalytics.trend_analysis.insights[1]" v-html="formatInsightText(titleAnalytics.trend_analysis.insights[1])"></p>
         </div>
       </div>
 
@@ -69,5 +69,11 @@ const getSortedMonthlyTrends = () => {
 // 格式化月份显示
 const formatMonth = (month) => {
   return month.replace('-', '年') + '月'
+}
+
+// 格式化洞察文本，为数字添加颜色
+const formatInsightText = (text) => {
+  if (!text) return '';
+  return text.replace(/(\d+(\.\d+)?)/g, '<span class="text-[#fb7299]">$1</span>')
 }
 </script> 
