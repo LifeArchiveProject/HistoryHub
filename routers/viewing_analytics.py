@@ -1495,7 +1495,7 @@ async def get_viewing_completion_rates(
             conn.close()
 
 def analyze_author_completion_rates(cursor, table_name: str) -> dict:
-    """专门分析UP主完成率数据"""
+    """专门分析UP主完成率数据，使用智能综合评分算法"""
     # 获取表结构
     cursor.execute(f"PRAGMA table_info({table_name})")
     columns = {col[1]: idx for idx, col in enumerate(cursor.fetchall())}
@@ -1551,49 +1551,146 @@ def analyze_author_completion_rates(cursor, table_name: str) -> dict:
             stats["fully_watched_rate"] = round(stats["fully_watched"] / stats["video_count"] * 100, 2)
             filtered_authors[name] = stats
 
-    # 获取观看次数最多的UP主
+    # 使用新的智能评分算法
+    scored_authors = calculate_comprehensive_author_scores(filtered_authors)
+
+    return {
+        "most_watched_authors": scored_authors["most_watched_authors"],
+        "highest_completion_authors": scored_authors["highest_completion_authors"],
+        "most_valuable_authors": scored_authors["most_valuable_authors"],
+        "potential_authors": scored_authors["potential_authors"]
+    }
+
+def calculate_comprehensive_author_scores(authors_data: dict) -> dict:
+    """计算UP主综合评分并分类"""
+    import math
+    
+    if not authors_data:
+        return {
+            "most_watched_authors": {},
+            "highest_completion_authors": {},
+            "most_valuable_authors": {},
+            "potential_authors": {}
+        }
+    
+    # 计算观看数量的最大值和最小值，用于标准化
+    view_counts = [stats["video_count"] for stats in authors_data.values()]
+    max_views = max(view_counts)
+    min_views = min(view_counts)
+    view_range = max_views - min_views if max_views > min_views else 1
+    
+    # 为每个UP主计算综合评分
+    scored_authors = {}
+    for name, stats in authors_data.items():
+        # 1. 观看数量标准化 (0-100)
+        normalized_views = (stats["video_count"] - min_views) / view_range * 100
+        
+        # 2. 置信度计算 (避免小样本偏差)
+        confidence = min(1.0, stats["video_count"] / 20)
+        
+        # 3. 综合评分计算
+        # 权重: 观看数量25%, 完成率50%, 完整观看率25%
+        comprehensive_score = (
+            normalized_views * 0.25 +
+            stats["average_completion_rate"] * 0.5 +
+            stats["fully_watched_rate"] * 0.25
+        ) * confidence
+        
+        # 4. 计算特殊指标
+        # 忠诚度指标：观看数量 * 完成率的平方根
+        loyalty_score = stats["video_count"] * math.sqrt(stats["average_completion_rate"] / 100)
+        
+        # 质量指标：完成率和完整观看率的加权平均
+        quality_score = stats["average_completion_rate"] * 0.7 + stats["fully_watched_rate"] * 0.3
+        
+        scored_authors[name] = {
+            **stats,
+            "comprehensive_score": round(comprehensive_score, 2),
+            "loyalty_score": round(loyalty_score, 2),
+            "quality_score": round(quality_score, 2),
+            "confidence": round(confidence, 2),
+            "normalized_views": round(normalized_views, 2)
+        }
+    
+    # 按不同维度排序分类
+    # 1. 观看次数最多的UP主 (传统排序)
     most_watched_authors = dict(sorted(
-        filtered_authors.items(),
+        scored_authors.items(),
         key=lambda x: x[1]["video_count"],
         reverse=True
     )[:10])
-
-    # 获取完成率最高的UP主
+    
+    # 2. 完成率最高的UP主 (传统排序)
     highest_completion_authors = dict(sorted(
-        filtered_authors.items(),
+        scored_authors.items(),
         key=lambda x: x[1]["average_completion_rate"],
         reverse=True
     )[:10])
-
+    
+    # 3. 最有价值UP主 (综合评分最高)
+    most_valuable_authors = dict(sorted(
+        scored_authors.items(),
+        key=lambda x: x[1]["comprehensive_score"],
+        reverse=True
+    )[:10])
+    
+    # 4. 潜力UP主 (高质量但观看数量不是最多的)
+    potential_authors = {}
+    for name, stats in scored_authors.items():
+        # 筛选条件：质量评分>85，但观看数量不在前3
+        if (stats["quality_score"] > 85 and
+            stats["video_count"] < sorted(view_counts, reverse=True)[min(2, len(view_counts)-1)]):
+            potential_authors[name] = stats
+    
+    # 潜力UP主按质量评分排序，取前5
+    potential_authors = dict(sorted(
+        potential_authors.items(),
+        key=lambda x: x[1]["quality_score"],
+        reverse=True
+    )[:5])
+    
     return {
         "most_watched_authors": most_watched_authors,
-        "highest_completion_authors": highest_completion_authors
+        "highest_completion_authors": highest_completion_authors,
+        "most_valuable_authors": most_valuable_authors,
+        "potential_authors": potential_authors
     }
 
 def generate_author_completion_insights(author_data: dict) -> dict:
-    """生成UP主完成率相关的洞察"""
+    """生成UP主完成率相关的智能洞察"""
     insights = {}
 
     try:
-        # UP主偏好洞察
+        # 1. 最有价值UP主洞察（综合评分最高）
+        most_valuable = author_data.get("most_valuable_authors", {})
+        if most_valuable:
+            top_valuable = next(iter(most_valuable.items()), None)
+            if top_valuable:
+                name, stats = top_valuable
+                insights["most_valuable_author"] = (
+                    f"综合来看，{name}是你最有价值的UP主，观看了{stats.get('video_count', 0)}个视频，"
+                    f"平均完成率高达{stats.get('average_completion_rate', 0)}%，"
+                    f"完整观看率{stats.get('fully_watched_rate', 0)}%，综合评分{stats.get('comprehensive_score', 0)}分。"
+                )
+
+        # 2. 观看最多UP主洞察（如果与最有价值UP主不同）
         most_watched = author_data.get("most_watched_authors", {})
         if most_watched:
             top_watched = next(iter(most_watched.items()), None)
-            if top_watched:
+            if top_watched and (not most_valuable or top_watched[0] != next(iter(most_valuable.keys()))):
+                name, stats = top_watched
                 insights["most_watched_author"] = (
-                    f"你观看最多的UP主是{top_watched[0]}，观看了{top_watched[1].get('video_count', 0)}个视频，"
-                    f"平均完成率为{top_watched[1].get('average_completion_rate', 0)}%。"
+                    f"你观看最多的UP主是{name}，观看了{stats.get('video_count', 0)}个视频，"
+                    f"平均完成率为{stats.get('average_completion_rate', 0)}%，是你的喜爱观看对象。"
                 )
 
-        highest_completion = author_data.get("highest_completion_authors", {})
-        if highest_completion and most_watched:
-            top_completion = next(iter(highest_completion.items()), None)
-            if top_completion and top_completion[0] != next(iter(most_watched.keys())):
-                insights["highest_completion_author"] = (
-                    f"在经常观看的UP主中，你对{top_completion[0]}的视频完成度最高，"
-                    f"平均完成率达到{top_completion[1].get('average_completion_rate', 0)}%，"
-                    f"观看过{top_completion[1].get('video_count', 0)}个视频。"
-                )
+        # 3. 生成综合观看行为分析
+        if most_valuable:
+            total_authors = len(author_data.get("most_watched_authors", {}))
+            insights["viewing_behavior_summary"] = (
+                f"在你经常观看的{total_authors}位UP主中，你展现出了很好的内容鉴赏能力，"
+                f"特别偏爱高质量内容，对喜欢的UP主有很高的完成度和喜爱度。"
+            )
 
     except Exception as e:
         print(f"Error generating author completion insights: {str(e)}")
