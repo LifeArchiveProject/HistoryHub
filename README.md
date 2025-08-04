@@ -36,12 +36,6 @@ npm install
 npm run dev
 ```
 
-4. 构建应用
-```bash
-# 网页版构建
-npm run build
-```
-
 ## 首次使用指南
 
 1. **登录账号**
@@ -62,39 +56,39 @@ npm run build
 
 ## 页面介绍
 
-**1. 主页**
-<img src="./public/home.png" alt="">
-
-**2. 评论**
-<img src="./public/Comments.png" alt="">
-
-**3. 我的收藏**
-<img src="./public/favorites.png" alt="">
-
-**4. 媒体管理**
-<img src="./public/images.png" alt="">
-
-**5. 计划任务**
-<img src="./public/scheduler.png" alt="">
-
-**6. 设置**
-<img src="./public/setting.png" alt="">
-
-**7. 视频下载功能**
-<img src="./public/download.png" alt="">
-<img src="./public/SingleVideo.png" alt="">
-<img src="./public/MultipleVideos.png" alt="">
-
-**8. 视频观看总时长**
-<img src="./public/viewtime.png" alt="">
-
-**9. 年度总结页面**
+**1. 年度总结页面**
 <img src="./public/QQ20250705-180733.png" alt="">
 <img src="./public/layout-collage-1751711304790.jpg" alt="">
 <img src="./public/layout-collage-1751711351462.jpg" alt="">
 <img src="./public/layout-collage-1751711376523.jpg" alt="">
 <img src="./public/layout-collage-1751711396674.jpg" alt="">
 <img src="./public/layout-collage-1751711408262.jpg" alt="">
+
+**2. 主页**
+<img src="./public/home.png" alt="">
+
+**3. 评论**
+<img src="./public/Comments.png" alt="">
+
+**4. 我的收藏**
+<img src="./public/favorites.png" alt="">
+
+**5. 媒体管理**
+<img src="./public/images.png" alt="">
+
+**6. 计划任务**
+<img src="./public/scheduler.png" alt="">
+
+**7. 设置**
+<img src="./public/setting.png" alt="">
+
+**8. 视频下载功能**
+<img src="./public/download.png" alt="">
+<img src="./public/SingleVideo.png" alt="">
+<img src="./public/MultipleVideos.png" alt="">
+
+**9. 视频观看总时长**
+<img src="./public/viewtime.png" alt="">
 
 **10. 本地摘要功能**
 
@@ -104,8 +98,6 @@ npm run build
 <img src="./public/DSSummary.png" alt="">
 
 ## 使用 Tauri 构建桌面应用
-
-本项目使用 [Tauri](https://tauri.app/) 构建跨平台桌面应用，相比 Electron 具有更小的体积和更高的性能。
 
 **环境准备**
 
