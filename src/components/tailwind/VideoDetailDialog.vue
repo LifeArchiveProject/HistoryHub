@@ -10,10 +10,10 @@
   >
     <div v-if="video" class="p-4 overflow-y-auto" style="height: 600px">
       <!-- 视频基础信息 -->
-      <div class="flex flex-col md:flex-row gap-4">
+      <div class="flex flex-col md:flex-row gap-3">
         <!-- 左侧：视频封面 -->
-        <div class="md:w-1/3 flex-shrink-0">
-          <div class="relative aspect-video rounded-lg overflow-hidden">
+        <div class="md:w-[30%] flex-shrink-0">
+          <div class="relative w-full h-28 md:h-32 rounded-lg overflow-hidden">
             <img
               :src="video.cover || video.covers?.[0]"
               class="w-full h-full object-cover"
@@ -35,33 +35,7 @@
             </div>
           </div>
 
-          <!-- 操作按钮 -->
-          <div class="mt-4 flex space-x-2">
-            <button
-              @click="openInBilibili"
-              class="flex-1 px-4 py-2 bg-[#fb7299] hover:bg-[#fc8bad] text-white text-sm rounded-lg flex items-center justify-center space-x-1"
-            >
-              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-              </svg>
-              <span>在B站打开</span>
-            </button>
-
-            <button
-              @click="handleShowDownload"
-              class="flex-1 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 text-sm rounded-lg flex items-center justify-center space-x-1"
-              :class="{ 'bg-pink-50 text-[#fb7299] hover:bg-pink-100': isVideoDownloaded }"
-            >
-              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path v-if="isVideoDownloaded" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M5 13l4 4L19 7" />
-                <path v-else stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-              </svg>
-              <span>{{ isVideoDownloaded ? '已下载' : '下载' }}</span>
-            </button>
-          </div>
+          
 
           <!-- 视频下载信息 -->
           <div v-if="isVideoDownloaded && downloadedFiles.length > 0" class="mt-3">
@@ -80,19 +54,11 @@
         </div>
 
         <!-- 右侧：视频详情 -->
-        <div class="md:w-2/3">
-          <!-- 视频标题 -->
-          <div class="flex items-center justify-between mb-3">
-            <h3 class="text-lg font-bold text-gray-900"
-                :class="{ 'blur-sm': isPrivacyMode }"
-                v-html="isPrivacyMode ? '******' : video.title">
-            </h3>
-            <EnvironmentCheck class="ml-4 flex-shrink-0" />
-          </div>
+        <div class="md:w-[70%]">
 
           <!-- 视频信息 -->
-          <div class="space-y-3 text-sm">
-            <!-- UP主信息 -->
+          <div class="space-y-2 text-xs flex flex-col h-28 md:h-32 min-h-0">
+            <!-- UP主信息 + 检测信息并排显示 -->
             <div v-if="video.business !== 'cheese' && video.business !== 'pgc'"
                  class="flex items-center space-x-2"
                  @click.stop>
@@ -100,13 +66,13 @@
                 <img
                   :src="video.author_face"
                   alt="author"
-                  class="h-8 w-8 cursor-pointer rounded-full transition-all duration-300 hover:scale-110"
+                  class="h-7 w-7 cursor-pointer rounded-full transition-all duration-300 hover:scale-110"
                   :class="{ 'blur-md': isPrivacyMode }"
                   @click="openAuthorPage"
                   :title="isPrivacyMode ? '隐私模式已开启' : `访问 ${video.author_name} 的个人空间`"
                 />
               </div>
-              <div class="flex-1">
+              <div class="flex-1 min-w-0">
                 <p
                   class="cursor-pointer text-gray-800 transition-colors hover:text-[#FF6699]"
                   @click="openAuthorPage"
@@ -115,36 +81,40 @@
                 ></p>
                 <p class="text-xs text-gray-500">UP主</p>
               </div>
+              <div class="flex items-center space-x-2 ml-auto">
+                <EnvironmentCheck inline compact />
+                <div class="hidden sm:block h-4 w-px bg-gray-200"></div>
+                <!-- DeepSeek 余额（紧凑显示） -->
+                <div class="flex items-center space-x-1 text-[11px] text-gray-600">
+                  <svg class="w-3.5 h-3.5 text-[#4D6BFE]" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M27.501 8.46875C27.249 8.3457 27.1406 8.58008 26.9932 8.69922C26.9434 8.73828 26.9004 8.78906 26.8584 8.83398C26.4902 9.22852 26.0605 9.48633 25.5 9.45508C24.6787 9.41016 23.9785 9.66797 23.3594 10.2969C23.2275 9.52148 22.79 9.05859 22.125 8.76172C21.7764 8.60742 21.4238 8.45312 21.1807 8.11719C21.0098 7.87891 20.9639 7.61328 20.8779 7.35156C20.8242 7.19336 20.7695 7.03125 20.5879 7.00391C20.3906 6.97266 20.3135 7.13867 20.2363 7.27734C19.9258 7.84375 19.8066 8.46875 19.8174 9.10156C19.8447 10.5234 20.4453 11.6562 21.6367 12.4629C21.7725 12.5547 21.8076 12.6484 21.7646 12.7832C21.6836 13.0605 21.5869 13.3301 21.501 13.6074C21.4473 13.7852 21.3662 13.8242 21.1768 13.7461C20.5225 13.4727 19.957 13.0684 19.458 12.5781C18.6104 11.7578 17.8438 10.8516 16.8877 10.1426C16.6631 9.97656 16.4395 9.82227 16.207 9.67578C15.2314 8.72656 16.335 7.94727 16.5898 7.85547C16.8574 7.75977 16.6826 7.42773 15.8193 7.43164C14.957 7.43555 14.167 7.72461 13.1611 8.10938C13.0137 8.16797 12.8594 8.21094 12.7002 8.24414C11.7871 8.07227 10.8389 8.0332 9.84766 8.14453C7.98242 8.35352 6.49219 9.23633 5.39648 10.7441C4.08105 12.5547 3.77148 14.6133 4.15039 16.7617C4.54883 19.0234 5.70215 20.8984 7.47559 22.3633C9.31348 23.8809 11.4307 24.625 13.8457 24.4824C15.3125 24.3984 16.9463 24.2012 18.7881 22.6406C19.2529 22.8711 19.7402 22.9629 20.5498 23.0332C21.1729 23.0918 21.7725 23.002 22.2373 22.9062C22.9648 22.752 22.9141 22.0781 22.6514 21.9531C20.5186 20.959 20.9863 21.3633 20.5605 21.0371C21.6445 19.752 23.2783 18.418 23.917 14.0977C23.9668 13.7539 23.9238 13.5391 23.917 13.2598C23.9131 13.0918 23.9512 13.0254 24.1445 13.0059C24.6787 12.9453 25.1973 12.7988 25.6738 12.5352C27.0557 11.7793 27.6123 10.5391 27.7441 9.05078C27.7637 8.82422 27.7402 8.58789 27.501 8.46875ZM15.46 21.8613C13.3926 20.2344 12.3906 19.6992 11.9766 19.7227C11.5898 19.7441 11.6592 20.1875 11.7441 20.4766C11.833 20.7617 11.9492 20.959 12.1123 21.209C12.2246 21.375 12.3018 21.623 12 21.8066C11.334 22.2207 10.1768 21.668 10.1221 21.6406C8.77539 20.8477 7.64941 19.7988 6.85547 18.3652C6.08984 16.9844 5.64453 15.5039 5.57129 13.9238C5.55176 13.541 5.66406 13.4062 6.04297 13.3379C6.54199 13.2461 7.05762 13.2266 7.55664 13.2988C9.66602 13.6074 11.4619 14.5527 12.9668 16.0469C13.8262 16.9004 14.4766 17.918 15.1465 18.9121C15.8584 19.9688 16.625 20.9746 17.6006 21.7988C17.9443 22.0879 18.2197 22.3086 18.4824 22.4707C17.6895 22.5586 16.3652 22.5781 15.46 21.8613ZM16.4502 15.4805C16.4502 15.3105 16.5859 15.1758 16.7568 15.1758C16.7949 15.1758 16.8301 15.1836 16.8613 15.1953C16.9033 15.2109 16.9424 15.2344 16.9727 15.2695C17.0273 15.3223 17.0586 15.4004 17.0586 15.4805C17.0586 15.6504 16.9229 15.7852 16.7529 15.7852C16.582 15.7852 16.4502 15.6504 16.4502 15.4805ZM19.5273 17.0625C19.3301 17.1426 19.1328 17.2129 18.9434 17.2207C18.6494 17.2344 18.3281 17.1152 18.1533 16.9688C17.8828 16.7422 17.6895 16.6152 17.6074 16.2168C17.5732 16.0469 17.5928 15.7852 17.623 15.6348C17.6934 15.3105 17.6152 15.1035 17.3877 14.9141C17.2012 14.7598 16.9658 14.7188 16.7061 14.7188C16.6094 14.7188 16.5205 14.6758 16.4541 14.6406C16.3457 14.5859 16.2568 14.4512 16.3418 14.2852C16.3691 14.2324 16.501 14.1016 16.5322 14.0781C16.8838 13.877 17.29 13.9434 17.666 14.0938C18.0146 14.2363 18.2773 14.498 18.6562 14.8672C19.0439 15.3145 19.1133 15.4395 19.334 15.7734C19.5078 16.0371 19.667 16.3066 19.7754 16.6152C19.8408 16.8066 19.7559 16.9648 19.5273 17.0625Z" fill="#4D6BFE" />
+                  </svg>
+                  <div v-if="deepseekBalance.is_available" class="text-[11px]">
+                    <span class="text-gray-500">余额:</span>
+                    <span class="font-medium text-[#4D6BFE]">{{ deepseekBalance.balance_infos[0]?.total_balance || '0.00' }}</span>
+                    <span class="text-gray-500">{{ deepseekBalance.balance_infos[0]?.currency }}</span>
+                  </div>
+                  <button @click="refreshDeepSeekBalance" class="p-0.5 text-[#4D6BFE] hover:bg-[#4D6BFE]/10 rounded-full transition-colors duration-200" :title="deepseekBalance.is_available ? '刷新余额' : '点击查询余额'">
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              
             </div>
 
-            <!-- 视频分区和时间 -->
-            <div class="flex flex-wrap gap-2">
-              <div class="rounded-md bg-[#f1f2f3] px-2 py-1 text-xs text-gray-700">
-                {{ video.business === 'archive' ? video.tag_name : getBusinessType(video.business) }}
-              </div>
-              <div class="rounded-md bg-[#f1f2f3] px-2 py-1 text-xs text-gray-700">
-                观看于: {{ formatTimestamp(video.view_at) }}
-              </div>
-              <div class="rounded-md bg-[#f1f2f3] px-2 py-1 text-xs text-gray-700"
-                   v-if="video.dt">
-                设备: {{ getDeviceType(video.dt) }}
-              </div>
-              <div class="rounded-md bg-[#f1f2f3] px-2 py-1 text-xs text-gray-700"
-                   v-if="video.badge">
-                {{ video.badge }}
-              </div>
-            </div>
+            <!-- 视频分区/观看时间/设备 行已按需求去除 -->
 
             <!-- 备注 -->
-            <div class="mt-3">
-              <label class="text-sm text-gray-700 mb-1 block">备注</label>
+            <div class="mt-2 flex-1 flex flex-col min-h-0">
               <textarea
                 v-model="remarkContent"
                 @blur="handleRemarkBlur"
                 :disabled="isPrivacyMode"
                 placeholder="添加备注..."
                 rows="2"
-                class="w-full px-3 py-2 text-sm text-gray-800 bg-gray-50 rounded border border-gray-200 focus:border-[#fb7299] focus:ring-[#fb7299] transition-colors duration-200"
+                class="w-full flex-1 resize-none px-2 py-1.5 text-xs text-gray-800 bg-gray-50 rounded border border-gray-200 focus:border-[#fb7299] focus:ring-[#fb7299] transition-colors duration-200"
                 :class="{ 'blur-sm': isPrivacyMode }"
               ></textarea>
               <div v-if="remarkTime" class="text-xs text-gray-400 mt-1">
@@ -431,15 +401,26 @@
 
               <!-- 模型选择部分 -->
               <div class="bg-white rounded-lg border border-gray-200 p-4">
-                <h4 class="text-base font-medium text-gray-900 mb-2">选择语音识别模型</h4>
-
-                <!-- 添加推荐说明 -->
-                <div class="mb-4 p-3 bg-blue-50 border border-blue-100 rounded-lg">
-                  <p class="text-sm text-blue-700">
-                    <span class="font-medium">推荐使用极小型多语言模型(tiny)</span>:
-                    虽然转换后的字幕有错字或同音字，但是由于大模型的加持，在最后生成摘要的时候也可以被忽略和矫正，所以推荐选择最小模型以获得更快的转换速度。
-                  </p>
+                <div class="flex items-center justify-between mb-2">
+                  <h4 class="text-base font-medium text-gray-900">选择语音识别模型</h4>
+                  <button
+                    @click="startTranscription"
+                    :disabled="!selectedModel || !selectedModel.is_downloaded || isTranscribing"
+                    class="px-3 py-1.5 text-xs md:text-sm font-medium text-white rounded-md hover:bg-[#fb7299]/90 disabled:opacity-50 disabled:cursor-not-allowed"
+                    :class="isTranscribing ? 'bg-blue-500' : 'bg-[#fb7299]'"
+                  >
+                    <span v-if="isTranscribing" class="flex items-center">
+                      <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      正在转换中...
+                    </span>
+                    <span v-else>开始音频转文字</span>
+                  </button>
                 </div>
+
+                
 
                 <!-- 长视频警告 -->
                 <div v-if="video && video.duration > 1800"
@@ -503,7 +484,13 @@
                   >
                     <div class="flex items-start justify-between">
                       <div>
-                        <h5 class="text-sm font-medium text-gray-900">{{ model.description }}</h5>
+                        <h5 class="text-sm font-medium text-gray-900">
+                          {{ model.description }}
+                          <span
+                            v-if="model.name === 'tiny' || (model.description && model.description.includes('极小型'))"
+                            class="ml-2 inline-flex items-center px-1.5 py-0.5 rounded bg-[#fb7299]/10 text-[#fb7299] text-[10px]"
+                          >推荐</span>
+                        </h5>
                         <p class="text-xs text-gray-500 mt-1">{{ model.params_size }}</p>
                         <p v-if="model.is_downloaded" class="text-xs text-gray-400 mt-1 truncate" :title="model.path">
                           {{ model.path }}
@@ -568,26 +555,7 @@
                   </div>
                 </div>
 
-                <!-- 开始转换按钮 -->
-                <div class="mt-6 flex justify-end">
-                  <button
-                    @click="startTranscription"
-                    :disabled="!selectedModel || !selectedModel.is_downloaded || isTranscribing"
-                    class="px-4 py-2 text-sm font-medium text-white rounded-md hover:bg-[#fb7299]/90 disabled:opacity-50 disabled:cursor-not-allowed"
-                    :class="isTranscribing ? 'bg-blue-500' : 'bg-[#fb7299]'"
-                  >
-                    <span v-if="isTranscribing" class="flex items-center">
-                      <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
-                                stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor"
-                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      正在转换中...
-                    </span>
-                    <span v-else>开始音频转文字</span>
-                  </button>
-                </div>
+                
               </div>
             </template>
           </div>
@@ -610,6 +578,7 @@
         cover: video?.cover || video?.covers?.[0] || '',
         cid: video?.cid || 0
       }"
+      :default-only-audio="currentTab === 'local'"
       @download-complete="handleDownloadComplete"
     />
 
@@ -660,6 +629,7 @@
       cover: video?.cover || video?.covers?.[0] || '',
       cid: video?.cid || 0
     }"
+    :default-only-audio="currentTab === 'local'"
     @download-complete="handleDownloadComplete"
   />
 </template>
@@ -741,8 +711,18 @@ const updateVisible = (value) => {
 
     // 通过改变key值强制重新创建摘要组件
     videoSummaryKey.value += 1
+  } else {
+    // 弹窗打开时默认刷新一次 DeepSeek 余额，防止不显示
+    refreshDeepSeekBalance()
   }
 }
+
+// 监听弹窗显隐，进入弹窗即刷新一次余额（不依赖标签页）
+watch(() => props.modelValue, (visible) => {
+  if (visible) {
+    refreshDeepSeekBalance()
+  }
+})
 
 const { isPrivacyMode } = usePrivacyStore()
 
@@ -1036,11 +1016,7 @@ const checkAudioFile = async () => {
     return true
   } catch (error) {
     console.error('查找音频文件失败:', error)
-    transcriptionStatus.value = '未找到音频文件，请先下载视频'
-    showNotify({
-      type: 'warning',
-      message: '请先下载视频以获取音频文件',
-    })
+    transcriptionStatus.value = ''
     return false
   } finally {
     isCheckingAudio.value = false
@@ -1140,10 +1116,6 @@ const startTranscription = async () => {
   if (!audioPath.value) {
     await checkAudioFile()
     if (!audioPath.value) {
-      showNotify({
-        type: 'warning',
-        message: '未找到音频文件，请先下载视频',
-      })
       return
     }
   }
@@ -1476,3 +1448,4 @@ watch(() => props.video?.cid, (newCid) => {
   border-bottom: 1px solid #f3f4f6;
 }
 </style>
+

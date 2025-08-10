@@ -101,9 +101,9 @@
 
         <!-- 主内容区域 -->
         <div class="flex-1 overflow-y-auto">
-          <div class="p-6">
+          <div class="px-6 pt-3 pb-4">
             <!-- 标题 -->
-            <div class="mb-4">
+            <div class="mb-2">
               <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
                 {{ getDownloadTitle() }}
               </h3>
@@ -134,12 +134,9 @@
                        class="w-full h-full object-cover transition-transform hover:scale-105">
                 </div>
                 <div class="flex-1 min-w-0">
-                  <h4
-                    class="text-base font-medium text-gray-900 dark:text-gray-100 truncate whitespace-nowrap overflow-hidden">
-                    {{ currentVideoTitle }}</h4>
-                  <p v-if="!isFavoriteFolder" class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  <p v-if="!isFavoriteFolder" class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                     UP主：{{ props.isBatchDownload ? currentVideoAuthor : props.videoInfo.author || '未知' }}</p>
-                  <p v-if="!isFavoriteFolder" class="text-xs text-gray-500 dark:text-gray-400">
+                  <p v-if="!isFavoriteFolder" class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                     BV号：{{ props.isBatchDownload ? currentVideoBvid : props.videoInfo.bvid || '未知' }}</p>
 
                   <!-- 基础下载选项 -->
@@ -166,7 +163,7 @@
             </div>
 
             <!-- 高级选项切换按钮 -->
-            <div v-if="!showAdvancedOptions" class="mb-4">
+            <div v-if="!showAdvancedOptions" class="mb-2">
               <button
                 @click="showAdvancedOptions = true"
                 class="w-full flex items-center justify-center py-2.5 px-4 text-sm bg-white border border-gray-200 rounded-lg hover:bg-gray-50 /50 transition-colors group shadow-sm"
@@ -193,7 +190,7 @@
 
             <!-- 高级下载选项区域 -->
             <div
-              class="bg-white rounded-lg border border-gray-200 mb-4 overflow-hidden shadow-sm transition-all duration-300"
+              class="bg-white rounded-lg border border-gray-200 mb-2 overflow-hidden shadow-sm transition-all duration-300"
               :class="{
  'max-h-[1000px] opacity-100': showAdvancedOptions,
  'max-h-0 opacity-0 border-0': !showAdvancedOptions
@@ -224,9 +221,9 @@
                 </button>
               </div>
 
-              <div class="p-4">
+              <div class="p-3">
                 <!-- 基础参数区块 -->
-                <div class="mb-4">
+                <div class="mb-3">
                   <h5 class="text-xs font-semibold text-gray-700 mb-2 uppercase tracking-wide flex items-center">
                     <svg class="w-3 h-3 mr-1 text-[#fb7299]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -274,7 +271,7 @@
                 </div>
 
                 <!-- 编码参数区块 -->
-                <div class="mb-4">
+                <div class="mb-3">
                   <h5 class="text-xs font-semibold text-gray-700 mb-2 uppercase tracking-wide flex items-center">
                     <svg class="w-3 h-3 mr-1 text-[#fb7299]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -435,12 +432,12 @@
 
             <!-- 下载日志 -->
             <div
-              class="w-full bg-gray-50 rounded-lg p-3 font-mono text-xs overflow-y-auto border border-gray-200 "
-              :class="showAdvancedOptions ? 'h-[calc(100vh-620px)] min-h-[150px]' : 'h-[calc(100vh-450px)] min-h-[200px]'"
+              class="w-full bg-gray-50 rounded-lg p-2 pb-0 font-mono text-[11px] overflow-y-auto border border-gray-200 "
+              :class="showAdvancedOptions ? 'h-[calc(100vh-588px)] min-h-[130px]' : 'h-[calc(100vh-418px)] min-h-[180px]'"
               ref="logContainer">
               <div v-if="!downloadStarted" class="text-gray-500 flex items-center justify-center h-full">
                 <div class="text-center">
-                  <svg class="w-8 h-8 mx-auto mb-2 text-gray-400 " fill="none" viewBox="0 0 24 24"
+                  <svg class="w-8 h-8 mx-auto mb-0 text-gray-400 " fill="none" viewBox="0 0 24 24"
                        stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                           d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -449,7 +446,7 @@
                 </div>
               </div>
               <div v-else>
-                <div v-for="(log, index) in downloadLogs" :key="index" class="whitespace-pre break-all leading-5 py-0.5"
+                <div v-for="(log, index) in downloadLogs" :key="index" class="whitespace-pre break-all leading-5 py-0.5 last:pb-0"
                      :class="{
  'text-gray-600 ': !log.includes('ERROR') && !log.includes('下载完成') && !log.includes('WARN'),
  'text-red-500 ': log.includes('ERROR'),
@@ -463,8 +460,8 @@
         </div>
 
         <!-- 页脚区域：状态和按钮 -->
-        <div class="bg-gray-50 border-t border-gray-200 p-4 flex items-center justify-between">
-          <div class="text-sm font-medium" :class="{
+        <div class="bg-gray-50 border-t border-gray-200 py-2 px-6 flex items-center justify-between">
+          <div class="text-xs font-medium" :class="{
  'text-gray-500 ': !downloadStarted,
  'text-red-500 ': downloadError,
  'text-green-500 ': !isDownloading && downloadStarted && !downloadError,
@@ -475,7 +472,7 @@
           <div class="flex space-x-3">
             <button
               @click="handleClose"
-              class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+              class="px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
               :disabled="isDownloading"
             >
               {{ isDownloading ? '下载中...' : '关闭' }}
@@ -483,7 +480,7 @@
             <button
               v-if="!downloadStarted || downloadError"
               @click="startDownload"
-              class="px-4 py-2 text-sm font-medium text-white bg-[#fb7299] rounded-md hover:bg-[#fb7299]/90 disabled:opacity-50 transition-colors"
+              class="px-3 py-1.5 text-xs font-medium text-white bg-[#fb7299] rounded-md hover:bg-[#fb7299]/90 disabled:opacity-50 transition-colors"
               :disabled="isDownloading"
             >
               {{ downloadError ? '重试' : '开始下载' }}
@@ -529,6 +526,11 @@ const props = defineProps({
       cover: '',
       cid: 0,
     }),
+  },
+  // 当为 true 时，弹窗打开时默认勾选“仅下载音频”
+  defaultOnlyAudio: {
+    type: Boolean,
+    default: false,
   },
   // 添加 UP 主视频列表参数
   upUserVideos: {
@@ -933,6 +935,11 @@ watch(() => props.show, async (isVisible) => {
 
     // 在弹窗打开时检查 FFmpeg
     checkFFmpegStatus()
+
+    // 根据传入的默认开关设置仅下载音频
+    if (props.defaultOnlyAudio) {
+      onlyAudio.value = true
+    }
   }
 })
 

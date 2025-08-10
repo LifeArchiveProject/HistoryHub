@@ -1,15 +1,15 @@
 <template>
   <!-- 系统资源状态显示 -->
-  <div class="flex flex-col space-y-2">
+  <div :class="[inline ? 'flex flex-row items-center space-x-2' : 'flex flex-col space-y-2']">
     <!-- 加载状态 -->
-    <div v-if="loading" class="flex items-center space-x-2 p-2 bg-gray-50 text-gray-500 rounded-lg text-sm">
+    <div v-if="loading" class="flex items-center space-x-2 bg-gray-50 text-gray-500 rounded-lg" :class="[compact ? 'p-1 text-xs' : 'p-2 text-sm']">
       <div class="animate-spin h-4 w-4 border-2 border-gray-300 border-t-transparent rounded-full"></div>
       <span>检查系统环境...</span>
     </div>
 
     <!-- 错误状态 -->
-    <div v-else-if="error" class="flex items-center space-x-2 p-2 bg-red-50 text-red-700 rounded-lg text-sm">
-      <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <div v-else-if="error" class="flex items-center space-x-2 bg-red-50 text-red-700 rounded-lg" :class="[compact ? 'p-1 text-xs' : 'p-2 text-sm']">
+      <svg :class="[compact ? 'w-4 h-4 flex-shrink-0' : 'w-5 h-5 flex-shrink-0']" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
       </svg>
       <span>{{ error }}</span>
@@ -20,8 +20,8 @@
       <!-- 系统资源状态 -->
       <div class="group relative">
         <div v-if="systemResources?.can_run_speech_to_text" 
-             class="flex items-center space-x-2 p-2 bg-green-50 text-green-700 rounded-lg text-sm cursor-help">
-          <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+             class="flex items-center space-x-2 bg-green-50 text-green-700 rounded-lg cursor-help" :class="[compact ? 'p-1 text-xs' : 'p-2 text-sm']">
+          <svg :class="[compact ? 'w-4 h-4 flex-shrink-0' : 'w-5 h-5 flex-shrink-0']" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
           </svg>
           <span class="font-medium">系统资源满足要求</span>
@@ -36,8 +36,8 @@
             </div>
           </div>
         </div>
-        <div v-else class="flex items-center space-x-2 p-2 bg-red-50 text-red-700 rounded-lg text-sm">
-          <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div v-else class="flex items-center space-x-2 bg-red-50 text-red-700 rounded-lg" :class="[compact ? 'p-1 text-xs' : 'p-2 text-sm']">
+          <svg :class="[compact ? 'w-4 h-4 flex-shrink-0' : 'w-5 h-5 flex-shrink-0']" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </svg>
           <div class="flex flex-col">
@@ -49,21 +49,21 @@
 
       <!-- CUDA状态 -->
       <template v-if="systemResources?.can_run_speech_to_text">
-        <div v-if="cudaLoading" class="flex items-center space-x-2 p-2 bg-gray-50 text-gray-500 rounded-lg text-sm">
+        <div v-if="cudaLoading" class="flex items-center space-x-2 bg-gray-50 text-gray-500 rounded-lg" :class="[compact ? 'p-1 text-xs' : 'p-2 text-sm']">
           <div class="animate-spin h-4 w-4 border-2 border-gray-300 border-t-transparent rounded-full"></div>
           <span>检查CUDA支持...</span>
         </div>
         
         <div v-else class="group relative">
           <div v-if="envInfo?.system_info.cuda_available" 
-               class="flex items-center space-x-2 p-2 bg-green-50 text-green-700 rounded-lg text-sm">
-            <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+               class="flex items-center space-x-2 bg-green-50 text-green-700 rounded-lg" :class="[compact ? 'p-1 text-xs' : 'p-2 text-sm']">
+            <svg :class="[compact ? 'w-4 h-4 flex-shrink-0' : 'w-5 h-5 flex-shrink-0']" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
             </svg>
             <span class="font-medium">CUDA 可用 ({{ envInfo.system_info.cuda_version }})</span>
           </div>
-          <div v-else class="flex items-center space-x-2 p-2 bg-yellow-50 text-yellow-700 rounded-lg text-sm">
-            <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div v-else class="flex items-center space-x-2 bg-yellow-50 text-yellow-700 rounded-lg" :class="[compact ? 'p-1 text-xs' : 'p-2 text-sm']">
+            <svg :class="[compact ? 'w-4 h-4 flex-shrink-0' : 'w-5 h-5 flex-shrink-0']" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <div class="flex flex-col">
@@ -82,6 +82,11 @@ import { ref, onMounted } from 'vue'
 import { checkAudioToTextEnvironment, checkSystemResources } from '../../api/api'
 import { showNotify } from 'vant'
 import 'vant/es/notify/style'
+
+const { inline = false, compact = false } = defineProps({
+  inline: { type: Boolean, default: false },
+  compact: { type: Boolean, default: false }
+})
 
 const loading = ref(true)
 const cudaLoading = ref(false)
