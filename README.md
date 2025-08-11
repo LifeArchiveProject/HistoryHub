@@ -51,6 +51,8 @@ npm run dev
   - 页面会自动刷新并显示你的观看历史
 
 3. **后续使用**
+  - 默认的计划任务会在每天 0 点自动获取历史记录
+  - 可去设置里配置邮箱进行通知，不配置不影响自动获取，只是无法收到通知
   - 每次打开页面时，建议点击"实时更新"以获取最新记录
   - 实时更新只会获取新增的记录，速度很快
 
@@ -64,36 +66,33 @@ npm run dev
 <img src="./public/layout-collage-1751711396674.jpg" alt="">
 <img src="./public/layout-collage-1751711408262.jpg" alt="">
 
-**2. 主页**
+**2. 主页** 支持列表/网格切换与日期、分区筛选，一键实时更新，支持隐私模式。
 <img src="./public/home.png" alt="">
 
-**3. 评论**
+**3. 评论** 登录后查看我的评论，支持关键词与类型筛选，并可跳转原文。
 <img src="./public/Comments.png" alt="">
 
-**4. 我的收藏**
+**4. 我的收藏** 支持查看我创建/收藏及本地收藏夹，可同步到本地并下载收藏内容。
 <img src="./public/favorites.png" alt="">
 
-**5. 媒体管理**
+**5. 媒体管理** 集中管理已下载视频与图片，查看/编辑备注与评论，并可批量补全视频详情。
 <img src="./public/images.png" alt="">
 
-**6. 计划任务**
+**6. 计划任务** 统一管理定时与链式任务，支持新建/编辑/执行/启用或禁用，并查看历史与成功率。
 <img src="./public/scheduler.png" alt="">
 
-**7. 设置**
+**7. 设置** 配置服务器、隐私与布局、像素化与像素字体，数据导出。
 <img src="./public/setting.png" alt="">
 
-**8. 视频下载功能**
+**8. 视频下载功能** 输入 BV/链接或 UP UID 下载单个/合集/投稿，过程实时反馈。
 <img src="./public/download.png" alt="">
 <img src="./public/SingleVideo.png" alt="">
 <img src="./public/MultipleVideos.png" alt="">
 
-**9. 视频观看总时长**
+**9. 视频观看总时长** 查询合集级观看总时长、平均时长与完播率，可按列查看统计并支持登录态查询受限内容。
 <img src="./public/viewtime.png" alt="">
 
-**10. 本地摘要功能**
-
-本地摘要功能允许用户在本地生成视频内容摘要，无需依赖 B 站官方 AI 摘要：
-
+**10. 本地摘要功能** 基于本地语音转文字结合 DeepSeek 生成视频摘要，支持模型管理、环境检测与结果缓存。
 <img src="./public/LocalSummary.png" alt="">
 <img src="./public/DSSummary.png" alt="">
 
