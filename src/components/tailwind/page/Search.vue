@@ -56,6 +56,7 @@ import { searchBiliHistory2024, batchGetRemarks } from '../../../api/api.js'
 import SearchBar from '../SearchBar.vue'
 import VideoRecord from '../VideoRecord.vue'
 import Pagination from '../Pagination.vue'
+import { normalizeImageUrl } from '@/utils/imageUrl.js'
 
 // 获取路由参数
 const route = useRoute()

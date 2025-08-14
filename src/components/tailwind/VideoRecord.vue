@@ -107,7 +107,7 @@
           </div>
 
           <img
-            :src="record.cover || record.covers[0]"
+            :src="normalizeImageUrl(record.cover || record.covers[0])"
             class="h-full w-full object-cover transition-all duration-300"
             :class="{ 'blur-md': isPrivacyMode }"
             alt=""
@@ -129,7 +129,7 @@
             @click.stop
           >
             <img
-              :src="record.author_face"
+              :src="normalizeImageUrl(record.author_face)"
               alt="author"
               class="h-4 w-4 cursor-pointer rounded-full transition-all duration-300 hover:scale-110 lg:h-8 lg:w-8"
               :class="{ 'blur-md': isPrivacyMode }"
@@ -218,7 +218,7 @@
 
           <img
             v-if="record.cover"
-            :src="record.cover"
+            :src="normalizeImageUrl(record.cover)"
             class="h-full w-full object-cover transition-all duration-300"
             :class="{ 'blur-md': isPrivacyMode }"
             alt=""
@@ -226,7 +226,7 @@
           <div v-else>
             <div v-for="(cover, index) in record.covers" :key="index" class="mb-1">
               <img
-                :src="cover"
+                :src="normalizeImageUrl(cover)"
                 class="h-full w-full object-cover transition-all duration-300"
                 :class="{ 'blur-md': isPrivacyMode }"
                 alt=""
@@ -354,7 +354,7 @@
             <!-- 非PGC内容显示UP主信息 -->
             <div v-else class="flex items-center space-x-2" @click.stop>
               <img
-                :src="record.author_face"
+                :src="normalizeImageUrl(record.author_face)"
                 alt="author"
                 class="h-5 w-5 cursor-pointer rounded-full transition-all duration-300 hover:scale-110 lg:h-8 lg:w-8"
                 :class="{ 'blur-md': isPrivacyMode }"
@@ -437,6 +437,7 @@ import 'vant/es/field/style'
 import DownloadDialog from './DownloadDialog.vue'
 import VideoDetailDialog from './VideoDetailDialog.vue'
 import { openInBrowser } from '@/utils/openUrl.js'
+import { normalizeImageUrl } from '@/utils/imageUrl.js'
 
 const { isPrivacyMode } = usePrivacyStore()
 

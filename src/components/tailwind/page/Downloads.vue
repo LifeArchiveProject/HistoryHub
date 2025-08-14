@@ -43,7 +43,7 @@
             <!-- 视频封面 -->
             <div class="relative pb-[56.25%] overflow-hidden cursor-pointer group" @click="handleVideoClick(video)">
               <img
-                :src="video.cover || 'https://i0.hdslb.com/bfs/archive/c9e72655b7c9c9c68a30d3275313c501e68427d1.jpg'"
+                :src="normalizeImageUrl(video.cover) || 'https://i0.hdslb.com/bfs/archive/c9e72655b7c9c9c68a30d3275313c501e68427d1.jpg'"
                 :alt="video.title"
                 class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 loading="lazy"
@@ -96,7 +96,7 @@
               <!-- 作者信息 -->
               <div class="flex items-center space-x-1">
                 <img
-                  :src="video.author_face || 'https://i1.hdslb.com/bfs/face/1b6f746be0d0c8324e01e618c5e85e113a8b38be.jpg'"
+                  :src="normalizeImageUrl(video.author_face) || 'https://i1.hdslb.com/bfs/face/1b6f746be0d0c8324e01e618c5e85e113a8b38be.jpg'"
                   :alt="video.author_name"
                   class="w-3.5 h-3.5 rounded-full object-cover cursor-pointer"
                   loading="lazy"
@@ -219,6 +219,7 @@ import { showNotify } from 'vant'
 import 'vant/es/notify/style'
 import SimpleSearchBar from '../SimpleSearchBar.vue'
 import { openInBrowser } from '@/utils/openUrl.js'
+import { normalizeImageUrl } from '@/utils/imageUrl.js'
 
 // 定义组件选项
 defineOptions({

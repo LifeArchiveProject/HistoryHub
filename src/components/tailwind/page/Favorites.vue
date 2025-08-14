@@ -151,8 +151,8 @@
                 >
                   <!-- 封面图 -->
                   <div class="relative aspect-video bg-gray-100 overflow-hidden">
-                    <img
-                      :src="folder.cover"
+                     <img
+                      :src="normalizeImageUrl(folder.cover)"
                       :alt="folder.title"
                       class="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
                       @click="viewFolderContents(folder)"
@@ -182,7 +182,7 @@
                     <div class="mt-3 pt-2 border-t border-gray-100 flex items-center justify-between">
                       <div class="flex items-center">
                         <img
-                          :src="folder.upper?.face || folder.creator_face"
+                          :src="normalizeImageUrl(folder.upper?.face || folder.creator_face)"
                           :alt="folder.upper?.name || folder.creator_name"
                           class="w-5 h-5 rounded-full"
                         />
@@ -299,8 +299,8 @@
                         <span class="absolute mt-14 text-xs bg-black/70 text-white px-2 py-1 rounded">正在修复...</span>
                       </div>
 
-                      <img
-                        :src="getVideoImage(item)"
+                       <img
+                         :src="normalizeImageUrl(getVideoImage(item))"
                         :alt="getVideoTitle(item)"
                         class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         loading="lazy"
@@ -347,7 +347,7 @@
                       <!-- 作者信息 -->
                       <div class="flex items-center space-x-1">
                         <img
-                          :src="getAuthorFace(item)"
+                          :src="normalizeImageUrl(getAuthorFace(item))"
                           :alt="getAuthorName(item)"
                           class="w-3.5 h-3.5 rounded-full object-cover cursor-pointer"
                           loading="lazy"
@@ -488,6 +488,7 @@ import {
   downloadFavorites
 } from '../../../api/api'
 import { openInBrowser } from '@/utils/openUrl.js'
+import { normalizeImageUrl } from '@/utils/imageUrl.js'
 
 const router = useRouter()
 

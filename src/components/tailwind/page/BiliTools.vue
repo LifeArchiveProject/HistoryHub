@@ -325,7 +325,7 @@
                               <td class="px-3 py-2 whitespace-nowrap">
                                 <div class="flex items-center">
                                   <div class="flex-shrink-0 h-10 w-16">
-                                    <img class="h-10 w-16 object-cover rounded shadow-sm" :src="video.cover" alt="" />
+                                    <img class="h-10 w-16 object-cover rounded shadow-sm" :src="normalizeImageUrl(video.cover)" alt="" />
                                   </div>
                                   <div class="ml-3 max-w-xs">
                                     <div class="text-xs font-medium text-gray-900 truncate hover:text-[#fb7299]" :title="video.title">
@@ -671,6 +671,7 @@ import VideoDownloader from './VideoDownloader.vue'
 import { showNotify } from 'vant'
 import 'vant/es/notify/style'
 import { getVideoSeasonInfo, getComments } from '../../../api/api'
+import { normalizeImageUrl } from '@/utils/imageUrl.js'
 
 const route = useRoute()
 

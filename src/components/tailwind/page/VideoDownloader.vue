@@ -134,9 +134,9 @@
             <!-- 左侧封面 -->
             <div class="w-full md:w-1/3 mb-4 md:mb-0 flex flex-col">
               <div class="relative aspect-video bg-gray-200 rounded-lg overflow-hidden">
-                <img
-                  v-if="videoInfo.pic"
-                  :src="videoInfo.pic"
+                  <img
+                    v-if="videoInfo.pic"
+                    :src="normalizeImageUrl(videoInfo.pic)"
                   :alt="videoInfo.title"
                   class="w-full h-full object-cover"
                 />
@@ -370,6 +370,7 @@ import DownloadDialog from '../DownloadDialog.vue'
 import SimpleSearchBar from '../SimpleSearchBar.vue'
 import CustomDropdown from '../CustomDropdown.vue'
 import UserVideos from '../UserVideos.vue'
+import { normalizeImageUrl } from '@/utils/imageUrl.js'
 
 // 下载类型
 const downloadType = ref('video')

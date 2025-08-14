@@ -24,7 +24,7 @@
             <!-- 视频封面 -->
             <div class="relative w-full aspect-video overflow-hidden rounded-lg mb-3">
               <img
-                :src="record.cover"
+                :src="normalizeImageUrl(record.cover)"
                 :class="{ 'blur-md': isPrivacyMode }"
                 class="w-full h-full object-cover"
                 alt=""
@@ -51,7 +51,7 @@
             <!-- UP主信息和时间 -->
             <div class="flex items-center space-x-2 mb-2">
               <img
-                :src="record.author_face"
+                :src="normalizeImageUrl(record.author_face)"
                 :class="{ 'blur-md': isPrivacyMode }"
                 class="w-4 h-4 rounded-full"
                 alt=""
@@ -131,6 +131,7 @@ import { usePrivacyStore } from '../../../store/privacy'
 import { getAllRemarks, updateVideoRemark, batchGetRemarks } from '../../../api/api'
 import { showNotify } from 'vant'
 import Pagination from '../Pagination.vue'
+import { normalizeImageUrl } from '@/utils/imageUrl.js'
 
 const { isPrivacyMode } = usePrivacyStore()
 

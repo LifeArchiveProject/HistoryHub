@@ -130,7 +130,7 @@
             <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 mb-4">
               <div class="flex items-start space-x-4">
                 <div class="w-32 h-20 flex-shrink-0 overflow-hidden rounded-lg">
-                  <img :src="currentVideoCover" :alt="currentVideoTitle"
+                  <img :src="normalizeImageUrl(currentVideoCover)" :alt="currentVideoTitle"
                        class="w-full h-full object-cover transition-transform hover:scale-105">
                 </div>
                 <div class="flex-1 min-w-0">
@@ -506,6 +506,7 @@ import {
 import { showNotify } from 'vant'
 import 'vant/es/notify/style'
 import CustomDropdown from '@/components/tailwind/CustomDropdown.vue'
+import { normalizeImageUrl } from '@/utils/imageUrl.js'
 
 defineOptions({
   name: 'DownloadDialog',
