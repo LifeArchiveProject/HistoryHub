@@ -5,13 +5,14 @@
 <div align="center">
     <h1>BilibiliHistoryFetcher - 哔哩哔哩历史记录获取与分析工具</h1>
     <img src="https://img.shields.io/github/v/tag/LifeArchiveProject/HistoryHub" />
+    <img src="https://gh-down-badges.linkof.link/LifeArchiveProject/HistoryHub" alt="Downloads" />
     <img src="https://img.shields.io/github/stars/LifeArchiveProject/HistoryHub" />
     <img src="https://img.shields.io/github/forks/LifeArchiveProject/HistoryHub" />
-    <img src="https://img.shields.io/github/last-commit/LifeArchiveProject/HistoryHub" />
     <img src="https://img.shields.io/github/license/LifeArchiveProject/HistoryHub" />
     <img src="https://img.shields.io/badge/Python-3776AB?logo=Python&logoColor=white" />
     <img src="https://img.shields.io/badge/FastAPI-009688?logo=FastAPI&logoColor=white" />
     <img src="https://img.shields.io/badge/SQLite-003B57?logo=SQLite&logoColor=white" />
+
 </div>
 
 ## 介绍
@@ -102,7 +103,7 @@
 #### [通过 1Panel 部署](https://github.com/LifeArchiveProject/HistoryHub/discussions/65)
 由社区贡献者 [@QYG2297248353](https://github.com/QYG2297248353) 实现 ([#66](https://github.com/LifeArchiveProject/HistoryHub/pull/66))
 
-#### 使用 uv 安装 
+#### 使用 uv 安装
 由社区贡献者 [@eli-yip](https://github.com/eli-yip) 实现 ([#30](https://github.com/LifeArchiveProject/HistoryHub/pull/30))
 
 1. 安装 [uv](https://docs.astral.sh/uv/getting-started/installation/)
