@@ -21,6 +21,27 @@
               </button>
 
               <button
+                @click="activeTab = 'dynamic'"
+                class="py-3 px-1 border-b-2 font-medium text-sm flex items-center space-x-2"
+                :class="activeTab === 'dynamic'
+                  ? 'border-[#fb7299] text-[#fb7299]'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+              >
+                <span class="w-4 h-4 inline-flex items-center justify-center" aria-hidden="true">
+                  <svg width="20" height="21" viewBox="0 0 20 21" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4">
+                    <g clip-path="url(#clip0)">
+                      <path d="M10 10.743C7.69883 10.743 5.83333 8.87747 5.83333 6.5763C5.83333 4.27512 7.69883 2.40964 10 2.40964V10.743Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"></path>
+                      <path d="M10 10.743C10 13.0441 8.1345 14.9096 5.83333 14.9096C3.53217 14.9096 1.66667 13.0441 1.66667 10.743H10Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"></path>
+                      <path d="M10 10.743C10 8.44182 11.8655 6.57632 14.1667 6.57632C16.4679 6.57632 18.3333 8.44182 18.3333 10.743H10Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"></path>
+                      <path d="M9.99999 10.743C12.3012 10.743 14.1667 12.6085 14.1667 14.9096C14.1667 17.2108 12.3012 19.0763 9.99999 19.0763V10.743Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"></path>
+                    </g>
+                    <defs><clipPath id="clip0"><rect width="20" height="20" fill="currentColor" transform="matrix(-1 0 0 1 20 0.742981)"></rect></clipPath></defs>
+                  </svg>
+                </span>
+                <span>动态下载</span>
+              </button>
+
+              <button
                 @click="activeTab = 'images'"
                 class="py-3 px-1 border-b-2 font-medium text-sm flex items-center space-x-2"
                 :class="activeTab === 'images'
@@ -76,6 +97,11 @@
 
           <!-- 内容区域 -->
           <div class="transition-all duration-300 p-5">
+            <!-- 动态下载 -->
+            <div v-if="activeTab === 'dynamic'" class="animate-fadeIn">
+              <DynamicDownloader />
+            </div>
+
             <!-- 图片管理 -->
             <div v-if="activeTab === 'images'" class="animate-fadeIn">
               <Images />
@@ -132,6 +158,7 @@ import Downloads from './Downloads.vue'
 import VideoDetailsManager from './VideoDetailsManager.vue'
 import History from './History.vue'
 import Comments from './Comments.vue'
+import DynamicDownloader from './DynamicDownloader.vue'
 
 const route = useRoute()
 
@@ -142,7 +169,7 @@ const activeTab = ref('videos')
 watch(
   () => route.query.tab,
   (tab) => {
-    if (tab && ['images', 'videos', 'remarks', 'comments', 'details'].includes(tab)) {
+    if (tab && ['images', 'videos', 'remarks', 'comments', 'details', 'dynamic'].includes(tab)) {
       activeTab.value = tab
     }
   },
@@ -152,7 +179,7 @@ watch(
 // 组件挂载时根据URL初始化标签
 onMounted(() => {
   const { tab } = route.query
-  if (tab && ['images', 'videos', 'remarks', 'comments', 'details'].includes(tab)) {
+  if (tab && ['images', 'videos', 'remarks', 'comments', 'details', 'dynamic'].includes(tab)) {
     activeTab.value = tab
   }
 })

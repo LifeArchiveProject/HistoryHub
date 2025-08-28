@@ -1671,3 +1671,118 @@ export const downloadCollection = async (params, onMessage) => {
     throw error
   }
 }
+
+// =============================
+// 动态相关接口（/dynamic）
+// =============================
+
+/**
+ * 列出数据库中已有动态的 UP 列表（含名称与头像）
+ * GET /dynamic/db/hosts
+ * @param {number} [limit=50] - 每页数量（1-200）
+ * @param {number} [offset=0] - 偏移量（>=0）
+ */
+export const getDynamicDbHosts = (limit = 50, offset = 0) => {
+  return instance.get('/dynamic/db/hosts', {
+    params: { limit, offset }
+  })
+}
+
+/**
+ * 列出指定 UP 的动态（来自数据库）
+ * GET /dynamic/db/space/{host_mid}
+ * @param {string|number} hostMid - UP 的 mid
+ * @param {number} [limit=20] - 每页数量（1-200）
+ * @param {number} [offset=0] - 偏移量（>=0）
+ */
+export const getDynamicDbSpace = (hostMid, limit = 20, offset = 0) => {
+  return instance.get(`/dynamic/db/space/${hostMid}`, {
+    params: { limit, offset }
+  })
+}
+
+/**
+ * 直接从 B 站拉取指定用户空间动态（可多页）
+ * GET /dynamic/space/{host_mid}
+ * @param {string|number} hostMid - UP 的 mid
+ * @param {Object} params - 查询参数
+ * @param {number} [params.pages=1] - 拉取页数（0 表示拉到没有 offset 为止）
+ * @param {boolean} [params.need_top=false] - 是否需要置顶
+ * @param {boolean} [params.save_to_db=true] - 是否保存到数据库
+ * @param {boolean} [params.save_media=true] - 是否下载媒体
+ */
+export const fetchDynamicSpace = (hostMid, params = {}) => {
+  const {
+    pages = 1,
+    need_top = false,
+    save_to_db = true,
+    save_media = true
+  } = params
+  return instance.get(`/dynamic/space/${hostMid}`, {
+    params: { pages, need_top, save_to_db, save_media }
+  })
+}
+
+/**
+ * 自动从上次位置继续抓取（页级延迟 3-5 秒，支持“页级停止”）
+ * GET /dynamic/space/auto/{host_mid}
+ * @param {string|number} hostMid - UP 的 mid
+ * @param {Object} params - 查询参数
+ * @param {boolean} [params.need_top=false]
+ * @param {boolean} [params.save_to_db=true]
+ * @param {boolean} [params.save_media=true]
+ */
+export const startDynamicAutoFetch = (hostMid, params = {}) => {
+  const {
+    need_top = false,
+    save_to_db = true,
+    save_media = true
+  } = params
+  return instance.get(`/dynamic/space/auto/${hostMid}`, {
+    params: { need_top, save_to_db, save_media }
+  })
+}
+
+/**
+ * 创建动态抓取进度的 SSE 连接
+ * GET /dynamic/space/auto/{host_mid}/progress
+ * @param {string|number} hostMid - UP 的 mid
+ * @returns {EventSource}
+ */
+export const createDynamicProgressSSE = (hostMid) => {
+  const baseUrl = instance.defaults.baseURL
+  const url = `${baseUrl}/dynamic/space/auto/${hostMid}/progress`
+  return new EventSource(url)
+}
+
+/**
+ * 发送停止信号（当前页抓取完成后停止并记录 offset）
+ * POST /dynamic/space/auto/{host_mid}/stop
+ * @param {string|number} hostMid - UP 的 mid
+ */
+export const stopDynamicAutoFetch = (hostMid) => {
+  return instance.post(`/dynamic/space/auto/${hostMid}/stop`)
+}
+
+/**
+ * 获取单条动态详情；可选择保存到数据库及下载媒体
+ * GET /dynamic/detail/{dynamic_id}
+ * @param {string|number} dynamicId - 动态ID
+ * @param {Object} params - 查询参数
+ * @param {boolean} [params.save_to_db=true]
+ * @param {boolean} [params.save_media=true]
+ */
+export const getDynamicDetail = (dynamicId, params = {}) => {
+  const { save_to_db = true, save_media = true } = params
+  return instance.get(`/dynamic/detail/${dynamicId}`, {
+    params: { save_to_db, save_media }
+  })
+}
+
+/**
+ * 返回动态类型字典
+ * GET /dynamic/types
+ */
+export const getDynamicTypes = () => {
+  return instance.get('/dynamic/types')
+}
