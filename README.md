@@ -89,10 +89,13 @@ npm run dev
 <img src="./public/SingleVideo.png" alt="">
 <img src="./public/MultipleVideos.png" alt="">
 
-**9. 视频观看总时长** 查询合集级观看总时长、平均时长与完播率，可按列查看统计并支持登录态查询受限内容。
+**9. 视频观看总时长** 查询合集级观看总时长、平均时长与完播率，可按列查看统计
 <img src="./public/viewtime.png" alt="">
 
-**10. 本地摘要功能** 基于本地语音转文字结合 DeepSeek 生成视频摘要，支持模型管理、环境检测与结果缓存。
+**10. 动态下载** 输入用户MID下载B站动态内容，实时显示下载进度
+<img src="./public/dynamic.png" alt="">
+
+**11. 本地摘要功能** 基于本地语音转文字结合 DeepSeek 生成视频摘要，支持模型管理、环境检测与结果缓存。
 <img src="./public/LocalSummary.png" alt="">
 <img src="./public/DSSummary.png" alt="">
 
