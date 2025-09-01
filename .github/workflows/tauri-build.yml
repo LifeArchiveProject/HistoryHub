@@ -28,8 +28,17 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install dependencies (npm ci)
+      - name: Install dependencies on Windows (npm ci)
+        if: matrix.os == 'windows-latest'
         run: npm ci
+
+      - name: Install dependencies on macOS/Ubuntu (fresh install)
+        if: matrix.os != 'windows-latest'
+        shell: bash
+        run: |
+          rm -f package-lock.json || true
+          rm -rf node_modules || true
+          npm install
 
       - name: Install Tauri CLI (Windows)
         if: matrix.os == 'windows-latest'
