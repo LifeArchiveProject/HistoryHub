@@ -67,10 +67,9 @@ jobs:
 
       - name: Install Tauri CLI (Ubuntu)
         if: matrix.os == 'ubuntu-latest'
-        run: npm install --no-save @tauri-apps/cli-linux-x64-gnu
-      - name: Install Rollup platform pkg (Ubuntu)
-        if: matrix.os == 'ubuntu-latest'
-        run: npm install --no-save @rollup/rollup-linux-x64-gnu
+        run: |
+          npm install --no-save @tauri-apps/cli-linux-x64-gnu
+          npm install --no-save @rollup/rollup-linux-x64-gnu
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
@@ -91,7 +90,7 @@ jobs:
 
       - name: Setup Linux deps
         if: matrix.os == 'ubuntu-latest'
-        run: sudo apt-get update && sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf fakeroot xz-utils
+        run: sudo apt-get update && sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf fakeroot xz-utils file desktop-file-utils
 
       - name: Build (platform-specific)
         shell: bash
@@ -102,6 +101,14 @@ jobs:
             npm run tauri:build
           fi
 
+      - name: List build outputs
+        shell: bash
+        run: |
+          echo "==== List src-tauri/target ===="
+          ls -R src-tauri/target || true
+          echo "==== List bundle dirs ===="
+          ls -R src-tauri/target/**/bundle || true
+
       - name: Upload Windows EXE artifact only
         if: matrix.os == 'windows-latest'
         uses: actions/upload-artifact@v4
@@ -110,27 +117,36 @@ jobs:
           path: BiliBili-History-Frontend.exe
           if-no-files-found: error
 
-      - name: Prepare macOS .app zip (if exists)
-        if: matrix.os == 'macos-latest'
-        shell: bash
-        run: |
-          set -e
-          app_path=$(ls -d src-tauri/target/**/bundle/macos/*.app 2>/dev/null | head -n 1 || true)
-          if [ -n "$app_path" ]; then
-            echo "Zipping $app_path"
-            ditto -c -k --sequesterRsrc --keepParent "$app_path" BiliBili-History-Frontend-macos.app.zip
-          else
-            echo "No .app found to zip"
-          fi
-
       - name: Upload macOS artifacts (zip/.dmg if present)
         if: matrix.os == 'macos-latest'
         uses: actions/upload-artifact@v4
         with:
           name: macOS-artifacts
           path: |
-            BiliBili-History-Frontend-macos.app.zip
+            src-tauri/target/**/bundle/macos/*.app
             src-tauri/target/**/bundle/macos/*.dmg
+          if-no-files-found: warn
+
+      - name: Find and upload macOS raw binary (fallback)
+        if: matrix.os == 'macos-latest'
+        shell: bash
+        run: |
+          set -e
+          bin_path=$(ls -t src-tauri/target/**/release/bilibili-history-frontend 2>/dev/null | head -n 1 || true)
+          if [ -n "$bin_path" ]; then
+            echo "Found macOS binary: $bin_path"
+            cp "$bin_path" BiliBili-History-Frontend-macos
+            chmod +x BiliBili-History-Frontend-macos
+          else
+            echo "macOS raw binary not found; skipping copy"
+          fi
+
+      - name: Upload macOS raw binary (if exists)
+        if: matrix.os == 'macos-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: BiliBili-History-Frontend-macos
+          path: BiliBili-History-Frontend-macos
           if-no-files-found: warn
 
       - name: Upload Linux artifacts (AppImage/deb if present)
@@ -143,4 +159,25 @@ jobs:
             src-tauri/target/**/bundle/deb/*.deb
           if-no-files-found: warn
 
+      - name: Find and upload Linux raw binary (fallback)
+        if: matrix.os == 'ubuntu-latest'
+        shell: bash
+        run: |
+          set -e
+          bin_path=$(ls -t src-tauri/target/**/release/bilibili-history-frontend 2>/dev/null | head -n 1 || true)
+          if [ -n "$bin_path" ]; then
+            echo "Found Linux binary: $bin_path"
+            cp "$bin_path" BiliBili-History-Frontend-linux-x64
+            chmod +x BiliBili-History-Frontend-linux-x64
+          else
+            echo "Linux raw binary not found; skipping copy"
+          fi
+
+      - name: Upload Linux raw binary (if exists)
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: BiliBili-History-Frontend-linux-x64
+          path: BiliBili-History-Frontend-linux-x64
+          if-no-files-found: warn
 
