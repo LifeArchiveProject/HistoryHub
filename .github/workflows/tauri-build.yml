@@ -1,9 +1,12 @@
-name: Tauri Build (tag-triggered)
+name: Tauri Build (tag + branch + manual)
 
 on:
   push:
+    branches:
+      - ci/tauri-build-test
     tags:
       - 'v*'
+  workflow_dispatch:
 
 jobs:
   build:
