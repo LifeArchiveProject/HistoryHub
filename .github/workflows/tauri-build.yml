@@ -10,12 +10,8 @@ on:
 
 jobs:
   build:
-    name: Build on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [windows-latest, macos-latest, ubuntu-latest]
+    name: Build on Windows
+    runs-on: windows-latest
 
     steps:
       - name: Checkout
@@ -26,52 +22,9 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Clean lock and node_modules (non-Windows)
-        if: matrix.os != 'windows-latest'
-        shell: bash
-        run: |
-          rm -f package-lock.json || true
-          rm -rf node_modules || true
-
       - name: Install dependencies
         run: npm install
-
-      - name: Install Tauri CLI (macOS)
-        if: matrix.os == 'macos-latest'
-        shell: bash
-        run: |
-          ARCH=$(uname -m)
-          if [ "$ARCH" = "x86_64" ]; then
-            PKG=@tauri-apps/cli-darwin-x64
-          else
-            PKG=@tauri-apps/cli-darwin-arm64
-          fi
-          echo "Installing $PKG"
-          npm install --no-save "$PKG"
-
-      - name: Install Rollup platform pkg (macOS)
-        if: matrix.os == 'macos-latest'
-        shell: bash
-        run: |
-          ARCH=$(uname -m)
-          if [ "$ARCH" = "x86_64" ]; then
-            RPKG=@rollup/rollup-darwin-x64
-          else
-            RPKG=@rollup/rollup-darwin-arm64
-          fi
-          echo "Installing $RPKG"
-          npm install --no-save "$RPKG"
-
-      - name: Install Tauri CLI (Ubuntu)
-        if: matrix.os == 'ubuntu-latest'
-        run: npm install --no-save @tauri-apps/cli-linux-x64-gnu
-
-      - name: Install Rollup platform pkg (Ubuntu)
-        if: matrix.os == 'ubuntu-latest'
-        run: npm install --no-save @rollup/rollup-linux-x64-gnu
-
-      - name: Install Tauri CLI (Windows)
-        if: matrix.os == 'windows-latest'
+      - name: Install Tauri CLI
         run: npm install --no-save @tauri-apps/cli-win32-x64-msvc
 
       - name: Setup Rust
@@ -91,21 +44,10 @@ jobs:
           path: src-tauri/target
           key: ${{ runner.os }}-tauri-target-${{ hashFiles('src-tauri/Cargo.lock') }}
 
-      - name: Setup Linux deps
-        if: matrix.os == 'ubuntu-latest'
-        run: sudo apt-get update && sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf
-
-      - name: Build (platform-specific)
-        shell: bash
-        run: |
-          if [[ "$RUNNER_OS" == "Windows" ]]; then
-            npm run tauri:build:exe
-          else
-            npm run tauri:build
-          fi
+      - name: Build Windows EXE
+        run: npm run tauri:build:exe
 
       - name: Upload Windows EXE artifact only
-        if: matrix.os == 'windows-latest'
         uses: actions/upload-artifact@v4
         with:
           name: BiliBili-History-Frontend.exe
