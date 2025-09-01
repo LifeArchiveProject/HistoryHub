@@ -28,15 +28,8 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Clean lock and node_modules (non-Windows)
-        if: matrix.os != 'windows-latest'
-        shell: bash
-        run: |
-          rm -f package-lock.json || true
-          rm -rf node_modules || true
-
-      - name: Install dependencies
-        run: npm install
+      - name: Install dependencies (npm ci)
+        run: npm ci
 
       - name: Install Tauri CLI (Windows)
         if: matrix.os == 'windows-latest'
@@ -54,10 +47,21 @@ jobs:
           fi
           echo "Installing $PKG"
           npm install --no-save "$PKG"
+          # Rollup platform optional dep for Vite
+          if [ "$ARCH" = "x86_64" ]; then
+            RPKG=@rollup/rollup-darwin-x64
+          else
+            RPKG=@rollup/rollup-darwin-arm64
+          fi
+          echo "Installing $RPKG"
+          npm install --no-save "$RPKG"
 
       - name: Install Tauri CLI (Ubuntu)
         if: matrix.os == 'ubuntu-latest'
         run: npm install --no-save @tauri-apps/cli-linux-x64-gnu
+      - name: Install Rollup platform pkg (Ubuntu)
+        if: matrix.os == 'ubuntu-latest'
+        run: npm install --no-save @rollup/rollup-linux-x64-gnu
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
