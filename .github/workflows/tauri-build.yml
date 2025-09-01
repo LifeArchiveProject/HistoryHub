@@ -28,7 +28,16 @@ jobs:
 
       - name: Install Tauri CLI (macOS)
         if: matrix.os == 'macos-latest'
-        run: npm install --no-save @tauri-apps/cli-darwin-arm64
+        shell: bash
+        run: |
+          ARCH=$(uname -m)
+          if [ "$ARCH" = "x86_64" ]; then
+            PKG=@tauri-apps/cli-darwin-x64
+          else
+            PKG=@tauri-apps/cli-darwin-arm64
+          fi
+          echo "Installing $PKG"
+          npm install --no-save "$PKG"
 
       - name: Install Tauri CLI (Ubuntu)
         if: matrix.os == 'ubuntu-latest'
