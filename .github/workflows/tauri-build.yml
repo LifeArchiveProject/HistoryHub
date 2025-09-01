@@ -18,6 +18,7 @@ jobs:
         os: [windows-latest, macos-latest, ubuntu-latest]
     env:
       ROLLUP_SKIP_NODE_NATIVE: '1'
+      CARGO_TARGET_DIR: src-tauri/target
 
     steps:
       - name: Checkout
@@ -97,7 +98,11 @@ jobs:
         run: |
           if [[ "$RUNNER_OS" == "Windows" ]]; then
             npm run tauri:build:exe
+          elif [[ "$RUNNER_OS" == "macOS" ]]; then
+            export TAURI_BUNDLE_TARGETS="app,dmg"
+            npm run tauri:build
           else
+            export TAURI_BUNDLE_TARGETS="appimage,deb"
             npm run tauri:build
           fi
 
