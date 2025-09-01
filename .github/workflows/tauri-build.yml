@@ -18,7 +18,6 @@ jobs:
         os: [windows-latest, macos-latest, ubuntu-latest]
     env:
       ROLLUP_SKIP_NODE_NATIVE: '1'
-      CARGO_TARGET_DIR: src-tauri/target
 
     steps:
       - name: Checkout
@@ -113,6 +112,14 @@ jobs:
           ls -R src-tauri/target || true
           echo "==== List bundle dirs ===="
           ls -R src-tauri/target/**/bundle || true
+
+      - name: Locate Windows EXE and copy to root
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          $exe = Get-ChildItem -Path . -Recurse -Filter bilibili-history-frontend.exe | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+          if ($null -eq $exe) { Write-Error "No Windows exe found under repository"; exit 1 }
+          Copy-Item $exe.FullName -Destination ./BiliBili-History-Frontend.exe -Force
 
       - name: Upload Windows EXE artifact only
         if: matrix.os == 'windows-latest'
