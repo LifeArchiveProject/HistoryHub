@@ -113,27 +113,68 @@ async def send_email(subject: str, content: Optional[str] = None, to_email: Opti
 
         try:
             # 不使用 with 语句，以便更好地控制异常处理流程
+            # 支持本地邮件服务和mailrise转发，自动检测SSL支持
             server = smtplib.SMTP(smtp_server, smtp_port, timeout=30)
-            server.starttls()
-            server.login(sender_email, sender_password)
+            
+            # 自动检测是否支持STARTTLS
+            use_starttls = False
+            try:
+                # 先尝试使用STARTTLS（适用于QQ邮箱等标准SMTP服务）
+                server.starttls()
+                use_starttls = True
+                logger.info("STARTTLS连接成功")
+            except smtplib.SMTPNotSupportedError:
+                # 如果服务器不支持STARTTLS（如本地mailrise），继续使用明文连接
+                logger.info("服务器不支持STARTTLS，使用明文连接")
+            except Exception as e:
+                # 如果STARTTLS失败，尝试明文连接
+                logger.warning(f"STARTTLS失败，尝试明文连接: {str(e)}")
+            
+            # 智能认证：先尝试认证，失败则判断是否需要认证
+            try:
+                # 直接尝试登录认证（适用于大部分标准SMTP服务器）
+                server.login(sender_email, sender_password)
+                logger.info("身份认证成功")
+                
+            except smtplib.SMTPNotSupportedError:
+                # 服务器明确不支持认证
+                logger.info("服务器不支持身份认证，跳过认证步骤")
+                
+            except smtplib.SMTPAuthenticationError as e:
+                # 认证失败，可能是凭据错误或其他问题
+                logger.error(f"身份认证失败: {str(e)}")
+                raise Exception(f"身份认证失败: {str(e)}")
+                
+            except Exception as e:
+                # 检查是否是"需要认证"的错误
+                error_str = str(e).lower()
+                if any(keyword in error_str for keyword in ['auth', 'authentication', 'login', 'need ehlo']):
+                    # 明确要求认证的错误，不应该跳过
+                    logger.error(f"服务器要求身份认证但认证失败: {str(e)}")
+                    raise Exception(f"服务器要求身份认证: {str(e)}")
+                else:
+                    # 其他类型错误，可能是不需要认证的服务器
+                    logger.warning(f"认证过程出错，尝试无认证方式: {str(e)}")
+            
             server.send_message(message)
             email_sent = True  # 标记邮件已成功发送
+            
+            # 邮件发送成功后立即关闭连接
+            server.quit()
+            
         except smtplib.SMTPException as e:
             raise Exception(f"SMTP错误: {str(e)}")
         except TimeoutError:
             raise Exception("SMTP服务器连接超时")
-        finally:
-            # 安全关闭连接
+        except Exception as e:
+            # 如果发生任何异常，尝试安全关闭连接
             if server:
                 try:
                     server.quit()
-                except Exception as e:
-                    # 如果邮件已经发送成功，则忽略关闭连接时的错误
-                    if email_sent:
-                        return {"status": "success", "message": "邮件发送成功（服务器连接关闭时出现非致命错误）"}
-                    else:
-                        # 如果邮件未发送成功，则抛出关闭连接时的错误
-                        raise Exception(f"关闭SMTP连接时出错: {str(e)}")
+                except:
+                    # 忽略关闭连接时的任何异常，因为主要异常更重要
+                    pass
+            raise e
 
         # 如果执行到这里，说明邮件发送成功且连接正常关闭
         logger.info(f"邮件发送成功: {subject}")
