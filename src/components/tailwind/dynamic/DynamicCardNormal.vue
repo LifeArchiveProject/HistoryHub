@@ -30,7 +30,17 @@
           <span class="whitespace-pre-wrap">
             <template v-for="(seg, i) in parsedSummary" :key="i">
               <span v-if="seg.type==='text'">{{ seg.text }}</span>
-              <img v-else :src="seg.url" :alt="seg.name" class="emoji emoji-lg inline-block align-text-bottom" />
+              <img
+                v-else
+                :src="seg.url"
+                :alt="seg.name"
+                class="emoji emoji-lg inline-block align-text-bottom cursor-zoom-in hover:opacity-90 transition"
+                role="button"
+                tabindex="0"
+                title="Click to preview"
+                @click.stop="openPreview('image', seg.url)"
+                @keydown.enter.stop="openPreview('image', seg.url)"
+              />
             </template>
           </span>
         </div>
@@ -47,7 +57,17 @@
         <span class="whitespace-pre-wrap">
           <template v-for="(seg, i) in parsedTxt" :key="'t'+i">
             <span v-if="seg.type==='text'">{{ seg.text }}</span>
-            <img v-else :src="seg.url" :alt="seg.name" class="emoji emoji-lg inline-block align-text-bottom" />
+            <img
+              v-else
+              :src="seg.url"
+              :alt="seg.name"
+              class="emoji emoji-lg inline-block align-text-bottom cursor-zoom-in hover:opacity-90 transition"
+              role="button"
+              tabindex="0"
+              title="Click to preview"
+              @click.stop="openPreview('image', seg.url)"
+              @keydown.enter.stop="openPreview('image', seg.url)"
+            />
           </template>
         </span>
       </div>
@@ -269,8 +289,8 @@ const closePreview = () => { showPreview.value = false }
   margin: 0 2px;
 }
 .emoji-lg {
-  height: 1.25em;
-  width: 1.25em;
+  height: 52px;
+  width: 52px;
 }
 </style>
 

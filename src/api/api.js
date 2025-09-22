@@ -1786,3 +1786,17 @@ export const getDynamicDetail = (dynamicId, params = {}) => {
 export const getDynamicTypes = () => {
   return instance.get('/dynamic/types')
 }
+
+// =============================
+// 动态删除接口（/dynamic）
+// =============================
+
+/**
+ * 清理指定 UP 的动态及媒体文件
+ * DELETE /dynamic/space/{host_mid}
+ * @param {string|number} hostMid - UP 的 mid
+ * @returns {Promise<any>}
+ */
+export const deleteDynamicSpace = (hostMid) => {
+  return instance.delete(`/dynamic/space/${hostMid}`)
+}

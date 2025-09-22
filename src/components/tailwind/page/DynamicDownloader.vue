@@ -37,6 +37,11 @@
         :disabled="!canStartDownload"
         @click="handleStartDownload"
       >下载</button>
+      <button
+        class="ml-2 px-3 py-1.5 bg-red-600 text-white rounded-md hover:opacity-90 disabled:opacity-50"
+        :disabled="!hostMid || downloading || deleting"
+        @click="handleDeleteHost"
+      >删除</button>
     </div>
 
     <!-- 已抓取的UP列表 -->
@@ -98,6 +103,8 @@
 
 <script setup>
 import { ref, computed, onUnmounted, watch, nextTick } from 'vue'
+import { showDialog } from 'vant'
+import 'vant/es/dialog/style'
 import { toStaticUrl } from '@/utils/imageUrl'
 import DynamicCardVideo from '@/components/tailwind/dynamic/DynamicCardVideo.vue'
 import DynamicCardNormal from '@/components/tailwind/dynamic/DynamicCardNormal.vue'
@@ -107,7 +114,8 @@ import {
   getDynamicDbSpace,
   startDynamicAutoFetch,
   createDynamicProgressSSE,
-  stopDynamicAutoFetch
+  stopDynamicAutoFetch,
+  deleteDynamicSpace
 } from '@/api/api'
 
 // 输入 mid
@@ -132,6 +140,7 @@ const noMore = ref(false)
 
 // 下载状态与 SSE
 const downloading = ref(false)
+const deleting = ref(false)
 let sse = null
 const logs = ref([])
 let queryTimer = null
@@ -289,6 +298,68 @@ const handleStop = async () => {
     await refreshList(true)
     // 停止后刷新头像（可能在抓取期间生成了face）
     await fetchHostInfo(hostMid.value)
+  }
+}
+
+const confirmDelete = (mid, name) => {
+  return new Promise((resolve) => {
+    showDialog({
+      title: '⚠️ 危险操作',
+      message: `即将删除 ${name} (UID: ${mid}) 的所有动态媒体与数据库记录。\n\n此操作不可恢复，请谨慎确认！`,
+      showCancelButton: true,
+      confirmButtonText: '确认删除',
+      cancelButtonText: '取消'
+    }).then(() => {
+      // 第二次确认
+      showDialog({
+        title: '🚨 最终确认',
+        message: `请再次确认删除 ${name} (UID: ${mid}) 的所有数据。\n\n点击确认后将立即执行删除操作！`,
+        showCancelButton: true,
+        confirmButtonText: '立即删除',
+        cancelButtonText: '取消'
+      }).then(() => resolve(true)).catch(() => resolve(false))
+    }).catch(() => resolve(false))
+  })
+}
+
+const handleDeleteHost = async () => {
+  if (!hostMid.value || downloading.value || deleting.value) return
+  const mid = String(hostMid.value)
+  const name = hostInfo.value?.up_name || `UID ${mid}`
+  const confirmed = await confirmDelete(mid, name)
+  if (!confirmed) return
+  await executeDelete(mid, name, true)
+}
+
+const executeDelete = async (mid, name, clearSelection) => {
+  try {
+    deleting.value = true
+    addLog(`Delete requested for ${name} (MID: ${mid})`)
+    await deleteDynamicSpace(mid)
+    addLog(`Delete success for ${name} (MID: ${mid})`)
+    
+    if (clearSelection) {
+      // 清空本地列表、选择状态并刷新
+      items.value = []
+      offset.value = 0
+      total.value = 0
+      noMore.value = true
+      hostInfo.value = null
+      hostMid.value = ''
+      inputMid.value = ''
+    }
+    
+    await loadHosts()
+  } catch (e) {
+    const errorMsg = e?.message || e
+    addLog(`delete error: ${errorMsg}`)
+    showDialog({
+      title: '删除失败',
+      message: `删除 ${name} 失败：\n${errorMsg}`,
+      confirmButtonText: '确定'
+    })
+  } finally {
+    deleting.value = false
   }
 }
 
