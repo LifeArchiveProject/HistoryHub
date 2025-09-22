@@ -1,4 +1,5 @@
 import os
+import shutil
 import asyncio
 from typing import Optional, Dict, Any, List
 from fastapi import APIRouter, HTTPException, Query, Response
@@ -14,6 +15,7 @@ from scripts.dynamic_db import (
     list_hosts_with_stats,
     list_dynamics_for_host,
     dynamic_core_exists,
+    purge_host,
 )
 from scripts.dynamic_media import collect_image_urls, download_images, predict_image_path, collect_live_media_urls, download_live_media, collect_emoji_urls, download_emojis
 
@@ -1138,3 +1140,56 @@ async def get_dynamic_types():
     }
     
     return {"types": dynamic_types}
+
+
+@router.delete("/space/{host_mid}", summary="删除指定UP的动态数据（文件+数据库）")
+async def delete_space_data(host_mid: int) -> Dict[str, Any]:
+    """
+    删除指定 host_mid 的本地动态数据目录以及数据库中所有关联记录。
+    - 文件夹: output/dynamic/{host_mid}
+    - 数据库表: dynamic_core / dynamic_author / dynamic_stat / dynamic_topic / major_opus_pics / major_archive_jump_urls
+    """
+    # 发送停止信号（若存在正在抓取的任务，页级停止）
+    try:
+        ev = _get_or_create_event(host_mid)
+        ev.set()
+    except Exception as e:
+        logger.warning(f"[purge] 发送停止信号失败（忽略） host_mid={host_mid}: {e}")
+
+    # 定位并删除文件夹
+    dir_path: Optional[str] = None
+    dir_existed = False
+    dir_deleted = False
+    try:
+        dir_path = os.path.dirname(get_output_path("dynamic", str(host_mid), "__host_meta.json"))
+        dir_existed = os.path.isdir(dir_path)
+        if dir_existed:
+            shutil.rmtree(dir_path, ignore_errors=True)
+            dir_deleted = not os.path.exists(dir_path)
+    except Exception as e:
+        logger.error(f"[purge] 删除目录失败 host_mid={host_mid}: {e}")
+
+    # 删除数据库记录
+    try:
+        conn = get_connection()
+    except Exception as e:
+        logger.error(f"[purge] 打开动态数据库失败: {e}")
+        raise HTTPException(status_code=500, detail=f"打开动态数据库失败: {str(e)}")
+
+    try:
+        db_stats = purge_host(conn, host_mid)
+    finally:
+        try:
+            conn.close()
+        except Exception:
+            pass
+
+    return {
+        "host_mid": str(host_mid),
+        "dir": {
+            "path": dir_path,
+            "existed": dir_existed,
+            "deleted": dir_deleted,
+        },
+        "db_deleted": db_stats,
+    }

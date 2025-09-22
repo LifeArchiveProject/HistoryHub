@@ -557,3 +557,52 @@ def list_dynamics_for_host(
     return {"source": "core", "total": 0, "items": []}
 
 
+
+
+def purge_host(conn: sqlite3.Connection, host_mid: int) -> Dict[str, int]:
+    """按 host_mid 删除与动态相关的所有数据库内容。
+
+    删除范围:
+    - dynamic_core
+    - dynamic_author
+    - dynamic_stat
+    - dynamic_topic
+    - major_opus_pics
+    - major_archive_jump_urls
+
+    Returns:
+        Dict[str, int]: 各表删除数量与总数统计，如 {"dynamic_core": 10, ..., "total": 42}
+    """
+    cursor = conn.cursor()
+    host_mid_str = str(host_mid)
+    # 为避开潜在的外键约束问题（虽然当前表未启用约束），从“子表”到“主表”的顺序删除
+    tables = [
+        "major_archive_jump_urls",
+        "major_opus_pics",
+        "dynamic_topic",
+        "dynamic_stat",
+        "dynamic_author",
+        "dynamic_core",
+    ]
+
+    stats: Dict[str, int] = {}
+    total = 0
+    for t in tables:
+        try:
+            cursor.execute(f"DELETE FROM {t} WHERE host_mid = ?", (host_mid_str,))
+            # sqlite3 rowcount 返回本次操作影响的行数；若不可用则置 0
+            affected = cursor.rowcount if cursor.rowcount is not None else 0
+            stats[t] = affected
+            total += affected
+        except Exception as e:
+            # 不中断整个清理，记录警告并继续
+            logger.warning(f"purge_host: delete from {t} failed: {e}")
+            stats[t] = 0
+
+    try:
+        conn.commit()
+    except Exception as e:
+        logger.warning(f"purge_host: commit failed: {e}")
+
+    stats["total"] = total
+    return stats

@@ -23,7 +23,7 @@ def _looks_like_image_url(url: str) -> bool:
 
 
 def _walk_collect_urls(obj: Any, path: List[str], collector: Set[str]) -> None:
-    """递归遍历对象并按上下文收集图片URL，排除标签、头像和表情相关图片"""
+    """递归遍历对象并按上下文收集图片URL，排除标签、头像、头像框（pendant）和表情相关图片"""
     # 路径关键字，用于排除
     path_lower = [p.lower() for p in path]
 
@@ -35,6 +35,10 @@ def _walk_collect_urls(obj: Any, path: List[str], collector: Set[str]) -> None:
 
     def is_decorate_card_context() -> bool:
         return any(p in ("decorate", "decorate_card", "decoration_card") for p in path_lower)
+
+    def is_pendant_context() -> bool:
+        # 头像框字段：module_author.pendant.*（仅在 pendant/pendent 上下文才判定）
+        return any(p in ("pendant", "pendent") for p in path_lower)
 
     def is_interaction_context() -> bool:
         return any(p == "module_interaction" for p in path_lower)
@@ -52,8 +56,15 @@ def _walk_collect_urls(obj: Any, path: List[str], collector: Set[str]) -> None:
                     return True
         return False
 
-    # 如果当前路径已经落在 label、avatar、表情相关区域，直接不收集其下任何URL
-    if is_label_context() or is_avatar_context() or is_decorate_card_context() or is_interaction_context() or is_emoji_context():
+    # 如果当前路径已经落在 label、avatar、pendant、表情或其它不需要区域，直接不收集其下任何URL
+    if (
+        is_label_context()
+        or is_avatar_context()
+        or is_pendant_context()
+        or is_decorate_card_context()
+        or is_interaction_context()
+        or is_emoji_context()
+    ):
         return
 
     if isinstance(obj, dict):
@@ -76,9 +87,13 @@ def _walk_collect_urls(obj: Any, path: List[str], collector: Set[str]) -> None:
     elif isinstance(obj, str):
         s = obj
         if _looks_like_image_url(s):
-            # 额外基于URL路径排除头像类
+            # 额外基于URL路径排除头像与头像框类
             low = s.lower()
+            # 头像
             if "/bfs/face/" in low or "/face/" in low:
+                return
+            # 头像框（pendant）常见路径：/bfs/garb/item/
+            if "/bfs/garb/item/" in low:
                 return
             # 其它图片加入集合
             collector.add(s)
@@ -119,6 +134,10 @@ def collect_emoji_urls(dynamic_item: Dict) -> List[Tuple[str, str]]:
     emoji_list: List[Tuple[str, str]] = []
     
     def _extract_emojis(obj: Any, path: List[str]) -> None:
+        # 路径上下文：忽略互动区(module_interaction)的热评表情
+        path_lower = [p.lower() for p in path]
+        if any(p == "module_interaction" for p in path_lower):
+            return
         if isinstance(obj, dict):
             # 检查是否是表情节点
             if (obj.get("type") == "RICH_TEXT_NODE_TYPE_EMOJI" and 
