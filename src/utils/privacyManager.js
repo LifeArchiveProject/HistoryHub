@@ -23,9 +23,6 @@ export const enablePrivacyMode = () => {
   // 触发隐私模式变更事件
   dispatchPrivacyModeChanged(true)
   
-  // 自动关闭像素化图片
-  localStorage.setItem('usePixelImage', 'false')
-  
   console.log('隐私模式已启用')
 }
 

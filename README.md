@@ -81,7 +81,7 @@ npm run dev
 **6. 计划任务** 统一管理定时与链式任务，支持新建/编辑/执行/启用或禁用，并查看历史与成功率。
 <img src="./public/scheduler.png" alt="">
 
-**7. 设置** 配置服务器、隐私与布局、像素化与像素字体，数据导出。
+**7. 设置** 配置服务器、隐私与布局、数据导出。
 <img src="./public/setting.png" alt="">
 
 **8. 视频下载功能** 输入 BV/链接或 UP UID 下载单个/合集/投稿，过程实时反馈。
@@ -144,8 +144,6 @@ npm run dev
 - [DeepSeek](https://github.com/deepseek-ai/DeepSeek-R1) - DeepSeek AI API
 - [ArtPlayer](https://github.com/zhw2590582/ArtPlayer) - 强大且灵活的 HTML5 视频播放器
 - [aicu.cc](https://www.aicu.cc/) - 第三方 B 站用户评论 API
-- [方舟像素字体](https://github.com/TakWolf/ark-pixel-font) - 开源的泛中日韩像素字体
-- [缝合像素字体](https://github.com/TakWolf/fusion-pixel-font) - 混搭风格的像素字体
 - [小黑盒用户 shengyI](https://www.xiaoheihe.cn/app/bbs/link/153880174) - 视频观看总时长功能思路提供者
 - 所有贡献者，特别感谢:
   - [@eli-yip](https://github.com/eli-yip) 对 Docker 部署的贡献

@@ -5,87 +5,11 @@
   --van-primary-color: #ff6699; /* 修改Vant主颜色 */
 }
 
-/* 引入像素字体 */
-@font-face {
-  font-family: 'ArkPixel';
-  src: url('/fonts/ark-pixel-font-10px-monospaced-ttf-v2025.03.14/ark-pixel-10px-monospaced-latin.ttf') format('truetype');
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
 
-@font-face {
-  font-family: 'ArkPixelZH';
-  src: url('/fonts/ark-pixel-font-10px-monospaced-ttf-v2025.03.14/ark-pixel-10px-monospaced-zh_cn.ttf') format('truetype');
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
 
-@font-face {
-  font-family: 'FusionPixel';
-  src: url('/fonts/fusion-pixel-font-10px-monospaced-ttf-v2025.03.14/fusion-pixel-10px-monospaced-latin.ttf') format('truetype');
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
 
-@font-face {
-  font-family: 'FusionPixelZH';
-  src: url('/fonts/fusion-pixel-font-10px-monospaced-ttf-v2025.03.14/fusion-pixel-10px-monospaced-zh_hans.ttf') format('truetype');
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
 
-/* 像素字体应用 */
-.use-pixel-font {
-  font-family: 'ArkPixelZH', 'ArkPixel', 'FusionPixelZH', 'FusionPixel', sans-serif !important;
-}
 
-.use-pixel-font * {
-  font-family: 'ArkPixelZH', 'ArkPixel', 'FusionPixelZH', 'FusionPixel', sans-serif !important;
-}
-
-/* 图片像素化样式 - 作为临时样式，在真正处理完成前提供基本像素化效果 */
-.use-pixel-images img:not(.no-pixelate):not([data-pixelated="true"]) {
-  image-rendering: pixelated !important;
-  image-rendering: crisp-edges !important;
-  -ms-interpolation-mode: nearest-neighbor !important;
-  filter: contrast(1.05); /* 轻微增加对比度 */
-}
-
-/* 已处理过的像素化图片样式 */
-img[data-pixelated="true"] {
-  image-rendering: pixelated !important;
-  image-rendering: crisp-edges !important;
-  -ms-interpolation-mode: nearest-neighbor !important;
-  transform: translateZ(0); /* 启用硬件加速 */
-  backface-visibility: hidden; /* 防止闪烁 */
-  will-change: transform; /* 提示浏览器这个元素会变化 */
-  filter: contrast(1.1) saturate(1.05); /* 轻微增加对比度和饱和度加强像素感 */
-  box-shadow: 0 0 0 1px rgba(0,0,0,0.02); /* 添加微弱边框增强像素感 */
-}
-
-/* 为低质量像素化增加视觉锐化效果 */
-.use-pixel-images[data-pixel-quality="10"] img[data-pixelated="true"],
-.use-pixel-images[data-pixel-quality="20"] img[data-pixelated="true"] {
-  filter: contrast(1.1) brightness(0.98); /* 增加对比度，轻微降低亮度 */
-  box-shadow: 0 0 0 1px rgba(0,0,0,0.02); /* 添加微弱边框增强像素感 */
-}
-
-/* 像素化处理出错的图片样式 */
-.pixelate-error {
-  position: relative;
-}
-
-/* 强制设置破损图片的基本像素化效果 */
-.use-pixel-images .pixelate-error {
-  image-rendering: pixelated !important;
-  image-rendering: crisp-edges !important;
-  -ms-interpolation-mode: nearest-neighbor !important;
-  filter: contrast(1.1) brightness(0.9); /* 稍微增加对比度模拟像素效果 */
-}
 
 /* 计算弹窗管理样式 */
 .van-dialog {

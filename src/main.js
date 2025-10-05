@@ -7,8 +7,6 @@ import { createMyRouter } from './router/router' // 使用命名导入
 import Vant from 'vant'
 // 引入Vant组件样式
 import 'vant/lib/index.css'
-// 引入像素化插件
-import { pixelatePlugin } from './utils/pixelDirective'
 
 // 初始化custom event用于API模块间通信
 window.addEventListener('api-baseurl-updated', (event) => {
@@ -41,8 +39,6 @@ async function initTauri() {
   const app = createApp(App)
   app.use(router)
   app.use(Vant)
-  // 注册像素化插件
-  app.use(pixelatePlugin)
   app.mount('#app')
 
   // 在 Tauri 环境中设置所有链接在当前窗口打开

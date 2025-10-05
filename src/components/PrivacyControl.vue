@@ -7,7 +7,7 @@
       {{ isPrivacyEnabled ? '关闭隐私模式' : '开启隐私模式' }}
     </button>
     <div class="privacy-info">
-      {{ isPrivacyEnabled ? '隐私模式下图片像素化已自动关闭' : '隐私模式关闭时可以使用图片像素化' }}
+      {{ isPrivacyEnabled ? '隐私模式开启时将隐藏敏感信息' : '隐私模式关闭时将显示完整信息' }}
     </div>
   </div>
 </template>
