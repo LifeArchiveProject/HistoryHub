@@ -1255,26 +1255,6 @@ export const batchCheckFavoriteStatus = (params = {}) => {
 }
 
 /**
- * 批量修复失效的收藏视频
- * @param {Object} params 请求参数
- * @param {Array<number>} [params.video_ids] 视频av号列表
- * @param {number} [params.media_id] 收藏夹ID，指定时修复该收藏夹内的所有失效视频
- * @param {boolean} [params.repair_all] 是否修复所有收藏夹中的失效视频，默认为false
- * @param {Array<string>} [params.bvids] 视频BV号列表
- * @param {string} [params.sessdata] 用户的SESSDATA，不提供则从配置文件读取
- * @returns {Promise<Object>} 修复结果
- */
-export const repairFavoriteVideos = (params = {}) => {
-  // 确保video_ids字段始终存在，即使为空数组
-  const requestParams = { ...params };
-  if (!requestParams.video_ids) {
-    requestParams.video_ids = [];
-  }
-
-  return instance.post('/favorite/repair/batch', requestParams);
-}
-
-/**
  * 下载用户收藏夹视频
  * @param {Object} options 下载选项
  * @param {string} options.user_id 用户UID
@@ -1700,29 +1680,6 @@ export const getDynamicDbSpace = (hostMid, limit = 20, offset = 0) => {
     params: { limit, offset }
   })
 }
-
-/**
- * 直接从 B 站拉取指定用户空间动态（可多页）
- * GET /dynamic/space/{host_mid}
- * @param {string|number} hostMid - UP 的 mid
- * @param {Object} params - 查询参数
- * @param {number} [params.pages=1] - 拉取页数（0 表示拉到没有 offset 为止）
- * @param {boolean} [params.need_top=false] - 是否需要置顶
- * @param {boolean} [params.save_to_db=true] - 是否保存到数据库
- * @param {boolean} [params.save_media=true] - 是否下载媒体
- */
-export const fetchDynamicSpace = (hostMid, params = {}) => {
-  const {
-    pages = 1,
-    need_top = false,
-    save_to_db = true,
-    save_media = true
-  } = params
-  return instance.get(`/dynamic/space/${hostMid}`, {
-    params: { pages, need_top, save_to_db, save_media }
-  })
-}
-
 /**
  * 自动从上次位置继续抓取（页级延迟 3-5 秒，支持“页级停止”）
  * GET /dynamic/space/auto/{host_mid}
@@ -1763,30 +1720,6 @@ export const createDynamicProgressSSE = (hostMid) => {
 export const stopDynamicAutoFetch = (hostMid) => {
   return instance.post(`/dynamic/space/auto/${hostMid}/stop`)
 }
-
-/**
- * 获取单条动态详情；可选择保存到数据库及下载媒体
- * GET /dynamic/detail/{dynamic_id}
- * @param {string|number} dynamicId - 动态ID
- * @param {Object} params - 查询参数
- * @param {boolean} [params.save_to_db=true]
- * @param {boolean} [params.save_media=true]
- */
-export const getDynamicDetail = (dynamicId, params = {}) => {
-  const { save_to_db = true, save_media = true } = params
-  return instance.get(`/dynamic/detail/${dynamicId}`, {
-    params: { save_to_db, save_media }
-  })
-}
-
-/**
- * 返回动态类型字典
- * GET /dynamic/types
- */
-export const getDynamicTypes = () => {
-  return instance.get('/dynamic/types')
-}
-
 // =============================
 // 动态删除接口（/dynamic）
 // =============================

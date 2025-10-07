@@ -219,10 +219,12 @@
             :date="date"
             :category="category"
             :total="total"
+            :pageSize="pageSize"
             @update:business="$emit('update:business', $event)"
             @update:businessLabel="$emit('update:businessLabel', $event)"
             @update:date="$emit('update:date', $event)"
             @update:category="$emit('update:category', $event)"
+            @update:pageSize="$emit('update:pageSize', $event)"
             @click-date="$emit('click-date')"
             @click-category="$emit('click-category')"
             @refresh-data="$emit('refresh-data')"
@@ -237,9 +239,8 @@
 import SearchBar from './SearchBar.vue'
 import FilterDropdown from './FilterDropdown.vue'
 import { ref, watch } from 'vue'
-import { updateBiliHistoryRealtime } from '../../api/api'
 import { showNotify } from 'vant'
-import { usePrivacyStore } from '../../store/privacy'
+import { usePrivacyStore } from '@/store/privacy.js'
 import 'vant/es/notify/style'
 
 const { isPrivacyMode, togglePrivacyMode } = usePrivacyStore()
@@ -272,6 +273,10 @@ const props = defineProps({
   business: {
     type: String,
     default: ''
+  },
+  pageSize: {
+    type: Number,
+    default: 30
   }
 })
 
@@ -284,6 +289,7 @@ const emit = defineEmits([
   'update:category',
   'update:business',
   'update:businessLabel',
+  'update:pageSize',
   'refresh-data',
   'toggle-batch-mode'
 ])
@@ -295,28 +301,6 @@ const syncDeleted = ref(localStorage.getItem('syncDeleted') === 'true')
 watch(() => localStorage.getItem('syncDeleted'), (newVal) => {
   syncDeleted.value = newVal === 'true'
 })
-
-// 清除日期筛选
-const clearDate = (event) => {
-  event.stopPropagation()
-  emit('update:date', '')
-  emit('refresh-data')
-}
-
-// 清除分区筛选
-const clearCategory = (event) => {
-  event.stopPropagation()
-  emit('update:category', '')
-  emit('refresh-data')
-}
-
-// 清除条目类型筛选
-const clearBusiness = (event) => {
-  event.stopPropagation()
-  emit('update:business', '')
-  emit('update:businessLabel', '')
-  emit('refresh-data')
-}
 
 // 处理更新
 const handleUpdate = async () => {

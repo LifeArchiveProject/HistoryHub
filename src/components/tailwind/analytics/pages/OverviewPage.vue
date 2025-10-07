@@ -4,7 +4,7 @@
     <h3 class="text-3xl font-bold text-center bg-gradient-to-r from-[#fb7299] to-[#fc9b7a] bg-clip-text text-transparent">
       年度观看数据
     </h3>
-    
+
     <div class="text-base text-center text-gray-600 dark:text-gray-300 space-y-3">
       <!-- 总体活动总结（放在最前面） -->
       <div v-if="viewingData?.insights?.overall_activity"
@@ -60,7 +60,7 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue'
 import * as echarts from 'echarts'
-import { getYearlyAnalysis, getViewingBehavior } from '../../../../api/api'
+import { getYearlyAnalysis, getViewingBehavior } from '@/api/api.js'
 
 const props = defineProps({
   viewingData: {
@@ -86,20 +86,20 @@ const getDateRange = (year) => {
   const end = new Date(Date.UTC(year, 11, 31))
   const dates = []
   let current = start
-  
+
   while (current <= end) {
     const date = current.toISOString().split('T')[0]
     dates.push(date)
     current = new Date(Date.UTC(current.getUTCFullYear(), current.getUTCMonth(), current.getUTCDate() + 1))
   }
-  
+
   return dates
 }
 
 // 获取年度分析数据
 const fetchYearlyData = async (year) => {
   if (!year) return
-  
+
   try {
     const response = await getYearlyAnalysis(year)
     if (response.data.status === 'success') {
@@ -116,7 +116,7 @@ const fetchYearlyData = async (year) => {
 // 获取观看行为数据
 const fetchViewingBehavior = async (year) => {
   if (!year) return
-  
+
   try {
     const response = await getViewingBehavior(year, true)
     if (response.data && response.data.status === 'success') {
@@ -135,7 +135,7 @@ const initHeatmapChart = () => {
 
   const dailyData = yearlyData.value.data.daily_count
   const allDates = getDateRange(year)
-  
+
   // 将数据转换为热力图所需的格式
   const data = allDates.map(date => {
     const count = dailyData[date] || 0
@@ -156,7 +156,20 @@ const initHeatmapChart = () => {
       formatter: function(params) {
         const date = params.value[0]
         const count = params.value[1]
-        return date + ' : ' + count + '个视频'
+        const secondsMap = (yearlyData.value && yearlyData.value.data && yearlyData.value.data.daily_watch_seconds) || {}
+        const seconds = secondsMap[date] || 0
+        const h = Math.floor(seconds / 3600)
+        const m = Math.floor((seconds % 3600) / 60)
+        const s = seconds % 60
+        let timeStr
+        if (h > 0) {
+          timeStr = `${h}小时${String(m).padStart(2, '0')}分${String(s).padStart(2, '0')}秒`
+        } else if (m > 0) {
+          timeStr = `${m}分${String(s).padStart(2, '0')}秒`
+        } else {
+          timeStr = `${s}秒`
+        }
+        return `${date} : ${count}个视频 · 观看时长 ${timeStr}`
       },
       textStyle: {
         fontSize: 14
@@ -227,7 +240,7 @@ onMounted(() => {
     fetchYearlyData(props.viewingData.year)
     fetchViewingBehavior(props.viewingData.year)
   }
-  
+
   // 监听窗口大小变化
   window.addEventListener('resize', () => {
     heatmapChart?.resize()

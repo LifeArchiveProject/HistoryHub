@@ -17,6 +17,21 @@
 
       <!-- 右侧操作区 -->
       <div class="flex items-center space-x-2 sm:space-x-3 ml-1 sm:ml-2">
+        <!-- 每页显示条数设置 -->
+        <div class="flex items-center text-xs text-gray-500">
+          <span class="mr-1">每页</span>
+          <input
+            type="number"
+            :value="pageSize"
+            @input="handlePageSizeChange"
+            @blur="handlePageSizeBlur"
+            min="10"
+            max="100"
+            class="w-12 h-6 rounded border border-gray-200 px-1 text-center text-gray-700 transition-colors [appearance:textfield] hover:border-[#fb7299] focus:border-[#fb7299] focus:outline-none focus:ring-1 focus:ring-[#fb7299]/30 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+          />
+          <span class="ml-1">条</span>
+        </div>
+
         <!-- 总视频数显示 -->
         <div class="text-xs text-gray-500 ">
           总视频数: <span class="text-[#FF6699] font-medium">{{ total }}</span>
@@ -205,7 +220,7 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import { showNotify, Popup as VanPopup } from 'vant'
 import 'vant/es/popup/style'
 import 'vant/es/notify/style'
@@ -231,6 +246,10 @@ const props = defineProps({
     type: Number,
     default: 0,
   },
+  pageSize: {
+    type: Number,
+    default: 30,
+  },
 })
 
 const emit = defineEmits([
@@ -238,6 +257,7 @@ const emit = defineEmits([
   'update:businessLabel',
   'update:date',
   'update:category',
+  'update:pageSize',
   'refresh-data',
 ])
 
@@ -406,7 +426,7 @@ const applyDateFilter = () => {
         message: '日期格式无效',
         duration: 2000,
       })
-      return
+
     }
   } else if (!startDate.value && !endDate.value) {
     // 如果两个日期都为空，清除筛选
@@ -419,7 +439,7 @@ const applyDateFilter = () => {
       message: '请同时设置开始和结束日期',
       duration: 2000,
     })
-    return
+
   }
 }
 
@@ -469,6 +489,26 @@ const clearBusiness = () => {
     message: '已清除业务类型筛选',
     duration: 1000,
   })
+}
+
+// 处理每页条数变化
+const handlePageSizeChange = (event) => {
+  const value = parseInt(event.target.value)
+  if (!isNaN(value) && value >= 10 && value <= 100) {
+    emit('update:pageSize', value)
+  }
+}
+
+// 处理输入框失焦
+const handlePageSizeBlur = (event) => {
+  let value = parseInt(event.target.value)
+  if (isNaN(value) || value < 10) {
+    value = 10
+  } else if (value > 100) {
+    value = 100
+  }
+  emit('update:pageSize', value)
+  // 不调用 refresh-data，因为 pageSize 的 watch 会自动触发 fetchHistoryByDateRange
 }
 
 // 组件挂载时获取视频分类

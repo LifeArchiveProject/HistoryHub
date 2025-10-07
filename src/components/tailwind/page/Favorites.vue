@@ -65,15 +65,6 @@
               </div>
               <div class="flex items-center space-x-2">
                 <button
-                  @click="openRepairHelp"
-                  class="flex items-center px-3 py-1.5 text-xs text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-md transition-colors mr-2"
-                >
-                  <svg class="w-3.5 h-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <span>修复说明</span>
-                </button>
-                <button
                   v-if="activeTab !== 'local'"
                   @click="fetchAllContents"
                   class="flex items-center px-3 py-1.5 text-xs text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
@@ -259,17 +250,7 @@
                       <span>下载收藏夹</span>
                     </button>
 
-                    <button
-                      v-if="invalidVideosCount > 0"
-                      @click="repairInvalidVideos"
-                      class="flex items-center px-3 py-1.5 text-xs text-yellow-600 bg-yellow-50 hover:bg-yellow-100 rounded-md transition-colors"
-                      :disabled="repairing"
-                    >
-                      <svg class="w-3.5 h-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
-                      </svg>
-                      <span>{{ repairing ? '修复中...' : '修复失效视频' }}</span>
-                    </button>
+
                   </div>
                 </div>
 
@@ -279,25 +260,10 @@
                     v-for="item in folderContents"
                     :key="item.id || item.bvid"
                     class="bg-white/50 backdrop-blur-sm rounded-md overflow-hidden border border-gray-200/50 hover:border-[#fb7299] hover:shadow-sm transition-all duration-200 relative group"
-                    :class="{
-                      'border-yellow-400 ring-1 ring-yellow-300': isRepairedVideo(item),
-                      'border-orange-400 ring-1 ring-orange-300': isRepairFailedVideo(item),
-                      'border-red-300 opacity-70': isInvalidVideo(item) && !isRepairedVideo(item) && !isRepairFailedVideo(item)
-                    }"
                   >
                     <!-- 视频封面 -->
                     <div class="relative pb-[56.25%] overflow-hidden cursor-pointer group" @click="openVideo(item)">
-                      <!-- 修复中加载动画 -->
-                      <div
-                        v-if="isVideoRepairing(item)"
-                        class="absolute inset-0 flex items-center justify-center bg-black/50 z-10"
-                      >
-                        <svg class="animate-spin w-10 h-10 text-yellow-400" fill="none" viewBox="0 0 24 24">
-                          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        <span class="absolute mt-14 text-xs bg-black/70 text-white px-2 py-1 rounded">正在修复...</span>
-                      </div>
+
 
                        <img
                          :src="normalizeImageUrl(getVideoImage(item))"
@@ -312,29 +278,7 @@
                         {{ formatDuration(item.duration) }}
                       </div>
 
-                      <!-- 已修复标记 -->
-                      <div
-                        v-if="isRepairedVideo(item)"
-                        class="absolute top-0 left-0 bg-yellow-400 text-white px-1.5 py-0.5 text-[10px] font-medium rounded-br-md"
-                      >
-                        已修复
-                      </div>
 
-                      <!-- 修复失败标记 -->
-                      <div
-                        v-else-if="isRepairFailedVideo(item)"
-                        class="absolute top-0 left-0 bg-orange-500 text-white px-1.5 py-0.5 text-[10px] font-medium rounded-br-md"
-                      >
-                        修复失败
-                      </div>
-
-                      <!-- 失效标记 -->
-                      <div
-                        v-else-if="isInvalidVideo(item)"
-                        class="absolute top-0 left-0 bg-red-500 text-white px-1.5 py-0.5 text-[10px] font-medium rounded-br-md"
-                      >
-                        失效
-                      </div>
                     </div>
 
                     <!-- 视频信息 -->
@@ -416,55 +360,7 @@
       @download-complete="handleDownloadComplete"
     />
 
-    <!-- 修复功能说明弹窗 -->
-    <div v-if="showRepairHelp" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-      <div class="bg-white rounded-lg shadow-xl max-w-2xl w-11/12 max-h-[80vh] overflow-y-auto">
-        <div class="p-5 border-b border-gray-200 flex justify-between items-center">
-          <h3 class="text-lg font-medium">收藏视频修复功能说明</h3>
-          <button @click="showRepairHelp = false" class="text-gray-500 hover:text-gray-700">
-            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-        <div class="p-5">
-          <h4 class="text-base font-medium mb-2">功能概述</h4>
-          <p class="text-sm text-gray-700 mb-4">
-            修复功能可以尝试通过多个数据源（B站API、BiliPlus、JijiDown、XBeiBeiX等）恢复失效的收藏视频信息。
-          </p>
 
-
-          <h4 class="text-base font-medium mb-2">视频状态标识</h4>
-          <div class="space-y-3 mb-4">
-            <div class="flex items-center">
-              <div class="w-16 h-6 bg-yellow-400 text-white flex items-center justify-center text-xs rounded-md">已修复</div>
-              <p class="ml-3 text-sm text-gray-700">表示该视频已经成功修复</p>
-            </div>
-            <div class="flex items-center">
-              <div class="w-16 h-6 bg-orange-500 text-white flex items-center justify-center text-xs rounded-md">修复失败</div>
-              <p class="ml-3 text-sm text-gray-700">表示系统尝试修复该视频但未能成功获取有效信息</p>
-            </div>
-            <div class="flex items-center">
-              <div class="w-16 h-6 bg-red-500 text-white flex items-center justify-center text-xs rounded-md">失效</div>
-              <p class="ml-3 text-sm text-gray-700">表示该视频已失效且尚未修复</p>
-            </div>
-          </div>
-
-          <h4 class="text-base font-medium mb-2">注意事项</h4>
-          <ul class="list-disc pl-5 text-sm text-gray-700 mb-4 space-y-2">
-            <li>修复过程会查询多个数据源，处理时间可能较长，请耐心等待。</li>
-            <li>不是所有失效视频都能成功修复，修复成功率取决于数据源是否有相关记录。</li>
-            <li>修复后的视频信息可能不完全准确，但会尽量接近原始内容。</li>
-            <li>修复操作仅恢复视频信息，无法恢复视频播放功能。</li>
-          </ul>
-        </div>
-        <div class="bg-gray-50 p-4 flex justify-end border-t border-gray-200">
-          <button @click="showRepairHelp = false" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-md text-sm font-medium transition-colors">
-            关闭
-          </button>
-        </div>
-      </div>
-    </div>
   </div>
 </template>
 
@@ -483,10 +379,8 @@ import {
   getLocalFavoriteFolders,
   getFavoriteContents,
   getLocalFavoriteContents,
-  getLoginStatus,
-  repairFavoriteVideos,
-  downloadFavorites
-} from '../../../api/api'
+  getLoginStatus
+} from '@/api/api.js'
 import { openInBrowser } from '@/utils/openUrl.js'
 import { normalizeImageUrl } from '@/utils/imageUrl.js'
 
@@ -513,8 +407,7 @@ const contentsTotalItems = ref(0)
 // 登录弹窗状态
 const showLoginDialog = ref(false)
 
-// 修复功能帮助弹窗
-const showRepairHelp = ref(false)
+// 已移除修复功能相关弹窗
 
 // 登录状态
 const isLoggedIn = ref(false)
@@ -527,12 +420,7 @@ const totalFetchPages = ref(0)
 const fetchProgress = ref(0)
 const allFetchedContents = ref([])
 
-// 修复状态
-const repairing = ref(false)
-const repairResults = ref(null)
-
-// 视频修复状态
-const repairingVideos = ref(new Set())
+// 已移除修复状态与结果
 
 // 计算总页数
 const totalPages = computed(() => {
@@ -725,18 +613,6 @@ async function viewFolderContents(folder) {
   // 先加载内容
   const contents = await loadContents()
   console.log(`收藏夹[${folder.media_id || folder.id}]加载完成，共${contents.length}个视频`)
-
-  // 检查是否有失效视频，有则自动执行修复
-  const invalidVideos = contents.filter(video => isInvalidVideo(video))
-  console.log(`首页发现${invalidVideos.length}个失效视频`)
-
-  if (invalidVideos.length > 0) {
-    console.log('发现失效视频，立即执行修复操作')
-    // 直接执行修复操作，只修复当前页面的失效视频
-    await repairInvalidVideos()
-  } else {
-    console.log('没有发现失效视频，无需修复')
-  }
 }
 
 // 返回到收藏夹列表
@@ -833,9 +709,7 @@ async function loadContents() {
       }
     }
 
-    // 检查内容是否有失效视频
-    const invalidVideos = folderContents.value.filter(video => isInvalidVideo(video))
-    console.log(`本页面发现 ${invalidVideos.length} 个失效视频`)
+
   } catch (error) {
     console.error('获取收藏夹内容出错:', error)
     showNotify({ type: 'danger', message: '获取收藏夹内容出错: ' + (error.message || '未知错误') })
@@ -858,12 +732,6 @@ async function openVideo(video) {
 }
 
 // 处理搜索
-function handleSearch(keyword) {
-  searchKeyword.value = keyword
-  currentPage.value = 1
-  fetchFavorites()
-}
-
 // 处理分页变化
 function handlePageChange(page) {
   currentPage.value = page
@@ -878,30 +746,7 @@ async function handleContentsPageChange(page) {
   try {
     // 等待内容加载完成
     await loadContents()
-    console.log(`第${page}页内容加载完成，检查是否有失效视频`)
 
-    // 检查新页面中是否有失效视频，有则自动执行修复
-    const invalidVideos = folderContents.value.filter(video => isInvalidVideo(video))
-    console.log(`发现${invalidVideos.length}个失效视频`)
-
-    if (invalidVideos.length > 0) {
-      console.log('存在失效视频，准备修复')
-
-      // 打印每个失效视频的信息，便于调试
-      invalidVideos.forEach((video, index) => {
-        console.log(`失效视频 ${index+1}:`, {
-          avid: video.avid || video.aid,
-          bvid: video.bvid,
-          title: video.title
-        })
-      })
-
-      // 直接执行修复，只修复当前页面的失效视频
-      console.log('执行修复操作')
-      await repairInvalidVideos()
-    } else {
-      console.log('当前页面没有发现失效视频，无需修复')
-    }
   } catch (error) {
     console.error('分页处理出错:', error)
     showNotify({
@@ -947,17 +792,6 @@ function formatDuration(seconds) {
 
 // 获取作者头像
 function getAuthorFace(item) {
-  // 首先检查上面修复后的数据
-  if (item.repaired && item.creator_face) {
-    return item.creator_face
-  }
-
-  // 检查修复结果中是否有此视频的作者信息
-  const repairedInfo = getRepairedInfo(item)
-  if (repairedInfo && repairedInfo.final_data && repairedInfo.final_data.creator_face) {
-    return repairedInfo.final_data.creator_face
-  }
-
   // 首先检查upper对象
   if (item.upper && item.upper.face) {
     return item.upper.face
@@ -979,17 +813,6 @@ function getAuthorFace(item) {
 
 // 获取作者名称
 function getAuthorName(item) {
-  // 首先检查上面修复后的数据
-  if (item.repaired && item.creator_name) {
-    return item.creator_name
-  }
-
-  // 检查修复结果中是否有此视频的作者信息
-  const repairedInfo = getRepairedInfo(item)
-  if (repairedInfo && repairedInfo.final_data && repairedInfo.final_data.creator_name) {
-    return repairedInfo.final_data.creator_name
-  }
-
   // 首先检查upper对象
   if (item.upper && item.upper.name) {
     return item.upper.name
@@ -1005,53 +828,7 @@ function getAuthorName(item) {
 }
 
 // 获取视频是否有修复信息
-function getRepairedInfo(video) {
-  if (!video) return null
-
-  const avid = video.avid || video.aid || (video.bvid ? 0 : null)
-  const bvid = video.bvid
-
-  // 只检查当前会话的修复结果
-  if (repairResults.value && repairResults.value.results) {
-    const repairResult = repairResults.value.results.find(result => {
-      return (avid && result.avid === avid) ||
-             (bvid && result.bvid === bvid)
-    })
-
-    if (repairResult) {
-      // 如果存在结果但没有final_data，尝试创建final_data
-      if (isVideoRepairSuccess(repairResult) && !repairResult.final_data) {
-        // 从biliplus_api获取数据
-        if (repairResult.biliplus_api && repairResult.biliplus_api.code === 0 &&
-            repairResult.biliplus_api.data && Object.keys(repairResult.biliplus_api.data).length > 0) {
-          const avidStr = avid ? avid.toString() : null
-          const biliPlusData = avidStr ? repairResult.biliplus_api.data[avidStr] : null
-
-          if (biliPlusData) {
-            repairResult.final_data = {
-              title: biliPlusData.title,
-              cover: biliPlusData.pic,
-              creator_name: biliPlusData.author
-            }
-          }
-        }
-        // 从jijidown_api获取数据
-        else if (repairResult.jijidown_api && repairResult.jijidown_api.code === 0 &&
-                repairResult.jijidown_api.title && repairResult.jijidown_api.title !== '正在加载数据...') {
-          repairResult.final_data = {
-            title: repairResult.jijidown_api.title,
-            cover: video.cover,
-            creator_name: '未知'
-          }
-        }
-      }
-
-      return repairResult
-    }
-  }
-
-  return null
-}
+// 已移除修复信息获取逻辑
 
 // 获取全部收藏夹内容的函数，每页请求间隔1秒
 async function fetchAllContents() {
@@ -1204,458 +981,6 @@ async function fetchAllContents() {
   }
 }
 
-// 判断视频是否已被成功修复（用于全局共享判断逻辑）
-function isVideoRepairSuccess(result) {
-  return result.success ||
-         (result.final_data) ||
-         (result.biliplus_api && result.biliplus_api.code === 0 &&
-          result.biliplus_api.data && Object.keys(result.biliplus_api.data).length > 0) ||
-         (result.jijidown_api && result.jijidown_api.code === 0 &&
-          result.jijidown_api.title && result.jijidown_api.title !== '正在加载数据...')
-}
-
-// 判断是否为已修复的视频（但修复失败）
-function isRepairFailedVideo(video) {
-  if (!video) return false
-
-  const avid = video.avid || video.aid || (video.bvid ? 0 : null)
-  const bvid = video.bvid
-
-  // 只检查当前会话的修复结果
-  if (repairResults.value && repairResults.value.results) {
-    const currentRepaired = repairResults.value.results.find(result => {
-      return ((avid && result.avid === avid) || (bvid && result.bvid === bvid)) && !isVideoRepairSuccess(result)
-    })
-
-    if (currentRepaired) return true
-  }
-
-  return false
-}
-
-// 判断是否为已修复的视频（修复成功）
-function isRepairedVideo(video) {
-  if (!video) return false
-
-  const avid = video.avid || video.aid || (video.bvid ? 0 : null)
-  const bvid = video.bvid
-
-  // 只检查当前会话的修复结果
-  if (repairResults.value && repairResults.value.results) {
-    const currentRepaired = repairResults.value.results.find(result => {
-      return ((avid && result.avid === avid) || (bvid && result.bvid === bvid)) && isVideoRepairSuccess(result)
-    })
-
-    if (currentRepaired) return true
-  }
-
-  return false
-}
-
-// 判断是否为失效视频
-function isInvalidVideo(video) {
-  if (!video) return false
-
-  // 记录判断原因，便于调试
-  const reasons = []
-
-  // 通常失效视频的标题会包含"已失效"或"已删除"字样，或者视频状态标记
-  if (video.title && (video.title.includes('已失效') || video.title.includes('已删除'))) {
-    reasons.push('标题包含失效关键词')
-    return true
-  }
-
-  // 检查state状态，通常0表示正常，-1或其他值表示失效
-  if (video.state !== undefined && video.state !== 0) {
-    reasons.push(`状态码异常: ${video.state}`)
-    return true
-  }
-
-  // 有些失效视频可能没有封面或使用默认封面
-  if (video.cover && video.cover.includes('nocover')) {
-    reasons.push('使用默认失效封面')
-    return true
-  }
-
-  // 检查title是否为标准的失效提示
-  if (video.title === '已失效视频，建议删除' || video.title === '视频已被删除' || video.title === '稿件不可见') {
-    reasons.push('标准失效标题')
-    return true
-  }
-
-  // 失效视频可能没有时长
-  if (video.duration === 0) {
-    reasons.push('视频时长为0')
-
-    // 额外检查是否同时没有封面或使用默认封面
-    if (!video.cover || (video.cover && (
-      video.cover.includes('default') ||
-      video.cover.includes('noface')
-    ))) {
-      reasons.push('无封面或默认封面')
-      return true
-    }
-  }
-
-  // 添加调试日志
-  if (reasons.length > 0) {
-    console.log(`视频检测为失效，原因:`, reasons, video)
-  }
-
-  return false
-}
-
-// 更新修复后的视频信息
-function updateRepairedVideos() {
-  if (!repairResults.value || !repairResults.value.results) {
-    console.log('没有修复结果，无法更新视频信息')
-    return
-  }
-
-  console.log('开始更新修复后的视频信息，总共有', repairResults.value.results.length, '个结果')
-
-  // 修复视频的信息
-  folderContents.value = folderContents.value.map(video => {
-    const avid = video.avid || video.aid || (video.bvid ? 0 : null)
-    const bvid = video.bvid
-
-    // 查找对应的修复结果
-    const repairResult = repairResults.value.results.find(result => {
-      return (avid && result.avid === avid) ||
-             (bvid && result.bvid === bvid)
-    })
-
-    // 如果找到修复结果
-    if (repairResult) {
-      console.log('找到视频的修复结果:', {
-        avid: avid,
-        bvid: bvid,
-        title: video.title,
-        repair_result: repairResult
-      })
-
-      // 判断是否修复成功：有final_data或者任一API响应成功
-      const isSuccess = isVideoRepairSuccess(repairResult)
-      console.log('修复成功状态:', isSuccess)
-
-      // 确保有final_data
-      if (isSuccess) {
-        // 如果没有final_data，创建它
-        if (!repairResult.final_data) {
-          console.log('创建final_data，完整修复结果:', repairResult)
-
-          // 从biliplus_api获取数据
-          if (repairResult.biliplus_api && repairResult.biliplus_api.code === 0 &&
-              repairResult.biliplus_api.data && Object.keys(repairResult.biliplus_api.data).length > 0) {
-            const avidStr = avid ? avid.toString() : null
-            console.log('尝试从BiliPlus获取数据，avid:', avid, 'avidStr:', avidStr)
-            console.log('可用的BiliPlus数据键:', Object.keys(repairResult.biliplus_api.data))
-
-            const biliPlusData = avidStr ? repairResult.biliplus_api.data[avidStr] : null
-            console.log('获取到的BiliPlus数据:', biliPlusData)
-
-            if (biliPlusData) {
-              console.log('从BiliPlus API创建final_data:', biliPlusData)
-              repairResult.final_data = {
-                title: biliPlusData.title,
-                cover: biliPlusData.pic,
-                creator_name: biliPlusData.author,
-                creator_id: biliPlusData.mid
-              }
-              console.log('创建的final_data:', repairResult.final_data)
-            } else {
-              // 如果使用avid作为键没有找到数据，尝试直接获取第一个数据
-              const keys = Object.keys(repairResult.biliplus_api.data)
-              if (keys.length > 0) {
-                const firstKey = keys[0]
-                const firstData = repairResult.biliplus_api.data[firstKey]
-                console.log('使用第一个键获取数据:', firstKey, firstData)
-
-                if (firstData) {
-                  repairResult.final_data = {
-                    title: firstData.title,
-                    cover: firstData.pic,
-                    creator_name: firstData.author,
-                    creator_id: firstData.mid
-                  }
-                  console.log('使用第一个键创建的final_data:', repairResult.final_data)
-                }
-              }
-            }
-          }
-          // 从jijidown_api获取数据
-          else if (repairResult.jijidown_api && repairResult.jijidown_api.code === 0 &&
-                  repairResult.jijidown_api.title && repairResult.jijidown_api.title !== '正在加载数据...') {
-            console.log('从JijiDown API创建final_data')
-            repairResult.final_data = {
-              title: repairResult.jijidown_api.title,
-              // 如果有up信息，也记录下来
-              creator_name: repairResult.jijidown_api.up?.name || '未知',
-              creator_id: repairResult.jijidown_api.up?.id,
-              cover: video.cover
-            }
-          }
-          // 从xbeibeix_api获取数据
-          else if (repairResult.xbeibeix_api && repairResult.xbeibeix_api.status === 'success') {
-            console.log('从XBeiBeiX API创建final_data')
-            repairResult.final_data = {
-              title: repairResult.xbeibeix_api.title,
-              cover: repairResult.xbeibeix_api.cover,
-              creator_name: repairResult.xbeibeix_api.creator_name
-            }
-          }
-        }
-      }
-
-      // 打印final_data结果
-      if (repairResult.final_data) {
-        console.log('最终修复数据:', repairResult.final_data)
-      } else {
-        console.log('没有可用的final_data')
-      }
-
-      if (isSuccess) {
-        console.log('应用修复成功的数据')
-
-        // 获取标题
-        let title = video.title
-        if (repairResult.final_data && repairResult.final_data.title) {
-          title = repairResult.final_data.title
-        } else if (repairResult.biliplus_api && repairResult.biliplus_api.code === 0 &&
-                  repairResult.biliplus_api.data) {
-          // 尝试通过avid获取
-          const avidStr = avid ? avid.toString() : null
-          let biliPlusData = null
-
-          if (avidStr) {
-            biliPlusData = repairResult.biliplus_api.data[avidStr]
-            console.log('通过avid获取BiliPlus数据:', avidStr, biliPlusData)
-          }
-
-          // 如果通过avid没找到，尝试获取第一个数据
-          if (!biliPlusData) {
-            const keys = Object.keys(repairResult.biliplus_api.data)
-            if (keys.length > 0) {
-              const firstKey = keys[0]
-              biliPlusData = repairResult.biliplus_api.data[firstKey]
-              console.log('通过第一个键获取BiliPlus数据:', firstKey, biliPlusData)
-            }
-          }
-
-          // 使用找到的数据
-          if (biliPlusData && biliPlusData.title) {
-            title = biliPlusData.title
-            console.log('使用BiliPlus标题:', title)
-          }
-        } else if (repairResult.jijidown_api && repairResult.jijidown_api.title &&
-                  repairResult.jijidown_api.title !== '正在加载数据...' &&
-                  repairResult.jijidown_api.title !== '该视频或许已经被删除了') {
-          title = repairResult.jijidown_api.title
-        }
-
-        // 获取封面
-        let cover = video.cover
-        if (repairResult.final_data && repairResult.final_data.cover) {
-          cover = repairResult.final_data.cover
-        } else if (repairResult.biliplus_api && repairResult.biliplus_api.code === 0 &&
-                  repairResult.biliplus_api.data) {
-          // 尝试通过avid获取
-          const avidStr = avid ? avid.toString() : null
-          let biliPlusData = null
-
-          if (avidStr) {
-            biliPlusData = repairResult.biliplus_api.data[avidStr]
-          }
-
-          // 如果通过avid没找到，尝试获取第一个数据
-          if (!biliPlusData) {
-            const keys = Object.keys(repairResult.biliplus_api.data)
-            if (keys.length > 0) {
-              const firstKey = keys[0]
-              biliPlusData = repairResult.biliplus_api.data[firstKey]
-              console.log('使用第一个键获取BiliPlus封面数据:', firstKey, biliPlusData)
-            }
-          }
-
-          // 使用找到的数据
-          if (biliPlusData && biliPlusData.pic) {
-            cover = biliPlusData.pic
-            console.log('使用BiliPlus封面:', cover)
-          }
-        }
-
-        // 获取UP主信息
-        let creatorName = video.creator_name || video.upper?.name || '未知'
-        let creatorId = null
-        if (repairResult.final_data && repairResult.final_data.creator_name) {
-          creatorName = repairResult.final_data.creator_name
-          creatorId = repairResult.final_data.creator_id
-        } else if (repairResult.biliplus_api && repairResult.biliplus_api.code === 0 &&
-                  repairResult.biliplus_api.data) {
-          // 尝试通过avid获取
-          const avidStr = avid ? avid.toString() : null
-          let biliPlusData = null
-
-          if (avidStr) {
-            biliPlusData = repairResult.biliplus_api.data[avidStr]
-          }
-
-          // 如果通过avid没找到，尝试获取第一个数据
-          if (!biliPlusData) {
-            const keys = Object.keys(repairResult.biliplus_api.data)
-            if (keys.length > 0) {
-              const firstKey = keys[0]
-              biliPlusData = repairResult.biliplus_api.data[firstKey]
-            }
-          }
-
-          // 使用找到的数据
-          if (biliPlusData) {
-            if (biliPlusData.author) {
-              creatorName = biliPlusData.author
-              console.log('使用BiliPlus作者:', creatorName)
-            }
-            if (biliPlusData.mid) {
-              creatorId = biliPlusData.mid
-            }
-          }
-        }
-
-        // 修复成功
-        return {
-          ...video,
-          title: title,
-          cover: cover,
-          creator_name: creatorName,
-          creator_id: creatorId,
-          // 标记为已修复成功
-          repaired: true,
-          repairFailed: false,
-          // 保存原始修复数据，方便查看
-          repair_data: repairResult
-        }
-      } else {
-        console.log('标记为修复失败')
-        // 修复失败的情况
-        return {
-          ...video,
-          // 标记为修复失败
-          repaired: false,
-          repairFailed: true,
-          // 保存原始修复数据，方便查看
-          repair_data: repairResult
-        }
-      }
-    }
-
-    return video
-  })
-
-  console.log('视频信息更新完成')
-}
-
-// 修复失效视频
-async function repairInvalidVideos() {
-  if (!currentFolder.value || repairing.value) return
-
-  repairing.value = true
-  console.log('开始修复失效视频')
-
-  try {
-    console.log(`准备修复当前页面的失效视频`)
-
-    // 获取当前页的失效视频ID列表
-    const invalidVideos = folderContents.value.filter(video => isInvalidVideo(video))
-    console.log(`当前页面有${invalidVideos.length}个失效视频需要修复`)
-
-    if (invalidVideos.length === 0) {
-      console.log('当前页面没有失效视频，无需修复')
-      showNotify({ type: 'info', message: '当前页面没有失效视频' })
-      repairing.value = false
-      return
-    }
-
-    // 分别收集av号和BV号
-    const avids = []
-    const bvids = []
-
-    invalidVideos.forEach(video => {
-      // 标记为修复中状态
-      const videoId = (video.avid || video.aid || video.bvid || '').toString()
-      if (videoId) {
-        repairingVideos.value.add(videoId)
-        console.log(`标记视频[${videoId}]为修复中状态`)
-      }
-
-      // 收集av号（整数类型）
-      if (video.avid) {
-        avids.push(parseInt(video.avid))
-      } else if (video.aid) {
-        avids.push(parseInt(video.aid))
-      }
-      // 收集BV号（字符串类型）
-      else if (video.bvid) {
-        bvids.push(video.bvid)
-      }
-    })
-
-    console.log('需要修复的视频ID:', {
-      avids: avids,
-      bvids: bvids
-    })
-
-    // 重要：不传递media_id参数，避免后端修复整个收藏夹
-    console.log('发送修复请求:', {
-      video_ids: avids,
-      bvids: bvids,
-      repair_all: false
-    })
-
-    const response = await repairFavoriteVideos({
-      video_ids: avids,
-      bvids: bvids,
-      repair_all: false
-    })
-
-    console.log('收到修复响应:', response.data)
-
-    if (response.data.status === 'success') {
-      repairResults.value = response.data
-
-      showNotify({
-        type: 'success',
-        message: `修复完成: 成功修复 ${response.data.success_count || 0} 个视频`
-      })
-
-      // 更新视频信息
-      console.log('更新视频信息')
-      updateRepairedVideos()
-    } else {
-      console.error('修复失败:', response.data)
-      showNotify({
-        type: 'warning',
-        message: response.data.message || '修复失效视频失败'
-      })
-    }
-  } catch (error) {
-    console.error('修复失效视频出错:', error)
-    showNotify({
-      type: 'danger',
-      message: '修复失效视频出错: ' + (error.message || '未知错误')
-    })
-  } finally {
-    console.log('修复过程结束，清理修复中状态')
-    repairing.value = false
-    // 清空修复中状态
-    repairingVideos.value.clear()
-  }
-}
-
-// 打开修复功能说明
-function openRepairHelp() {
-  showRepairHelp.value = true
-}
-
 // 获取视频封面，优先使用修复后的封面
 function getVideoImage(video) {
   // 检查video对象是否存在
@@ -1663,68 +988,7 @@ function getVideoImage(video) {
 
   console.log('获取视频封面:', video.bvid || video.avid)
 
-  // 直接使用修复好的数据
-  if (video.repaired && video.cover && !video.cover.includes('nocover')) {
-    console.log('使用已修复的视频封面:', video.cover)
-    return video.cover
-  }
 
-  // 尝试从repair_data中获取
-  if (video.repair_data) {
-    // 从biliplus_api获取
-    if (video.repair_data.biliplus_api && video.repair_data.biliplus_api.code === 0 &&
-        video.repair_data.biliplus_api.data) {
-      console.log('从repair_data.biliplus_api获取封面')
-      const avid = video.avid || video.aid
-      const avidStr = avid ? avid.toString() : null
-
-      // 尝试使用avid作为键
-      let biliPlusData = avidStr ? video.repair_data.biliplus_api.data[avidStr] : null
-
-      // 如果没有找到，尝试获取第一个键
-      if (!biliPlusData) {
-        const keys = Object.keys(video.repair_data.biliplus_api.data)
-        if (keys.length > 0) {
-          biliPlusData = video.repair_data.biliplus_api.data[keys[0]]
-          console.log('使用第一个键找到的BiliPlus数据:', biliPlusData)
-        }
-      } else {
-        console.log('使用avid找到的BiliPlus数据:', biliPlusData)
-      }
-
-      if (biliPlusData && biliPlusData.pic) {
-        console.log('从BiliPlus返回封面:', biliPlusData.pic)
-        return biliPlusData.pic
-      }
-    }
-  }
-
-  // 检查修复结果中是否有此视频的信息
-  const repairedInfo = getRepairedInfo(video)
-  if (repairedInfo && isVideoRepairSuccess(repairedInfo)) {
-    // 优先使用final_data
-    if (repairedInfo.final_data && repairedInfo.final_data.cover) {
-      return repairedInfo.final_data.cover
-    }
-
-    // 从biliplus_api获取
-    if (repairedInfo.biliplus_api && repairedInfo.biliplus_api.code === 0 &&
-        repairedInfo.biliplus_api.data) {
-      const avid = video.avid || video.aid
-      const avidStr = avid ? avid.toString() : null
-      const biliPlusData = avidStr ? repairedInfo.biliplus_api.data[avidStr] : null
-
-      if (biliPlusData && biliPlusData.pic) {
-        return biliPlusData.pic
-      }
-    }
-
-    // 从xbeibeix_api获取
-    if (repairedInfo.xbeibeix_api && repairedInfo.xbeibeix_api.status === 'success' &&
-        repairedInfo.xbeibeix_api.cover) {
-      return repairedInfo.xbeibeix_api.cover
-    }
-  }
 
   // 返回原始封面
   return video.cover || ''
@@ -1737,124 +1001,20 @@ function getVideoTitle(video) {
 
   console.log('获取视频标题:', video.bvid || video.avid)
 
-  // 直接使用修复好的数据
-  if (video.repaired && video.title && !video.title.includes('已失效')) {
-    console.log('使用已修复的视频标题:', video.title)
-    return video.title
-  }
 
-  // 尝试从repair_data中获取
-  if (video.repair_data) {
-    // 从biliplus_api获取
-    if (video.repair_data.biliplus_api && video.repair_data.biliplus_api.code === 0 &&
-        video.repair_data.biliplus_api.data) {
-      console.log('从repair_data.biliplus_api获取标题')
-      const avid = video.avid || video.aid
-      const avidStr = avid ? avid.toString() : null
-
-      // 尝试使用avid作为键
-      let biliPlusData = avidStr ? video.repair_data.biliplus_api.data[avidStr] : null
-
-      // 如果没有找到，尝试获取第一个键
-      if (!biliPlusData) {
-        const keys = Object.keys(video.repair_data.biliplus_api.data)
-        if (keys.length > 0) {
-          biliPlusData = video.repair_data.biliplus_api.data[keys[0]]
-          console.log('使用第一个键找到的BiliPlus数据:', biliPlusData)
-        }
-      } else {
-        console.log('使用avid找到的BiliPlus数据:', biliPlusData)
-      }
-
-      if (biliPlusData && biliPlusData.title) {
-        console.log('从BiliPlus返回标题:', biliPlusData.title)
-        return biliPlusData.title
-      }
-    }
-
-    // 从jijidown_api获取
-    if (video.repair_data.jijidown_api && video.repair_data.jijidown_api.code === 0 &&
-        video.repair_data.jijidown_api.title &&
-        video.repair_data.jijidown_api.title !== '正在加载数据...' &&
-        video.repair_data.jijidown_api.title !== '该视频或许已经被删除了') {
-      return video.repair_data.jijidown_api.title
-    }
-  }
-
-  // 检查修复结果中是否有此视频的信息
-  const repairedInfo = getRepairedInfo(video)
-  if (repairedInfo && isVideoRepairSuccess(repairedInfo)) {
-    // 优先使用final_data
-    if (repairedInfo.final_data && repairedInfo.final_data.title) {
-      return repairedInfo.final_data.title
-    }
-
-    // 从biliplus_api获取
-    if (repairedInfo.biliplus_api && repairedInfo.biliplus_api.code === 0 &&
-        repairedInfo.biliplus_api.data) {
-      const avid = video.avid || video.aid
-      const avidStr = avid ? avid.toString() : null
-      const biliPlusData = avidStr ? repairedInfo.biliplus_api.data[avidStr] : null
-
-      if (biliPlusData && biliPlusData.title) {
-        return biliPlusData.title
-      }
-    }
-
-    // 从jijidown_api获取
-    if (repairedInfo.jijidown_api && repairedInfo.jijidown_api.code === 0 &&
-        repairedInfo.jijidown_api.title &&
-        repairedInfo.jijidown_api.title !== '正在加载数据...' &&
-        repairedInfo.jijidown_api.title !== '该视频或许已经被删除了') {
-      return repairedInfo.jijidown_api.title
-    }
-
-    // 从xbeibeix_api获取
-    if (repairedInfo.xbeibeix_api && repairedInfo.xbeibeix_api.status === 'success' &&
-        repairedInfo.xbeibeix_api.title) {
-      return repairedInfo.xbeibeix_api.title
-    }
-  }
 
   // 返回原始标题
   return video.title || '未知标题'
 }
 
 // 判断视频是否正在修复
-function isVideoRepairing(video) {
-  if (!video) return false
-
-  const avid = video.avid || video.aid || (video.bvid ? 0 : null)
-  const bvid = video.bvid
-
-  const videoId = avid ? avid.toString() : (bvid || '')
-  return repairingVideos.value.has(videoId)
-}
+// 已移除修复中状态判断
 
 // 打开UP主页面
 function openAuthorPage(video) {
   let upId = null;
 
-  // 首先检查修复的数据
-  const repairedInfo = getRepairedInfo(video)
-
-  // 从修复结果中获取UP主ID
-  if (repairedInfo) {
-    // 尝试从jijidown_api获取
-    if (repairedInfo.jijidown_api && repairedInfo.jijidown_api.up) {
-      upId = repairedInfo.jijidown_api.up.id
-    }
-    // 尝试从biliplus_api获取
-    else if (repairedInfo.biliplus_api && repairedInfo.biliplus_api.code === 0 &&
-             repairedInfo.biliplus_api.data) {
-      const avidStr = (video.avid || video.aid || '').toString()
-      const biliPlusData = avidStr ? repairedInfo.biliplus_api.data[avidStr] : null
-
-      if (biliPlusData && biliPlusData.mid) {
-        upId = biliPlusData.mid
-      }
-    }
-  }
+// 已移除从修复结果提取UP主ID逻辑
 
   // 然后检查视频本身的数据
   if (!upId && video.upper_mid) {
@@ -1882,9 +1042,7 @@ const favoriteDownloadInfo = ref({
 })
 
 // 计算无效视频数量
-const invalidVideosCount = computed(() => {
-  return folderContents.value.filter(video => isInvalidVideo(video)).length
-})
+const invalidVideosCount = computed(() => 0)
 
 // 开始下载收藏夹
 async function startDownloadFolder(folder) {

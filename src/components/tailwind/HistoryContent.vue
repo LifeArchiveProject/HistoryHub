@@ -100,7 +100,7 @@
                     </div>
                     <div class="bg-white pl-3">
  <span class="lm:text-xs text-[#FF6699]">
- {{ getDailyStatsForDate(record.view_at) }}条数据
+ {{ getDailyStatsForDate(record.view_at) }}条数据 · 总时长 {{ formatDailyWatchTime(record.view_at) }}
  </span>
                     </div>
                   </div>
@@ -316,7 +316,7 @@
                     </div>
                     <div class="bg-white pl-3">
  <span class="lm:text-xs text-[#FF6699]">
- {{ getDailyStatsForDate(record.view_at) }}条数据
+ {{ getDailyStatsForDate(record.view_at) }}条数据 · 总时长 {{ formatDailyWatchTime(record.view_at) }}
  </span>
                     </div>
                   </div>
@@ -575,6 +575,10 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  pageSize: {
+    type: Number,
+    default: 30,
+  },
 })
 
 const emit = defineEmits([
@@ -584,13 +588,14 @@ const emit = defineEmits([
   'update:category',
   'update:show',
   'update:showBottom',
+  'update:pageSize',
 ])
 
 // 状态变量
 const records = ref([])
 const total = ref(0)
 const sortOrder = ref(0)
-const size = ref(30)
+const size = ref(props.pageSize)
 const remarkData = ref({}) // 存储备注数据
 const downloadedVideos = ref(new Set()) // 存储已下载视频的CID集合
 const favoriteStatus = ref({}) // 存储视频收藏状态信息
@@ -674,7 +679,7 @@ const handleBatchDelete = async () => {
 
         // 根据业务类型构建kid
         const business = record.business || 'archive'
-        let kid = ''
+        let kid
 
         switch (business) {
           case 'archive':
@@ -768,35 +773,6 @@ const fetchMainCategories = async () => {
   } catch (error) {
     console.error('Error fetching main categories:', error)
   }
-}
-
-// 接收子组件传递的子分区并立即获取数据
-const onSubCategorySelected = ({ name, type }) => {
-  const isMainName = mainCategories.value.includes(name)
-  emit('update:showBottom', false)
-
-  let categoryText = ''
-  if (type === 'main' || (type === 'sub' && isMainName)) {
-    if (mainCategory.value === name) {
-      mainCategory.value = ''
-    } else {
-      mainCategory.value = name
-      categoryText = name
-    }
-    tagName.value = ''
-  } else if (type === 'sub') {
-    if (tagName.value === name) {
-      tagName.value = ''
-    } else {
-      tagName.value = name
-      categoryText = name
-    }
-    mainCategory.value = ''
-  }
-
-
-  emit('update:category', categoryText)
-  fetchHistoryByDateRange()
 }
 
 // 辅助函数：格式化日期
@@ -1000,6 +976,17 @@ watch(
   },
 )
 
+// 监听 pageSize 变化
+watch(
+  () => props.pageSize,
+  (newSize) => {
+    size.value = newSize
+    // 保存到 localStorage
+    localStorage.setItem('pageSize', newSize.toString())
+    fetchHistoryByDateRange()
+  },
+)
+
 // 监听父组件的 date 变化
 watch(
   () => props.date,
@@ -1100,6 +1087,35 @@ const getDailyStatsForDate = (timestamp) => {
   const day = String(date.getDate()).padStart(2, '0')
   const dateKey = `${date.getFullYear()}-${month}-${day}`
   return dailyStats.value[dateKey]?.total_count || 0
+}
+
+// 获取指定日期的总观看时长（秒）
+const getDailyWatchSecondsForDate = (timestamp) => {
+  const date = new Date(timestamp * 1000)
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  const dateKey = `${date.getFullYear()}-${month}-${day}`
+  return dailyStats.value[dateKey]?.total_watch_seconds || 0
+}
+
+// 将秒格式化为中文时长（如 1小时23分45秒）
+const formatHMS = (seconds) => {
+  const total = Math.max(0, Math.floor(seconds || 0))
+  const h = Math.floor(total / 3600)
+  const m = Math.floor((total % 3600) / 60)
+  const s = total % 60
+  if (h > 0) {
+    return `${h}小时${String(m).padStart(2, '0')}分${String(s).padStart(2, '0')}秒`
+  }
+  if (m > 0) {
+    return `${m}分${String(s).padStart(2, '0')}秒`
+  }
+  return `${s}秒`
+}
+
+// 获取指定日期的总时长（格式化）
+const formatDailyWatchTime = (timestamp) => {
+  return formatHMS(getDailyWatchSecondsForDate(timestamp))
 }
 
 // 打开登录对话框
@@ -1563,24 +1579,6 @@ const handleDownloadComplete = async () => {
 }
 
 // 调试函数，在控制台显示所有视频的CID和下载状态
-const debugVideoCids = () => {
-  const videoRecords = records.value.filter(record => record.business === 'archive')
-  console.log('视频记录数量:', videoRecords.length)
-
-  if (videoRecords.length > 0) {
-    console.log('前5个视频记录的CID:')
-    videoRecords.slice(0, 5).forEach(record => {
-      console.log({
-        title: record.title,
-        cid: record.cid,
-        downloaded: isVideoDownloaded(record.cid),
-      })
-    })
-  }
-
-  console.log('已下载视频集合:', [...downloadedVideos.value])
-}
-
 // 处理收藏按钮点击（网格布局）
 const handleFavoriteGrid = (record) => {
   // 获取视频ID，适配不同的属性名（aid或avid）
@@ -1786,10 +1784,9 @@ const isAllFavorited = computed(() => {
 })
 
 // 检查是否所有选中的记录都未收藏
-const isAllUnfavorited = computed(() => {
+computed(() => {
   return selectedRecords.value.size > 0 && unfavoritedCount.value === selectedRecords.value.size
 })
-
 // 复制选中视频的链接到剪贴板
 const handleCopyLinks = async () => {
   if (selectedRecords.value.size === 0) {
@@ -1922,7 +1919,7 @@ const handleBatchUnfavorite = async () => {
     }
 
     // 获取每个视频的收藏夹列表和执行取消收藏操作
-    let results = []
+    let results
 
     // 获取每个视频的收藏夹列表
     const unfavoritePromises = videoIds.map(async videoId => {

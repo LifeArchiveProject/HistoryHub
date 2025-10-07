@@ -9,6 +9,7 @@
       v-model:category="category"
       v-model:business="business"
       v-model:businessLabel="businessLabel"
+      v-model:pageSize="pageSize"
       :total="total"
       @click-date="show = true"
       :layout="layout"
@@ -29,6 +30,7 @@
             ref="historyContentRef"
             :selected-year="selectedYear"
             :page="page"
+            :pageSize="pageSize"
             @update:total-pages="totalPages = $event"
             @update:total="total = $event"
             @update:date="date = $event"
@@ -96,6 +98,7 @@ const isBatchMode = ref(false)
 const showRemarks = ref(props.defaultShowRemarks)
 const business = ref('')
 const businessLabel = ref('')
+const pageSize = ref(parseInt(localStorage.getItem('pageSize')) || 30)
 
 // 组件引用
 const historyContentRef = ref(null)
