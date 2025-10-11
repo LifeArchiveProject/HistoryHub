@@ -70,12 +70,10 @@ class SchedulerManager:
     def load_scheduler_config(self):
         """加载调度器配置"""
         try:
-            base_path = get_base_path()
-            config_file = os.path.join(base_path, 'config', 'scheduler_config.yaml')
+            config_file = get_config_path('scheduler_config.yaml')
 
             if not os.path.exists(config_file):
                 logger.warning(f"调度器配置文件不存在: {config_file}")
-                # 不再输出base_url相关日志，因为base_url已从主配置文件中读取
                 return
 
             with open(config_file, 'r', encoding='utf-8') as f:
