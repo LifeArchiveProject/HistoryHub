@@ -1570,6 +1570,15 @@ export const getVideoDetailsStats = () => {
 }
 
 /**
+ * 获取失效视频明细
+ * @param {Object} params 可选过滤参数
+ * @returns {Promise<object>}
+ */
+export const getInvalidVideos = (params = {}) => {
+  return instance.get('/fetch/invalid-videos', { params })
+}
+
+/**
  * 停止视频详情获取任务
  * @returns {Promise<object>} - 包含停止结果的响应
  */

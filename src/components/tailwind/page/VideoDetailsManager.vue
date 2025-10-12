@@ -213,11 +213,11 @@ const fetchStats = async () => {
       stats.value = {
         totalHistoryVideos: data.total_videos || 0,
         existingVideosCount: data.videos_with_details || 0,
-        invalidVideosCount: 0, // 后端暂时没有这个字段
-        pendingVideosCount: data.videos_without_details || 0,
-        completionPercentage: data.completion_percentage || 0,
-        errorTypeStats: {}, // 后端暂时没有这个字段
-        pendingVideos: [] // 后端暂时没有这个字段
+        invalidVideosCount: (data.invalid_videos_count ?? 0),
+        pendingVideosCount: (data.pending_videos_count ?? data.videos_without_details ?? 0),
+        completionPercentage: data.completion_percentage ?? 0,
+        errorTypeStats: (data.invalid_error_type_stats || {}),
+        pendingVideos: data.pending_videos || []
       }
     } else {
       throw new Error(response.data.message || '获取统计数据失败')
