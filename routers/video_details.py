@@ -12,7 +12,8 @@ from fastapi import APIRouter, HTTPException, Query, BackgroundTasks
 from fastapi.responses import StreamingResponse
 from loguru import logger
 
-from scripts.utils import load_config
+from scripts.utils import load_config, get_output_path
+from scripts.bilibili_history import check_invalid_video, save_invalid_video, create_invalid_videos_table
 
 router = APIRouter(tags=["视频详情"])
 
@@ -1044,6 +1045,19 @@ async def fetch_video_detail(bvid: str):
     """获取并保存视频超详细信息"""
     try:
         logger.info(f"开始获取视频 {bvid} 的超详细信息")
+        # 已知失效预检查，避免重复请求
+        try:
+            create_invalid_videos_table()
+        except Exception:
+            pass
+        invalid_info = check_invalid_video(bvid)
+        if invalid_info.get("is_invalid"):
+            logger.info(f"视频 {bvid} 已知失效(type={invalid_info.get('error_type')}), 跳过请求")
+            return {
+                "status": "skipped",
+                "message": f"视频 {bvid} 已知失效，已跳过",
+                "data": {"bvid": bvid, "error_type": invalid_info.get("error_type")}
+            }
         data = await get_video_detail(bvid)
         logger.info(f"成功获取视频 {bvid} 的API响应，准备保存到数据库")
 
@@ -1309,31 +1323,55 @@ async def batch_fetch_video_details_from_history(
                     }
                 }
 
-        # 过滤掉已存在的视频，只获取数据库中不存在的视频
+        # 过滤掉已存在的视频和已知失效的视频，只获取需要处理的视频
         video_list = []
         existing_count = 0
+        invalid_known_count = 0
+
+        # 确保失效视频表存在
+        try:
+            create_invalid_videos_table()
+        except Exception as _:
+            pass
 
         if os.path.exists(DB_PATH):
             with sqlite3.connect(DB_PATH) as details_conn:
                 details_cursor = details_conn.cursor()
 
                 for bvid in all_video_list:
-                    # 检查视频是否已存在于数据库中
+                    # 检查视频是否已存在于详情数据库
                     details_cursor.execute("SELECT 1 FROM video_base_info WHERE bvid = ? LIMIT 1", (bvid,))
-                    if details_cursor.fetchone() is None:
-                        video_list.append(bvid)
-                    else:
+                    if details_cursor.fetchone() is not None:
                         existing_count += 1
-        else:
-            # 如果详情数据库不存在，则所有视频都需要获取
-            video_list = all_video_list
+                        continue
 
-        logger.info(f"历史记录中共有 {len(all_video_list)} 个视频，其中 {existing_count} 个已存在，需要获取 {len(video_list)} 个")
+                    # 检查是否为已知失效视频（保存在 video_library.db 的 invalid_videos 表）
+                    invalid_info = check_invalid_video(bvid)
+                    if invalid_info.get("is_invalid"):
+                        invalid_known_count += 1
+                        continue
+
+                    video_list.append(bvid)
+        else:
+            # 如果详情数据库不存在，则过滤掉已知失效视频
+            for bvid in all_video_list:
+                invalid_info = check_invalid_video(bvid)
+                if invalid_info.get("is_invalid"):
+                    invalid_known_count += 1
+                    continue
+                video_list.append(bvid)
+
+        logger.info(
+            f"历史记录中共有 {len(all_video_list)} 个视频，已存在: {existing_count} 个，已知失效: {invalid_known_count} 个，需要获取: {len(video_list)} 个"
+        )
 
         if not video_list:
             return {
                 "status": "success",
-                "message": f"所有视频详情都已存在，无需重复获取。历史记录总数: {len(all_video_list)}，已存在: {existing_count}",
+                "message": (
+                    f"所有视频详情都已存在或已知失效，无需重复获取。"
+                    f"历史记录总数: {len(all_video_list)}，已存在: {existing_count}，已知失效: {invalid_known_count}"
+                ),
                 "data": {
                     "total_videos": 0,
                     "success_count": 0,
@@ -1341,6 +1379,7 @@ async def batch_fetch_video_details_from_history(
                     "results": [],
                     "errors": [],
                     "existing_count": existing_count,
+                    "invalid_known_count": invalid_known_count,
                     "total_history_videos": len(all_video_list)
                 }
             }
@@ -1369,7 +1408,10 @@ async def batch_fetch_video_details_from_history(
         # 立即返回响应，让用户看到任务已启动
         return {
             "status": "success",
-            "message": f"视频详情获取已在后台启动。历史记录总数: {len(all_video_list)}，已存在: {existing_count}，需要获取: {len(video_list)}",
+            "message": (
+                f"视频详情获取已在后台启动。历史记录总数: {len(all_video_list)}，"
+                f"已存在: {existing_count}，已知失效: {invalid_known_count}，需要获取: {len(video_list)}"
+            ),
             "data": {
                 "is_processing": True,
                 "total_videos": len(video_list),
@@ -1379,6 +1421,7 @@ async def batch_fetch_video_details_from_history(
                 "progress_percentage": 0,
                 "elapsed_time": "0.00秒",
                 "existing_count": existing_count,
+                "invalid_known_count": invalid_known_count,
                 "total_history_videos": len(all_video_list)
             }
         }
@@ -1469,14 +1512,84 @@ async def get_video_details_database_stats():
             stats["tag_count"] = 0
             stats["page_count"] = 0
 
-        # 计算待获取详情的视频数
-        stats["videos_without_details"] = stats["total_videos"] - stats["videos_with_details"]
+        # 重新统计：区分失效与待获取（排除失效）
+        try:
+            create_invalid_videos_table()
+        except Exception:
+            pass
 
-        # 计算完成百分比
+        # 收集历史记录中的全部 bvid
+        history_bvids: set = set()
+        with sqlite3.connect(history_db_path) as history_conn2:
+            history_cursor2 = history_conn2.cursor()
+            history_cursor2.execute("""
+                SELECT name FROM sqlite_master
+                WHERE type='table' AND name LIKE 'bilibili_history_%'
+            """)
+            table_names2 = [row[0] for row in history_cursor2.fetchall()]
+            if table_names2:
+                union_query2 = " UNION ".join(
+                    [f"SELECT DISTINCT bvid FROM {t} WHERE bvid IS NOT NULL AND bvid != ''" for t in table_names2]
+                )
+                history_cursor2.execute(union_query2)
+                history_bvids = {row[0] for row in history_cursor2.fetchall()}
+
+        # 已有详情的视频集合
+        details_bvids: set = set()
+        if os.path.exists(details_db_path):
+            with sqlite3.connect(details_db_path) as details_conn2:
+                details_cursor2 = details_conn2.cursor()
+                try:
+                    details_cursor2.execute("SELECT DISTINCT bvid FROM video_base_info")
+                    details_bvids = {row[0] for row in details_cursor2.fetchall()}
+                except sqlite3.OperationalError:
+                    details_bvids = set()
+
+        # 已知失效的视频集合（来自 video_library.db/invalid_videos）
+        invalid_bvids: set = set()
+        error_type_stats = {}
+        invalid_db_path = get_output_path("video_library.db")
+        if os.path.exists(invalid_db_path):
+            with sqlite3.connect(invalid_db_path) as inv_conn:
+                inv_cursor = inv_conn.cursor()
+                try:
+                    inv_cursor.execute("SELECT DISTINCT bvid FROM invalid_videos")
+                    invalid_all = {row[0] for row in inv_cursor.fetchall()}
+                    invalid_bvids = invalid_all & history_bvids
+
+                    if invalid_bvids:
+                        placeholders = ",".join(["?"] * len(invalid_bvids))
+                        inv_cursor.execute(
+                            f"SELECT error_type, COUNT(*) FROM invalid_videos WHERE bvid IN ({placeholders}) GROUP BY error_type",
+                            tuple(invalid_bvids)
+                        )
+                        error_type_stats = {row[0]: row[1] for row in inv_cursor.fetchall()}
+                except sqlite3.OperationalError:
+                    invalid_bvids = set()
+
+        # 精确计数（仅针对历史记录中的视频）
+        videos_with_details_exact = len(details_bvids & history_bvids)
+        stats["videos_with_details"] = videos_with_details_exact
+
+        invalid_videos_count = len(invalid_bvids)
+        stats["invalid_videos_count"] = invalid_videos_count
+
+        pending_videos_count = max(stats["total_videos"] - videos_with_details_exact - invalid_videos_count, 0)
+        stats["pending_videos_count"] = pending_videos_count
+
+        # 将 videos_without_details 调整为“未获取且非失效”的真实待获取数
+        stats["videos_without_details"] = pending_videos_count
+
+        # 计算两种完成百分比
         if stats["total_videos"] > 0:
-            stats["completion_percentage"] = round((stats["videos_with_details"] / stats["total_videos"]) * 100, 2)
+            stats["completion_percentage"] = round((videos_with_details_exact / stats["total_videos"]) * 100, 2)
+            stats["overall_completion_percentage"] = round(((videos_with_details_exact + invalid_videos_count) / stats["total_videos"]) * 100, 2)
         else:
             stats["completion_percentage"] = 0
+            stats["overall_completion_percentage"] = 0
+
+        if error_type_stats:
+            stats["invalid_error_type_stats"] = error_type_stats
 
         return {
             "status": "success",
@@ -1646,10 +1759,16 @@ async def fetch_video_details_background_task(video_list: List[str], batch_size:
     try:
         logger.info(f"开始后台批量获取 {len(video_list)} 个视频的超详细信息")
 
-        # 初始化数据库（确保表结构存在）
+        # 初始化数据库（确保表结构存在）和失效视频表
         try:
             init_db()
             logger.info("数据库初始化完成")
+            # 确保失效视频表准备就绪（位于 video_library.db）
+            try:
+                create_invalid_videos_table()
+                logger.info("失效视频表已准备就绪")
+            except Exception as ie:
+                logger.warning(f"初始化失效视频表失败: {ie}")
         except Exception as e:
             logger.error(f"数据库初始化失败: {e}")
             raise
@@ -1683,11 +1802,27 @@ async def fetch_video_details_background_task(video_list: List[str], batch_size:
                 break
 
             # 使用线程池处理当前批次的视频
+            # 先过滤已知失效视频，避免无效请求
+            work_bvids = []
+            for b in batch_videos:
+                inv = check_invalid_video(b)
+                if inv.get("is_invalid"):
+                    logger.info(f"已知失效视频，跳过: {b} ({inv.get('error_type')})")
+                    video_details_progress["skipped_invalid_count"] += 1
+                    video_details_progress["processed_videos"] += 1
+                    video_details_progress["last_update_time"] = time.time()
+                else:
+                    work_bvids.append(b)
+
+            if not work_bvids:
+                logger.info(f"第 {batch_num} 批全部为已知失效视频，跳过执行")
+                continue
+
             with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-                # 提交当前批次的任务
+                # 提交当前批次的任务（过滤后的列表）
                 future_to_bvid = {
                     executor.submit(get_video_detail_sync, bvid, cookie_to_use, use_sessdata): bvid
-                    for bvid in batch_videos
+                    for bvid in work_bvids
                 }
 
                 # 逐个处理完成的任务，实现秒级更新
@@ -1730,6 +1865,24 @@ async def fetch_video_details_background_task(video_list: List[str], batch_size:
                             video_details_progress["error_videos"].append(bvid)
                             error_msg = result.get("message", "未知错误") if result else "请求失败"
                             logger.warning(f"获取视频 {bvid} 详情失败: {error_msg}")
+                            # 对永久性错误进行失效标记，避免下次重复获取
+                            try:
+                                code = result.get("code") if result else None
+                                if code in (-404, 62002):
+                                    err_type = "not_found" if code == -404 else "invisible"
+                                    err_obj = type("ErrorResponse", (), {
+                                        "status": "error",
+                                        "message": error_msg,
+                                        "data": None,
+                                        "bvid": bvid,
+                                        "error_type": err_type,
+                                        "error_code": code,
+                                        "raw_response": result
+                                    })
+                                    save_invalid_video(err_obj)
+                                    logger.info(f"已记录失效视频 {bvid} 到 invalid_videos，类型: {err_type}")
+                            except Exception as se:
+                                logger.warning(f"记录失效视频 {bvid} 时异常: {se}")
                     except Exception as e:
                         logger.error(f"获取视频 {bvid} 详情失败: {e}")
                         video_details_progress["failed_count"] += 1
