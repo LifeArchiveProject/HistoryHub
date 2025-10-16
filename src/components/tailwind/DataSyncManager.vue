@@ -1,10 +1,10 @@
 <template>
   <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50" v-if="showModal">
-    <div class="bg-white p-6 rounded-lg shadow-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+    <div class="bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 p-6 rounded-lg shadow-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto border border-gray-200 dark:border-gray-700">
       <!-- 头部标题 -->
       <div class="flex justify-between items-center mb-4">
-        <h2 class="text-xl font-bold text-gray-800">{{ currentTab === 'sync' ? '数据同步' : '数据完整性检查' }}</h2>
-        <button @click="closeModal" class="text-gray-500 hover:text-gray-700">
+        <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100">{{ currentTab === 'sync' ? '数据同步' : '数据完整性检查' }}</h2>
+        <button @click="closeModal" class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
           </svg>
@@ -40,7 +40,7 @@
               <input
                 v-model="dbPath"
                 type="text"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-pink-500 focus:border-pink-500 text-sm"
+                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-pink-500 focus:border-pink-500 text-sm dark:bg-gray-700 dark:text-gray-100"
               />
             </div>
             <div class="flex-1">
@@ -48,7 +48,7 @@
               <input
                 v-model="jsonPath"
                 type="text"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-pink-500 focus:border-pink-500 text-sm"
+                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-pink-500 focus:border-pink-500 text-sm dark:bg-gray-700 dark:text-gray-100"
               />
             </div>
           </div>
@@ -72,15 +72,15 @@
         <!-- 同步结果显示 -->
         <div v-if="syncResult" class="mt-6 border-t pt-4">
           <h3 class="font-medium text-gray-900 mb-2">最近同步结果</h3>
-          <div class="bg-gray-50 p-3 rounded-md">
+          <div class="bg-gray-50 dark:bg-gray-900 p-3 rounded-md border border-gray-200 dark:border-gray-700">
             <div class="grid grid-cols-2 gap-2 mb-3">
               <div class="text-sm">
                 <span class="text-gray-500">同步时间：</span>
-                <span class="text-gray-900">{{ formatDateTime(syncResult.timestamp) }}</span>
+                <span class="text-gray-900 dark:text-gray-100">{{ formatDateTime(syncResult.timestamp) }}</span>
               </div>
               <div class="text-sm">
                 <span class="text-gray-500">总同步记录：</span>
-                <span class="text-gray-900 font-medium">{{ syncResult.total_synced }}</span>
+                <span class="text-gray-900 dark:text-gray-100 font-medium">{{ syncResult.total_synced }}</span>
               </div>
               <div class="text-sm">
                 <span class="text-gray-500">JSON导入数据库：</span>
@@ -88,13 +88,13 @@
               </div>
               <div class="text-sm">
                 <span class="text-gray-500">数据库导出JSON：</span>
-                <span class="text-gray-900">{{ syncResult.db_to_json_count }}</span>
+                <span class="text-gray-900 dark:text-gray-100">{{ syncResult.db_to_json_count }}</span>
               </div>
             </div>
 
             <div v-if="syncResult.synced_days && syncResult.synced_days.length > 0">
               <h4 class="text-sm font-medium text-gray-700 mb-2">同步的日期</h4>
-              <div class="max-h-48 overflow-y-auto bg-white rounded border border-gray-200">
+              <div class="max-h-48 overflow-y-auto bg-white dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700">
                 <div v-for="(day, index) in syncResult.synced_days" :key="index" class="p-2 text-sm border-b last:border-b-0">
                   <div class="flex justify-between items-center mb-1">
                     <div>
@@ -123,7 +123,7 @@
       <!-- 数据完整性检查面板 -->
       <div v-if="currentTab === 'integrity'">
         <!-- 直接显示完整性报告 -->
-        <div v-if="reportHtml" class="mb-6 prose prose-sm max-w-none bg-white p-4 rounded-md border border-gray-200">
+        <div v-if="reportHtml" class="mb-6 prose prose-sm max-w-none bg-white dark:bg-gray-800 p-4 rounded-md border border-gray-200 dark:border-gray-700 dark:text-gray-100">
           <div v-html="reportHtml"></div>
         </div>
 
@@ -136,7 +136,7 @@
               <input
                 v-model="dbPath"
                 type="text"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-pink-500 focus:border-pink-500 text-sm"
+                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-pink-500 focus:border-pink-500 text-sm dark:bg-gray-700 dark:text-gray-100"
               />
             </div>
             <div class="flex-1">
@@ -144,7 +144,7 @@
               <input
                 v-model="jsonPath"
                 type="text"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-pink-500 focus:border-pink-500 text-sm"
+                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-pink-500 focus:border-pink-500 text-sm dark:bg-gray-700 dark:text-gray-100"
               />
             </div>
           </div>
@@ -168,7 +168,7 @@
         <!-- 检查结果显示 -->
         <div v-if="checkResult" class="mt-6 border-t pt-4">
           <h3 class="font-medium text-gray-900 mb-2">数据完整性检查结果</h3>
-          <div class="bg-gray-50 p-3 rounded-md">
+          <div class="bg-gray-50 dark:bg-gray-900 p-3 rounded-md border border-gray-200 dark:border-gray-700">
             <div class="grid grid-cols-2 gap-3 mb-3">
               <div class="text-sm">
                 <span class="text-gray-500">检查时间：</span>
@@ -188,7 +188,7 @@
               </div>
             </div>
 
-            <div class="text-sm p-2 mb-3 rounded-md" :class="[checkResult.difference === 0 ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800']">
+            <div class="text-sm p-2 mb-3 rounded-md" :class="[checkResult.difference === 0 ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300']">
               <span class="font-medium">数据差异：</span>
               <span v-if="checkResult.difference === 0">数据一致</span>
               <span v-else-if="checkResult.difference > 0">数据库缺少 {{ checkResult.difference }} 条记录</span>

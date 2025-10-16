@@ -8,7 +8,7 @@
   <Teleport to="body">
     <div v-if="show" class="fixed inset-0 z-[9999] flex items-center justify-center">
       <!-- 遮罩层 -->
-      <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" @click="handleClose"></div>
+      <div class="fixed inset-0 bg-black/60" @click="handleClose"></div>
 
       <!-- 弹窗内容 -->
       <div
@@ -166,7 +166,7 @@
             <div v-if="!showAdvancedOptions" class="mb-2">
               <button
                 @click="showAdvancedOptions = true"
-                class="w-full flex items-center justify-center py-2.5 px-4 text-sm bg-white border border-gray-200 rounded-lg hover:bg-gray-50 /50 transition-colors group shadow-sm"
+                class="w-full flex items-center justify-center py-2.5 px-4 text-sm bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group shadow-sm"
               >
                 <div class="flex items-center space-x-3">
                   <svg class="w-5 h-5 text-[#fb7299]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -175,7 +175,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                           d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
-                  <span class="font-medium text-gray-700 ">高级下载选项</span>
+                  <span class="font-medium text-gray-700 dark:text-gray-300">高级下载选项</span>
                   <div class="flex-grow"></div>
                   <div class="flex items-center space-x-1 text-xs text-[#fb7299]">
                     <span>展开</span>
@@ -190,14 +190,14 @@
 
             <!-- 高级下载选项区域 -->
             <div
-              class="bg-white rounded-lg border border-gray-200 mb-2 overflow-hidden shadow-sm transition-all duration-300"
+              class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 mb-2 overflow-hidden shadow-sm transition-all duration-300"
               :class="{
  'max-h-[1000px] opacity-100': showAdvancedOptions,
  'max-h-0 opacity-0 border-0': !showAdvancedOptions
  }"
             >
               <!-- 高级选项标题 -->
-              <div class="bg-gray-50 /50 p-3 flex justify-between items-center border-b border-gray-200 ">
+              <div class="bg-gray-50 dark:bg-gray-700 p-3 flex justify-between items-center border-b border-gray-200 dark:border-gray-700">
                 <div class="flex items-center space-x-2">
                   <svg class="w-4 h-4 text-[#fb7299]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -205,13 +205,13 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                           d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
-                  <h4 class="text-sm font-medium text-gray-800 ">高级下载选项</h4>
+                  <h4 class="text-sm font-medium text-gray-800 dark:text-gray-200">高级下载选项</h4>
                 </div>
 
                 <!-- 隐藏按钮 -->
                 <button
                   @click="showAdvancedOptions = false"
-                  class="flex items-center space-x-1 px-2.5 py-1.5 rounded-md text-xs text-gray-600 hover:bg-gray-100 hover:text-[#fb7299] transition-all duration-200 group"
+                  class="flex items-center space-x-1 px-2.5 py-1.5 rounded-md text-xs text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 hover:text-[#fb7299] transition-all duration-200 group"
                 >
                   <span>收起选项</span>
                   <svg class="w-4 h-4 transition-transform group-hover:-translate-y-0.5 duration-300" fill="none"
@@ -224,7 +224,7 @@
               <div class="p-3">
                 <!-- 基础参数区块 -->
                 <div class="mb-3">
-                  <h5 class="text-xs font-semibold text-gray-700 mb-2 uppercase tracking-wide flex items-center">
+                  <h5 class="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wide flex items-center">
                     <svg class="w-3 h-3 mr-1 text-[#fb7299]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
@@ -234,21 +234,21 @@
                   <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                     <!-- 视频清晰度 -->
                     <div>
-                      <label class="block text-xs text-gray-600 mb-1">视频清晰度</label>
+                      <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1">视频清晰度</label>
                       <CustomDropdown
                         v-model="advancedOptions.video_quality"
                         :options="videoQualityOptions"
                         :selected-text="getVideoQualityText(advancedOptions.video_quality)"
                         custom-class="w-full text-xs"
                       />
-                      <div class="text-xs text-gray-500 mt-1 text-[10px]">
+                      <div class="text-xs text-gray-500 dark:text-gray-400 mt-1 text-[10px]">
                         yutto会尽可能满足清晰度要求，如不存在会自动调节
                       </div>
                     </div>
 
                     <!-- 音频码率 -->
                     <div>
-                      <label class="block text-xs text-gray-600 mb-1">音频码率</label>
+                      <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1">音频码率</label>
                       <CustomDropdown
                         v-model="advancedOptions.audio_quality"
                         :options="audioQualityOptions"
@@ -259,7 +259,7 @@
 
                     <!-- 输出格式 -->
                     <div>
-                      <label class="block text-xs text-gray-600 mb-1">输出格式</label>
+                      <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1">输出格式</label>
                       <CustomDropdown
                         v-model="advancedOptions.output_format"
                         :options="outputFormatOptions"
@@ -272,7 +272,7 @@
 
                 <!-- 编码参数区块 -->
                 <div class="mb-3">
-                  <h5 class="text-xs font-semibold text-gray-700 mb-2 uppercase tracking-wide flex items-center">
+                  <h5 class="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wide flex items-center">
                     <svg class="w-3 h-3 mr-1 text-[#fb7299]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
@@ -282,7 +282,7 @@
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <!-- 视频编码 -->
                     <div>
-                      <label class="block text-xs text-gray-600 mb-1">视频编码</label>
+                      <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1">视频编码</label>
                       <CustomDropdown
                         v-model="advancedOptions.vcodec"
                         :options="vcodecOptions"
@@ -293,7 +293,7 @@
 
                     <!-- 音频编码 -->
                     <div>
-                      <label class="block text-xs text-gray-600 mb-1">音频编码</label>
+                      <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1">音频编码</label>
                       <CustomDropdown
                         v-model="advancedOptions.acodec"
                         :options="acodecOptions"
@@ -306,7 +306,7 @@
 
                 <!-- 资源选项区块 -->
                 <div>
-                  <h5 class="text-xs font-semibold text-gray-700 mb-2 uppercase tracking-wide flex items-center">
+                  <h5 class="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wide flex items-center">
                     <svg class="w-3 h-3 mr-1 text-[#fb7299]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
@@ -322,7 +322,7 @@
                         class="w-4 h-4 text-[#fb7299] border-gray-300 rounded focus:ring-[#fb7299]"
                         :disabled="onlyAudio"
                       >
-                      <span class="text-xs text-gray-700 ">仅下载视频流</span>
+                      <span class="text-xs text-gray-700 dark:text-gray-300">仅下载视频流</span>
                     </label>
 
                     <label class="flex items-center space-x-2 cursor-pointer select-none">
@@ -332,7 +332,7 @@
                         class="w-4 h-4 text-[#fb7299] border-gray-300 rounded focus:ring-[#fb7299]"
                         :disabled="advancedOptions.danmaku_only"
                       >
-                      <span class="text-xs text-gray-700 ">不生成弹幕</span>
+                      <span class="text-xs text-gray-700 dark:text-gray-300">不生成弹幕</span>
                     </label>
 
                     <label class="flex items-center space-x-2 cursor-pointer select-none">
@@ -342,7 +342,7 @@
                         class="w-4 h-4 text-[#fb7299] border-gray-300 rounded focus:ring-[#fb7299]"
                         :disabled="advancedOptions.no_danmaku"
                       >
-                      <span class="text-xs text-gray-700 ">仅生成弹幕</span>
+                      <span class="text-xs text-gray-700 dark:text-gray-300 ">仅生成弹幕</span>
                     </label>
 
                     <label class="flex items-center space-x-2 cursor-pointer select-none">
@@ -352,7 +352,7 @@
                         class="w-4 h-4 text-[#fb7299] border-gray-300 rounded focus:ring-[#fb7299]"
                         :disabled="advancedOptions.subtitle_only"
                       >
-                      <span class="text-xs text-gray-700 ">不生成字幕</span>
+                      <span class="text-xs text-gray-700 dark:text-gray-300 ">不生成字幕</span>
                     </label>
 
                     <!-- 第二行 -->
@@ -363,7 +363,7 @@
                         class="w-4 h-4 text-[#fb7299] border-gray-300 rounded focus:ring-[#fb7299]"
                         :disabled="advancedOptions.no_subtitle"
                       >
-                      <span class="text-xs text-gray-700 ">仅生成字幕</span>
+                      <span class="text-xs text-gray-700 dark:text-gray-300 ">仅生成字幕</span>
                     </label>
 
                     <label class="flex items-center space-x-2 cursor-pointer select-none">
@@ -373,7 +373,7 @@
                         class="w-4 h-4 text-[#fb7299] border-gray-300 rounded focus:ring-[#fb7299]"
                         :disabled="advancedOptions.metadata_only"
                       >
-                      <span class="text-xs text-gray-700 ">生成元数据</span>
+                      <span class="text-xs text-gray-700 dark:text-gray-300 ">生成元数据</span>
                     </label>
 
                     <label class="flex items-center space-x-2 cursor-pointer select-none">
@@ -383,7 +383,7 @@
                         class="w-4 h-4 text-[#fb7299] border-gray-300 rounded focus:ring-[#fb7299]"
                         :disabled="advancedOptions.with_metadata"
                       >
-                      <span class="text-xs text-gray-700 ">仅生成元数据</span>
+                      <span class="text-xs text-gray-700 dark:text-gray-300 ">仅生成元数据</span>
                     </label>
 
                     <label class="flex items-center space-x-2 cursor-pointer select-none">
@@ -393,7 +393,7 @@
                         class="w-4 h-4 text-[#fb7299] border-gray-300 rounded focus:ring-[#fb7299]"
                         :disabled="!downloadCover || advancedOptions.save_cover || advancedOptions.cover_only"
                       >
-                      <span class="text-xs text-gray-700 ">不生成封面</span>
+                      <span class="text-xs text-gray-700 dark:text-gray-300 ">不生成封面</span>
                     </label>
 
                     <!-- 第三行 -->
@@ -404,7 +404,7 @@
                         class="w-4 h-4 text-[#fb7299] border-gray-300 rounded focus:ring-[#fb7299]"
                         :disabled="!downloadCover || advancedOptions.cover_only || advancedOptions.no_cover"
                       >
-                      <span class="text-xs text-gray-700 ">单独保存封面</span>
+                      <span class="text-xs text-gray-700 dark:text-gray-300 ">单独保存封面</span>
                     </label>
 
                     <label class="flex items-center space-x-2 cursor-pointer select-none">
@@ -414,7 +414,7 @@
                         class="w-4 h-4 text-[#fb7299] border-gray-300 rounded focus:ring-[#fb7299]"
                         :disabled="!downloadCover || advancedOptions.save_cover || advancedOptions.no_cover"
                       >
-                      <span class="text-xs text-gray-700 ">仅生成封面</span>
+                      <span class="text-xs text-gray-700 dark:text-gray-300 ">仅生成封面</span>
                     </label>
 
                     <label class="flex items-center space-x-2 cursor-pointer select-none">
@@ -423,7 +423,7 @@
                         v-model="advancedOptions.no_chapter_info"
                         class="w-4 h-4 text-[#fb7299] border-gray-300 rounded focus:ring-[#fb7299]"
                       >
-                      <span class="text-xs text-gray-700 ">不生成章节</span>
+                      <span class="text-xs text-gray-700 dark:text-gray-300 ">不生成章节</span>
                     </label>
                   </div>
                 </div>
@@ -432,12 +432,12 @@
 
             <!-- 下载日志 -->
             <div
-              class="w-full bg-gray-50 rounded-lg p-2 pb-0 font-mono text-[11px] overflow-y-auto border border-gray-200 "
+              class="w-full bg-gray-50 dark:bg-gray-900 rounded-lg p-2 pb-0 font-mono text-[11px] overflow-y-auto border border-gray-200 dark:border-gray-700"
               :class="showAdvancedOptions ? 'h-[calc(100vh-588px)] min-h-[130px]' : 'h-[calc(100vh-418px)] min-h-[180px]'"
               ref="logContainer">
-              <div v-if="!downloadStarted" class="text-gray-500 flex items-center justify-center h-full">
+              <div v-if="!downloadStarted" class="text-gray-500 dark:text-gray-400 flex items-center justify-center h-full">
                 <div class="text-center">
-                  <svg class="w-8 h-8 mx-auto mb-0 text-gray-400 " fill="none" viewBox="0 0 24 24"
+                  <svg class="w-8 h-8 mx-auto mb-0 text-gray-400 dark:text-gray-500" fill="none" viewBox="0 0 24 24"
                        stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                           d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -448,11 +448,11 @@
               <div v-else>
                 <div v-for="(log, index) in downloadLogs" :key="index" class="whitespace-pre break-all leading-5 py-0.5 last:pb-0"
                      :class="{
- 'text-gray-600 ': !log.includes('ERROR') && !log.includes('下载完成') && !log.includes('WARN'),
- 'text-red-500 ': log.includes('ERROR'),
- 'text-green-500 ': log.includes('下载完成'),
- 'text-yellow-500 dark:text-yellow-400': log.includes('WARN'),
- }">{{ log }}
+'text-gray-600 dark:text-gray-300': !log.includes('ERROR') && !log.includes('下载完成') && !log.includes('WARN'),
+'text-red-500 dark:text-red-400': log.includes('ERROR'),
+'text-green-500 dark:text-green-400': log.includes('下载完成'),
+'text-yellow-500 dark:text-yellow-400': log.includes('WARN'),
+}">{{ log }}
                 </div>
               </div>
             </div>
@@ -460,11 +460,11 @@
         </div>
 
         <!-- 页脚区域：状态和按钮 -->
-        <div class="bg-gray-50 border-t border-gray-200 py-2 px-6 flex items-center justify-between">
+        <div class="bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 py-2 px-6 flex items-center justify-between">
           <div class="text-xs font-medium" :class="{
- 'text-gray-500 ': !downloadStarted,
- 'text-red-500 ': downloadError,
- 'text-green-500 ': !isDownloading && downloadStarted && !downloadError,
+ 'text-gray-500 dark:text-gray-400': !downloadStarted,
+ 'text-red-500 dark:text-red-400': downloadError,
+ 'text-green-500 dark:text-green-400': !isDownloading && downloadStarted && !downloadError,
  'text-[#fb7299]': isDownloading
  }">
             {{ downloadStatus }}
@@ -472,7 +472,7 @@
           <div class="flex space-x-3">
             <button
               @click="handleClose"
-              class="px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+              class="px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
               :disabled="isDownloading"
             >
               {{ isDownloading ? '下载中...' : '关闭' }}

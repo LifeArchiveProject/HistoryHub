@@ -2,14 +2,14 @@
   <div>
         <!-- 致谢 -->
         <div class="mb-4">
-          <div class="bg-[#fb7299]/5 border border-[#fb7299]/20 px-3 py-0 rounded-md w-full flex items-center justify-center h-9">
+          <div class="bg-[#fb7299]/5 dark:bg-pink-900/20 border border-[#fb7299]/20 dark:border-[#fb7299]/30 px-3 py-0 rounded-md w-full flex items-center justify-center h-9">
             <img src="https://www.aicu.cc/favicon.ico" alt="AICU" class="w-3 h-3 mr-1.5" />
             <div class="flex items-center">
-              <span class="text-xs text-gray-700">
+              <span class="text-xs text-gray-700 dark:text-gray-300">
                 感谢 <a href="https://www.aicu.cc/" target="_blank" class="text-[#fb7299] hover:text-[#fb7299]/80 font-medium">aicu.cc</a> 开放API
               </span>
-              <span class="mx-1.5 text-gray-300">|</span>
-              <div class="flex items-center text-xs text-gray-500">
+              <span class="mx-1.5 text-gray-300 dark:text-gray-600">|</span>
+              <div class="flex items-center text-xs text-gray-500 dark:text-gray-400">
                 <svg class="w-3 h-3 text-[#fb7299] mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                 </svg>
@@ -73,16 +73,16 @@
         </div>
 
         <!-- 评论列表 -->
-        <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
           <!-- 评论项 -->
-          <div v-if="!loading && comments.length > 0" class="divide-y divide-gray-100">
+          <div v-if="!loading && comments.length > 0" class="divide-y divide-gray-100 dark:divide-gray-700">
             <div v-for="comment in comments" :key="comment.rpid" class="p-4 md:p-6">
               <div class="space-y-2">
                 <!-- 评论内容 -->
-                <p class="text-gray-800 text-sm md:text-base whitespace-pre-wrap leading-relaxed">{{ comment.message }}</p>
+                <p class="text-gray-800 dark:text-gray-200 text-sm md:text-base whitespace-pre-wrap leading-relaxed">{{ comment.message }}</p>
 
                 <!-- 评论元数据 -->
-                <div class="flex items-center justify-between text-xs text-gray-500">
+                <div class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
                   <div class="flex items-center space-x-3">
                     <span :class="comment.type === 1 ? 'text-[#fb7299]' : 'text-[#fb7299]'">
                       {{ getCommentType(comment.type) }}
@@ -118,8 +118,8 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
                 </svg>
               </div>
-              <p class="text-gray-600 font-medium">暂无评论数据</p>
-              <p v-if="hasActiveFilters" class="text-gray-500 text-sm mt-1 text-center max-w-sm">
+              <p class="text-gray-600 dark:text-gray-300 font-medium">暂无评论数据</p>
+              <p v-if="hasActiveFilters" class="text-gray-500 dark:text-gray-400 text-sm mt-1 text-center max-w-sm">
                 尝试调整搜索条件
               </p>
               <button

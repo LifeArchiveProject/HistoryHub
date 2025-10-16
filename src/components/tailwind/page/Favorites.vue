@@ -1,19 +1,19 @@
 <!-- 收藏夹页面 -->
 <template>
-  <div class="min-h-screen bg-gray-50/30">
+  <div class="min-h-screen bg-gray-50/30 dark:bg-gray-900">
     <div class="py-6">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <!-- 主内容卡片 -->
-        <div class="bg-white rounded-lg overflow-hidden">
+        <div class="bg-white dark:bg-gray-800 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
           <!-- 标签导航 -->
-          <div class="border-b border-gray-200" v-if="!showFolderContents">
+          <div class="border-b border-gray-200 dark:border-gray-700" v-if="!showFolderContents">
             <nav class="-mb-px flex space-x-6 px-4 overflow-x-auto" aria-label="收藏夹选项卡">
               <button
                 @click="activeTab = 'created'"
                 class="py-3 px-1 border-b-2 font-medium text-sm flex items-center space-x-2"
                 :class="activeTab === 'created'
                   ? 'border-[#fb7299] text-[#fb7299]'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'"
               >
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
@@ -26,7 +26,7 @@
                 class="py-3 px-1 border-b-2 font-medium text-sm flex items-center space-x-2"
                 :class="activeTab === 'collected'
                   ? 'border-[#fb7299] text-[#fb7299]'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'"
               >
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
@@ -39,7 +39,7 @@
                 class="py-3 px-1 border-b-2 font-medium text-sm flex items-center space-x-2"
                 :class="activeTab === 'local'
                   ? 'border-[#fb7299] text-[#fb7299]'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'"
               >
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
@@ -50,14 +50,14 @@
           </div>
 
           <!-- 文件夹内容标题栏 -->
-          <div class="border-b border-gray-200" v-if="showFolderContents">
+          <div class="border-b border-gray-200 dark:border-gray-700" v-if="showFolderContents">
             <div class="flex items-center justify-between px-4 py-3">
               <div class="flex items-center space-x-4">
                 <button
                   @click="backToFolderList"
-                  class="p-1 rounded-full hover:bg-gray-100 transition-colors"
+                  class="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                 >
-                  <svg class="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg class="w-5 h-5 text-gray-600 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                   </svg>
                 </button>
@@ -67,7 +67,7 @@
                 <button
                   v-if="activeTab !== 'local'"
                   @click="fetchAllContents"
-                  class="flex items-center px-3 py-1.5 text-xs text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+                  class="flex items-center px-3 py-1.5 text-xs text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md transition-colors"
                   :disabled="fetchingAll"
                 >
                   <svg class="w-3.5 h-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -82,7 +82,7 @@
           <!-- 内容区域 -->
           <div class="transition-all duration-300 p-5">
             <!-- 全局提示信息 -->
-            <div class="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-md text-amber-700 text-sm">
+            <div class="mb-4 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-md text-amber-700 dark:text-amber-300 text-sm">
               <div class="flex items-start">
                 <svg class="w-5 h-5 text-amber-500 mt-0.5 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -97,7 +97,7 @@
             <div class="animate-fadeIn" v-if="!showFolderContents">
               <!-- 收藏夹列表显示区域 -->
               <div v-if="loading" class="flex justify-center py-20">
-                <div class="inline-flex items-center px-4 py-2 bg-white rounded-md shadow">
+                <div class="inline-flex items-center px-4 py-2 bg-white dark:bg-gray-800 rounded-md shadow text-gray-900 dark:text-gray-100">
                   <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-[#fb7299]" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -110,7 +110,7 @@
                 <svg class="w-16 h-16 mx-auto text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
                 </svg>
-                <p class="mt-4 text-gray-500">暂无收藏夹</p>
+                <p class="mt-4 text-gray-500 dark:text-gray-400">暂无收藏夹</p>
                 <!-- 在线收藏夹（需要登录） -->
                 <template v-if="(activeTab === 'created' || activeTab === 'collected') && !isLoggedIn">
                   <p class="mt-2 text-sm text-gray-400">您需要登录B站账号才能查看收藏夹</p>
@@ -138,10 +138,10 @@
                 <div
                   v-for="folder in favorites"
                   :key="folder.id || folder.media_id"
-                  class="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow border border-gray-200 flex flex-col"
+                  class="bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow border border-gray-200 dark:border-gray-700 flex flex-col"
                 >
                   <!-- 封面图 -->
-                  <div class="relative aspect-video bg-gray-100 overflow-hidden">
+                  <div class="relative aspect-video bg-gray-100 dark:bg-gray-700 overflow-hidden">
                      <img
                       :src="normalizeImageUrl(folder.cover)"
                       :alt="folder.title"
@@ -161,23 +161,23 @@
                     <div class="flex items-start justify-between">
                       <div class="flex-1">
                         <h3
-                          class="font-medium text-gray-900 hover:text-[#fb7299] transition-colors cursor-pointer"
+                          class="font-medium text-gray-900 dark:text-gray-100 hover:text-[#fb7299] transition-colors cursor-pointer"
                           @click="viewFolderContents(folder)"
                         >
                           {{ folder.title }}
                         </h3>
-                        <p class="mt-1 text-xs text-gray-500 line-clamp-2">{{ folder.intro || '无简介' }}</p>
+                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400 line-clamp-2">{{ folder.intro || '无简介' }}</p>
                       </div>
                     </div>
 
-                    <div class="mt-3 pt-2 border-t border-gray-100 flex items-center justify-between">
+                    <div class="mt-3 pt-2 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between">
                       <div class="flex items-center">
                         <img
                           :src="normalizeImageUrl(folder.upper?.face || folder.creator_face)"
                           :alt="folder.upper?.name || folder.creator_name"
                           class="w-5 h-5 rounded-full"
                         />
-                        <span class="ml-1.5 text-xs text-gray-600">{{ folder.upper?.name || folder.creator_name }}</span>
+                        <span class="ml-1.5 text-xs text-gray-600 dark:text-gray-400">{{ folder.upper?.name || folder.creator_name }}</span>
                       </div>
                       <div class="flex items-center space-x-2">
                         <button
@@ -215,7 +215,7 @@
             <!-- 收藏夹内容 -->
             <div v-if="showFolderContents" class="animate-fadeIn">
               <div v-if="loadingContents" class="flex justify-center py-20">
-                <div class="inline-flex items-center px-4 py-2 bg-white rounded-md shadow">
+                <div class="inline-flex items-center px-4 py-2 bg-white dark:bg-gray-800 rounded-md shadow text-gray-900 dark:text-gray-100">
                   <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-[#fb7299]" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -225,14 +225,14 @@
               </div>
 
               <div v-else-if="folderContents.length === 0" class="py-10 text-center">
-                <p class="text-gray-500">该收藏夹暂无内容</p>
+                <p class="text-gray-500 dark:text-gray-400">该收藏夹暂无内容</p>
               </div>
 
               <div v-else>
                 <!-- 收藏夹操作栏 -->
-                <div class="mb-4 flex flex-wrap justify-between items-center bg-white/70 p-3 rounded-lg shadow-sm">
+                <div class="mb-4 flex flex-wrap justify-between items-center bg-white/70 dark:bg-gray-800/70 p-3 rounded-lg shadow-sm">
                   <div class="flex items-center space-x-3">
-                    <div class="text-sm text-gray-700">共 {{ contentsTotalItems }} 个内容</div>
+                    <div class="text-sm text-gray-700 dark:text-gray-300">共 {{ contentsTotalItems }} 个内容</div>
                     <div v-if="invalidVideosCount > 0" class="text-sm text-red-500">
                       ({{ invalidVideosCount }} 个失效)
                     </div>
@@ -259,7 +259,7 @@
                   <div
                     v-for="item in folderContents"
                     :key="item.id || item.bvid"
-                    class="bg-white/50 backdrop-blur-sm rounded-md overflow-hidden border border-gray-200/50 hover:border-[#fb7299] hover:shadow-sm transition-all duration-200 relative group"
+                    class="bg-white/50 dark:bg-gray-800/50 rounded-md overflow-hidden border border-gray-200/50 dark:border-gray-700/50 hover:border-[#fb7299] hover:shadow-sm transition-all duration-200 relative group"
                   >
                     <!-- 视频封面 -->
                     <div class="relative pb-[56.25%] overflow-hidden cursor-pointer group" @click="openVideo(item)">
@@ -274,7 +274,7 @@
                       />
 
                       <!-- 视频时长标签 -->
-                      <div class="absolute bottom-1 right-1 bg-black/60 backdrop-blur-sm px-1 py-0.5 rounded text-white text-[10px]">
+                      <div class="absolute bottom-1 right-1 bg-black/60 px-1 py-0.5 rounded text-white text-[10px]">
                         {{ formatDuration(item.duration) }}
                       </div>
 
@@ -284,7 +284,7 @@
                     <!-- 视频信息 -->
                     <div class="p-2 flex flex-col space-y-1">
                       <!-- 标题 -->
-                      <div class="line-clamp-2 text-xs text-gray-900 font-medium cursor-pointer" @click="openVideo(item)">
+                      <div class="line-clamp-2 text-xs text-gray-900 dark:text-gray-100 font-medium cursor-pointer" @click="openVideo(item)">
                         {{ getVideoTitle(item) }}
                       </div>
 
@@ -298,7 +298,7 @@
                           onerror="this.src='https://i1.hdslb.com/bfs/face/1b6f746be0d0c8324e01e618c5e85e113a8b38be.jpg'"
                           @click.stop="openAuthorPage(item)"
                         />
-                        <span class="text-[10px] text-gray-600 truncate hover:text-[#fb7299] cursor-pointer" @click.stop="openAuthorPage(item)">
+                        <span class="text-[10px] text-gray-600 dark:text-gray-400 truncate hover:text-[#fb7299] cursor-pointer" @click.stop="openAuthorPage(item)">
                           {{ getAuthorName(item) }}
                         </span>
                       </div>
@@ -338,18 +338,18 @@
     />
 
     <!-- 全屏加载遮罩 -->
-    <div v-if="fetchingAll" class="fixed inset-0 bg-black/40 backdrop-blur-md flex items-center justify-center z-50">
-      <div class="bg-white p-6 rounded-lg max-w-xs w-full shadow-xl text-center">
+    <div v-if="fetchingAll" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+      <div class="bg-white dark:bg-gray-800 p-6 rounded-lg max-w-xs w-full shadow-xl text-center">
         <svg class="animate-spin h-10 w-10 text-[#fb7299] mx-auto mb-4" fill="none" viewBox="0 0 24 24">
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
           <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
         </svg>
-        <h3 class="text-lg font-medium mb-2">正在获取全部收藏内容</h3>
-        <p class="text-gray-600 mb-3">请耐心等待，这可能需要一些时间</p>
-        <div class="w-full bg-gray-200 rounded-full h-2.5 mb-3">
+        <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">正在获取全部收藏内容</h3>
+        <p class="text-gray-600 dark:text-gray-400 mb-3">请耐心等待，这可能需要一些时间</p>
+        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 mb-3">
           <div class="bg-[#fb7299] h-2.5 rounded-full" :style="{ width: `${fetchProgress}%` }"></div>
         </div>
-        <p class="text-sm text-gray-700">已获取 {{ currentFetchPage }} / {{ totalFetchPages }} 页</p>
+        <p class="text-sm text-gray-700 dark:text-gray-300">已获取 {{ currentFetchPage }} / {{ totalFetchPages }} 页</p>
       </div>
     </div>
 

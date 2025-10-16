@@ -8,7 +8,7 @@
     :show-confirm-button="false"
     :style="{ width: '1000px', maxWidth: '90%', position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', borderRadius: '0.5rem', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)' }"
   >
-    <div v-if="video" class="p-4 overflow-y-auto" style="height: 600px">
+    <div v-if="video" class="p-4 overflow-y-auto bg-transparent" style="height: 600px">
       <!-- 视频基础信息 -->
       <div class="flex flex-col md:flex-row gap-3">
         <!-- 左侧：视频封面 -->
@@ -39,7 +39,7 @@
 
           <!-- 视频下载信息 -->
           <div v-if="isVideoDownloaded && downloadedFiles.length > 0" class="mt-3">
-            <div class="text-xs text-gray-500 p-2 bg-pink-50 rounded-lg">
+            <div class="text-xs text-gray-500 dark:text-gray-400 p-2 bg-pink-50 dark:bg-pink-900/20 rounded-lg">
               <div class="flex items-center mb-1">
                 <svg class="w-3 h-3 text-[#fb7299] mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
@@ -74,16 +74,16 @@
               </div>
               <div class="flex-1 min-w-0">
                 <p
-                  class="cursor-pointer text-gray-800 transition-colors hover:text-[#FF6699]"
+                  class="cursor-pointer text-gray-800 dark:text-gray-200 transition-colors hover:text-[#FF6699]"
                   @click="openAuthorPage"
                   :title="isPrivacyMode ? '隐私模式已开启' : `访问 ${video.author_name} 的个人空间`"
                   v-html="isPrivacyMode ? '******' : video.author_name"
                 ></p>
-                <p class="text-xs text-gray-500">UP主</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">UP主</p>
               </div>
               <div class="flex items-center space-x-2 ml-auto">
                 <EnvironmentCheck inline compact />
-                <div class="hidden sm:block h-4 w-px bg-gray-200"></div>
+                <div class="hidden sm:block h-4 w-px bg-gray-200 dark:bg-gray-700"></div>
                 <!-- DeepSeek 余额（紧凑显示） -->
                 <div class="flex items-center space-x-1 text-[11px] text-gray-600">
                   <svg class="w-3.5 h-3.5 text-[#4D6BFE]" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -114,10 +114,10 @@
                 :disabled="isPrivacyMode"
                 placeholder="添加备注..."
                 rows="2"
-                class="w-full flex-1 resize-none px-2 py-1.5 text-xs text-gray-800 bg-gray-50 rounded border border-gray-200 focus:border-[#fb7299] focus:ring-[#fb7299] transition-colors duration-200"
+                class="w-full flex-1 resize-none px-2 py-1.5 text-xs text-gray-800 dark:text-gray-200 bg-gray-50 dark:bg-gray-700 rounded border border-gray-200 dark:border-gray-600 focus:border-[#fb7299] focus:ring-[#fb7299] transition-colors duration-200"
                 :class="{ 'blur-sm': isPrivacyMode }"
               ></textarea>
-              <div v-if="remarkTime" class="text-xs text-gray-400 mt-1">
+              <div v-if="remarkTime" class="text-xs text-gray-400 dark:text-gray-500 mt-1">
                 上次编辑: {{ formatRemarkTime(remarkTime) }}
               </div>
             </div>
@@ -128,7 +128,7 @@
       <!-- 视频摘要 -->
       <div v-if="video.business === 'archive'" class="mt-6">
         <!-- 标签页 -->
-        <div class="border-b border-gray-200">
+        <div class="border-b border-gray-200 dark:border-gray-700">
           <nav class="flex -mb-px">
             <button
               v-for="tab in tabs"
@@ -171,7 +171,7 @@
 
             <!-- 系统资源不足提示 -->
             <div v-else-if="!canRunSpeechToText"
-                 class="flex items-center justify-center p-6 bg-red-50 text-red-700 rounded-lg">
+                 class="flex items-center justify-center p-6 bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-lg border border-red-200 dark:border-red-800/60">
               <div class="flex flex-col items-center text-center">
                 <svg class="w-12 h-12 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -184,7 +184,7 @@
 
             <!-- CUDA不可用提示 -->
             <div v-if="!cudaAvailable && cudaSetupGuide && showCudaGuide"
-                 class="flex flex-col p-6 bg-yellow-50 text-yellow-800 rounded-lg">
+                 class="flex flex-col p-6 bg-yellow-50 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 rounded-lg border border-yellow-100 dark:border-yellow-800/60">
               <div class="flex items-center mb-4">
                 <svg class="w-8 h-8 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -199,7 +199,7 @@
               <div class="mt-2">
                 <h4 class="font-medium mb-2">CUDA 安装指南</h4>
                 <pre
-                  class="text-xs bg-gray-100 p-3 rounded-md overflow-auto max-h-60 whitespace-pre-wrap">{{ cudaSetupGuide
+                  class="text-xs bg-gray-100 dark:bg-gray-900 dark:text-gray-300 border border-gray-200 dark:border-gray-700 p-3 rounded-md overflow-auto max-h-60 whitespace-pre-wrap">{{ cudaSetupGuide
                   }}</pre>
               </div>
 
@@ -216,9 +216,9 @@
             <!-- 只有在系统资源足够且CUDA可用或用户已确认时才显示以下内容 -->
             <template v-else-if="canRunSpeechToText && (!cudaAvailable ? !showCudaGuide : true)">
               <!-- 本地摘要显示部分 -->
-              <div v-if="hasLocalSummary" class="bg-white rounded-lg border border-gray-200 p-4">
+              <div v-if="hasLocalSummary" class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
                 <div class="flex items-center justify-between mb-4">
-                  <h3 class="text-base font-medium text-gray-900">本地摘要</h3>
+                  <h3 class="text-base font-medium text-gray-900 dark:text-gray-100">本地摘要</h3>
                   <!-- DeepSeek余额显示 -->
                   <div class="flex items-center space-x-2">
                     <svg class="w-4 h-4 text-[#4D6BFE]" viewBox="0 0 30 30" fill="none"
@@ -248,8 +248,8 @@
                 </div>
 
                 <!-- 处理信息和Token信息 -->
-                <div class="mb-4 p-3 bg-gray-50 rounded-lg">
-                  <div class="text-xs text-gray-500 space-y-2">
+                <div class="mb-4 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                  <div class="text-xs text-gray-500 dark:text-gray-400 space-y-2">
                     <p>处理用时：{{ Math.round(localSummaryData?.processing_time || 0) }}秒</p>
                     <p>使用模型：{{ localSummaryData?.from_deepseek ? 'DeepSeek' : 'GPT' }}</p>
                     <div class="border-t border-gray-200 my-2 pt-2">
@@ -265,7 +265,7 @@
                 </div>
 
                 <!-- 摘要内容 -->
-                <div class="text-sm text-gray-700 whitespace-pre-line">
+                <div class="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-line">
                   <div v-if="localSummaryData?.summary" class="space-y-4">
                     <template v-for="(section, index) in localSummaryData.summary.split('\n')" :key="index">
                       <div v-if="hasTimeStamp(section)"
@@ -281,10 +281,10 @@
               </div>
 
               <!-- 音频文件状态检查 -->
-              <div class="bg-white rounded-lg border border-gray-200 p-4">
+              <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
                 <div class="flex items-start justify-between">
                   <div class="flex items-start space-x-2">
-                    <div v-if="isCheckingAudio" class="flex items-center space-x-2 text-gray-500">
+                    <div v-if="isCheckingAudio" class="flex items-center space-x-2 text-gray-500 dark:text-gray-400">
                       <div
                         class="animate-spin h-4 w-4 border-2 border-gray-300 border-t-transparent rounded-full"></div>
                       <span>正在检查音频文件...</span>
@@ -295,9 +295,9 @@
                           <svg class="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                           </svg>
-                          <span class="text-sm font-medium text-gray-900">已找到音频文件</span>
+                          <span class="text-sm font-medium text-gray-900 dark:text-gray-100">已找到音频文件</span>
                         </div>
-                        <p class="mt-1 text-xs text-gray-500 break-all">{{ audioPath }}</p>
+                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400 break-all">{{ audioPath }}</p>
                       </div>
                       <div v-else class="flex-1">
                         <div class="flex items-center space-x-2">
@@ -305,9 +305,9 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                   d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
                           </svg>
-                          <span class="text-sm font-medium text-gray-900">未找到音频文件</span>
+                          <span class="text-sm font-medium text-gray-900 dark:text-gray-100">未找到音频文件</span>
                         </div>
-                        <p class="mt-1 text-xs text-gray-500">请下载音频文件</p>
+                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">请下载音频文件</p>
                       </div>
                     </template>
                   </div>
@@ -337,9 +337,9 @@
               <div
                 v-if="transcriptionStatus && (isTranscribing || transcriptionResult || transcriptionStatus !== '音频文件已找到，可以开始转录')"
                 class="rounded-lg p-4" :class="{
-                'bg-blue-50 border border-blue-200': isTranscribing,
-                'bg-green-50 border border-green-200': transcriptionResult && !isTranscribing,
-                'bg-gray-50 border border-gray-200': !transcriptionResult && !isTranscribing
+                'bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-900/30': isTranscribing,
+                'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-900/30': transcriptionResult && !isTranscribing,
+                'bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700': !transcriptionResult && !isTranscribing
               }">
                 <div class="flex items-center space-x-3">
                   <div v-if="isTranscribing" class="flex-shrink-0">
@@ -356,9 +356,9 @@
                   </div>
                   <div class="flex-1">
                     <p class="text-sm font-medium" :class="{
-                      'text-blue-700': isTranscribing,
-                      'text-green-700': transcriptionResult && !isTranscribing,
-                      'text-gray-700': !transcriptionResult && !isTranscribing
+                      'text-blue-700 dark:text-blue-300': isTranscribing,
+                      'text-green-700 dark:text-green-300': transcriptionResult && !isTranscribing,
+                      'text-gray-700 dark:text-gray-300': !transcriptionResult && !isTranscribing
                     }">{{ transcriptionStatus }}</p>
 
                     <div v-if="transcriptionResult && !isTranscribing" class="mt-2 grid grid-cols-3 gap-4">
@@ -400,9 +400,9 @@
               </div>
 
               <!-- 模型选择部分 -->
-              <div class="bg-white rounded-lg border border-gray-200 p-4">
+              <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
                 <div class="flex items-center justify-between mb-2">
-                  <h4 class="text-base font-medium text-gray-900">选择语音识别模型</h4>
+                  <h4 class="text-base font-medium text-gray-900 dark:text-gray-100">选择语音识别模型</h4>
                   <button
                     @click="startTranscription"
                     :disabled="!selectedModel || !selectedModel.is_downloaded || isTranscribing"
@@ -424,7 +424,7 @@
 
                 <!-- 长视频警告 -->
                 <div v-if="video && video.duration > 1800"
-                     class="mb-4 p-3 bg-yellow-50 border border-yellow-100 rounded-lg">
+                     class="mb-4 p-3 bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-100 dark:border-yellow-800/60 rounded-lg">
                   <div class="flex items-start">
                     <svg class="w-5 h-5 text-yellow-600 mt-0.5 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24"
                          stroke="currentColor">
@@ -432,8 +432,8 @@
                             d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                     </svg>
                     <div>
-                      <p class="text-sm font-medium text-yellow-800">长视频警告</p>
-                      <p class="text-sm text-yellow-700 mt-1">
+                      <p class="text-sm font-medium text-yellow-800 dark:text-yellow-300">长视频警告</p>
+                      <p class="text-sm text-yellow-700 dark:text-yellow-300 mt-1">
                         该视频时长超过30分钟，音频转文字后可能产生大量文本。这可能导致上下文过长，使AI无法接受请求。请谨慎操作
                       </p>
                     </div>
@@ -442,7 +442,7 @@
 
                 <!-- 语言选择 -->
                 <div class="mb-4">
-                  <label class="block text-sm font-medium text-gray-700 mb-2">选择语言</label>
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">选择语言</label>
                   <div class="grid grid-cols-2 gap-2">
                     <button
                       @click="selectedLanguage = 'zh'"
@@ -450,7 +450,7 @@
                       :class="[
                         selectedLanguage === 'zh'
                           ? 'bg-[#fb7299] text-white'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                       ]"
                     >
                       中文
@@ -478,21 +478,21 @@
                        @mouseleave="hoveredModel = null"
                        class="relative border rounded-lg p-4 cursor-pointer transition-all duration-200 hover:border-[#fb7299]"
                        :class="[
-                         selectedModel?.name === model.name ? 'border-[#fb7299] bg-pink-50' : 'border-gray-200',
+                         selectedModel?.name === model.name ? 'border-[#fb7299] bg-pink-50 dark:bg-pink-900/20' : 'border-gray-200 dark:border-gray-700',
                          !model.is_downloaded ? 'opacity-50' : ''
                        ]"
                   >
                     <div class="flex items-start justify-between">
                       <div>
-                        <h5 class="text-sm font-medium text-gray-900">
+                        <h5 class="text-sm font-medium text-gray-900 dark:text-gray-100">
                           {{ model.description }}
                           <span
                             v-if="model.name === 'tiny' || (model.description && model.description.includes('极小型'))"
                             class="ml-2 inline-flex items-center px-1.5 py-0.5 rounded bg-[#fb7299]/10 text-[#fb7299] text-[10px]"
                           >推荐</span>
                         </h5>
-                        <p class="text-xs text-gray-500 mt-1">{{ model.params_size }}</p>
-                        <p v-if="model.is_downloaded" class="text-xs text-gray-400 mt-1 truncate" :title="model.path">
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ model.params_size }}</p>
+                        <p v-if="model.is_downloaded" class="text-xs text-gray-400 dark:text-gray-500 mt-1 truncate" :title="model.path">
                           {{ model.path }}
                         </p>
                       </div>
@@ -504,7 +504,7 @@
                       </div>
                     </div>
 
-                    <p class="mt-2 text-xs text-gray-600">{{ model.recommended_use }}</p>
+                    <p class="mt-2 text-xs text-gray-600 dark:text-gray-400">{{ model.recommended_use }}</p>
 
                     <!-- 已下载模型的删除按钮 -->
                     <div
@@ -521,7 +521,7 @@
 
                     <!-- 删除模型中状态 -->
                     <div v-if="isDeletingModel && modelToDelete && modelToDelete.name === model.name"
-                         class="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center rounded-lg">
+                         class="absolute inset-0 bg-white/80 dark:bg-gray-900/70 backdrop-blur-sm flex items-center justify-center rounded-lg">
                       <div class="flex flex-col items-center space-y-2">
                         <div
                           class="animate-spin h-6 w-6 border-2 border-red-500 border-t-transparent rounded-full"></div>
@@ -531,7 +531,7 @@
 
                     <!-- 未下载提示 -->
                     <div v-if="!model.is_downloaded"
-                         class="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center rounded-lg">
+                         class="absolute inset-0 bg-white/80 dark:bg-gray-900/70 backdrop-blur-sm flex items-center justify-center rounded-lg">
                       <!-- 下载按钮 -->
                       <div v-if="hoveredModel && hoveredModel.name === model.name && !isDownloadingModel"
                            class="flex flex-col items-center space-y-2"
@@ -590,13 +590,13 @@
       @confirm="startDownloadModel"
     >
       <div class="p-4">
-        <p class="text-gray-700 mb-3">您确定要下载{{ modelToDownload?.description }}吗？</p>
-        <div v-if="modelToDownload" class="bg-gray-50 p-3 rounded-lg">
-          <p class="font-medium text-gray-900">{{ modelToDownload.description }}</p>
-          <p class="text-sm text-gray-500 mt-1">{{ modelToDownload.params_size }}</p>
-          <p class="text-sm text-gray-500 mt-1">{{ modelToDownload.recommended_use }}</p>
+        <p class="text-gray-700 dark:text-gray-300 mb-3">您确定要下载{{ modelToDownload?.description }}吗？</p>
+        <div v-if="modelToDownload" class="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-3 rounded-lg">
+          <p class="font-medium text-gray-900 dark:text-gray-100">{{ modelToDownload.description }}</p>
+          <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">{{ modelToDownload.params_size }}</p>
+          <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">{{ modelToDownload.recommended_use }}</p>
         </div>
-        <p class="mt-3 text-sm text-gray-500">下载模型将占用一定的磁盘空间</p>
+        <p class="mt-3 text-sm text-gray-500 dark:text-gray-400">下载模型将占用一定的磁盘空间</p>
       </div>
     </van-dialog>
 
@@ -608,13 +608,13 @@
       @confirm="startDeleteModel"
     >
       <div class="p-4">
-        <p class="text-gray-700 mb-3">您确定要删除{{ modelToDelete?.description }}吗？</p>
-        <div v-if="modelToDelete" class="bg-gray-50 p-3 rounded-lg">
-          <p class="font-medium text-gray-900">{{ modelToDelete.description }}</p>
-          <p class="text-sm text-gray-500 mt-1">{{ modelToDelete.params_size }}</p>
-          <p class="text-sm text-gray-500 mt-1">{{ modelToDelete.recommended_use }}</p>
+        <p class="text-gray-700 dark:text-gray-300 mb-3">您确定要删除{{ modelToDelete?.description }}吗？</p>
+        <div v-if="modelToDelete" class="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-3 rounded-lg">
+          <p class="font-medium text-gray-900 dark:text-gray-100">{{ modelToDelete.description }}</p>
+          <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">{{ modelToDelete.params_size }}</p>
+          <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">{{ modelToDelete.recommended_use }}</p>
         </div>
-        <p class="mt-3 text-sm text-gray-500">删除模型将释放磁盘空间</p>
+        <p class="mt-3 text-sm text-gray-500 dark:text-gray-400">删除模型将释放磁盘空间</p>
       </div>
     </van-dialog>
   </van-dialog>
@@ -1444,9 +1444,24 @@ watch(() => props.video?.cid, (newCid) => {
   overflow: hidden;
 }
 
+/* 对话框正文背景与页面正文一致 */
+.video-detail-dialog :deep(.van-dialog__content) {
+  background-color: #ffffff; /* light */
+}
+.dark .video-detail-dialog :deep(.van-dialog__content) {
+  background-color: #1f2937; /* gray-800 */
+}
+
 .video-detail-dialog :deep(.van-dialog__header) {
   padding: 12px 16px;
-  border-bottom: 1px solid #f3f4f6;
+  background-color: #ffffff; /* light: white 与正文一致 */
+  border-bottom: 1px solid #e5e7eb; /* gray-200 */
+  color: #111827; /* gray-900 */
+}
+.dark .video-detail-dialog :deep(.van-dialog__header) {
+  background-color: #1f2937; /* dark: gray-800 与正文一致 */
+  border-bottom: 1px solid #374151; /* gray-700 */
+  color: #e5e7eb; /* gray-200 */
 }
 </style>
 

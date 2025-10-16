@@ -1,8 +1,8 @@
 <template>
   <div>
     <!-- 搜索框和总数显示容器 -->
-    <div class="sticky top-0 bg-white lg:pt-4 z-50">
-      <div class="bg-white">
+    <div class="sticky top-0 bg-white dark:bg-gray-900 lg:pt-4 z-50">
+      <div class="bg-white dark:bg-gray-900">
         <div class="mx-auto max-w-4xl">
           <!-- 使用SearchBar组件 -->
           <SearchBar
@@ -12,7 +12,7 @@
           />
 
           <!-- 显示总条数，和输入框左端对齐 -->
-          <p class="p-1.5 text-lg text-gray-700 lm:text-sm">
+          <p class="p-1.5 text-lg text-gray-700 dark:text-gray-300 lm:text-sm">
             共 <span class="text-[#fb7299]">{{ totalResults }}</span> 条数据和
             <span class="text-[#fb7299]">{{ keyword }}</span> 相关
           </p>

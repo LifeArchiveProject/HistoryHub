@@ -40,6 +40,7 @@ import { ref, computed, onMounted } from 'vue'
 import gsap from 'gsap'
 import VChart from 'vue-echarts'
 import * as echarts from 'echarts/core'
+import { useDarkMode } from '@/store/darkMode.js'
 
 const props = defineProps({
   viewingData: {
@@ -106,16 +107,26 @@ const completionDistributionOption = computed(() => {
       value: count
     }))
   
+  const { isDarkMode } = useDarkMode()
+  const isDark = !!(isDarkMode && isDarkMode.value)
+  const legendTextColor = isDark ? '#bbbbbb' : '#666'
+  const labelTextColor = isDark ? '#e5e7eb' : '#333'
+  const tooltipBg = isDark ? 'rgba(28, 28, 28, 0.9)' : 'rgba(255, 255, 255, 0.95)'
+  const tooltipText = isDark ? '#ffffff' : '#111111'
+
   return {
     tooltip: {
       trigger: 'item',
+      backgroundColor: tooltipBg,
+      borderColor: '#fb7299',
+      textStyle: { color: tooltipText },
       formatter: '{b}: {c} ({d}%)'
     },
     legend: {
       orient: 'vertical',
       right: '5%',
       top: 'middle',
-      textStyle: { color: '#666', fontSize: '12px' }
+      textStyle: { color: legendTextColor, fontSize: '12px' }
     },
     series: [{
       type: 'pie',
@@ -123,9 +134,7 @@ const completionDistributionOption = computed(() => {
       center: ['40%', '50%'],
       avoidLabelOverlap: true,
       itemStyle: {
-        borderRadius: 4,
-        borderColor: '#fff',
-        borderWidth: 1
+        borderRadius: 4
       },
       label: {
         show: false,
@@ -135,7 +144,8 @@ const completionDistributionOption = computed(() => {
         label: {
           show: true,
           fontSize: '14',
-          fontWeight: 'bold'
+          fontWeight: 'bold',
+          color: labelTextColor
         }
       },
       labelLine: {
@@ -170,10 +180,23 @@ const durationCompletionOption = computed(() => {
       return order.indexOf(a.duration) - order.indexOf(b.duration)
     })
   
+  const { isDarkMode } = useDarkMode()
+  const isDark = !!(isDarkMode && isDarkMode.value)
+  const axisLabelColor = isDark ? '#bbbbbb' : '#999'
+  const axisLineColor = isDark ? '#888888' : '#666'
+  const splitLineColor = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.1)'
+  const legendTextColor = isDark ? '#bbbbbb' : '#666'
+  const labelTextColor = isDark ? '#e5e7eb' : '#333'
+  const tooltipBg = isDark ? 'rgba(28, 28, 28, 0.9)' : 'rgba(255, 255, 255, 0.95)'
+  const tooltipText = isDark ? '#ffffff' : '#111111'
+
   return {
     tooltip: {
       trigger: 'axis',
       axisPointer: { type: 'shadow' },
+      backgroundColor: tooltipBg,
+      borderColor: '#fb7299',
+      textStyle: { color: tooltipText },
       formatter: (params) => {
         const completion = params.find(p => p.seriesName === '完成率')
         const count = params.find(p => p.seriesName === '视频数量')
@@ -186,7 +209,7 @@ const durationCompletionOption = computed(() => {
     },
     legend: {
       data: ['完成率', '完整观看率', '视频数量'],
-      textStyle: { color: '#666', fontSize: '12px' },
+      textStyle: { color: legendTextColor, fontSize: '12px' },
       padding: [0, 0, 0, 0]
     },
     grid: {
@@ -199,26 +222,26 @@ const durationCompletionOption = computed(() => {
     xAxis: {
       type: 'category',
       data: data.map(item => item.duration),
-      axisLine: { lineStyle: { color: '#666' } },
-      axisLabel: { color: '#999', fontSize: '12px' }
+      axisLine: { lineStyle: { color: axisLineColor } },
+      axisLabel: { color: axisLabelColor, fontSize: '12px' }
     },
     yAxis: [{
       type: 'value',
       name: '百分比',
       min: 0,
       max: 100,
-      axisLine: { lineStyle: { color: '#666' } },
+      axisLine: { lineStyle: { color: axisLineColor } },
       axisLabel: {
-        color: '#999',
+        color: axisLabelColor,
         formatter: '{value}%',
         fontSize: '12px'
       },
-      splitLine: { lineStyle: { color: 'rgba(0, 0, 0, 0.1)' } }
+      splitLine: { lineStyle: { color: splitLineColor } }
     }, {
       type: 'value',
       name: '视频数量',
-      axisLine: { lineStyle: { color: '#666' } },
-      axisLabel: { color: '#999', fontSize: '12px' },
+      axisLine: { lineStyle: { color: axisLineColor } },
+      axisLabel: { color: axisLabelColor, fontSize: '12px' },
       splitLine: { show: false }
     }],
     series: [{
@@ -238,7 +261,8 @@ const durationCompletionOption = computed(() => {
         show: true,
         position: 'top',
         formatter: '{c}%',
-        fontSize: '12px'
+        fontSize: '12px',
+        color: labelTextColor
       }
     }, {
       name: '完整观看率',
@@ -257,7 +281,12 @@ const durationCompletionOption = computed(() => {
         show: true,
         position: 'top',
         formatter: '{c}%',
-        fontSize: '12px'
+        fontSize: '12px',
+        color: labelTextColor,
+        textBorderWidth: 0,
+        textBorderColor: 'transparent',
+        textShadowBlur: 0,
+        textShadowColor: 'transparent'
       }
     }, {
       name: '视频数量',

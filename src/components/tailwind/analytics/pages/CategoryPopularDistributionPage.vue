@@ -35,13 +35,13 @@
 
         <!-- 热门分区列表 -->
         <div v-if="distributionData.popular_categories && distributionData.popular_categories.length > 0"
-             class="lg:col-span-2 bg-white/50 dark:bg-white/5 backdrop-blur-sm rounded-xl p-3 border border-gray-300/50 dark:border-gray-500/50">
+             class="lg:col-span-2 backdrop-blur-sm rounded-xl p-3 border border-gray-300/50 dark:border-gray-500/50">
           <h4 class="text-base font-bold bg-gradient-to-r from-[#fb7299] to-[#fc9b7a] bg-clip-text text-transparent mb-2">
             热门分区排行 (前10个)
           </h4>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-2 h-[450px] overflow-y-auto">
             <div v-for="(category, index) in distributionData.popular_categories" :key="index"
-                 class="flex items-center p-2 bg-gray-50/50 dark:bg-gray-800/50 rounded-lg hover:bg-gray-100/50 dark:hover:bg-gray-700/50 transition-colors">
+                 class="flex items-center p-2 rounded-lg transition-colors">
               <div class="flex-1 min-w-0">
                 <div class="font-medium text-gray-900 dark:text-gray-100 truncate text-sm flex items-center justify-between">
                   <span>{{ category.category_name }}</span>
@@ -72,6 +72,7 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue'
 import * as echarts from 'echarts'
+import { useDarkMode } from '@/store/darkMode.js'
 import { getCategoryPopularDistribution } from '../../../../api/api.js'
 
 const props = defineProps({
@@ -90,6 +91,7 @@ const error = ref(null)
 const distributionData = ref(null)
 const chartRef = ref(null)
 let chart = null
+const { isDarkMode } = useDarkMode()
 
 // 格式化洞察文本，为数字添加颜色
 const formatInsightText = (text) => {
@@ -151,6 +153,12 @@ const initChart = () => {
 
   chart = echarts.init(chartRef.value)
 
+  const isDark = !!(isDarkMode && isDarkMode.value)
+  const legendTextColor = isDark ? '#bbbbbb' : '#666'
+  const labelTextColor = isDark ? '#e5e7eb' : '#333'
+  const tooltipBg = isDark ? 'rgba(28, 28, 28, 0.9)' : 'rgba(255, 255, 255, 0.95)'
+  const tooltipText = isDark ? '#ffffff' : '#111111'
+
   const categories = distributionData.value.popular_categories || []
   
   // 准备饼图数据
@@ -168,6 +176,9 @@ const initChart = () => {
   const option = {
     tooltip: {
       trigger: 'item',
+      backgroundColor: tooltipBg,
+      borderColor: '#fb7299',
+      textStyle: { color: tooltipText },
       formatter: function(params) {
         const percentage = params.percent
         return `${params.name}: ${params.value} 个热门视频 (${percentage}%)`
@@ -177,14 +188,14 @@ const initChart = () => {
       bottom: '1%',
       left: 'center',
       textStyle: {
-        color: '#666',
+        color: legendTextColor,
         fontSize: 9
       },
       type: 'scroll',
       pageIconColor: '#fb7299',
       pageIconInactiveColor: '#ccc',
       pageTextStyle: {
-        color: '#666'
+        color: legendTextColor
       },
       itemWidth: 12,
       itemHeight: 8
@@ -203,7 +214,7 @@ const initChart = () => {
             return `${params.name}\n${params.value}个`
           },
           fontSize: 11,
-          color: '#333',
+          color: labelTextColor,
           fontWeight: '500',
           lineHeight: 14
         },
@@ -255,5 +266,12 @@ watch(() => props.distributionData, (newData) => {
 // 组件挂载时获取数据
 onMounted(() => {
   fetchDistributionData(props.selectedYear)
+})
+
+// 深色模式切换时重绘图表
+watch(() => isDarkMode.value, () => {
+  if (distributionData.value) {
+    initChart()
+  }
 })
 </script>

@@ -1,7 +1,7 @@
 <template>
   <div class="space-y-4">
     <!-- 输入与操作 -->
-    <div class="bg-white rounded-lg border border-gray-200 p-4">
+    <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
       <div class="flex items-center space-x-3">
         <div class="flex-1">
           <SimpleSearchBar
@@ -25,12 +25,12 @@
     </div>
 
     <!-- 用户信息卡片 -->
-    <div v-if="hostInfo" class="bg-white rounded-lg border border-gray-200 p-4 flex items-center space-x-4">
+    <div v-if="hostInfo" class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 flex items-center space-x-4">
       <img :src="hostFaceUrl" alt="face" class="w-14 h-14 rounded-full object-cover border" />
       <div class="flex-1 min-w-0">
         <div class="text-base font-medium truncate">{{ hostInfo.up_name || `UID ${hostInfo.host_mid}` }}</div>
-        <div class="text-xs text-gray-500">动态数：{{ hostInfo.item_count }} · 核心数：{{ hostInfo.core_count }}</div>
-        <div class="text-xs text-gray-400">最近发布时间：{{ formatTs(hostInfo.last_publish_ts) }} · 最近抓取：{{ formatTs(hostInfo.last_fetch_time) }}</div>
+        <div class="text-xs text-gray-500 dark:text-gray-400">动态数：{{ hostInfo.item_count }} · 核心数：{{ hostInfo.core_count }}</div>
+        <div class="text-xs text-gray-400 dark:text-gray-500">最近发布时间：{{ formatTs(hostInfo.last_publish_ts) }} · 最近抓取：{{ formatTs(hostInfo.last_fetch_time) }}</div>
       </div>
       <button
         class="px-3 py-1.5 bg-green-600 text-white rounded-md hover:opacity-90 disabled:opacity-50"
@@ -45,15 +45,15 @@
     </div>
 
     <!-- 已抓取的UP列表 -->
-    <div class="bg-white rounded-lg border border-gray-200 p-4">
+    <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
       <div class="flex items-center justify-between mb-3">
         <div class="text-sm font-medium">已抓取的UP</div>
-        <button class="text-xs text-gray-500 hover:text-gray-700" @click="loadHosts">刷新</button>
+        <button class="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300" @click="loadHosts">刷新</button>
       </div>
       <div v-if="hostsLoading" class="text-xs text-gray-400">加载中...</div>
       <div v-else>
         <div v-if="hosts.length" class="grid gap-4 grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
-          <div v-for="h in hosts" :key="h.host_mid" class="group border rounded-md p-2 flex items-center space-x-2 hover:border-[#fb7299] cursor-pointer"
+          <div v-for="h in hosts" :key="h.host_mid" class="group border rounded-md p-2 flex items-center space-x-2 hover:border-[#fb7299] cursor-pointer dark:border-gray-700"
                @click="selectHost(h.host_mid)">
             <img :src="h.face_path ? toStaticUrl(h.face_path) : ''" class="w-9 h-9 rounded-full object-cover border" alt="face" />
             <div class="min-w-0 flex-1">
@@ -67,21 +67,21 @@
     </div>
 
     <!-- SSE 实时日志：下载中或有历史日志时显示 -->
-    <div v-if="downloading || logs.length" class="bg-white rounded-lg border border-gray-200 p-4">
+    <div v-if="downloading || logs.length" class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
       <div class="flex items-center justify-between">
         <div class="text-sm font-medium">实时日志</div>
         <button class="text-xs text-gray-500 hover:text-gray-700" @click="logs=[]">清空</button>
       </div>
-      <div ref="logsContainer" class="mt-2 h-40 overflow-auto bg-gray-50 border rounded p-2 text-xs whitespace-pre-wrap">
+      <div ref="logsContainer" class="mt-2 h-40 overflow-auto bg-gray-50 dark:bg-gray-900 border dark:border-gray-700 rounded p-2 text-xs whitespace-pre-wrap">
         <template v-if="logs.length">
-          <div v-for="(line, idx) in logs" :key="idx" class="text-gray-700">{{ line }}</div>
+          <div v-for="(line, idx) in logs" :key="idx" class="text-gray-700 dark:text-gray-300">{{ line }}</div>
         </template>
-        <div v-else class="text-gray-400">暂无日志</div>
+        <div v-else class="text-gray-400 dark:text-gray-500">暂无日志</div>
       </div>
     </div>
 
     <!-- 已下载动态（数据库读取） -->
-    <div v-if="hostMid && items.length" class="bg-white rounded-lg border border-gray-200 p-4">
+    <div v-if="hostMid && items.length" class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
       <div class="text-sm font-medium mb-3">已下载动态</div>
       <div class="space-y-3">
         <div v-for="it in items" :key="it.id_str">
@@ -93,7 +93,7 @@
         </div>
       </div>
       <div class="mt-3 flex justify-center">
-        <button class="px-3 py-1.5 text-sm bg-white border rounded hover:bg-gray-50 disabled:opacity-50" :disabled="loadingMore || noMore" @click="loadMore">
+        <button class="px-3 py-1.5 text-sm bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 disabled:opacity-50" :disabled="loadingMore || noMore" @click="loadMore">
           {{ noMore ? '没有更多了' : (loadingMore ? '加载中...' : '加载更多') }}
         </button>
       </div>

@@ -35,14 +35,14 @@
 
         <!-- 热门视频列表 -->
         <div v-if="hitRateData.popular_videos && hitRateData.popular_videos.length > 0"
-             class="lg:col-span-2 bg-white/50 dark:bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-gray-300/50 dark:border-gray-500/50">
+             class="lg:col-span-2 backdrop-blur-sm rounded-xl p-4 border border-gray-300/50 dark:border-gray-500/50">
           <h4 class="text-base font-bold bg-gradient-to-r from-[#fb7299] to-[#fc9b7a] bg-clip-text text-transparent mb-2">
             你观看过的热门视频 (前10个)
           </h4>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-2 h-[460px] overflow-y-auto">
             <div v-for="(video, index) in hitRateData.popular_videos" :key="index"
                  @click="openVideo(video.bvid)"
-                 class="flex items-center p-2 bg-gray-50/50 dark:bg-gray-800/50 rounded-lg hover:bg-gray-100/50 dark:hover:bg-gray-700/50 cursor-pointer transition-colors">
+                 class="flex items-center p-2 rounded-lg cursor-pointer transition-colors">
               <div class="flex-1 min-w-0">
                 <div class="font-medium text-gray-900 dark:text-gray-100 truncate text-xs">{{ video.title }}</div>
                 <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
@@ -61,6 +61,7 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue'
 import * as echarts from 'echarts'
+import { useDarkMode } from '@/store/darkMode.js'
 import { getPopularHitRate } from '../../../../api/api.js'
 
 const props = defineProps({
@@ -79,6 +80,7 @@ const error = ref(null)
 const hitRateData = ref(null)
 const chartRef = ref(null)
 let chart = null
+const { isDarkMode } = useDarkMode()
 
 // 格式化洞察文本，为数字添加颜色
 const formatInsightText = (text) => {
@@ -152,9 +154,18 @@ const initChart = () => {
     { name: '热门期观看', value: timingData.trending_watch || 0 }
   ]
 
+  const isDark = !!(isDarkMode && isDarkMode.value)
+  const legendTextColor = isDark ? '#bbbbbb' : '#666'
+  const labelTextColor = isDark ? '#e5e7eb' : '#333'
+  const tooltipBg = isDark ? 'rgba(28, 28, 28, 0.9)' : 'rgba(255, 255, 255, 0.95)'
+  const tooltipText = isDark ? '#ffffff' : '#111111'
+
   const option = {
     tooltip: {
       trigger: 'item',
+      backgroundColor: tooltipBg,
+      borderColor: '#fb7299',
+      textStyle: { color: tooltipText },
       formatter: function(params) {
         const percentage = params.percent
         return `${params.name}: ${params.value} 个 (${percentage}%)`
@@ -164,7 +175,7 @@ const initChart = () => {
       bottom: '8%',
       left: 'center',
       textStyle: {
-        color: '#666',
+        color: legendTextColor,
         fontSize: 12
       }
     },
@@ -181,7 +192,7 @@ const initChart = () => {
             return `${params.name}\n${params.value}个\n${params.percent}%`
           },
           fontSize: 11,
-          color: '#333'
+          color: labelTextColor
         },
         emphasis: {
           label: {
@@ -230,5 +241,12 @@ watch(() => props.hitRateData, (newData) => {
 // 组件挂载时获取数据
 onMounted(() => {
   fetchHitRateData(props.selectedYear)
+})
+
+// 深色模式切换时重绘图表
+watch(() => isDarkMode.value, () => {
+  if (hitRateData.value) {
+    initChart()
+  }
 })
 </script>

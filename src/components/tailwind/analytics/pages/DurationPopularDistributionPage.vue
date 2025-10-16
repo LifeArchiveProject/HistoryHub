@@ -35,13 +35,13 @@
 
         <!-- 热门时长类型列表 -->
         <div v-if="durationData.popular_duration_videos && durationData.popular_duration_videos.length > 0"
-             class="lg:col-span-2 bg-white/50 dark:bg-white/5 backdrop-blur-sm rounded-xl p-3 border border-gray-300/50 dark:border-gray-500/50">
+             class="lg:col-span-2 backdrop-blur-sm rounded-xl p-3 border border-gray-300/50 dark:border-gray-500/50">
           <h4 class="text-base font-bold bg-gradient-to-r from-[#fb7299] to-[#fc9b7a] bg-clip-text text-transparent mb-2">
             热门时长类型排行 (前4个)
           </h4>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-2 h-[350px] overflow-y-auto">
             <div v-for="(durationType, index) in durationData.popular_duration_videos" :key="index"
-                 class="flex items-center p-2 bg-gray-50/50 dark:bg-gray-800/50 rounded-lg hover:bg-gray-100/50 dark:hover:bg-gray-700/50 transition-colors">
+                 class="flex items-center p-2 rounded-lg transition-colors">
               <div class="flex-1 min-w-0">
                 <div class="font-medium text-gray-900 dark:text-gray-100 truncate text-sm flex items-center justify-between">
                   <span>{{ durationType.duration_type }}</span>
@@ -72,6 +72,7 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue'
 import * as echarts from 'echarts'
+import { useDarkMode } from '@/store/darkMode.js'
 import { getDurationPopularDistribution } from '../../../../api/api.js'
 
 const props = defineProps({
@@ -90,6 +91,7 @@ const error = ref(null)
 const durationData = ref(null)
 const chartRef = ref(null)
 let chart = null
+const { isDarkMode } = useDarkMode()
 
 // 格式化洞察文本，为数字添加颜色
 const formatInsightText = (text) => {
@@ -151,6 +153,14 @@ const initChart = () => {
 
   chart = echarts.init(chartRef.value)
 
+  const isDark = !!(isDarkMode && isDarkMode.value)
+  const axisLabelColor = isDark ? '#e5e7eb' : '#666'
+  const axisLineColor = isDark ? '#444' : '#ddd'
+  const splitLineColor = isDark ? '#2a2a2a' : '#f0f0f0'
+  const labelTextColor = isDark ? '#e5e7eb' : '#333'
+  const tooltipBg = isDark ? 'rgba(28, 28, 28, 0.9)' : 'rgba(255, 255, 255, 0.95)'
+  const tooltipText = isDark ? '#ffffff' : '#111111'
+
   const durationStats = durationData.value.duration_stats || []
   
   // 准备柱状图数据
@@ -169,6 +179,9 @@ const initChart = () => {
       axisPointer: {
         type: 'shadow'
       },
+      backgroundColor: tooltipBg,
+      borderColor: '#fb7299',
+      textStyle: { color: tooltipText },
       formatter: function(params) {
         const param = params[0]
         return `${param.name}: ${param.value} 个热门视频 (${param.data.percentage}%)`
@@ -185,31 +198,31 @@ const initChart = () => {
       type: 'category',
       data: data.map(item => item.name),
       axisLabel: {
-        color: '#666',
+        color: axisLabelColor,
         fontSize: 11,
         interval: 0,
         rotate: 0
       },
       axisLine: {
         lineStyle: {
-          color: '#ddd'
+          color: axisLineColor
         }
       }
     },
     yAxis: {
       type: 'value',
       axisLabel: {
-        color: '#666',
+        color: axisLabelColor,
         fontSize: 10
       },
       axisLine: {
         lineStyle: {
-          color: '#ddd'
+          color: axisLineColor
         }
       },
       splitLine: {
         lineStyle: {
-          color: '#f0f0f0'
+          color: splitLineColor
         }
       }
     },
@@ -228,7 +241,7 @@ const initChart = () => {
           position: 'top',
           formatter: '{c}个',
           fontSize: 10,
-          color: '#333'
+          color: labelTextColor
         },
         barWidth: '60%'
       }
@@ -255,5 +268,12 @@ watch(() => props.durationData, (newData) => {
 // 组件挂载时获取数据
 onMounted(() => {
   fetchDurationData(props.selectedYear)
+})
+
+// 深色模式切换时重绘图表
+watch(() => isDarkMode.value, () => {
+  if (durationData.value) {
+    initChart()
+  }
 })
 </script>

@@ -6,10 +6,10 @@
           <button 
             v-if="childTasks.length > 0" 
             @click="toggleExpanded" 
-            class="w-5 h-5 rounded hover:bg-gray-100 flex items-center justify-center focus:outline-none"
+            class="w-5 h-5 rounded hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-center focus:outline-none"
           >
             <svg 
-              class="w-4 h-4 text-gray-500 transform transition-transform duration-200" 
+              class="w-4 h-4 text-gray-500 dark:text-gray-400 transform transition-transform duration-200"
               :class="{ 'rotate-90': expanded }" 
               fill="none" 
               viewBox="0 0 24 24" 
@@ -20,10 +20,10 @@
           </button>
         </div>
         <div class="flex-1 min-w-0">
-          <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-3 hover:border-[#fb7299] transition-colors duration-200">
+          <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm p-3 hover:border-[#fb7299] transition-colors duration-200">
             <div class="flex items-center justify-between">
               <div class="flex items-center space-x-2">
-                <span class="font-medium text-sm">{{ task.config?.name || task.task_id }}</span>
+                <span class="font-medium text-sm text-gray-900 dark:text-gray-100">{{ task.config?.name || task.task_id }}</span>
                 <div class="flex items-center space-x-1">
                   <span 
                     v-if="task.config?.schedule_type"
@@ -76,7 +76,7 @@
                 </button>
               </div>
             </div>
-            <div class="mt-2 text-xs text-gray-500">
+            <div class="mt-2 text-xs text-gray-500 dark:text-gray-400">
               <div v-if="task.execution?.last_run">上次运行: {{ task.execution.last_run }}</div>
               <div v-if="task.config?.endpoint" class="mt-0.5">端点: {{ task.config.endpoint }}</div>
             </div>
@@ -86,10 +86,10 @@
     </div>
     <div v-show="expanded && childTasks.length > 0" class="pl-6 mt-2 space-y-2 relative">
       <!-- 添加垂直连接线 -->
-      <div class="absolute left-3 top-0 bottom-0 w-px bg-gray-200"></div>
+      <div class="absolute left-3 top-0 bottom-0 w-px bg-gray-200 dark:bg-gray-700"></div>
       <div v-for="childTask in childTasks" :key="getTaskId(childTask)" class="relative">
         <!-- 添加水平连接线 -->
-        <div class="absolute left-0 top-1/2 w-3 h-px bg-gray-200"></div>
+        <div class="absolute left-0 top-1/2 w-3 h-px bg-gray-200 dark:bg-gray-700"></div>
         <task-tree-item 
           :task="childTask" 
           :tasks="tasks" 
@@ -167,10 +167,10 @@ export default defineComponent({
     const scheduleTypeClass = computed(() => {
       const type = props.task.config?.schedule_type
       return {
-        'bg-blue-100 text-blue-800': type === 'daily',
-        'bg-purple-100 text-purple-800': type === 'chain',
-        'bg-green-100 text-green-800': type === 'once',
-        'bg-yellow-100 text-yellow-800': type === 'interval'
+        'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300': type === 'daily',
+        'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-300': type === 'chain',
+        'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300': type === 'once',
+        'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300': type === 'interval'
       }
     })
 
@@ -178,9 +178,9 @@ export default defineComponent({
     const statusClass = computed(() => {
       const status = props.task.execution?.status
       return {
-        'bg-green-100 text-green-800': status === 'success',
-        'bg-yellow-100 text-yellow-800': status === 'running',
-        'bg-red-100 text-red-800': status === 'error' || status === 'failed'
+        'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300': status === 'success',
+        'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300': status === 'running',
+        'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300': status === 'error' || status === 'failed'
       }
     })
 

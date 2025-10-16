@@ -26,6 +26,7 @@ import { ref, computed, onMounted } from 'vue'
 import gsap from 'gsap'
 import VChart from 'vue-echarts'
 import * as echarts from 'echarts/core'
+import { useDarkMode } from '@/store/darkMode.js'
 
 const props = defineProps({
   viewingData: {
@@ -37,6 +38,14 @@ const props = defineProps({
 const chartRef = ref(null)
 
 const monthlyOption = computed(() => {
+  const { isDarkMode } = useDarkMode()
+  const isDark = !!(isDarkMode && isDarkMode.value)
+  const axisLabelColor = isDark ? '#bbbbbb' : '#999999'
+  const axisLineColor = isDark ? '#888888' : '#666666'
+  const splitLineColor = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.1)'
+  const tooltipBg = isDark ? 'rgba(28, 28, 28, 0.9)' : 'rgba(255, 255, 255, 0.95)'
+  const tooltipText = isDark ? '#ffffff' : '#111111'
+
   if (!props.viewingData?.monthly_stats) return {}
   
   const data = Object.entries(props.viewingData.monthly_stats)
@@ -45,9 +54,9 @@ const monthlyOption = computed(() => {
   return {
     tooltip: {
       trigger: 'axis',
-      backgroundColor: 'rgba(28, 28, 28, 0.9)',
+      backgroundColor: tooltipBg,
       borderColor: '#fb7299',
-      textStyle: { color: '#fff' }
+      textStyle: { color: tooltipText }
     },
     grid: {
       top: '15%',
@@ -59,15 +68,15 @@ const monthlyOption = computed(() => {
     xAxis: {
       type: 'category',
       data: data.map(([month]) => month),
-      axisLine: { lineStyle: { color: '#666' } },
-      axisLabel: { color: '#999' }
+      axisLine: { lineStyle: { color: axisLineColor } },
+      axisLabel: { color: axisLabelColor }
     },
     yAxis: {
       type: 'value',
       name: '观看次数',
-      axisLine: { lineStyle: { color: '#666' } },
-      axisLabel: { color: '#999' },
-      splitLine: { lineStyle: { color: 'rgba(0, 0, 0, 0.1)' } }
+      axisLine: { lineStyle: { color: axisLineColor } },
+      axisLabel: { color: axisLabelColor },
+      splitLine: { lineStyle: { color: splitLineColor } }
     },
     series: [{
       data: data.map(([, count]) => count),
@@ -90,8 +99,6 @@ const monthlyOption = computed(() => {
       symbolSize: 6,
       symbol: 'circle',
       itemStyle: {
-        borderWidth: 2,
-        borderColor: '#fff',
         color: new echarts.graphic.LinearGradient(0, 1, 0, 0, [
           { offset: 0, color: 'rgba(251, 114, 153, 0.9)' },
           { offset: 1, color: 'rgba(252, 155, 122, 0.9)' }

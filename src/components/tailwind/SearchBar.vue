@@ -3,9 +3,9 @@
     <!-- 搜索区域容器 -->
     <div class="relative">
       <!-- 搜索框容器 -->
-      <div class="flex w-full h-8 sm:h-10 items-center rounded-md border border-gray-300 bg-white focus-within:border-[#fb7299] transition-colors duration-200">
+      <div class="flex w-full h-8 sm:h-10 items-center rounded-md border border-gray-300 dark:border-gray-600 bg-transparent focus-within:border-[#fb7299] transition-colors duration-200">
         <!-- 搜索图标 -->
-        <div class="pl-2 sm:pl-3 text-gray-400">
+        <div class="pl-2 sm:pl-3 text-gray-400 dark:text-gray-500">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 sm:h-4 sm:w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
@@ -29,7 +29,7 @@
         </div>
 
         <!-- 分隔线 -->
-        <div class="h-4 sm:h-5 w-px bg-gray-200 mx-1"></div>
+        <div class="h-4 sm:h-5 w-px bg-gray-200 dark:bg-gray-600 mx-1"></div>
 
         <!-- 输入框 -->
         <input
@@ -37,7 +37,7 @@
           @keyup.enter="handleSearch"
           type="search"
           :placeholder="getPlaceholder"
-          class="h-full w-full border-none bg-transparent px-1 sm:px-2 pr-2 sm:pr-3 text-gray-700 focus:outline-none focus:ring-0 text-xs sm:text-sm leading-none"
+          class="h-full w-full border-none bg-transparent px-1 sm:px-2 pr-2 sm:pr-3 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-0 text-xs sm:text-sm leading-none"
         />
       </div>
     </div>

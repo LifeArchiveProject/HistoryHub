@@ -8,7 +8,7 @@
         <div class="flex flex-col md:flex-row gap-4">
           <!-- 搜索框容器 -->
           <div class="w-full flex">
-            <div class="flex items-center rounded-md border border-gray-300 bg-white focus-within:border-[#fb7299] transition-colors duration-200 flex-grow">
+            <div class="flex items-center rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus-within:border-[#fb7299] transition-colors duration-200 flex-grow">
               <!-- 下载类型选择 -->
               <div class="h-10 pl-2 flex items-center">
                 <CustomDropdown
@@ -27,7 +27,7 @@
               </div>
 
               <!-- 分隔线 -->
-              <div class="h-5 w-px bg-gray-200 mx-1"></div>
+              <div class="h-5 w-px bg-gray-200 dark:bg-gray-600 mx-1"></div>
 
               <!-- 输入框 -->
               <input
@@ -35,7 +35,7 @@
                 @keyup.enter="handleDownload"
                 type="search"
                 :placeholder="downloadType === 'video' ? '输入BV号或完整视频链接' : '输入UP主UID'"
-                class="h-10 w-full border-none bg-transparent px-2 pr-3 text-gray-700 focus:outline-none focus:ring-0 text-sm leading-none"
+                class="h-10 w-full border-none bg-transparent px-2 pr-3 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-0 text-sm leading-none"
               />
             </div>
 
@@ -55,7 +55,7 @@
           </div>
         </div>
 
-        <p class="mt-2 text-xs text-gray-500">
+        <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
           {{ downloadType === 'video' ? '支持完整链接或 BV 号，例如：BV1xx411c7mD' : '在 UP 主空间页面 URL 中查看 UID' }}
         </p>
       </div>
@@ -63,13 +63,13 @@
 
     <!-- 空状态提示 -->
     <div v-if="!inputValue" class="mx-auto max-w-6xl mt-24 flex flex-col items-center justify-center text-center">
-      <div class="w-24 h-24 text-gray-300 mb-4">
+      <div class="w-24 h-24 text-gray-300 dark:text-gray-600 mb-4">
         <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
         </svg>
       </div>
-      <h3 class="text-lg font-medium text-gray-900 mb-2">开始下载视频</h3>
-      <p class="text-sm text-gray-500 max-w-md">
+      <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">开始下载视频</h3>
+      <p class="text-sm text-gray-500 dark:text-gray-400 max-w-md">
         {{ downloadType === 'video'
           ? '请输入视频的 BV 号或完整链接，支持单个视频下载'
           : '请输入 UP 主的 UID，支持批量下载 UP 主的所有投稿视频' }}
@@ -114,7 +114,7 @@
 
             <!-- 警告/提示信息 -->
             <div v-if="videoInfo.argue_info?.argue_msg"
-                 class="inline-flex items-center bg-yellow-50 px-2 py-1 rounded text-xs text-yellow-700">
+                 class="inline-flex items-center bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-800/60 px-2 py-1 rounded text-xs text-yellow-700 dark:text-yellow-300">
               <span class="mr-1">提示：</span>{{ videoInfo.argue_info.argue_msg }}
             </div>
 
@@ -133,7 +133,7 @@
           <div class="flex flex-col md:flex-row space-x-0 md:space-x-4">
             <!-- 左侧封面 -->
             <div class="w-full md:w-1/3 mb-4 md:mb-0 flex flex-col">
-              <div class="relative aspect-video bg-gray-200 rounded-lg overflow-hidden">
+              <div class="relative aspect-video bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden">
                   <img
                     v-if="videoInfo.pic"
                     :src="normalizeImageUrl(videoInfo.pic)"
@@ -191,7 +191,7 @@
               <a
                 :href="`https://www.bilibili.com/video/${videoInfo.bvid}`"
                 target="_blank"
-                class="text-xl font-bold text-gray-900 mb-6 line-clamp-2 hover:text-[#fb7299] transition-colors duration-200"
+                class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-6 line-clamp-2 hover:text-[#fb7299] transition-colors duration-200"
               >
                 {{ videoInfo.title }}
               </a>
@@ -207,21 +207,21 @@
                     v-if="videoInfo.owner.face"
                     :src="videoInfo.owner.face"
                     :alt="videoInfo.owner.name"
-                    class="w-10 h-10 rounded-full object-cover border border-gray-200"
+                    class="w-10 h-10 rounded-full object-cover border border-gray-200 dark:border-gray-700"
                   />
-                  <div class="text-sm font-medium text-gray-900">{{ videoInfo.owner.name || '未知作者' }}</div>
+                  <div class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ videoInfo.owner.name || '未知作者' }}</div>
                 </a>
               </div>
 
               <!-- 视频动态信息 - 在作者信息下方，添加提示文字 -->
-              <div v-if="videoInfo.dynamic" class="mb-6 text-xs bg-blue-50 border border-blue-200 px-2 py-1 rounded text-blue-700">
+              <div v-if="videoInfo.dynamic" class="mb-6 text-xs bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-900/40 px-2 py-1 rounded text-blue-700 dark:text-blue-300">
                 <span class="font-medium mr-1">视频同步发布的动态：</span>{{ videoInfo.dynamic }}
               </div>
 
               <!-- 视频基本信息 -->
               <div class="mb-6 grid grid-cols-4 gap-2">
                 <!-- 分区 显示 tname-tname_v2 -->
-                <div v-if="videoInfo.tname" class="flex items-center text-gray-700 text-sm">
+                <div v-if="videoInfo.tname" class="flex items-center text-gray-700 dark:text-gray-300 text-sm">
                   <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                   </svg>
@@ -229,7 +229,7 @@
                 </div>
 
                 <!-- 视频类型 -->
-                <div v-if="videoInfo.copyright !== undefined" class="flex items-center text-gray-700 text-sm">
+                <div v-if="videoInfo.copyright !== undefined" class="flex items-center text-gray-700 dark:text-gray-300 text-sm">
                   <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
@@ -237,7 +237,7 @@
                 </div>
 
                 <!-- 清晰度 -->
-                <div v-if="videoInfo.dimension" class="flex items-center text-gray-700 text-sm">
+                <div v-if="videoInfo.dimension" class="flex items-center text-gray-700 dark:text-gray-300 text-sm">
                   <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                   </svg>
@@ -245,7 +245,7 @@
                 </div>
 
                 <!-- 评论数 -->
-                <div v-if="videoInfo.stat?.reply" class="flex items-center text-gray-700 text-sm">
+                <div v-if="videoInfo.stat?.reply" class="flex items-center text-gray-700 dark:text-gray-300 text-sm">
                   <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                   </svg>
@@ -254,28 +254,28 @@
               </div>
 
               <!-- 合集信息调试 -->
-              <div v-if="collectionInfo.is_collection" class="mb-5 p-3 bg-blue-50 border border-blue-200 rounded-md">
-                <h4 class="text-sm font-semibold text-blue-900 mb-2">🎬 检测到合集</h4>
-                <p class="text-sm text-blue-800">
+              <div v-if="collectionInfo.is_collection" class="mb-5 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-900/30 rounded-md">
+                <h4 class="text-sm font-semibold text-blue-900 dark:text-blue-300 mb-2">🎬 检测到合集</h4>
+                <p class="text-sm text-blue-800 dark:text-blue-300">
                   <strong>{{ collectionInfo.collection_title }}</strong>
                 </p>
-                <p class="text-xs text-blue-600 mt-1">
+                <p class="text-xs text-blue-600 dark:text-blue-300 mt-1">
                   共 {{ collectionInfo.total_videos }} 个视频，当前是第 {{ collectionInfo.current_video_index }} 个
                 </p>
               </div>
 
               <!-- 多 P 信息 -->
               <div v-if="videoInfo.pages && videoInfo.pages.length > 1" class="mb-5">
-                <h4 class="text-sm font-semibold text-gray-900 mb-5">分 P 列表</h4>
-                <div class="max-h-40 overflow-y-auto border border-gray-200 rounded-md">
+                <h4 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-5">分 P 列表</h4>
+                <div class="max-h-40 overflow-y-auto border border-gray-200 dark:border-gray-700 rounded-md">
                   <div
                     v-for="(page, index) in videoInfo.pages"
                     :key="index"
-                    class="flex items-center p-2 text-sm hover:bg-gray-100 border-b border-gray-100 last:border-b-0"
+                    class="flex items-center p-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 border-b border-gray-100 dark:border-gray-700 last:border-b-0"
                   >
-                    <span class="mr-2 bg-gray-200 text-gray-700 w-6 h-6 flex items-center justify-center rounded-full text-xs">{{ page.page }}</span>
+                    <span class="mr-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 w-6 h-6 flex items-center justify-center rounded-full text-xs">{{ page.page }}</span>
                     <span class="mr-auto truncate">{{ page.part }}</span>
-                    <span class="text-gray-500 text-xs">{{ formatDuration(page.duration) }}</span>
+                    <span class="text-gray-500 dark:text-gray-400 text-xs">{{ formatDuration(page.duration) }}</span>
                   </div>
                 </div>
               </div>
@@ -284,8 +284,8 @@
 
           <!-- 视频简介 - 移动到外层，占据整行 -->
           <div v-if="videoInfo.desc" class="mt-3">
-            <h4 class="text-sm font-semibold text-gray-900 mb-2">视频简介</h4>
-            <p class="text-sm text-gray-600 bg-gray-50 p-2 rounded-md max-h-32 overflow-y-auto whitespace-pre-wrap">{{ videoInfo.desc }}</p>
+            <h4 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">视频简介</h4>
+            <p class="text-sm text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-900 p-2 rounded-md max-h-32 overflow-y-auto whitespace-pre-wrap">{{ videoInfo.desc }}</p>
           </div>
         </div>
       </div>
@@ -311,18 +311,18 @@
         <div class="absolute inset-0 bg-black/50" @click="showCollectionChoice = false"></div>
 
         <!-- 对话框内容 -->
-        <div class="relative bg-white rounded-lg border border-gray-200 w-[500px] z-10 p-6">
-          <h3 class="text-lg font-medium text-gray-900 mb-4">检测到合集视频</h3>
+        <div class="relative bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 w-[500px] z-10 p-6">
+          <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">检测到合集视频</h3>
 
           <div class="mb-4">
-            <p class="text-gray-600 mb-2">
+            <p class="text-gray-600 dark:text-gray-400 mb-2">
               此视频属于合集：<span class="font-medium text-gray-800">{{ collectionInfo.collection_title }}</span>
             </p>
-            <p class="text-sm text-gray-500 mb-4">
+            <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
               合集共包含 {{ collectionInfo.total_videos }} 个视频，当前是第 {{ collectionInfo.current_video_index }} 个
             </p>
 
-            <p class="text-gray-600 mb-4">
+            <p class="text-gray-600 dark:text-gray-400 mb-4">
               请选择下载方式：
             </p>
           </div>
@@ -331,18 +331,18 @@
           <div class="flex flex-col gap-3 mb-6">
             <button
               @click="handleCollectionChoice('single')"
-              class="w-full px-4 py-3 text-left border border-gray-200 rounded-md hover:border-[#fb7299] hover:bg-[#fb7299]/5 transition-colors"
+              class="w-full px-4 py-3 text-left border border-gray-200 dark:border-gray-700 rounded-md hover:border-[#fb7299] hover:bg-[#fb7299]/5 transition-colors"
             >
-              <div class="font-medium text-gray-900">只下载当前视频</div>
-              <div class="text-sm text-gray-500">仅下载当前播放的这个视频</div>
+              <div class="font-medium text-gray-900 dark:text-gray-100">只下载当前视频</div>
+              <div class="text-sm text-gray-500 dark:text-gray-400">仅下载当前播放的这个视频</div>
             </button>
 
             <button
               @click="handleCollectionChoice('collection')"
-              class="w-full px-4 py-3 text-left border border-gray-200 rounded-md hover:border-[#fb7299] hover:bg-[#fb7299]/5 transition-colors"
+              class="w-full px-4 py-3 text-left border border-gray-200 dark:border-gray-700 rounded-md hover:border-[#fb7299] hover:bg-[#fb7299]/5 transition-colors"
             >
-              <div class="font-medium text-gray-900">下载整个合集</div>
-              <div class="text-sm text-gray-500">下载合集中的所有 {{ collectionInfo.total_videos }} 个视频</div>
+              <div class="font-medium text-gray-900 dark:text-gray-100">下载整个合集</div>
+              <div class="text-sm text-gray-500 dark:text-gray-400">下载合集中的所有 {{ collectionInfo.total_videos }} 个视频</div>
             </button>
           </div>
 
@@ -350,7 +350,7 @@
           <div class="flex justify-end">
             <button
               @click="showCollectionChoice = false"
-              class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+              class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
             >
               取消
             </button>

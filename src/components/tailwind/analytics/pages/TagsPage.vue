@@ -37,6 +37,7 @@ import { ref, computed, onMounted } from 'vue'
 import gsap from 'gsap'
 import VChart from 'vue-echarts'
 import * as echarts from 'echarts/core'
+import { useDarkMode } from '@/store/darkMode.js'
 
 const props = defineProps({
   viewingData: {
@@ -49,6 +50,14 @@ const distributionChartRef = ref(null)
 const completionChartRef = ref(null)
 
 const tagDistributionOption = computed(() => {
+  const { isDarkMode } = useDarkMode()
+  const isDark = !!(isDarkMode && isDarkMode.value)
+  const axisLabelColor = isDark ? '#bbbbbb' : '#999999'
+  const axisLineColor = isDark ? '#888888' : '#666666'
+  const splitLineColor = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.1)'
+  const tooltipBg = isDark ? 'rgba(28, 28, 28, 0.9)' : 'rgba(255, 255, 255, 0.95)'
+  const tooltipText = isDark ? '#ffffff' : '#111111'
+
   if (!props.viewingData?.watch_counts?.tag_distribution) return {}
   
   const data = Object.entries(props.viewingData.watch_counts.tag_distribution)
@@ -64,9 +73,9 @@ const tagDistributionOption = computed(() => {
       axisPointer: {
         type: 'shadow'
       },
-      backgroundColor: 'rgba(28, 28, 28, 0.9)',
+      backgroundColor: tooltipBg,
       borderColor: '#fb7299',
-      textStyle: { color: '#fff' }
+      textStyle: { color: tooltipText }
     },
     grid: {
       top: '3%',
@@ -77,15 +86,15 @@ const tagDistributionOption = computed(() => {
     },
     xAxis: {
       type: 'value',
-      axisLine: { lineStyle: { color: '#666' } },
-      axisLabel: { color: '#999' },
-      splitLine: { lineStyle: { color: 'rgba(0, 0, 0, 0.1)' } }
+      axisLine: { lineStyle: { color: axisLineColor } },
+      axisLabel: { color: axisLabelColor },
+      splitLine: { lineStyle: { color: splitLineColor } }
     },
     yAxis: {
       type: 'category',
       data: data.map(item => item.name),
-      axisLine: { lineStyle: { color: '#666' } },
-      axisLabel: { color: '#999' },
+      axisLine: { lineStyle: { color: axisLineColor } },
+      axisLabel: { color: axisLabelColor },
       inverse: true
     },
     series: [{
@@ -103,6 +112,7 @@ const tagDistributionOption = computed(() => {
       label: {
         show: true,
         position: 'right',
+        color: axisLabelColor,
         formatter: '{c} 个'
       }
     }]
@@ -110,6 +120,14 @@ const tagDistributionOption = computed(() => {
 })
 
 const tagCompletionOption = computed(() => {
+  const { isDarkMode } = useDarkMode()
+  const isDark = !!(isDarkMode && isDarkMode.value)
+  const axisLabelColor = isDark ? '#bbbbbb' : '#999999'
+  const axisLineColor = isDark ? '#888888' : '#666666'
+  const splitLineColor = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.1)'
+  const tooltipBg = isDark ? 'rgba(28, 28, 28, 0.9)' : 'rgba(255, 255, 255, 0.95)'
+  const tooltipText = isDark ? '#ffffff' : '#111111'
+
   if (!props.viewingData?.completion_rates?.tag_completion_rates) return {}
   
   const data = Object.entries(props.viewingData.completion_rates.tag_completion_rates)
@@ -125,6 +143,9 @@ const tagCompletionOption = computed(() => {
     tooltip: {
       trigger: 'axis',
       axisPointer: { type: 'shadow' },
+      backgroundColor: tooltipBg,
+      borderColor: '#fb7299',
+      textStyle: { color: tooltipText },
       formatter: (params) => {
         const data = params[0].data
         return `${params[0].name}<br/>完成率：${data.value}%<br/>视频数：${data.count}个`
@@ -140,18 +161,18 @@ const tagCompletionOption = computed(() => {
     xAxis: {
       type: 'value',
       name: '完成率',
-      axisLine: { lineStyle: { color: '#666' } },
+      axisLine: { lineStyle: { color: axisLineColor } },
       axisLabel: {
-        color: '#999',
+        color: axisLabelColor,
         formatter: '{value}%'
       },
-      splitLine: { lineStyle: { color: 'rgba(0, 0, 0, 0.1)' } }
+      splitLine: { lineStyle: { color: splitLineColor } }
     },
     yAxis: {
       type: 'category',
       data: data.map(item => `${item.tag}(${item.count}个)`),
-      axisLine: { lineStyle: { color: '#666' } },
-      axisLabel: { color: '#999' },
+      axisLine: { lineStyle: { color: axisLineColor } },
+      axisLabel: { color: axisLabelColor },
       inverse: true
     },
     series: [{
@@ -169,6 +190,7 @@ const tagCompletionOption = computed(() => {
       label: {
         show: true,
         position: 'right',
+        color: axisLabelColor,
         formatter: '{c}%'
       }
     }]

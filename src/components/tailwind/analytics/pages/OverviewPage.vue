@@ -30,28 +30,28 @@
 
     <!-- 年度观看热力图 -->
     <div class="space-y-8">
-      <div class="flex justify-center items-center text-sm text-gray-500 dark:text-gray-400 space-x-6">
-        <div class="flex items-center">
-          <span class="inline-block w-3 h-3 rounded-sm bg-[#FFECF1] mr-1"></span>
-          <span>1-10</span>
-        </div>
-        <div class="flex items-center">
-          <span class="inline-block w-3 h-3 rounded-sm bg-[#FFB3CA] mr-1"></span>
-          <span>11-50</span>
-        </div>
-        <div class="flex items-center">
-          <span class="inline-block w-3 h-3 rounded-sm bg-[#FF8CB0] mr-1"></span>
-          <span>51-100</span>
-        </div>
-        <div class="flex items-center">
-          <span class="inline-block w-3 h-3 rounded-sm bg-[#FF6699] mr-1"></span>
-          <span>101-200</span>
-        </div>
-        <div class="flex items-center">
-          <span class="inline-block w-3 h-3 rounded-sm bg-[#E84B85] mr-1"></span>
-          <span>201+</span>
-        </div>
-      </div>
+     <div class="flex justify-center items-center text-sm text-gray-500 dark:text-gray-400 space-x-6">
+       <div class="flex items-center">
+         <span class="inline-block w-3 h-3 rounded-sm bg-[#FFECF1] dark:bg-[#4B1F2C] mr-1"></span>
+         <span>1-10</span>
+       </div>
+       <div class="flex items-center">
+         <span class="inline-block w-3 h-3 rounded-sm bg-[#FFB3CA] dark:bg-[#7A2D47] mr-1"></span>
+         <span>11-50</span>
+       </div>
+       <div class="flex items-center">
+         <span class="inline-block w-3 h-3 rounded-sm bg-[#FF8CB0] dark:bg-[#B3476A] mr-1"></span>
+         <span>51-100</span>
+       </div>
+       <div class="flex items-center">
+         <span class="inline-block w-3 h-3 rounded-sm bg-[#FF6699] dark:bg-[#E35C8B] mr-1"></span>
+         <span>101-200</span>
+       </div>
+       <div class="flex items-center">
+         <span class="inline-block w-3 h-3 rounded-sm bg-[#E84B85] dark:bg-[#FF7FA8] mr-1"></span>
+         <span>201+</span>
+       </div>
+     </div>
       <div ref="heatmapChartRef" class="w-full h-[320px]"></div>
     </div>
   </div>
@@ -61,6 +61,7 @@
 import { ref, onMounted, watch } from 'vue'
 import * as echarts from 'echarts'
 import { getYearlyAnalysis, getViewingBehavior } from '@/api/api.js'
+import { useDarkMode } from '@/store/darkMode.js'
 
 const props = defineProps({
   viewingData: {
@@ -73,6 +74,7 @@ const heatmapChartRef = ref(null)
 let heatmapChart = null
 const yearlyData = ref(null)
 const viewingBehaviorData = ref(null)
+const { isDarkMode } = useDarkMode()
 
 // 格式化洞察文本，为数字添加颜色
 const formatInsightText = (text) => {
@@ -147,12 +149,26 @@ const initHeatmapChart = () => {
     heatmapChart.dispose()
   }
 
+  // 深色模式颜色方案
+  const isDark = !!(isDarkMode && isDarkMode.value)
+  const calendarItemColor = isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(255, 255, 255, 0.5)'
+  const calendarBorderColor = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(238, 238, 238, 0.8)'
+  const axisLabelColor = isDark ? '#bbbbbb' : '#666666'
+  const tooltipBg = isDark ? 'rgba(28, 28, 28, 0.9)' : 'rgba(255, 255, 255, 0.95)'
+  const tooltipText = isDark ? '#ffffff' : '#111111'
+
   heatmapChart = echarts.init(heatmapChartRef.value)
   const option = {
     animation: true,
     tooltip: {
       show: true,
       trigger: 'item',
+      backgroundColor: tooltipBg,
+      borderColor: '#fb7299',
+      textStyle: {
+        color: tooltipText,
+        fontSize: 14
+      },
       formatter: function(params) {
         const date = params.value[0]
         const count = params.value[1]
@@ -170,15 +186,18 @@ const initHeatmapChart = () => {
           timeStr = `${s}秒`
         }
         return `${date} : ${count}个视频 · 观看时长 ${timeStr}`
-      },
-      textStyle: {
-        fontSize: 14
       }
     },
     visualMap: {
       show: false,
       type: 'piecewise',
-      pieces: [
+      pieces: isDark ? [
+        { min: 1, max: 10, color: '#4B1F2C' },
+        { min: 11, max: 50, color: '#7A2D47' },
+        { min: 51, max: 100, color: '#B3476A' },
+        { min: 101, max: 200, color: '#E35C8B' },
+        { min: 201, max: 9999, color: '#FF7FA8' }
+      ] : [
         { min: 1, max: 10, color: '#FFECF1' },
         { min: 11, max: 50, color: '#FFB3CA' },
         { min: 51, max: 100, color: '#FF8CB0' },
@@ -193,21 +212,21 @@ const initHeatmapChart = () => {
       cellSize: [16, 16],
       range: [`${year}-01-01`, `${year}-12-31`],
       itemStyle: {
-        color: 'rgba(255, 255, 255, 0.5)',
-        borderColor: 'rgba(238, 238, 238, 0.8)',
+        color: calendarItemColor,
+        borderColor: calendarBorderColor,
         borderWidth: 1
       },
       yearLabel: { show: false },
       dayLabel: {
         firstDay: 0,
         nameMap: ['日', '一', '二', '三', '四', '五', '六'],
-        color: '#666',
+        color: axisLabelColor,
         fontSize: 12,
         margin: 12
       },
       monthLabel: {
         nameMap: ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'],
-        color: '#666',
+        color: axisLabelColor,
         fontSize: 12,
         align: 'center',
         margin: 15
@@ -253,6 +272,11 @@ watch(() => yearlyData.value, () => {
     initHeatmapChart()
   }
 }, { deep: true })
+
+// 监听深色模式变化，重绘图表
+watch(() => isDarkMode.value, () => {
+  initHeatmapChart()
+})
 
 // 监听年份变化
 watch(() => props.viewingData?.year, (newYear) => {

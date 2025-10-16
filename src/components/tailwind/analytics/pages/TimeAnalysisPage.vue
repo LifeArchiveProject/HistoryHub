@@ -85,6 +85,7 @@
 import { ref, onMounted, watch, computed } from 'vue'
 import * as echarts from 'echarts'
 import gsap from 'gsap'
+import { useDarkMode } from '@/store/darkMode.js'
 
 const props = defineProps({
   viewingData: {
@@ -102,6 +103,7 @@ const barChartRef = ref(null)
 
 // 图表实例
 let barChart = null
+const { isDarkMode } = useDarkMode()
 
 // 格式化洞察文本，为数字添加颜色
 const formatInsightText = (text) => {
@@ -172,6 +174,16 @@ const getTimeSlotColor = (hour) => {
 const initBarChart = () => {
   if (!barChartRef.value || !props.viewingData?.daily_time_slots) return
 
+  if (barChart) {
+    barChart.dispose()
+  }
+  const isDark = !!(isDarkMode && isDarkMode.value)
+  const axisLineColor = isDark ? '#888888' : '#ddd'
+  const axisLabelColor = isDark ? '#bbbbbb' : '#666'
+  const splitLineColor = isDark ? 'rgba(255, 255, 255, 0.08)' : '#f0f0f0'
+  const tooltipBg = isDark ? 'rgba(28, 28, 28, 0.9)' : 'rgba(255, 255, 255, 0.95)'
+  const tooltipText = isDark ? '#ffffff' : '#111111'
+
   barChart = echarts.init(barChartRef.value)
   const timeData = props.viewingData.daily_time_slots
 
@@ -188,9 +200,10 @@ const initBarChart = () => {
   const barOption = {
     tooltip: {
       trigger: 'axis',
-      axisPointer: {
-        type: 'shadow'
-      },
+      axisPointer: { type: 'shadow' },
+      backgroundColor: tooltipBg,
+      borderColor: '#fb7299',
+      textStyle: { color: tooltipText },
       formatter: function(params) {
         const hour = parseInt(params[0].name.split(':')[0])
         let period = '深夜'
@@ -211,30 +224,30 @@ const initBarChart = () => {
       type: 'category',
       data: hours,
       axisLabel: {
-        color: '#666',
+        color: axisLabelColor,
         fontSize: 12,
         interval: 2 // 每隔2小时显示一个标签
       },
       axisLine: {
         lineStyle: {
-          color: '#ddd'
+          color: axisLineColor
         }
       }
     },
     yAxis: {
       type: 'value',
       axisLabel: {
-        color: '#666',
+        color: axisLabelColor,
         fontSize: 12
       },
       axisLine: {
         lineStyle: {
-          color: '#ddd'
+          color: axisLineColor
         }
       },
       splitLine: {
         lineStyle: {
-          color: '#f0f0f0'
+          color: splitLineColor
         }
       }
     },
@@ -282,6 +295,11 @@ watch(() => props.viewingData, () => {
     initBarChart()
   }
 }, { deep: true })
+
+// 深色模式切换时重绘
+watch(() => isDarkMode.value, () => {
+  initBarChart()
+})
 </script>
 
 <style>

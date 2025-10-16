@@ -1,6 +1,6 @@
 <!-- 视频详情管理组件 -->
 <template>
-  <div class="bg-white rounded-lg border border-gray-200 p-6">
+  <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
     <!-- 操作按钮 -->
     <div class="mb-6 flex flex-col space-y-4 sm:flex-row sm:space-y-0 sm:space-x-4">
       <div class="flex space-x-4">
@@ -38,15 +38,15 @@
       </div>
 
       <!-- 下载选项 -->
-      <div class="flex items-center space-x-2 bg-white/50 backdrop-blur-sm rounded-md px-4 py-2 border border-gray-200">
+      <div class="flex items-center space-x-2 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm rounded-md px-4 py-2 border border-gray-200 dark:border-gray-700">
         <input
           type="checkbox"
           id="useSessdata"
           v-model="useSessdata"
-          class="w-4 h-4 text-[#fb7299] bg-gray-100 border-gray-300 rounded focus:ring-[#fb7299]"
+          class="w-4 h-4 text-[#fb7299] bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-[#fb7299]"
           :disabled="stats.pendingVideosCount === 0 || isFetching"
         >
-        <label for="useSessdata" class="text-sm text-gray-700">
+        <label for="useSessdata" class="text-sm text-gray-700 dark:text-gray-300">
           使用SESSDATA获取详情（对于公开视频可以不使用SESSDATA）
         </label>
       </div>
@@ -59,22 +59,22 @@
 
     <!-- 统计数据卡片 -->
     <div v-if="!isLoading" class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-      <div class="bg-white rounded-lg border border-gray-200 p-4 flex flex-col">
-        <span class="text-sm text-gray-500">历史记录视频总数</span>
-        <span class="text-2xl font-bold text-gray-800">{{ stats.totalHistoryVideos }}</span>
+      <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 flex flex-col">
+        <span class="text-sm text-gray-500 dark:text-gray-400">历史记录视频总数</span>
+        <span class="text-2xl font-bold text-gray-800 dark:text-gray-100">{{ stats.totalHistoryVideos }}</span>
       </div>
 
-      <div class="bg-white rounded-lg border border-gray-200 p-4 flex flex-col">
+      <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 flex flex-col">
         <span class="text-sm text-gray-500">已获取详情</span>
         <span class="text-2xl font-bold text-green-600">{{ stats.existingVideosCount }}</span>
       </div>
 
-      <div class="bg-white rounded-lg border border-gray-200 p-4 flex flex-col">
+      <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 flex flex-col">
         <span class="text-sm text-gray-500">已知失效视频</span>
         <span class="text-2xl font-bold text-orange-500">{{ stats.invalidVideosCount }}</span>
       </div>
 
-      <div class="bg-white rounded-lg border border-gray-200 p-4 flex flex-col">
+      <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 flex flex-col">
         <span class="text-sm text-gray-500">待获取视频</span>
         <span class="text-2xl font-bold" :class="stats.pendingVideosCount > 0 ? 'text-blue-600' : 'text-gray-400'">
           {{ stats.pendingVideosCount }}
@@ -85,13 +85,13 @@
     <!-- 进度状态卡片 - 仅在获取时显示 -->
     <div v-if="isFetching && !isLoading" class="space-y-6">
       <!-- 总体进度 -->
-      <div class="bg-white rounded-lg border border-gray-200 p-4">
+      <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
         <div class="mb-4">
           <div class="flex justify-between items-center mb-1 text-sm">
             <span class="font-medium">处理进度: {{ progress.processedVideos || 0 }}/{{ progress.totalVideos || 0 }}</span>
             <span>{{ progress.progressPercentage ? `${progress.progressPercentage.toFixed(1)}%` : '0%' }}</span>
           </div>
-          <div class="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
+          <div class="w-full h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
             <div
               class="h-full bg-[#fb7299] transition-all duration-300"
               :style="{width: `${progress.progressPercentage || 0}%`}"
@@ -103,47 +103,47 @@
       <!-- 状态卡片组 -->
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
         <!-- 成功卡片 -->
-        <div class="bg-white rounded-lg border border-gray-200 p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
           <div>
-            <p class="text-sm font-medium text-gray-500">成功获取</p>
+            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">成功获取</p>
             <p class="text-2xl font-bold text-green-600">{{ progress.successCount || 0 }}</p>
           </div>
         </div>
 
         <!-- 失败卡片 -->
-        <div class="bg-white rounded-lg border border-gray-200 p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
           <div>
-            <p class="text-sm font-medium text-gray-500">获取失败</p>
+            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">获取失败</p>
             <p class="text-2xl font-bold text-red-600">{{ progress.failedCount || 0 }}</p>
           </div>
         </div>
 
         <!-- 跳过卡片 -->
-        <div class="bg-white rounded-lg border border-gray-200 p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
           <div>
-            <p class="text-sm font-medium text-gray-500">跳过失效</p>
+            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">跳过失效</p>
             <p class="text-2xl font-bold text-yellow-600">{{ progress.skippedInvalidCount || 0 }}</p>
           </div>
         </div>
 
         <!-- 时间卡片 -->
-        <div class="bg-white rounded-lg border border-gray-200 p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
           <div>
-            <p class="text-sm font-medium text-gray-500">已用时间</p>
+            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">已用时间</p>
             <p class="text-2xl font-bold text-blue-600">{{ progress.elapsedTime || '0秒' }}</p>
           </div>
         </div>
       </div>
 
       <!-- 失败视频列表 -->
-      <div v-if="progress.errorVideos && progress.errorVideos.length > 0" class="bg-white rounded-lg border border-gray-200 p-4">
+      <div v-if="progress.errorVideos && progress.errorVideos.length > 0" class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
         <div class="font-medium text-sm mb-2 text-red-600 flex items-center">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </svg>
           获取失败的视频:
         </div>
-        <div class="max-h-[120px] overflow-y-auto text-xs bg-gray-50 p-2 rounded border border-gray-200">
+        <div class="max-h-[120px] overflow-y-auto text-xs bg-gray-50 dark:bg-gray-900 p-2 rounded border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300">
           <div v-for="(bvid, index) in progress.errorVideos" :key="index" class="mb-1">
             {{ bvid }}
           </div>

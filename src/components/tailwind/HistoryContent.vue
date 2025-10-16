@@ -20,20 +20,20 @@
     </div>
 
     <!-- 加载状态 -->
-    <div v-if="isLoading" class="flex flex-col items-center justify-center py-16 bg-white rounded-lg">
+    <div v-if="isLoading" class="flex flex-col items-center justify-center py-16 bg-white dark:bg-gray-800 rounded-lg">
       <div class="w-16 h-16 border-4 border-[#fb7299] border-t-transparent rounded-full animate-spin mb-4"></div>
       <h3 class="text-xl font-medium text-gray-600 mb-2">加载中</h3>
       <p class="text-gray-500">正在获取历史记录数据...</p>
     </div>
 
     <!-- 登录状态空状态 -->
-    <div v-else-if="!isLoggedIn" class="flex flex-col items-center justify-center py-16 bg-white rounded-lg shadow-sm">
+    <div v-else-if="!isLoggedIn" class="flex flex-col items-center justify-center py-16 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
       <svg class="w-24 h-24 text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
               d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
       </svg>
-      <h3 class="text-xl font-medium text-gray-600 mb-2">请先登录</h3>
-      <p class="text-gray-500 mb-6">登录B站账号后才能查看您的历史记录</p>
+      <h3 class="text-xl font-medium text-gray-600 dark:text-gray-300 mb-2">请先登录</h3>
+      <p class="text-gray-500 dark:text-gray-400 mb-6">登录B站账号后才能查看您的历史记录</p>
       <button
         class="px-4 py-2 bg-[#fb7299] text-white rounded-md hover:bg-[#fb7299]/90 transition-colors duration-200 flex items-center space-x-2"
         @click="openLoginDialog">
@@ -47,13 +47,13 @@
 
     <!-- 数据为空状态 -->
     <div v-else-if="isLoggedIn && records.length === 0"
-         class="flex flex-col items-center justify-center py-16 bg-white rounded-lg">
+         class="flex flex-col items-center justify-center py-16 bg-white dark:bg-gray-800 rounded-lg">
       <svg class="w-24 h-24 text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
               d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
-      <h3 class="text-xl font-medium text-gray-600 mb-2">暂无历史记录</h3>
-      <p class="text-gray-500 mb-6">点击下方按钮从B站获取您的历史记录</p>
+      <h3 class="text-xl font-medium text-gray-600 dark:text-gray-300 mb-2">暂无历史记录</h3>
+      <p class="text-gray-500 dark:text-gray-400 mb-6">点击下方按钮从B站获取您的历史记录</p>
       <button
         class="px-4 py-2 bg-[#fb7299] text-white rounded-md hover:bg-[#fb7299]/90 transition-colors duration-200 flex items-center space-x-2"
         @click="refreshData">
@@ -78,10 +78,10 @@
               <div>
                 <div class="relative">
                   <div class="absolute inset-0 flex items-center" aria-hidden="true">
-                    <div class="w-full border-t border-gray-300" />
+                    <div class="w-full border-t border-gray-300 dark:border-gray-600" />
                   </div>
                   <div class="relative flex items-center justify-between">
-                    <div class="bg-white pr-3 flex items-center space-x-2">
+                    <div class="bg-white dark:bg-gray-900 pr-3 flex items-center space-x-2">
                       <!-- 添加当天记录的勾选框 -->
                       <div v-if="isBatchMode"
                            class="flex items-center justify-center cursor-pointer"
@@ -98,7 +98,7 @@
  {{ formatDividerDate(record.view_at) }}
  </span>
                     </div>
-                    <div class="bg-white pl-3">
+                    <div class="bg-white dark:bg-gray-900 pl-3">
  <span class="lm:text-xs text-[#FF6699]">
  {{ getDailyStatsForDate(record.view_at) }}条数据 · 总时长 {{ formatDailyWatchTime(record.view_at) }}
  </span>
@@ -110,7 +110,7 @@
 
             <!-- 网格布局的视频卡片 -->
             <div
-              class="bg-white/50 backdrop-blur-sm rounded-lg overflow-hidden border border-gray-200/50 hover:border-[#FF6699] hover:shadow-md transition-all duration-200 relative group"
+              class="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm rounded-lg overflow-hidden border border-gray-200/50 dark:border-gray-700/50 hover:border-[#FF6699] hover:shadow-md transition-all duration-200 relative group"
               :class="{ 'ring-2 ring-[#fb7299]': selectedRecords.has(`${record.bvid}_${record.view_at}`), 'cursor-pointer': isBatchMode }"
               @click="isBatchMode ? toggleRecordSelection(record) : null">
               <!-- 多选框 -->
@@ -231,14 +231,14 @@
               <!-- 视频信息 -->
               <div class="p-3 flex flex-col space-y-1">
                 <!-- 标题 - 单行显示 -->
-                <div class="line-clamp-1 text-sm text-gray-900"
+                <div class="line-clamp-1 text-sm text-gray-900 dark:text-gray-100"
                      v-html="isPrivacyMode ? '******' : highlightText(record.title)"
                      :class="{ 'blur-sm': isPrivacyMode, 'cursor-pointer': !isBatchMode }"
                      @click="!isBatchMode ? handleVideoClick(record) : null">
                 </div>
                 <!-- 分区标签 - 单行显示 -->
-                <div class="text-xs text-gray-500 truncate flex items-center space-x-1">
- <span class="inline-flex items-center rounded-md bg-[#f1f2f3] px-2 py-1 text-xs text-[#71767d]">
+                <div class="text-xs text-gray-500 dark:text-gray-400 truncate flex items-center space-x-1">
+ <span class="inline-flex items-center rounded-md bg-[#f1f2f3] dark:bg-gray-700 px-2 py-1 text-xs text-[#71767d] dark:text-gray-300">
  {{ record.business === 'archive' ? record.tag_name : getBusinessType(record.business) }}
  </span>
                   <span v-if="record.business === 'archive'" class="text-gray-400">·</span>
@@ -246,7 +246,7 @@
                     }}</span>
                 </div>
                 <!-- UP主和时间信息 - 单行显示 -->
-                <div class="flex items-center justify-between text-xs text-gray-600">
+                <div class="flex items-center justify-between text-xs text-gray-600 dark:text-gray-400">
                   <div class="flex items-center space-x-2 min-w-0 flex-1">
                     <img v-if="record.business !== 'cheese' && record.business !== 'pgc'"
                          :src="normalizeImageUrl(record.author_face)"
@@ -294,10 +294,10 @@
               <div class="px-2">
                 <div class="relative">
                   <div class="absolute inset-0 flex items-center" aria-hidden="true">
-                    <div class="w-full border-t border-gray-300" />
+                    <div class="w-full border-t border-gray-300 dark:border-gray-600" />
                   </div>
                   <div class="relative flex items-center justify-between">
-                    <div class="bg-white pr-3 flex items-center space-x-2">
+                    <div class="bg-white dark:bg-gray-900 pr-3 flex items-center space-x-2">
                       <!-- 添加当天记录的勾选框 -->
                       <div v-if="isBatchMode"
                            class="flex items-center justify-center cursor-pointer"
@@ -314,7 +314,7 @@
  {{ formatDividerDate(record.view_at) }}
  </span>
                     </div>
-                    <div class="bg-white pl-3">
+                    <div class="bg-white dark:bg-gray-900 pl-3">
  <span class="lm:text-xs text-[#FF6699]">
  {{ getDailyStatsForDate(record.view_at) }}条数据 · 总时长 {{ formatDailyWatchTime(record.view_at) }}
  </span>

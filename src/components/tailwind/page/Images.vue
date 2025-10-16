@@ -36,14 +36,14 @@
       </div>
 
       <!-- 下载选项 -->
-      <div class="flex items-center space-x-2 bg-white/50 backdrop-blur-sm rounded-md px-4 py-2 border border-gray-200">
+      <div class="flex items-center space-x-2 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm rounded-md px-4 py-2 border border-gray-200 dark:border-gray-700">
         <input
           type="checkbox"
           id="useSessdata"
           v-model="useSessdata"
-          class="w-4 h-4 text-[#fb7299] bg-gray-100 border-gray-300 rounded focus:ring-[#fb7299]"
+          class="w-4 h-4 text-[#fb7299] bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-[#fb7299]"
         >
-        <label for="useSessdata" class="text-sm text-gray-700">
+        <label for="useSessdata" class="text-sm text-gray-700 dark:text-gray-300">
           使用SESSDATA下载图片（对于公开内容如视频封面和头像，可以不使用SESSDATA）
         </label>
       </div>
@@ -51,12 +51,12 @@
 
     <!-- 加载状态 -->
     <div v-if="isLoading" class="space-y-8">
-      <div v-for="i in 2" :key="i" class="bg-white/50 backdrop-blur-sm rounded-lg p-6 border border-gray-200 animate-pulse">
-        <div class="h-8 bg-gray-200 rounded w-32 mb-4"></div>
+      <div v-for="i in 2" :key="i" class="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm rounded-lg p-6 border border-gray-200 dark:border-gray-700 animate-pulse">
+        <div class="h-8 bg-gray-200 dark:bg-gray-700 rounded w-32 mb-4"></div>
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
-          <div v-for="j in 4" :key="j" class="bg-white/50 rounded-lg p-4 border border-gray-200">
-            <div class="h-8 bg-gray-200 rounded w-16 mb-2"></div>
-            <div class="h-4 bg-gray-200 rounded w-20"></div>
+          <div v-for="j in 4" :key="j" class="bg-white/50 dark:bg-gray-800/50 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+            <div class="h-8 bg-gray-200 dark:bg-gray-700 rounded w-16 mb-2"></div>
+            <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-20"></div>
           </div>
         </div>
       </div>
@@ -65,19 +65,19 @@
     <!-- 下载状态 -->
     <div v-else class="space-y-8">
       <!-- 封面图片状态 -->
-      <div class="bg-white/50 backdrop-blur-sm rounded-lg p-6 border border-gray-200">
+      <div class="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm rounded-lg p-6 border border-gray-200 dark:border-gray-700">
         <div class="flex items-center justify-between mb-4">
           <h2 class="text-xl font-semibold text-[#fb7299]">封面图片</h2>
-          <span class="text-sm text-gray-500">最后更新: {{ formatTime(status?.last_update) }}</span>
+          <span class="text-sm text-gray-500 dark:text-gray-400">最后更新: {{ formatTime(status?.last_update) }}</span>
         </div>
 
         <!-- 进度条 -->
         <div v-if="isDownloading" class="mb-6">
           <div class="flex justify-between mb-1">
-            <span class="text-sm text-gray-600">下载进度</span>
-            <span class="text-sm text-gray-600">{{ getProgressPercentage(status?.covers, 'covers') }}%</span>
+            <span class="text-sm text-gray-600 dark:text-gray-400">下载进度</span>
+            <span class="text-sm text-gray-600 dark:text-gray-400">{{ getProgressPercentage(status?.covers, 'covers') }}%</span>
           </div>
-          <div class="w-full bg-gray-200 rounded-full h-2.5">
+          <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
             <div class="bg-[#fb7299] h-2.5 rounded-full transition-all duration-500 animate-pulse"
                  :style="{ width: getProgressPercentage(status?.covers, 'covers') + '%' }"></div>
           </div>
@@ -85,21 +85,21 @@
 
         <!-- 状态卡片网格 -->
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <div class="bg-white/50 rounded-lg p-4 border border-gray-200">
+          <div class="bg-white/50 dark:bg-gray-800/50 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
             <div class="text-2xl font-bold text-[#fb7299]">{{ status?.covers?.total || 0 }}</div>
-            <div class="text-sm text-gray-500">计划下载</div>
+            <div class="text-sm text-gray-500 dark:text-gray-400">计划下载</div>
           </div>
-          <div class="bg-white/50 rounded-lg p-4 border border-gray-200">
+          <div class="bg-white/50 dark:bg-gray-800/50 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
             <div class="text-2xl font-bold text-[#fb7299]">{{ status?.covers?.downloaded || 0 }}</div>
-            <div class="text-sm text-gray-500">已下载</div>
+            <div class="text-sm text-gray-500 dark:text-gray-400">已下载</div>
           </div>
-          <div class="bg-white/50 rounded-lg p-4 border border-gray-200">
+          <div class="bg-white/50 dark:bg-gray-800/50 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
             <div class="text-2xl font-bold text-red-500">{{ status?.covers?.failed || 0 }}</div>
-            <div class="text-sm text-gray-500">失败数</div>
+            <div class="text-sm text-gray-500 dark:text-gray-400">失败数</div>
           </div>
-          <div class="bg-white/50 rounded-lg p-4 border border-gray-200">
+          <div class="bg-white/50 dark:bg-gray-800/50 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
             <div class="text-2xl font-bold text-blue-500">{{ status?.covers?.total_planned || 0 }}</div>
-            <div class="text-sm text-gray-500">待下载</div>
+            <div class="text-sm text-gray-500 dark:text-gray-400">待下载</div>
           </div>
         </div>
 
@@ -113,19 +113,19 @@
           </div>
           <div class="max-h-40 overflow-y-auto space-y-2">
             <div v-for="(item, index) in status.covers.failed_urls" :key="index"
-                 class="text-sm text-gray-600 p-2 bg-red-50 rounded border border-red-100">
+                 class="text-sm text-gray-600 dark:text-gray-300 p-2 bg-red-50 dark:bg-red-900/20 rounded border border-red-100 dark:border-red-900/30">
               <div class="flex justify-between">
                 <span class="font-medium">错误: {{ item.error }}</span>
-                <span class="text-gray-500">{{ formatTime(item.timestamp) }}</span>
+                <span class="text-gray-500 dark:text-gray-400">{{ formatTime(item.timestamp) }}</span>
               </div>
-              <div class="mt-1 text-gray-500 break-all">URL: {{ item.url }}</div>
+              <div class="mt-1 text-gray-500 dark:text-gray-400 break-all">URL: {{ item.url }}</div>
             </div>
           </div>
         </div>
       </div>
 
       <!-- 头像图片状态 -->
-      <div class="bg-white/50 backdrop-blur-sm rounded-lg p-6 border border-gray-200">
+      <div class="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm rounded-lg p-6 border border-gray-200 dark:border-gray-700">
         <div class="flex items-center justify-between mb-4">
           <h2 class="text-xl font-semibold text-[#fb7299]">头像图片</h2>
         </div>
@@ -133,10 +133,10 @@
         <!-- 进度条 -->
         <div v-if="isDownloading" class="mb-6">
           <div class="flex justify-between mb-1">
-            <span class="text-sm text-gray-600">下载进度</span>
-            <span class="text-sm text-gray-600">{{ getProgressPercentage(status?.avatars, 'avatars') }}%</span>
+            <span class="text-sm text-gray-600 dark:text-gray-400">下载进度</span>
+            <span class="text-sm text-gray-600 dark:text-gray-400">{{ getProgressPercentage(status?.avatars, 'avatars') }}%</span>
           </div>
-          <div class="w-full bg-gray-200 rounded-full h-2.5">
+          <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
             <div class="bg-[#fb7299] h-2.5 rounded-full transition-all duration-500 animate-pulse"
                  :style="{ width: getProgressPercentage(status?.avatars, 'avatars') + '%' }"></div>
           </div>
@@ -144,21 +144,21 @@
 
         <!-- 状态卡片网格 -->
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <div class="bg-white/50 rounded-lg p-4 border border-gray-200">
+          <div class="bg-white/50 dark:bg-gray-800/50 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
             <div class="text-2xl font-bold text-[#fb7299]">{{ status?.avatars?.total || 0 }}</div>
-            <div class="text-sm text-gray-500">计划下载</div>
+            <div class="text-sm text-gray-500 dark:text-gray-400">计划下载</div>
           </div>
-          <div class="bg-white/50 rounded-lg p-4 border border-gray-200">
+          <div class="bg-white/50 dark:bg-gray-800/50 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
             <div class="text-2xl font-bold text-[#fb7299]">{{ status?.avatars?.downloaded || 0 }}</div>
-            <div class="text-sm text-gray-500">已下载</div>
+            <div class="text-sm text-gray-500 dark:text-gray-400">已下载</div>
           </div>
-          <div class="bg-white/50 rounded-lg p-4 border border-gray-200">
+          <div class="bg-white/50 dark:bg-gray-800/50 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
             <div class="text-2xl font-bold text-red-500">{{ status?.avatars?.failed || 0 }}</div>
-            <div class="text-sm text-gray-500">失败数</div>
+            <div class="text-sm text-gray-500 dark:text-gray-400">失败数</div>
           </div>
-          <div class="bg-white/50 rounded-lg p-4 border border-gray-200">
+          <div class="bg-white/50 dark:bg-gray-800/50 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
             <div class="text-2xl font-bold text-blue-500">{{ status?.avatars?.total_planned || 0 }}</div>
-            <div class="text-sm text-gray-500">待下载</div>
+            <div class="text-sm text-gray-500 dark:text-gray-400">待下载</div>
           </div>
         </div>
 

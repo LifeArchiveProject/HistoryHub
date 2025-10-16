@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gray-50/30">
+  <div class="min-h-screen bg-gray-50/30 dark:bg-gray-900">
     <div class="py-4">
       <div class="max-w-7xl mx-auto px-3">
         <!-- 任务列表包装层 - 添加相对定位以便放置新建按钮 -->
@@ -9,10 +9,10 @@
             <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#fb7299]"></div>
           </div>
 
-          <div v-else-if="tasks.length === 0" class="bg-white border border-gray-200 rounded-lg p-6 text-center">
+          <div v-else-if="tasks.length === 0" class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6 text-center">
             <!-- 在空状态页面添加标题和新建按钮 -->
             <div class="flex justify-between items-center mb-6">
-              <h3 class="text-base font-medium text-gray-900">计划任务</h3>
+              <h3 class="text-base font-medium text-gray-900 dark:text-gray-100">计划任务</h3>
               <button 
                 @click="openCreateTaskModal" 
                 class="text-[#fb7299] hover:text-[#fb7299]/80 transition-colors text-sm font-medium"
@@ -24,14 +24,14 @@
             <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
             </svg>
-            <h3 class="mt-2 text-sm font-medium text-gray-900">暂无计划任务</h3>
-            <p class="mt-1 text-sm text-gray-500">点击"新建任务"按钮创建您的第一个计划任务</p>
+            <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">暂无计划任务</h3>
+            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">点击"新建任务"按钮创建您的第一个计划任务</p>
           </div>
 
-          <div v-else class="bg-white border border-gray-200 rounded-lg overflow-hidden">
+          <div v-else class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
             <!-- 添加表格标题 -->
-            <div class="px-4 py-3 flex justify-between items-center border-b border-gray-200">
-              <h3 class="text-base font-medium text-gray-900">计划任务</h3>
+            <div class="px-4 py-3 flex justify-between items-center border-b border-gray-200 dark:border-gray-700">
+              <h3 class="text-base font-medium text-gray-900 dark:text-gray-100">计划任务</h3>
               <button 
                 @click="openCreateTaskModal" 
                 class="text-[#fb7299] hover:text-[#fb7299]/80 transition-colors text-sm font-medium"
@@ -41,32 +41,32 @@
             </div>
             
             <div class="overflow-x-auto">
-              <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
+              <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                <thead class="bg-gray-50 dark:bg-gray-800">
                   <tr>
-                    <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">任务ID</th>
-                    <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">名称</th>
-                    <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">调度类型</th>
-                    <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">调度时间</th>
-                    <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">成功率</th>
-                    <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">最后执行</th>
-                    <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">状态</th>
-                    <th scope="col" class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">任务ID</th>
+                    <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">名称</th>
+                    <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">调度类型</th>
+                    <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">调度时间</th>
+                    <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">成功率</th>
+                    <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">最后执行</th>
+                    <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">状态</th>
+                    <th scope="col" class="px-4 py-2 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                       <!-- 移除这里的新建任务按钮，因为已经添加到标题中 -->
                       操作
                     </th>
                   </tr>
                 </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
+                <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                   <template v-for="task in tasks" :key="task.task_id">
                     <!-- 主任务行 -->
-                    <tr class="hover:bg-gray-50 border-t-2 border-gray-100">
-                      <td class="px-4 py-3 whitespace-nowrap text-xs font-medium text-gray-900">
+                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 border-t-2 border-gray-100 dark:border-gray-700">
+                      <td class="px-4 py-3 whitespace-nowrap text-xs font-medium text-gray-900 dark:text-gray-100">
                         <div class="flex items-center space-x-1">
                           <button 
                             v-if="task.sub_tasks && task.sub_tasks.length > 0"
                             @click="task.isExpanded = !task.isExpanded"
-                            class="p-0.5 rounded hover:bg-gray-200 transition-colors"
+                            class="p-0.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
                           >
                             <svg 
                               class="w-3.5 h-3.5 text-gray-500 transform transition-transform"
@@ -81,16 +81,16 @@
                           {{ task.task_id }}
                         </div>
                       </td>
-                      <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-500">
+                      <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-500 dark:text-gray-400">
                         <div class="flex items-center">
                           {{ task.config?.name || task.task_id }}
                           <span v-if="task.sub_tasks && task.sub_tasks.length > 0" 
-                                class="ml-2 px-1.5 py-0.5 text-xs rounded-full bg-gray-100 text-gray-600">
+                                class="ml-2 px-1.5 py-0.5 text-xs rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
                             {{ task.sub_tasks.length }}个子任务
                           </span>
                         </div>
                       </td>
-                      <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-500">
+                      <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-500 dark:text-gray-400">
                         <span 
                           :class="{
                             'bg-blue-100 text-blue-800': task.config?.schedule_type === 'daily',
@@ -109,7 +109,7 @@
                           }}
                         </span>
                       </td>
-                      <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-500">
+                      <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-500 dark:text-gray-400">
                         {{ 
                           task.config?.schedule_type === 'chain' ? '依赖主任务' : 
                           task.config?.schedule_type === 'interval' ? 
@@ -123,10 +123,10 @@
                           task.config?.schedule_time || '-' 
                         }}
                       </td>
-                      <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-500">
+                      <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-500 dark:text-gray-400">
                         <span v-if="task.execution?.success_rate !== undefined" class="inline-flex items-center">
                           {{ Math.round(task.execution.success_rate) }}%
-                          <div class="ml-1.5 h-1 w-12 bg-gray-200 rounded-full overflow-hidden">
+                          <div class="ml-1.5 h-1 w-12 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                             <div 
                               class="h-full rounded-full" 
                               :class="{
@@ -140,10 +140,10 @@
                         </span>
                         <span v-else>-</span>
                       </td>
-                      <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-500">
+                      <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-500 dark:text-gray-400">
                         {{ task.execution?.last_run || '未记录' }}
                       </td>
-                      <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-500">
+                      <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-500 dark:text-gray-400">
                         <span 
                           :class="{
                             'bg-green-100 text-green-800': task.config?.enabled === true,
@@ -200,8 +200,8 @@
                     <template v-if="task.sub_tasks && task.sub_tasks.length > 0 && task.isExpanded">
                       <tr v-for="subTask in task.sub_tasks" 
                           :key="subTask.task_id" 
-                          class="bg-[#fff8fa] hover:bg-[#fff2f6] border-l-4 border-[#fb7299]/30">
-                        <td class="pl-12 pr-4 py-2.5 whitespace-nowrap text-xs font-medium text-gray-900">
+                          class="bg-[#fff8fa] dark:bg-pink-900/10 hover:bg-[#fff2f6] dark:hover:bg-pink-900/20 border-l-4 border-[#fb7299]/30">
+                        <td class="pl-12 pr-4 py-2.5 whitespace-nowrap text-xs font-medium text-gray-900 dark:text-gray-100">
                           <div class="flex items-center">
                             <svg class="w-3.5 h-3.5 text-gray-400 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
@@ -209,18 +209,18 @@
                             {{ subTask.task_id }}
                           </div>
                         </td>
-                        <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-500">
+                        <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-500 dark:text-gray-400">
                           {{ subTask.config?.name || subTask.task_id }}
                         </td>
-                        <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-500">
+                        <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-500 dark:text-gray-400">
                           <span class="px-1.5 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">
                             链式
                           </span>
                         </td>
-                        <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-500">
+                        <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-500 dark:text-gray-400">
                           依赖主任务
                         </td>
-                        <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-500">
+                        <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-500 dark:text-gray-400">
                           <span v-if="subTask.execution?.success_rate !== undefined" class="inline-flex items-center">
                             {{ Math.round(subTask.execution.success_rate) }}%
                             <div class="ml-1.5 h-1 w-12 bg-gray-200 rounded-full overflow-hidden">
@@ -237,10 +237,10 @@
                           </span>
                           <span v-else>-</span>
                         </td>
-                        <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-500">
+                        <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-500 dark:text-gray-400">
                           {{ subTask.execution?.last_run || '未记录' }}
                         </td>
-                        <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-500">
+                        <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-500 dark:text-gray-400">
                           <span 
                             :class="{
                               'bg-green-100 text-green-800': subTask.config?.enabled === true,

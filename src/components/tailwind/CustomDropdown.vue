@@ -5,7 +5,7 @@
       @click.stop="toggleDropdown" 
       type="button"
       :class="[
-        'custom-dropdown-trigger w-full py-1.5 px-2 border border-gray-300 rounded-md text-xs text-gray-800 focus:border-[#fb7299] focus:outline-none focus:ring focus:ring-[#fb7299]/20 flex items-center justify-between bg-white transition-colors duration-200',
+        'custom-dropdown-trigger w-full py-1.5 px-2 border border-gray-300 dark:border-gray-600 rounded-md text-xs text-gray-800 dark:text-gray-200 focus:border-[#fb7299] focus:outline-none focus:ring focus:ring-[#fb7299]/20 flex items-center justify-between bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200',
         customClass,
         'whitespace-nowrap overflow-hidden'
       ]"
@@ -22,7 +22,7 @@
     <div 
       v-if="showDropdown" 
       @click.stop
-      class="fixed z-50 mt-1 rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none max-w-[90vw]"
+      class="fixed z-50 mt-1 rounded-lg bg-white dark:bg-gray-800 shadow-lg ring-1 ring-black ring-opacity-5 dark:ring-white/10 border border-gray-200 dark:border-gray-700 focus:outline-none max-w-[90vw]"
       :style="dropdownStyle"
     >
       <div class="py-1 max-h-60 overflow-auto">

@@ -1,9 +1,9 @@
 <template>
-  <div class="w-full bg-white rounded-lg shadow-sm p-4">
+  <div class="w-full bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
     <!-- 摘要内容显示区域 -->
     <div v-if="summary && !loading && !error" class="space-y-4">
       <div class="flex items-center justify-between">
-        <h3 class="text-sm font-medium text-gray-900 flex items-center">
+        <h3 class="text-sm font-medium text-gray-900 dark:text-gray-100 flex items-center">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-[#fb7299]" fill="none" viewBox="0 0 24 24"
                stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -14,7 +14,7 @@
 
         <button
           @click="refreshSummary"
-          class="text-xs text-gray-500 hover:text-[#fb7299] flex items-center space-x-1"
+          class="text-xs text-gray-500 dark:text-gray-400 hover:text-[#fb7299] flex items-center space-x-1"
           :disabled="loading"
         >
           <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24"
@@ -27,13 +27,13 @@
       </div>
 
       <!-- 总体摘要 -->
-      <div class="bg-gray-50 rounded-lg p-3">
-        <p class="text-xs text-gray-700 whitespace-pre-line leading-relaxed">{{ summary }}</p>
+      <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
+        <p class="text-xs text-gray-700 dark:text-gray-300 whitespace-pre-line leading-relaxed">{{ summary }}</p>
       </div>
 
       <!-- 视频大纲 -->
       <div v-if="outline && outline.length > 0" class="mt-4">
-        <h4 class="text-xs font-medium text-gray-800 mb-2 flex items-center">
+        <h4 class="text-xs font-medium text-gray-800 dark:text-gray-200 mb-2 flex items-center">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 mr-1 text-[#fb7299]" fill="none"
                viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -58,7 +58,7 @@
                 </svg>
                 {{ formatTime(section.timestamp) }}
               </a>
-              <h5 class="text-xs font-medium text-gray-800 ml-2">{{ section.title }}</h5>
+              <h5 class="text-xs font-medium text-gray-800 dark:text-gray-200 ml-2">{{ section.title }}</h5>
             </div>
 
             <!-- 章节要点 -->
@@ -71,14 +71,14 @@
                 >
                   {{ formatTime(point.timestamp) }}
                 </a>
-                <p class="text-[11px] text-gray-600 ml-2">{{ point.content }}</p>
+                <p class="text-[11px] text-gray-600 dark:text-gray-400 ml-2">{{ point.content }}</p>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div v-if="fromCache" class="text-xs text-gray-400 flex items-center mt-2">
+      <div v-if="fromCache" class="text-xs text-gray-400 dark:text-gray-500 flex items-center mt-2">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24"
              stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -96,7 +96,7 @@
           <path class="opacity-75" fill="currentColor"
                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
         </svg>
-        <h3 class="text-sm font-medium text-gray-900 ">AI正在生成视频摘要...</h3>
+        <h3 class="text-sm font-medium text-gray-900 dark:text-gray-100">AI正在生成视频摘要...</h3>
       </div>
       <div class="animate-pulse flex space-x-4">
         <div class="flex-1 space-y-3">
@@ -106,12 +106,12 @@
           <div class="h-2 bg-gray-200 rounded w-5/6"></div>
         </div>
       </div>
-      <p class="text-xs text-gray-400">首次生成可能需要一些时间，请耐心等待</p>
+      <p class="text-xs text-gray-400 dark:text-gray-500">首次生成可能需要一些时间，请耐心等待</p>
     </div>
 
     <!-- 错误状态 -->
     <div v-if="error && !loading" class="py-8 flex flex-col items-center justify-center">
-      <h3 class="text-sm font-medium text-gray-900 flex items-center">
+      <h3 class="text-sm font-medium text-gray-900 dark:text-gray-100 flex items-center">
         <svg v-if="errorIsWarning" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-amber-500 mr-1" fill="none"
              viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -128,12 +128,12 @@
         </svg>
         <span>{{ errorTitle }}</span>
       </h3>
-      <p class="text-xs text-gray-500 mt-2 text-center">{{ error }}</p>
+      <p class="text-xs text-gray-500 dark:text-gray-400 mt-2 text-center">{{ error }}</p>
       <div class="mt-4 flex items-center space-x-3">
         <button
           v-if="shouldShowRetryButton"
           @click="() => fetchSummary(false)"
-          class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 rounded px-3 py-1.5"
+          class="text-xs bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded px-3 py-1.5"
         >
           重试
         </button>

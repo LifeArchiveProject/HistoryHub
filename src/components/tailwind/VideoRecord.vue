@@ -1,11 +1,11 @@
 <template>
   <!-- 每条记录的容器 -->
   <div
-    class="mx-auto max-w-2xl cursor-pointer border-b border-gray-200 transition-all duration-200 ease-in-out sm:px-4 lg:max-w-4xl lg:px-0 relative"
+    class="mx-auto max-w-2xl cursor-pointer border-b border-gray-200 dark:border-gray-700 transition-all duration-200 ease-in-out sm:px-4 lg:max-w-4xl lg:px-0 relative"
     :class="{
       'group': !showDownloadDialog,
-      'border-[#fb7299] bg-[#fff9fb] ring-1 ring-[#fb7299]/20': isBatchMode && isSelected,
-      'hover:border-[#fb7299] hover:bg-[#f5f5f5] hover:shadow-md': !isBatchMode || !isSelected
+      'border-[#fb7299] bg-[#fff9fb] dark:bg-[#fb7299]/10 ring-1 ring-[#fb7299]/20': isBatchMode && isSelected,
+      'hover:border-[#fb7299] hover:bg-[#f5f5f5] dark:hover:bg-gray-800 hover:shadow-md': !isBatchMode || !isSelected
     }"
     @click="handleClick"
   >
@@ -16,7 +16,7 @@
         <!-- 标题在封面图片上方 -->
         <div class="mb-2">
           <div
-            class="line-clamp-2 text-gray-900 lm:text-sm lg:font-semibold"
+            class="line-clamp-2 text-gray-900 dark:text-gray-100 lm:text-sm lg:font-semibold"
             v-html="isPrivacyMode ? '******' : highlightedTitle"
             :class="{ 'blur-sm': isPrivacyMode }"
           ></div>
@@ -309,7 +309,7 @@
           </div>
           <div class="items-center justify-between lg:flex">
             <div
-              class="line-clamp-2 text-gray-900 lm:text-sm lg:font-semibold"
+              class="line-clamp-2 text-gray-900 dark:text-gray-100 lm:text-sm lg:font-semibold"
               v-html="isPrivacyMode ? '******' : highlightedTitle"
               :class="{ 'blur-sm': isPrivacyMode }"
             ></div>
@@ -317,7 +317,7 @@
           <div class="flex items-center space-x-2">
             <span
               v-if="record.business !== 'pgc'"
-              class="inline-flex items-center rounded-md bg-[#f1f2f3] px-2 py-1 text-xs text-[#71767d]"
+              class="inline-flex items-center rounded-md bg-[#f1f2f3] dark:bg-gray-700 px-2 py-1 text-xs text-[#71767d] dark:text-gray-300"
             >
               {{ record.tag_name }}
             </span>
@@ -333,7 +333,7 @@
                   @blur="handleRemarkBlur"
                   placeholder="添加备注..."
                   :disabled="isPrivacyMode"
-                  class="flex-1 px-2 py-1 text-xs text-[#fb7299] bg-[#f8f8f8] rounded border-0 border-b border-transparent hover:border-gray-200 focus:border-[#fb7299] focus:ring-0 transition-colors duration-200 placeholder-[#fb7299]/50"
+                  class="flex-1 px-2 py-1 text-xs text-[#fb7299] bg-[#f8f8f8] dark:bg-gray-800 dark:text-[#fb7299] rounded border-0 border-b border-transparent hover:border-gray-200 dark:hover:border-gray-600 focus:border-[#fb7299] focus:ring-0 transition-colors duration-200 placeholder-[#fb7299]/50"
                   :class="{ 'blur-sm': isPrivacyMode }"
                 />
                 <span v-if="remarkTime" class="text-xs text-gray-400">{{ formatRemarkTime(remarkTime) }}</span>
@@ -349,7 +349,7 @@
           <div class="flex items-end justify-between text-sm text-[#99a2aa] lm:text-xs">
             <!-- PGC内容显示long_title -->
             <div v-if="record.business === 'pgc'" class="flex items-center space-x-2">
-              <p class="text-[#99a2aa]">{{ record.long_title }}</p>
+              <p class="text-[#99a2aa] dark:text-gray-400">{{ record.long_title }}</p>
             </div>
             <!-- 非PGC内容显示UP主信息 -->
             <div v-else class="flex items-center space-x-2" @click.stop>

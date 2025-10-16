@@ -1,18 +1,18 @@
 <template>
-  <div class="min-h-screen bg-gray-50/30">
+  <div class="min-h-screen bg-gray-50/30 dark:bg-gray-900">
     <div class="py-6">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <!-- 主内容卡片 -->
-        <div class="bg-white rounded-lg overflow-hidden">
+        <div class="bg-white dark:bg-gray-800 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
           <!-- 标签导航 -->
-          <div class="border-b border-gray-200">
+          <div class="border-b border-gray-200 dark:border-gray-700">
             <nav class="-mb-px flex px-6 overflow-x-auto" aria-label="B站工具选项卡">
               <button
                 @click="activeTab = 'video-stats'"
                 class="py-4 px-3 border-b-2 font-medium text-sm flex items-center space-x-2"
                 :class="activeTab === 'video-stats'
                   ? 'border-[#fb7299] text-[#fb7299]'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'"
               >
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -25,7 +25,7 @@
                 class="ml-8 py-4 px-3 border-b-2 font-medium text-sm flex items-center space-x-2"
                 :class="activeTab === 'video-download'
                   ? 'border-[#fb7299] text-[#fb7299]'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'"
               >
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -38,7 +38,7 @@
                 class="ml-8 py-4 px-3 border-b-2 font-medium text-sm flex items-center space-x-2"
                 :class="activeTab === 'comment-query'
                   ? 'border-[#fb7299] text-[#fb7299]'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'"
               >
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
@@ -52,13 +52,13 @@
           <div class="transition-all duration-300">
             <!-- 视频观看时长信息 -->
             <div v-if="activeTab === 'video-stats'" class="animate-fadeIn">
-              <div class="bg-white">
+              <div class="bg-white dark:bg-gray-800">
                 <!-- 致谢信息 -->
                 <div class="mb-3 flex items-center justify-center h-7 px-3 py-0 bg-[#fb7299]/5 rounded-md border border-[#fb7299]/20 mx-6 mt-4">
                   <a href="https://www.xiaoheihe.cn/app/user/profile/55542982" target="_blank" rel="noopener noreferrer" class="flex items-center hover:opacity-80 transition-opacity mr-1.5">
                     <img src="https://imgheybox.max-c.com/avatar/2025/02/16/20a399e3b78c0db29b5ec14361b3e348.png?imageMogr2/thumbnail/400x400%3E" alt="shengyI头像" class="h-5 w-5 rounded-full mr-1.5" />
                   </a>
-                  <span class="text-xs text-gray-700">感谢小黑盒用户
+                  <span class="text-xs text-gray-700 dark:text-gray-300">感谢小黑盒用户
                     <a
                       href="https://www.xiaoheihe.cn/app/bbs/link/153880174"
                       target="_blank"
@@ -72,9 +72,9 @@
                 </div>
 
                 <!-- 输入表单 -->
-                <div class="px-4 py-4 border-b border-gray-100">
-                  <h2 class="text-base font-medium text-gray-900 mb-2">视频时长信息查询</h2>
-                  <p class="text-xs text-gray-600 mb-3">
+                <div class="px-4 py-4 border-b border-gray-100 dark:border-gray-700">
+                  <h2 class="text-base font-medium text-gray-900 dark:text-gray-100 mb-2">视频时长信息查询</h2>
+                  <p class="text-xs text-gray-600 dark:text-gray-400 mb-3">
                     输入B站视频BV号，查询该视频的观看时长信息。<span class="text-[#fb7299] font-medium">注意：只有被UP主添加到合集(season_id)的视频才能查询到观看时长数据。</span>
                   </p>
 
@@ -83,7 +83,7 @@
                       v-model="bvid"
                       type="text"
                       placeholder="输入视频BV号，例如：BV1hu411h7ot"
-                      class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#fb7299] focus:border-transparent pr-10"
+                      class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-transparent text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-[#fb7299] focus:border-transparent pr-10"
                       @input="debouncedFetchVideoStats"
                     />
                     <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
@@ -113,7 +113,7 @@
                   <!-- 如果是合集视频 -->
                   <div v-if="videoStats.status === 'success'">
                     <!-- 查询的视频信息 -->
-                    <div v-if="queriedVideo" class="mb-4 bg-white border border-[#fb7299]/20 rounded-lg overflow-hidden">
+                    <div v-if="queriedVideo" class="mb-4 bg-white dark:bg-gray-800 border border-[#fb7299]/20 rounded-lg overflow-hidden">
                       <div class="bg-[#fb7299]/5 px-3 py-2 border-b border-[#fb7299]/20">
                         <h3 class="text-sm font-medium text-gray-900 flex items-center">
                           <svg class="w-4 h-4 mr-1.5 text-[#fb7299]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -138,22 +138,22 @@
                             <p class="text-xs text-gray-500 mt-1">BV: {{ queriedVideo.bvid }}</p>
 
                             <div class="mt-3 grid grid-cols-2 md:grid-cols-5 gap-2">
-                              <div class="bg-gray-50 p-2 rounded-lg">
+                              <div class="bg-gray-50 dark:bg-gray-700 p-2 rounded-lg">
                                 <p class="text-xs text-gray-500">视频时长</p>
                                 <p class="text-sm font-semibold text-gray-900">{{ formatDuration(queriedVideo.duration) }}</p>
                               </div>
-                              <div class="bg-gray-50 p-2 rounded-lg">
+                              <div class="bg-gray-50 dark:bg-gray-700 p-2 rounded-lg">
                                 <p class="text-xs text-gray-500">观看次数</p>
                                 <p class="text-sm font-semibold text-gray-900">{{ formatNumber(queriedVideo.vv) }}</p>
                               </div>
-                              <div class="bg-gray-50 p-2 rounded-lg">
+                              <div class="bg-gray-50 dark:bg-gray-700 p-2 rounded-lg">
                                 <p class="text-xs text-gray-500">总观看时长</p>
                                 <p class="text-sm font-semibold text-[#fb7299]">
                                   {{ formatDurationHours(queriedVideo.vt) }}
                                 </p>
                                 <p class="text-xs text-gray-500">{{ formatDurationDays(queriedVideo.vt) }}</p>
                               </div>
-                              <div class="bg-gray-50 p-2 rounded-lg">
+                              <div class="bg-gray-50 dark:bg-gray-700 p-2 rounded-lg">
                                 <p class="text-xs text-gray-500">平均观看时长</p>
                                 <p class="text-sm font-semibold text-gray-900">
                                   {{ formatDuration(Math.round((queriedVideo.vt * 60) / queriedVideo.vv)) }}
@@ -164,7 +164,7 @@
                                 <p class="text-sm font-semibold text-gray-900">
                                   {{ secondsToPercent(Math.round((queriedVideo.vt * 60) / queriedVideo.vv), queriedVideo.duration) }}%
                                 </p>
-                                <div class="w-full bg-gray-200 rounded-full h-1.5 mt-1">
+                                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 mt-1">
                                   <div
                                     class="bg-[#fb7299] h-1.5 rounded-full"
                                     :style="`width: ${Math.min(100, Math.round(((queriedVideo.vt * 60) / queriedVideo.vv) / queriedVideo.duration * 100))}%`"
@@ -185,9 +185,9 @@
                         </svg>
                         视频列表
                       </h3>
-                      <div class="overflow-x-auto rounded-lg border border-gray-200">
+                      <div class="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
                         <table class="min-w-full divide-y divide-gray-200">
-                          <thead class="bg-gray-50">
+                          <thead class="bg-gray-50 dark:bg-gray-800">
                             <tr>
                               <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">视频信息</th>
                               <th
@@ -318,8 +318,8 @@
 
                             </tr>
                           </thead>
-                          <tbody class="bg-white divide-y divide-gray-200">
-                            <tr v-for="video in sortedVideos" :key="video.bvid" class="hover:bg-gray-50 transition-colors"
+                          <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                            <tr v-for="video in sortedVideos" :key="video.bvid" class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                               :class="{'bg-[#fb7299]/5 border-l-4 border-[#fb7299]': video.bvid === bvid}"
                             >
                               <td class="px-3 py-2 whitespace-nowrap">
@@ -328,7 +328,7 @@
                                     <img class="h-10 w-16 object-cover rounded shadow-sm" :src="normalizeImageUrl(video.cover)" alt="" />
                                   </div>
                                   <div class="ml-3 max-w-xs">
-                                    <div class="text-xs font-medium text-gray-900 truncate hover:text-[#fb7299]" :title="video.title">
+                                    <div class="text-xs font-medium text-gray-900 dark:text-gray-100 truncate hover:text-[#fb7299]" :title="video.title">
                                       <a :href="`https://www.bilibili.com/video/${video.bvid}`" target="_blank">{{ video.title }}</a>
                                     </div>
                                     <div class="text-xs text-gray-500">BV: {{ video.bvid }}</div>
@@ -336,21 +336,21 @@
                                 </div>
                               </td>
                               <td class="px-3 py-2 whitespace-nowrap">
-                                <div class="text-xs text-gray-900">{{ formatDuration(video.duration) }}</div>
+                                <div class="text-xs text-gray-900 dark:text-gray-100">{{ formatDuration(video.duration) }}</div>
                               </td>
                               <td class="px-3 py-2 whitespace-nowrap">
-                                <div class="text-xs text-gray-900 font-medium">{{ formatNumber(video.vv) }}</div>
+                                <div class="text-xs text-gray-900 dark:text-gray-100 font-medium">{{ formatNumber(video.vv) }}</div>
                               </td>
                               <td class="px-3 py-2 whitespace-nowrap">
                                 <div class="text-xs font-medium text-[#fb7299]">{{ formatDurationHours(video.vt) }}</div>
                                 <div class="text-xs text-gray-500">{{ formatDurationDays(video.vt) }}</div>
                               </td>
                               <td class="px-3 py-2 whitespace-nowrap">
-                                <div class="text-xs text-gray-900">{{ formatDuration(Math.round((video.vt * 60) / video.vv)) }}</div>
+                                <div class="text-xs text-gray-900 dark:text-gray-100">{{ formatDuration(Math.round((video.vt * 60) / video.vv)) }}</div>
                               </td>
                               <td class="px-3 py-2 whitespace-nowrap">
-                                <div class="text-xs text-gray-900">{{ secondsToPercent(Math.round((video.vt * 60) / video.vv), video.duration) }}%</div>
-                                <div class="w-full bg-gray-200 rounded-full h-1 mt-1">
+                                <div class="text-xs text-gray-900 dark:text-gray-100">{{ secondsToPercent(Math.round((video.vt * 60) / video.vv), video.duration) }}%</div>
+                                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1 mt-1">
                                   <div class="bg-[#fb7299] h-1 rounded-full" :style="`width: ${Math.min(100, Math.round(((video.vt * 60) / video.vv) / video.duration * 100))}%`"></div>
                                 </div>
                               </td>
@@ -407,11 +407,11 @@
 
             <!-- 评论查询 -->
             <div v-if="activeTab === 'comment-query'" class="animate-fadeIn">
-              <div class="bg-white p-6">
+              <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
                 <!-- 用户ID输入区域 -->
                 <div class="mb-6 bg-transparent">
-                  <h2 class="text-lg font-medium text-gray-900 mb-3">B站评论查询</h2>
-                  <p class="text-sm text-gray-600 mb-4">
+                  <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-3">B站评论查询</h2>
+                  <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
                     输入B站用户UID，查询该用户的全部评论记录。
                   </p>
 
@@ -422,7 +422,7 @@
                           v-model="queryUserId"
                           type="text"
                           placeholder="输入用户UID，例如：12345678"
-                          class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#fb7299] focus:border-transparent pr-10"
+                          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-transparent text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-[#fb7299] focus:border-transparent pr-10"
                           @keyup.enter="fetchUserComments()"
                         />
                         <div class="absolute inset-y-0 right-0 flex items-center pr-3">
@@ -459,7 +459,7 @@
                       <!-- 关键词搜索 -->
                       <div class="flex-1 min-w-0">
                         <div class="relative">
-                          <div class="flex h-9 items-center rounded-md border border-gray-300 bg-white focus-within:border-[#fb7299] transition-colors duration-200">
+                          <div class="flex h-9 items-center rounded-md border border-gray-300 dark:border-gray-600 bg-transparent focus-within:border-[#fb7299] transition-colors duration-200">
                             <!-- 搜索图标 -->
                             <div class="pl-3 text-gray-400">
                               <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -472,7 +472,7 @@
                               v-model="commentKeyword"
                               type="search"
                               placeholder="搜索评论内容..."
-                              class="h-full w-full border-none bg-transparent px-2 pr-3 text-gray-700 focus:outline-none focus:ring-0 text-xs leading-none"
+                              class="h-full w-full border-none bg-transparent px-2 pr-3 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-0 text-xs leading-none"
                               @keyup.enter="handleCommentSearch"
                             />
                           </div>
@@ -485,7 +485,7 @@
                           <button
                             @click="toggleCommentTypeDropdown"
                             type="button"
-                            class="w-full py-1.5 px-2 border border-gray-300 rounded-md text-xs text-gray-800 focus:border-[#fb7299] focus:outline-none focus:ring focus:ring-[#fb7299]/20 flex items-center justify-between bg-white transition-colors duration-200 h-9 whitespace-nowrap overflow-hidden"
+                            class="w-full py-1.5 px-2 border border-gray-300 dark:border-gray-600 rounded-md text-xs text-gray-800 dark:text-gray-200 bg-transparent focus:border-[#fb7299] focus:outline-none focus:ring focus:ring-[#fb7299]/20 flex items-center justify-between transition-colors duration-200 h-9 whitespace-nowrap overflow-hidden"
                           >
                             <span class="truncate mr-1">{{ getCommentTypeText(commentType) }}</span>
                             <svg class="w-3 h-3 text-[#fb7299] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -496,7 +496,7 @@
                           <!-- 评论类型下拉菜单 -->
                           <div
                             v-if="showCommentTypeDropdown"
-                            class="absolute z-10 mt-1 w-full rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+                            class="absolute z-10 mt-1 w-full rounded-md bg-white dark:bg-gray-800 shadow-lg ring-1 ring-black ring-opacity-5 dark:ring-white/10 focus:outline-none"
                           >
                             <div class="py-1">
                               <button
@@ -519,7 +519,7 @@
                           <button
                             @click="toggleContentTypeDropdown"
                             type="button"
-                            class="w-full py-1.5 px-2 border border-gray-300 rounded-md text-xs text-gray-800 focus:border-[#fb7299] focus:outline-none focus:ring focus:ring-[#fb7299]/20 flex items-center justify-between bg-white transition-colors duration-200 h-9 whitespace-nowrap overflow-hidden"
+                            class="w-full py-1.5 px-2 border border-gray-300 dark:border-gray-600 rounded-md text-xs text-gray-800 dark:text-gray-200 bg-transparent focus:border-[#fb7299] focus:outline-none focus:ring focus:ring-[#fb7299]/20 flex items-center justify-between transition-colors duration-200 h-9 whitespace-nowrap overflow-hidden"
                           >
                             <span class="truncate mr-1">{{ getContentTypeText(contentTypeFilter) }}</span>
                             <svg class="w-3 h-3 text-[#fb7299] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -530,7 +530,7 @@
                           <!-- 内容类型下拉菜单 -->
                           <div
                             v-if="showContentTypeDropdown"
-                            class="absolute z-10 mt-1 w-full rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+                            class="absolute z-10 mt-1 w-full rounded-md bg-white dark:bg-gray-800 shadow-lg ring-1 ring-black ring-opacity-5 dark:ring-white/10 focus:outline-none"
                           >
                             <div class="py-1">
                               <button
@@ -551,7 +551,7 @@
                 </div>
 
                 <!-- 评论列表 -->
-                <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
                   <!-- 评论项 -->
                   <div v-if="!commentLoading && comments.length > 0" class="divide-y divide-gray-100">
                     <div v-for="comment in comments" :key="comment.rpid" class="p-4 md:p-6">
@@ -596,8 +596,8 @@
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
                         </svg>
                       </div>
-                      <p class="text-gray-600 font-medium">暂无评论数据</p>
-                      <p v-if="hasActiveCommentFilters" class="text-gray-500 text-sm mt-1 text-center max-w-sm">
+                      <p class="text-gray-600 dark:text-gray-300 font-medium">暂无评论数据</p>
+                      <p v-if="hasActiveCommentFilters" class="text-gray-500 dark:text-gray-400 text-sm mt-1 text-center max-w-sm">
                         尝试调整搜索条件
                       </p>
                       <button
@@ -636,7 +636,7 @@
                             @focus="$event.target.select()"
                             min="1"
                             :max="commentTotalPages"
-                            class="h-8 w-12 rounded border border-gray-200 px-2 text-center text-gray-700 transition-colors [appearance:textfield] hover:border-[#fb7299] focus:border-[#fb7299] focus:outline-none focus:ring-1 focus:ring-[#fb7299]/30 lm:h-6 lm:w-10 lm:text-xs [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                            class="h-8 w-12 rounded border border-gray-200 dark:border-gray-600 px-2 text-center text-gray-700 dark:text-gray-200 bg-transparent transition-colors [appearance:textfield] hover:border-[#fb7299] focus:border-[#fb7299] focus:outline-none focus:ring-1 focus:ring-[#fb7299]/30 lm:h-6 lm:w-10 lm:text-xs [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                           />
                         </div>
                         <span class="text-gray-500 mx-1">/ {{ commentTotalPages }}</span>

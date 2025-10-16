@@ -5,6 +5,9 @@ import 'vant/es/notify/style'
 import 'vant/es/dialog/style'
 import 'vant/es/config-provider/style'
 import privacyManager from './utils/privacyManager'
+import { useDarkMode } from './store/darkMode'
+
+const { isDarkMode, initDarkMode } = useDarkMode()
 
 
 
@@ -19,6 +22,9 @@ const handlePrivacyModeChange = (isEnabled) => {
 
 
 onMounted(() => {
+  // 初始化深色模式
+  initDarkMode()
+
   // 清理localStorage中的API密钥（API密钥验证已移除）
   if (localStorage.getItem('apiKey')) {
     localStorage.removeItem('apiKey')
@@ -44,9 +50,9 @@ onMounted(() => {
 </script>
 
 <template>
-  <!-- 使用ConfigProvider强制使用浅色主题，禁用深色模式 -->
-  <ConfigProvider theme="light">
-    <div>
+  <!-- 使用ConfigProvider根据深色模式动态切换主题 -->
+  <ConfigProvider :theme="isDarkMode ? 'dark' : 'light'">
+    <div class="min-h-screen bg-white dark:bg-gray-900 transition-colors duration-300">
       <!-- 主应用内容 -->
       <router-view></router-view>
     </div>

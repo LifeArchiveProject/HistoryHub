@@ -10,20 +10,20 @@
     <div class="p-2">
       <form @submit.prevent="submitForm" class="space-y-2">
         <!-- 表单标题和说明 -->
-        <div class="flex items-center mb-2 pb-1 border-b border-gray-100">
+        <div class="flex items-center mb-2 pb-1 border-b border-gray-100 dark:border-gray-700">
           <div class="p-1 bg-[#fb7299]/10 rounded-lg mr-2">
             <svg class="w-3.5 h-3.5 text-[#fb7299]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
             </svg>
           </div>
           <div>
-            <h3 class="text-sm font-medium text-gray-800">{{ getFormTitle }}</h3>
-            <p class="text-xs text-gray-500">{{ getFormDescription }}</p>
+            <h3 class="text-sm font-medium text-gray-800 dark:text-gray-200">{{ getFormTitle }}</h3>
+            <p class="text-xs text-gray-500 dark:text-gray-400">{{ getFormDescription }}</p>
           </div>
         </div>
 
         <!-- 基本信息 -->
-        <div class="bg-white rounded-lg p-1.5 border border-gray-200">
+        <div class="bg-white dark:bg-gray-800 rounded-lg p-1.5 border border-gray-200 dark:border-gray-700">
           <h4 class="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1 flex items-center">
             <svg class="w-3 h-3 mr-1 text-[#fb7299]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -32,25 +32,25 @@
           </h4>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
             <div>
-              <label for="taskId" class="block text-xs font-medium text-gray-700 mb-0.5">任务ID</label>
+              <label for="taskId" class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-0.5">任务ID</label>
               <input
                 id="taskId"
                 v-model="form.task_id"
                 type="text"
                 :disabled="props.isEditing"
-                class="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#fb7299] focus:ring-[#fb7299] text-xs py-1"
+                class="block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-[#fb7299] focus:ring-[#fb7299] text-xs py-1 dark:bg-gray-700 dark:text-gray-100"
                 placeholder="请输入任务ID（选择API端点后会自动填充，可修改）"
                 required
               />
             </div>
 
             <div>
-              <label for="name" class="block text-xs font-medium text-gray-700 mb-0.5">任务名称 *</label>
+              <label for="name" class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-0.5">任务名称 *</label>
               <input
                 id="name"
                 v-model="form.name"
                 type="text"
-                class="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#fb7299] focus:ring-[#fb7299] text-xs py-1"
+                class="block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-[#fb7299] focus:ring-[#fb7299] text-xs py-1 dark:bg-gray-700 dark:text-gray-100"
                 required
                 placeholder="例如：获取B站历史记录"
               />
@@ -59,7 +59,7 @@
         </div>
 
         <!-- API设置 -->
-        <div class="bg-white rounded-lg p-1.5 border border-gray-200">
+        <div class="bg-white dark:bg-gray-800 rounded-lg p-1.5 border border-gray-200 dark:border-gray-700">
           <h4 class="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1 flex items-center">
             <svg class="w-3 h-3 mr-1 text-[#fb7299]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
@@ -68,12 +68,12 @@
           </h4>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
             <div>
-              <label for="endpoint" class="block text-xs font-medium text-gray-700 mb-0.5">API端点 *</label>
+              <label for="endpoint" class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-0.5">API端点 *</label>
               <div class="relative">
                 <button
                   type="button"
                   @click="showApiSelector = true"
-                  class="block w-full text-left rounded-md border border-gray-300 shadow-sm focus:border-[#fb7299] focus:ring-[#fb7299] text-xs py-1.5 px-2"
+                  class="block w-full text-left rounded-md border border-gray-300 dark:border-gray-600 shadow-sm focus:border-[#fb7299] focus:ring-[#fb7299] text-xs py-1.5 px-2 bg-white dark:bg-gray-700 dark:text-gray-100"
                 >
                   {{ form.endpoint || '请选择API端点' }}
                 </button>
@@ -81,20 +81,20 @@
             </div>
 
             <div>
-              <label for="method" class="block text-xs font-medium text-gray-700 mb-0.5">请求方法</label>
+              <label for="method" class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-0.5">请求方法</label>
               <input
                 id="method"
                 v-model="form.method"
                 type="text"
                 disabled
-                class="block w-full rounded-md border-gray-300 bg-gray-50 shadow-sm focus:border-[#fb7299] focus:ring-[#fb7299] text-xs py-1"
+                class="block w-full rounded-md border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 shadow-sm focus:border-[#fb7299] focus:ring-[#fb7299] text-xs py-1 dark:text-gray-100"
               />
             </div>
           </div>
         </div>
 
         <!-- 调度设置 -->
-        <div class="bg-white rounded-lg p-1.5 border border-gray-200">
+        <div class="bg-white dark:bg-gray-800 rounded-lg p-1.5 border border-gray-200 dark:border-gray-700">
           <h4 class="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1 flex items-center">
             <svg class="w-3 h-3 mr-1 text-[#fb7299]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -103,11 +103,11 @@
           </h4>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
             <div>
-              <label for="scheduleType" class="block text-xs font-medium text-gray-700 mb-0.5">调度类型 *</label>
+              <label for="scheduleType" class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-0.5">调度类型 *</label>
               <select
                 id="scheduleType"
                 v-model="form.schedule_type"
-                class="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#fb7299] focus:ring-[#fb7299] text-xs py-1 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
+                class="block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-[#fb7299] focus:ring-[#fb7299] text-xs py-1 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed dark:bg-gray-700 dark:text-gray-100 disabled:dark:bg-gray-800 disabled:dark:text-gray-500"
                 required
                 :disabled="props.parentTaskId || props.isEditing"
               >
@@ -118,36 +118,36 @@
             </div>
 
             <div v-if="form.schedule_type === 'daily' && !props.parentTaskId">
-              <label for="scheduleTime" class="block text-xs font-medium text-gray-700 mb-0.5">执行时间 *</label>
+              <label for="scheduleTime" class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-0.5">执行时间 *</label>
               <input
                 id="scheduleTime"
                 v-model="form.schedule_time"
                 type="time"
-                class="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#fb7299] focus:ring-[#fb7299] text-xs py-1"
+                class="block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-[#fb7299] focus:ring-[#fb7299] text-xs py-1 dark:bg-gray-700 dark:text-gray-100"
                 required
               />
             </div>
 
             <div v-if="form.schedule_type === 'interval' && !props.parentTaskId" class="col-span-2 grid grid-cols-2 gap-2">
               <div>
-                <label for="intervalValue" class="block text-xs font-medium text-gray-700 mb-0.5">间隔时间 *</label>
+                <label for="intervalValue" class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-0.5">间隔时间 *</label>
                 <input
                   id="intervalValue"
                   v-model.number="form.interval"
                   type="number"
                   min="1"
-                  class="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#fb7299] focus:ring-[#fb7299] text-xs py-1 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
+                  class="block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-[#fb7299] focus:ring-[#fb7299] text-xs py-1 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed dark:bg-gray-700 dark:text-gray-100 disabled:dark:bg-gray-800 disabled:dark:text-gray-500"
                   required
                   :disabled="props.isEditing"
                 />
                 <span v-if="props.isEditing" class="text-xs text-gray-500 mt-0.5 block">间隔任务的时间不可修改</span>
               </div>
               <div>
-                <label for="intervalUnit" class="block text-xs font-medium text-gray-700 mb-0.5">时间单位 *</label>
+                <label for="intervalUnit" class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-0.5">时间单位 *</label>
                 <select
                   id="intervalUnit"
                   v-model="form.unit"
-                  class="block w-full rounded-md border-gray-300 shadow-sm focus:border-[#fb7299] focus:ring-[#fb7299] text-xs py-1 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
+                  class="block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-[#fb7299] focus:ring-[#fb7299] text-xs py-1 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed dark:bg-gray-700 dark:text-gray-100 disabled:dark:bg-gray-800 disabled:dark:text-gray-500"
                   required
                   :disabled="props.isEditing"
                 >
@@ -164,7 +164,7 @@
         </div>
 
         <!-- 依赖任务 -->
-        <div class="bg-white rounded-lg p-1.5 border border-gray-200">
+        <div class="bg-white dark:bg-gray-800 rounded-lg p-1.5 border border-gray-200 dark:border-gray-700">
           <h4 class="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1 flex items-center">
             <svg class="w-3 h-3 mr-1 text-[#fb7299]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
@@ -172,15 +172,15 @@
             依赖任务
           </h4>
           <div>
-            <label for="requires" class="block text-xs font-medium text-gray-700 mb-0.5">依赖任务 (可选)</label>
+            <label for="requires" class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-0.5">依赖任务 (可选)</label>
             <div class="relative">
               <button
                 type="button"
                 @click="showDependencySelector = true"
                 :disabled="props.parentTaskId || props.isEditing"
-                class="block w-full text-left rounded-md border border-gray-300 shadow-sm focus:border-[#fb7299] focus:ring-[#fb7299] text-xs py-1.5 px-2 min-h-[2rem] disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
+                class="block w-full text-left rounded-md border border-gray-300 dark:border-gray-600 shadow-sm focus:border-[#fb7299] focus:ring-[#fb7299] text-xs py-1.5 px-2 min-h-[2rem] disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed bg-white dark:bg-gray-700 dark:text-gray-100 disabled:dark:bg-gray-800 disabled:dark:text-gray-500"
               >
-                <div v-if="form.depends_on.length === 0" class="text-gray-500">
+                <div v-if="form.depends_on.length === 0" class="text-gray-500 dark:text-gray-400">
                   {{ props.parentTaskId ? '子任务依赖关系由系统自动设置' : (props.isEditing ? '编辑时不可修改依赖任务' : '选择依赖任务') }}
                 </div>
                 <div v-else class="flex flex-wrap gap-1">
@@ -208,11 +208,11 @@
         </div>
 
         <!-- 底部按钮 -->
-        <div class="flex justify-end space-x-2 pt-1.5 border-t border-gray-100">
+        <div class="flex justify-end space-x-2 pt-1.5 border-t border-gray-100 dark:border-gray-700">
           <button
             type="button"
             @click="cancel"
-            class="inline-flex items-center px-2 py-1 border border-gray-300 rounded-md text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-[#fb7299]"
+            class="inline-flex items-center px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-md text-xs font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-[#fb7299]"
           >
             取消
           </button>
@@ -850,6 +850,14 @@ export default {
   flex-shrink: 0;
   padding: 12px 16px;
   font-size: 14px;
+  background-color: #f9fafb; /* gray-50 */
+  border-bottom: 1px solid #f3f4f6; /* gray-100 */
+  color: #111827; /* gray-900 */
+}
+.dark .task-form-dialog :deep(.van-dialog__header) {
+  background-color: #1f2937; /* gray-800 */
+  border-bottom-color: #374151; /* gray-700 */
+  color: #e5e7eb; /* gray-200 */
 }
 
 /* 自定义滚动条样式 */

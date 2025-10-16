@@ -2,13 +2,13 @@
   <div>
     <!-- 页面标题 -->
     <div class="flex items-center justify-between mb-8">
-      <div class="flex items-center space-x-3 text-gray-900">
+      <div class="flex items-center space-x-3 text-gray-900 dark:text-gray-100">
         <svg class="w-7 h-7 text-[#fb7299]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
         </svg>
         <h1 class="text-2xl font-medium">我的备注</h1>
       </div>
-      <div class="text-sm text-gray-500">
+      <div class="text-sm text-gray-500 dark:text-gray-400">
         共 {{ total }} 条备注
       </div>
     </div>
@@ -17,7 +17,7 @@
     <div v-if="remarkRecords.length > 0" class="grid grid-cols-1 gap-6">
       <div v-for="record in remarkRecords"
             :key="record.bvid + record.view_at"
-            class="bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300">
+            class="bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200 dark:border-gray-700">
         <div class="flex p-4 space-x-6">
           <!-- 左侧：视频信息 -->
           <div class="w-64 flex-shrink-0">
@@ -34,7 +34,7 @@
                 {{ formatDuration(record.duration) }}
               </div>
               <!-- 观看进度条 -->
-              <div class="absolute bottom-0 left-0 w-full h-1 bg-gray-200">
+              <div class="absolute bottom-0 left-0 w-full h-1 bg-gray-200 dark:bg-gray-700">
                 <div
                   class="h-full bg-[#fb7299]"
                   :style="{ width: getProgressWidth(record.progress, record.duration) }"
@@ -43,7 +43,7 @@
             </div>
 
             <!-- 视频标题 -->
-            <h3 class="text-sm font-medium text-gray-900 mb-2 line-clamp-2 hover:line-clamp-none"
+            <h3 class="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2 line-clamp-2 hover:line-clamp-none"
                 :class="{ 'blur-sm': isPrivacyMode }"
                 v-html="isPrivacyMode ? '******' : record.title">
             </h3>
@@ -56,12 +56,12 @@
                 class="w-4 h-4 rounded-full"
                 alt=""
               />
-              <span class="text-xs text-gray-600"
+              <span class="text-xs text-gray-600 dark:text-gray-300"
                     :class="{ 'blur-sm': isPrivacyMode }"
                     v-text="isPrivacyMode ? '******' : record.author_name">
               </span>
             </div>
-            <div class="flex items-center justify-between text-xs text-gray-400">
+            <div class="flex items-center justify-between text-xs text-gray-400 dark:text-gray-400">
               <span>{{ formatTimestamp(record.view_at) }}</span>
               <button
                 @click="openVideo(record)"
@@ -88,7 +88,7 @@
               :placeholder="'添加备注...'"
               class="remarks-field !bg-transparent"
             />
-            <div v-if="record.remark_time" class="absolute bottom-1 right-2 text-xs text-gray-400">
+            <div v-if="record.remark_time" class="absolute bottom-1 right-2 text-xs text-gray-400 dark:text-gray-500">
               最后更新: {{ formatRemarkTime(record.remark_time) }}
             </div>
           </div>
@@ -97,12 +97,12 @@
     </div>
 
     <!-- 空状态显示 -->
-    <div v-else class="flex flex-col items-center justify-center py-16 bg-white rounded-lg">
-      <svg class="w-20 h-20 text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <div v-else class="flex flex-col items-center justify-center py-16 bg-white dark:bg-gray-900 rounded-lg">
+      <svg class="w-20 h-20 text-gray-300 dark:text-gray-600 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
       </svg>
-      <h3 class="text-xl font-medium text-gray-600 mb-2">暂无备注</h3>
-      <p class="text-gray-500 mb-6">当你添加备注后，将在这里显示</p>
+      <h3 class="text-xl font-medium text-gray-600 dark:text-gray-300 mb-2">暂无备注</h3>
+      <p class="text-gray-500 dark:text-gray-400 mb-6">当你添加备注后，将在这里显示</p>
       <button 
         class="px-4 py-2 bg-[#fb7299] text-white rounded-md hover:bg-[#fb7299]/90 transition-colors duration-200 flex items-center space-x-2"
         @click="$router.push('/')">
@@ -322,5 +322,27 @@ defineOptions({
 
 :deep(.van-field__error-message) {
   display: none;
+}
+
+/* Dark mode overrides */
+:deep(.dark .remarks-field .van-field__control) {
+  background-color: rgba(251, 114, 153, 0.06);
+  color: #e5e7eb;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+:deep(.dark .remarks-field .van-field__control:hover) {
+  background-color: rgba(251, 114, 153, 0.08);
+}
+
+:deep(.dark .remarks-field .van-field__control:focus) {
+  background-color: rgba(251, 114, 153, 0.08);
+  border-color: #fb7299;
+  box-shadow: 0 0 0 2px rgba(251, 114, 153, 0.15);
+  outline: none;
+}
+
+:deep(.dark .remarks-field .van-field__control::placeholder) {
+  color: #9ca3af;
 }
 </style>

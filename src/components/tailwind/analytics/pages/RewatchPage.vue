@@ -46,7 +46,7 @@
                 <div class="text-lg font-bold bg-gradient-to-r from-[#fb7299] to-[#fc9b7a] bg-clip-text text-transparent rewatch-interval whitespace-nowrap">
                   {{ Math.round(viewingData.watch_counts.most_watched_videos[0].avg_interval / 3600 / 24) }}
                 </div>
-                <div class="text-[10px] text-gray-500 whitespace-nowrap">天/次</div>
+                <div class="text-[10px] text-gray-500 dark:text-gray-400 whitespace-nowrap">天/次</div>
               </div>
             </div>
           </div>
@@ -72,13 +72,13 @@
                     <span>UP主：{{ video.author_name }}</span>
                     <span>{{ video.watch_count }}次</span>
                   </div>
-                  <div class="text-[10px] text-gray-500">{{ video.tag_name }}</div>
+                  <div class="text-[10px] text-gray-500 dark:text-gray-400">{{ video.tag_name }}</div>
                 </div>
                 <div class="flex flex-col items-center justify-center bg-white/30 dark:bg-white/10 backdrop-blur-sm rounded-lg px-2 py-1 ml-1 border border-gray-300/50 dark:border-gray-500/50">
                   <div class="text-sm font-bold bg-gradient-to-r from-[#fb7299] to-[#fc9b7a] bg-clip-text text-transparent rewatch-interval whitespace-nowrap">
                     {{ Math.round(video.avg_interval / 3600 / 24) }}
                   </div>
-                  <div class="text-[10px] text-gray-500 whitespace-nowrap">天/次</div>
+                  <div class="text-[10px] text-gray-500 dark:text-gray-400 whitespace-nowrap">天/次</div>
                 </div>
               </div>
             </div>

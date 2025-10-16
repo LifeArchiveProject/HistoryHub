@@ -1,6 +1,6 @@
 <template>
   <div class="p-4">
-    <div class="flex items-center space-x-2 text-gray-900 mb-2">
+    <div class="flex items-center space-x-2 text-gray-900 dark:text-gray-100 mb-2">
       <div class="p-1.5 bg-[#fb7299]/5 rounded-lg">
         <svg class="w-5 h-5 text-[#fb7299]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -9,7 +9,7 @@
       </div>
       <h2 class="text-lg font-medium">摘要配置</h2>
     </div>
-    <p class="text-sm text-gray-500 mb-3">配置AI摘要的缓存策略，优化请求效率和存储空间</p>
+    <p class="text-sm text-gray-500 dark:text-gray-400 mb-3">配置AI摘要的缓存策略，优化请求效率和存储空间</p>
 
     <div v-if="loading" class="flex justify-center py-4">
       <div class="animate-spin h-5 w-5 border-2 border-[#fb7299] border-t-transparent rounded-full"></div>
@@ -19,15 +19,15 @@
       {{ error }}
       <button
         @click="fetchConfig"
-        class="ml-2 text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 rounded px-2 py-1"
+        class="ml-2 text-xs bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded px-2 py-1 border border-gray-200 dark:border-gray-700"
       >
         重试
       </button>
     </div>
 
     <div v-else>
-      <div class="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
-        <span class="text-sm font-medium text-gray-700">缓存空摘要</span>
+      <div class="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">缓存空摘要</span>
         <label class="relative inline-flex items-center cursor-pointer">
           <input
             type="checkbox"
@@ -40,7 +40,7 @@
         </label>
       </div>
 
-      <div class="text-xs text-gray-500 mt-3">
+      <div class="text-xs text-gray-500 dark:text-gray-400 mt-3">
         <p class="mb-1"><strong>提示：</strong></p>
         <ul class="list-disc pl-5 space-y-1">
           <li>开启缓存空摘要可减少API请求次数，但会增加数据库存储空间</li>

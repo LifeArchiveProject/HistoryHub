@@ -1,11 +1,11 @@
 <template>
-  <div class="min-h-screen bg-gray-50/30">
+  <div class="min-h-screen bg-gray-50/30 dark:bg-gray-900">
     <div class="py-6">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <!-- 主内容卡片 -->
-        <div class="bg-white rounded-lg overflow-hidden">
+        <div class="bg-white dark:bg-gray-800 rounded-lg overflow-hidden">
           <!-- 标签导航 - 修改为设置页风格 -->
-          <div class="border-b border-gray-200">
+          <div class="border-b border-gray-200 dark:border-gray-700">
             <nav class="-mb-px flex space-x-6 px-4 overflow-x-auto" aria-label="媒体管理选项卡">
               <button
                 @click="activeTab = 'videos'"
@@ -110,11 +110,11 @@
             <!-- 视频管理 -->
             <div v-if="activeTab === 'videos'" class="animate-fadeIn">
               <!-- ArtPlayer致谢 - 只在视频标签显示 -->
-              <div class="mb-4 flex items-center justify-center h-9 px-3 py-0 bg-[#fb7299]/5 rounded-md border border-[#fb7299]/20">
+              <div class="mb-4 flex items-center justify-center h-9 px-3 py-0 bg-[#fb7299]/5 dark:bg-pink-900/20 rounded-md border border-[#fb7299]/20 dark:border-[#fb7299]/30">
                 <a href="https://github.com/zhw2590582/ArtPlayer" target="_blank" rel="noopener noreferrer" class="flex items-center hover:opacity-80 transition-opacity mr-1.5">
                   <img src="https://artplayer.org/document/logo.png" alt="ArtPlayer Logo" class="h-3.5 mr-1.5" />
                 </a>
-                <span class="text-xs text-gray-700">视频播放通过
+                <span class="text-xs text-gray-700 dark:text-gray-300">视频播放通过
                   <a
                     href="https://github.com/zhw2590582/ArtPlayer"
                     target="_blank"

@@ -6,7 +6,7 @@
         <h2 class="text-3xl font-bold bg-gradient-to-r from-[#fb7299] to-[#fc9b7a] bg-clip-text text-transparent">
           标题互动分析
         </h2>
-        <div class="mt-4 text-gray-600 max-w-3xl mx-auto" v-if="titleAnalytics && titleAnalytics.interaction_analysis">
+        <div class="mt-4 text-gray-600 dark:text-gray-300 max-w-3xl mx-auto" v-if="titleAnalytics && titleAnalytics.interaction_analysis">
           <p class="mb-2" v-if="titleAnalytics.interaction_analysis.insights && titleAnalytics.interaction_analysis.insights[0]" v-html="formatInsightText(titleAnalytics.interaction_analysis.insights[0])"></p>
           <p v-if="titleAnalytics.interaction_analysis.insights && titleAnalytics.interaction_analysis.insights[1]" v-html="formatInsightText(titleAnalytics.interaction_analysis.insights[1])"></p>
         </div>
@@ -16,13 +16,13 @@
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- 左侧：关键词互动率排名 -->
         <div class="bg-white/5 backdrop-blur-sm rounded-xl p-6">
-          <h3 class="text-xl font-semibold text-gray-600 mb-4">关键词互动率排名</h3>
+          <h3 class="text-xl font-semibold text-gray-600 dark:text-gray-300 mb-4">关键词互动率排名</h3>
           <div ref="keywordInteractionChartRef" class="w-full h-[360px]"></div>
         </div>
 
         <!-- 右侧：互动类型分布 -->
         <div class="bg-white/5 backdrop-blur-sm rounded-xl p-6">
-          <h3 class="text-xl font-semibold text-gray-600 mb-4">互动类型分布</h3>
+          <h3 class="text-xl font-semibold text-gray-600 dark:text-gray-300 mb-4">互动类型分布</h3>
           <div ref="interactionTypeChartRef" class="w-full h-[360px]"></div>
         </div>
       </div>
@@ -33,6 +33,7 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue'
 import * as echarts from 'echarts'
+import { useDarkMode } from '@/store/darkMode.js'
 
 const props = defineProps({
   titleAnalytics: {
@@ -45,11 +46,15 @@ const keywordInteractionChartRef = ref(null)
 const interactionTypeChartRef = ref(null)
 let keywordInteractionChart = null
 let interactionTypeChart = null
+const { isDarkMode } = useDarkMode()
 
 // 初始化关键词互动率图表
 const initKeywordInteractionChart = () => {
   if (!keywordInteractionChartRef.value || !props.titleAnalytics?.interaction_analysis?.interaction_stats) return
 
+  if (keywordInteractionChart) {
+    keywordInteractionChart.dispose()
+  }
   keywordInteractionChart = echarts.init(keywordInteractionChartRef.value)
   const stats = props.titleAnalytics.interaction_analysis.interaction_stats
   const data = Object.entries(stats)
@@ -61,12 +66,19 @@ const initKeywordInteractionChart = () => {
     }))
     .sort((a, b) => b.value - a.value)
 
+  const isDark = !!(isDarkMode && isDarkMode.value)
+  const axisLabelColor = isDark ? '#e5e7eb' : '#4B5563'
+  const splitLineColor = isDark ? 'rgba(255, 255, 255, 0.08)' : '#E5E7EB'
+  const tooltipBg = isDark ? 'rgba(28, 28, 28, 0.9)' : 'rgba(255, 255, 255, 0.95)'
+  const tooltipText = isDark ? '#ffffff' : '#111111'
+
   const option = {
     tooltip: {
       trigger: 'axis',
-      axisPointer: {
-        type: 'shadow'
-      },
+      axisPointer: { type: 'shadow' },
+      backgroundColor: tooltipBg,
+      borderColor: '#fb7299',
+      textStyle: { color: tooltipText },
       formatter: (params) => {
         const [param] = params
         const keywords = data.find(item => item.name === param.name)?.keywords || []
@@ -87,11 +99,11 @@ const initKeywordInteractionChart = () => {
       type: 'value',
       axisLabel: {
         formatter: (value) => `${(value * 100).toFixed(1)}%`,
-        color: '#4B5563'
+        color: axisLabelColor
       },
       splitLine: {
         lineStyle: {
-          color: '#E5E7EB'
+          color: splitLineColor
         }
       }
     },
@@ -99,7 +111,7 @@ const initKeywordInteractionChart = () => {
       type: 'category',
       data: data.map(item => item.name),
       axisLabel: {
-        color: '#4B5563',
+        color: axisLabelColor,
         width: 80,
         overflow: 'truncate'
       }
@@ -126,6 +138,9 @@ const initKeywordInteractionChart = () => {
 const initInteractionTypeChart = () => {
   if (!interactionTypeChartRef.value || !props.titleAnalytics?.interaction_analysis?.interaction_stats) return
 
+  if (interactionTypeChart) {
+    interactionTypeChart.dispose()
+  }
   interactionTypeChart = echarts.init(interactionTypeChartRef.value)
   const stats = props.titleAnalytics.interaction_analysis.interaction_stats
   const data = Object.entries(stats)
@@ -136,9 +151,17 @@ const initInteractionTypeChart = () => {
     }))
     .sort((a, b) => b.value - a.value)
 
+  const isDark = !!(isDarkMode && isDarkMode.value)
+  const axisLabelColor = isDark ? '#e5e7eb' : '#4B5563'
+  const tooltipBg = isDark ? 'rgba(28, 28, 28, 0.9)' : 'rgba(255, 255, 255, 0.95)'
+  const tooltipText = isDark ? '#ffffff' : '#111111'
+
   const option = {
     tooltip: {
       trigger: 'item',
+      backgroundColor: tooltipBg,
+      borderColor: '#fb7299',
+      textStyle: { color: tooltipText },
       formatter: (params) => {
         return `${params.name}<br/>
                 数量: ${params.value}个视频<br/>
@@ -151,7 +174,7 @@ const initInteractionTypeChart = () => {
       right: '5%',
       top: 'center',
       textStyle: {
-        color: '#4B5563'
+        color: axisLabelColor
       }
     },
     grid: {
@@ -165,9 +188,7 @@ const initInteractionTypeChart = () => {
         center: ['45%', '50%'],
         avoidLabelOverlap: false,
         itemStyle: {
-          borderRadius: 10,
-          borderColor: '#fff',
-          borderWidth: 2
+          borderRadius: 10
         },
         label: {
           show: false
@@ -209,6 +230,12 @@ watch(
   },
   { deep: true }
 )
+
+// 深色模式切换时重绘图表
+watch(() => isDarkMode.value, () => {
+  initKeywordInteractionChart()
+  initInteractionTypeChart()
+})
 
 // 格式化洞察文本，为数字添加颜色
 const formatInsightText = (text) => {

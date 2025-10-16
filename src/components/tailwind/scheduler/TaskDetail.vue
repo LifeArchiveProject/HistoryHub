@@ -20,11 +20,11 @@
             </svg>
             查看历史
           </button>
-          <button 
+          <button
             @click="$emit('update:show', false)"
-            class="p-1 hover:bg-gray-100 rounded-lg transition-colors"
+            class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
           >
-            <svg class="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
@@ -33,7 +33,7 @@
     </template>
     <div v-if="task" class="p-3">
       <!-- 任务标题和状态栏 -->
-      <div class="flex items-center justify-between mb-3 pb-2 border-b border-gray-100">
+      <div class="flex items-center justify-between mb-3 pb-2 border-b border-gray-100 dark:border-gray-700">
         <div class="flex items-center">
           <div class="p-1.5 bg-[#fb7299]/10 rounded-lg mr-2">
             <svg class="w-4 h-4 text-[#fb7299]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -42,20 +42,20 @@
           </div>
           <div>
             <div class="flex items-center space-x-1">
-              <h3 class="text-base font-medium text-gray-800 truncate" :title="task.config?.name">{{ task.config?.name }}</h3>
+              <h3 class="text-base font-medium text-gray-800 dark:text-gray-100 truncate" :title="task.config?.name">{{ task.config?.name }}</h3>
             </div>
-            <p class="text-xs text-gray-500">ID: {{ task.task_id }}</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400">ID: {{ task.task_id }}</p>
           </div>
         </div>
         <div class="flex flex-col items-end">
           <div class="flex items-center space-x-1 mb-1">
-            <span 
+            <span
               v-if="task.execution?.status"
               :class="{
-                'bg-green-50 text-green-700 border-green-200': task.execution.status === 'success',
-                'bg-yellow-50 text-yellow-700 border-yellow-200': task.execution.status === 'running',
-                'bg-red-50 text-red-700 border-red-200': task.execution.status === 'error'
-              }" 
+                'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 border-green-200 dark:border-green-900/30': task.execution.status === 'success',
+                'bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-300 border-yellow-200 dark:border-yellow-900/30': task.execution.status === 'running',
+                'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 border-red-200 dark:border-red-900/30': task.execution.status === 'error'
+              }"
               class="px-1.5 py-0.5 text-xs font-medium rounded-md border"
             >
               {{ statusLabel }}
@@ -74,8 +74,8 @@
       <!-- 任务详情内容 -->
       <div class="space-y-3">
         <!-- 基本信息 -->
-        <div class="bg-white rounded-lg p-2 border border-gray-200">
-          <h4 class="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1.5 flex items-center">
+        <div class="bg-white dark:bg-gray-800 rounded-lg p-2 border border-gray-200 dark:border-gray-700">
+          <h4 class="text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider mb-1.5 flex items-center">
             <svg class="w-3 h-3 mr-1 text-[#fb7299]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
@@ -83,27 +83,27 @@
           </h4>
           <div class="grid grid-cols-2 gap-2">
             <div>
-              <p class="text-xs text-gray-500">API端点</p>
-              <p class="text-sm text-gray-800 font-mono">{{ task.config?.endpoint }}</p>
+              <p class="text-xs text-gray-500 dark:text-gray-400">API端点</p>
+              <p class="text-sm text-gray-800 dark:text-gray-100 font-mono">{{ task.config?.endpoint }}</p>
             </div>
             <div>
-              <p class="text-xs text-gray-500">请求方法</p>
-              <p class="text-sm text-gray-800">{{ task.config?.method }}</p>
+              <p class="text-xs text-gray-500 dark:text-gray-400">请求方法</p>
+              <p class="text-sm text-gray-800 dark:text-gray-100">{{ task.config?.method }}</p>
             </div>
             <div>
-              <p class="text-xs text-gray-500">优先级</p>
-              <p class="text-sm text-gray-800">{{ task.config?.priority || 0 }}</p>
+              <p class="text-xs text-gray-500 dark:text-gray-400">优先级</p>
+              <p class="text-sm text-gray-800 dark:text-gray-100">{{ task.config?.priority || 0 }}</p>
             </div>
             <div>
-              <p class="text-xs text-gray-500">最后修改</p>
-              <p class="text-sm text-gray-800">{{ task.last_modified?.replace('T', ' ') }}</p>
+              <p class="text-xs text-gray-500 dark:text-gray-400">最后修改</p>
+              <p class="text-sm text-gray-800 dark:text-gray-100">{{ task.last_modified?.replace('T', ' ') }}</p>
             </div>
           </div>
         </div>
 
         <!-- 调度信息 -->
-        <div class="bg-white rounded-lg p-2 border border-gray-200">
-          <h4 class="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1.5 flex items-center">
+        <div class="bg-white dark:bg-gray-800 rounded-lg p-2 border border-gray-200 dark:border-gray-700">
+          <h4 class="text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider mb-1.5 flex items-center">
             <svg class="w-3 h-3 mr-1 text-[#fb7299]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
@@ -111,12 +111,12 @@
           </h4>
           <div class="grid grid-cols-2 gap-2">
             <div>
-              <p class="text-xs text-gray-500">调度类型</p>
-              <p class="text-sm text-gray-800">{{ scheduleTypeLabel }}</p>
+              <p class="text-xs text-gray-500 dark:text-gray-400">调度类型</p>
+              <p class="text-sm text-gray-800 dark:text-gray-100">{{ scheduleTypeLabel }}</p>
             </div>
             <div>
-              <p class="text-xs text-gray-500">执行时间</p>
-              <p class="text-sm text-gray-800">
+              <p class="text-xs text-gray-500 dark:text-gray-400">执行时间</p>
+              <p class="text-sm text-gray-800 dark:text-gray-100">
                 <template v-if="task.task_type === 'main'">
                   <template v-if="task.config?.schedule_type === 'interval'">
                     {{ task.config?.interval_value || '-' }} 
@@ -139,12 +139,12 @@
               </p>
             </div>
             <div>
-              <p class="text-xs text-gray-500">上次执行</p>
-              <p class="text-sm text-gray-800">{{ task.execution?.last_run?.replace('T', ' ') || '从未执行' }}</p>
+              <p class="text-xs text-gray-500 dark:text-gray-400">上次执行</p>
+              <p class="text-sm text-gray-800 dark:text-gray-100">{{ task.execution?.last_run?.replace('T', ' ') || '从未执行' }}</p>
             </div>
             <div>
-              <p class="text-xs text-gray-500">下次执行</p>
-              <p class="text-sm text-gray-800">
+              <p class="text-xs text-gray-500 dark:text-gray-400">下次执行</p>
+              <p class="text-sm text-gray-800 dark:text-gray-100">
                 <template v-if="task.task_type === 'main'">
                   {{ task.execution?.next_run || '未排定' }}
                 </template>
@@ -157,8 +157,8 @@
         </div>
 
         <!-- 执行统计 -->
-        <div class="bg-white rounded-lg p-2 border border-gray-200">
-          <h4 class="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1.5 flex items-center">
+        <div class="bg-white dark:bg-gray-800 rounded-lg p-2 border border-gray-200 dark:border-gray-700">
+          <h4 class="text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider mb-1.5 flex items-center">
             <svg class="w-3 h-3 mr-1 text-[#fb7299]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
             </svg>
@@ -167,12 +167,12 @@
           <div class="grid grid-cols-2 gap-2">
             <div>
               <div class="flex justify-between items-center mb-1">
-                <span class="text-xs text-gray-500">成功率</span>
-                <span class="text-xs text-gray-800">
+                <span class="text-xs text-gray-500 dark:text-gray-400">成功率</span>
+                <span class="text-xs text-gray-800 dark:text-gray-100">
                   {{ Math.round(executionInfo.successRate) }}%
                 </span>
               </div>
-              <div class="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
+              <div class="h-1.5 w-full bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
                 <div class="h-full rounded-full" 
                   :class="{
                     'bg-green-500': executionInfo.successRate >= 90,
@@ -184,19 +184,19 @@
               </div>
             </div>
             <div>
-              <p class="text-xs text-gray-500">平均耗时</p>
-              <p class="text-sm text-gray-800">
+              <p class="text-xs text-gray-500 dark:text-gray-400">平均耗时</p>
+              <p class="text-sm text-gray-800 dark:text-gray-100">
                 {{ executionInfo.avgDuration.toFixed(2) }}秒
               </p>
             </div>
             <div>
-              <p class="text-xs text-gray-500">总执行次数</p>
-              <p class="text-sm text-gray-800">
+              <p class="text-xs text-gray-500 dark:text-gray-400">总执行次数</p>
+              <p class="text-sm text-gray-800 dark:text-gray-100">
                 {{ executionInfo.totalRuns }}
               </p>
             </div>
             <div>
-              <p class="text-xs text-gray-500">成功/失败</p>
+              <p class="text-xs text-gray-500 dark:text-gray-400">成功/失败</p>
               <p class="text-sm">
                 <span class="text-green-600">{{ executionInfo.successRuns }}</span>
                 <span class="text-gray-400 mx-1">/</span>
@@ -207,26 +207,26 @@
         </div>
 
         <!-- 依赖任务 -->
-        <div class="bg-white rounded-lg p-2 border border-gray-200">
-          <h4 class="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1.5 flex items-center">
+        <div class="bg-white dark:bg-gray-800 rounded-lg p-2 border border-gray-200 dark:border-gray-700">
+          <h4 class="text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider mb-1.5 flex items-center">
             <svg class="w-3 h-3 mr-1 text-[#fb7299]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
             </svg>
             依赖任务
           </h4>
           <div v-if="task.depends_on" class="flex flex-wrap gap-0.5">
-            <span 
-              class="inline-flex items-center px-1.5 py-0.5 rounded-md text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200"
+            <span
+              class="inline-flex items-center px-1.5 py-0.5 rounded-md text-xs font-medium bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-900/30"
               :title="task.depends_on.name"
             >
               {{ task.depends_on.name }} ({{ task.depends_on.task_id }})
             </span>
           </div>
-          <p v-else class="text-xs text-gray-500">无依赖</p>
+          <p v-else class="text-xs text-gray-500 dark:text-gray-400">无依赖</p>
         </div>
 
         <!-- 最近错误 -->
-        <div v-if="task.execution?.last_error" class="bg-white rounded-lg p-2 border border-red-100 shadow-sm">
+        <div v-if="task.execution?.last_error" class="bg-white dark:bg-gray-800 rounded-lg p-2 border border-red-100 dark:border-red-900/30 shadow-sm">
           <h4 class="text-xs font-semibold text-red-600 uppercase tracking-wider mb-1.5 flex items-center">
             <svg class="w-3 h-3 mr-1 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />

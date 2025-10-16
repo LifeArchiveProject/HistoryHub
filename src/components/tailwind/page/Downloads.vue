@@ -18,7 +18,7 @@
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
           <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
         </svg>
-        <p class="text-gray-500">加载中，请稍候...</p>
+        <p class="text-gray-500 dark:text-gray-400">加载中，请稍候...</p>
       </div>
 
       <!-- 没有数据时的显示 -->
@@ -26,20 +26,20 @@
         <svg class="w-16 h-16 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
         </svg>
-        <p class="text-xl font-medium text-gray-600 mb-2">暂无下载记录</p>
-        <p class="text-gray-500 mb-4 text-center">
+        <p class="text-xl font-medium text-gray-600 dark:text-gray-300 mb-2">暂无下载记录</p>
+        <p class="text-gray-500 dark:text-gray-400 mb-4 text-center">
           你还没有下载任何视频，在浏览历史记录时可以点击"下载"按钮下载视频。
         </p>
       </div>
 
       <!-- 下载视频列表 -->
       <div v-else>
-        <p class="text-sm text-gray-500 mb-4">
+        <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
           共找到 {{ downloads.total }} 个下载记录，当前第 {{ downloads.page }} 页，共 {{ downloads.pages }} 页
         </p>
 
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-          <div v-for="(video, index) in downloads.videos" :key="index" class="bg-white/50 backdrop-blur-sm rounded-md overflow-hidden border border-gray-200/50 hover:border-[#fb7299] hover:shadow-sm transition-all duration-200 relative group">
+          <div v-for="(video, index) in downloads.videos" :key="index" class="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm rounded-md overflow-hidden border border-gray-200/50 dark:border-gray-700/50 hover:border-[#fb7299] hover:shadow-sm transition-all duration-200 relative group">
             <!-- 视频封面 -->
             <div class="relative pb-[56.25%] overflow-hidden cursor-pointer group" @click="handleVideoClick(video)">
               <img
@@ -89,7 +89,7 @@
             <!-- 视频信息 -->
             <div class="p-2 flex flex-col space-y-1">
               <!-- 标题 -->
-              <div class="line-clamp-1 text-xs text-gray-900 font-medium cursor-pointer" @click="handleVideoClick(video)">
+              <div class="line-clamp-1 text-xs text-gray-900 dark:text-gray-100 font-medium cursor-pointer" @click="handleVideoClick(video)">
                 {{ video.title }}
               </div>
 
@@ -103,13 +103,13 @@
                   onerror="this.src='https://i1.hdslb.com/bfs/face/1b6f746be0d0c8324e01e618c5e85e113a8b38be.jpg'"
                   @click.stop="handleAuthorClick(video)"
                 />
-                <span class="text-[10px] text-gray-600 truncate hover:text-[#fb7299] cursor-pointer" @click.stop="handleAuthorClick(video)">
+                <span class="text-[10px] text-gray-600 dark:text-gray-400 truncate hover:text-[#fb7299] cursor-pointer" @click.stop="handleAuthorClick(video)">
                   {{ video.author_name || '未知UP主' }}
                 </span>
               </div>
 
               <!-- 下载时间 -->
-              <div class="flex justify-between items-center text-[10px] text-gray-500">
+              <div class="flex justify-between items-center text-[10px] text-gray-500 dark:text-gray-400">
                 <div class="flex items-center space-x-1">
                   <svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -142,17 +142,17 @@
     <Teleport to="body">
       <div v-if="showDeleteConfirm" class="fixed inset-0 z-50 flex items-center justify-center">
         <!-- 遮罩层 -->
-        <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" @click="showDeleteConfirm = false"></div>
+        <div class="fixed inset-0 bg-black/50" @click="showDeleteConfirm = false"></div>
 
         <!-- 弹窗内容 -->
-        <div class="relative bg-white rounded-lg border border-gray-200 w-[500px] z-10 p-6">
-          <h3 class="text-lg font-medium text-gray-900 mb-4">确认删除视频</h3>
+        <div class="relative bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 w-[500px] z-10 p-6">
+          <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">确认删除视频</h3>
 
-          <p class="text-gray-600 mb-4">
+          <p class="text-gray-600 dark:text-gray-400 mb-4">
             确定要删除以下视频吗？此操作不可恢复。
           </p>
 
-          <p class="font-medium text-gray-800 mb-2">{{ currentVideo?.title || '未知视频' }}</p>
+          <p class="font-medium text-gray-800 dark:text-gray-100 mb-2">{{ currentVideo?.title || '未知视频' }}</p>
 
           <!-- 显示CID和目录信息 -->
           <div class="mb-3 text-sm text-gray-500">
@@ -160,8 +160,8 @@
 
             <!-- 目录信息显示 -->
             <div class="mt-2">
-              <p class="text-gray-600 mb-1">目录路径:</p>
-              <div class="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-gray-700 text-sm break-all">
+              <p class="text-gray-600 dark:text-gray-400 mb-1">目录路径:</p>
+              <div class="px-3 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-md text-gray-700 dark:text-gray-300 text-sm break-all">
                 {{ getVideoDirectory(currentVideo) || '无法获取目录路径' }}
               </div>
             </div>
@@ -173,14 +173,14 @@
               <input
                 type="checkbox"
                 v-model="deleteDirectory"
-                class="w-4 h-4 text-[#fb7299] border-gray-300 rounded focus:ring-[#fb7299]"
+                class="w-4 h-4 text-[#fb7299] border-gray-300 dark:border-gray-600 rounded focus:ring-[#fb7299]"
               >
               <span>同时删除整个目录（包含所有相关文件）</span>
             </label>
           </div>
 
           <!-- 视频来源提示 (针对收藏夹视频) -->
-          <div v-if="!currentVideo?.cid && getVideoDirectory(currentVideo)" class="mb-4 p-2 bg-amber-50 rounded-md border border-amber-200">
+          <div v-if="!currentVideo?.cid && getVideoDirectory(currentVideo)" class="mb-4 p-2 bg-amber-50 dark:bg-amber-900/20 rounded-md border border-amber-200 dark:border-amber-800">
             <p class="text-sm text-amber-700">
               <span class="font-medium">提示：</span>
               该视频可能来自收藏夹批量下载，将使用目录路径进行删除。
@@ -191,7 +191,7 @@
           <div class="flex justify-end space-x-3 mt-6">
             <button
               @click="showDeleteConfirm = false"
-              class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+              class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700"
             >
               取消
             </button>

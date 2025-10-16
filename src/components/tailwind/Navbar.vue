@@ -1,6 +1,6 @@
 <template>
   <div class="sticky top-0 z-50">
-    <nav class="bg-white lg:pt-4">
+    <nav class="bg-white dark:bg-gray-900 lg:pt-4 transition-colors duration-300">
       <div class="mx-auto transition-all duration-300 ease-in-out" :class="{'max-w-4xl': layout === 'list', 'max-w-6xl': layout === 'grid'}">
         <!-- 导航栏主要内容 -->
         <div class="flex items-center justify-between px-2 py-2">
@@ -10,7 +10,7 @@
             <button
               @click="handleUpdate"
               :disabled="isUpdating"
-              class="flex sm:flex-col items-center text-gray-700 hover:text-[#fb7299] transition-colors duration-200"
+              class="flex sm:flex-col items-center text-gray-700 dark:text-gray-300 hover:text-[#fb7299] transition-colors duration-200"
               :class="{
                 'text-gray-500': isUpdating
               }"
@@ -96,10 +96,48 @@
               <span class="sm:mt-1 text-xs hidden sm:block">{{ isUpdating ? '更新中' : '实时更新' }}</span>
             </button>
 
+            <!-- 深色模式按钮 -->
+            <button
+              @click="toggleDarkMode"
+              class="flex sm:flex-col items-center text-gray-700 dark:text-gray-300 hover:text-[#fb7299] transition-colors duration-200"
+            >
+              <!-- 浅色模式图标（深色模式下显示） -->
+              <svg
+                v-if="isDarkMode"
+                class="w-5 h-5 sm:w-6 sm:h-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
+                />
+              </svg>
+              <!-- 深色模式图标（浅色模式下显示） -->
+              <svg
+                v-else
+                class="w-5 h-5 sm:w-6 sm:h-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
+                />
+              </svg>
+              <span class="sm:mt-1 text-xs hidden sm:block">{{ isDarkMode ? '浅色模式' : '深色模式' }}</span>
+            </button>
+
             <!-- 隐私模式按钮 -->
             <button
               @click="togglePrivacyMode"
-              class="flex sm:flex-col items-center text-gray-700 hover:text-[#fb7299] transition-colors duration-200"
+              class="flex sm:flex-col items-center text-gray-700 dark:text-gray-300 hover:text-[#fb7299] transition-colors duration-200"
             >
               <svg
                 class="w-5 h-5 sm:w-6 sm:h-6"
@@ -164,7 +202,7 @@
             <!-- 布局切换按钮 -->
             <button
               @click="$emit('change-layout', layout === 'list' ? 'grid' : 'list')"
-              class="hidden sm:flex sm:flex-col items-center text-gray-700 hover:text-[#fb7299] transition-colors duration-200"
+              class="hidden sm:flex sm:flex-col items-center text-gray-700 dark:text-gray-300 hover:text-[#fb7299] transition-colors duration-200"
               :class="{ 'text-[#fb7299]': layout === 'grid' }"
             >
               <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -189,7 +227,7 @@
             <!-- 批量操作按钮 -->
             <button
               @click="$emit('toggle-batch-mode')"
-              class="flex sm:flex-col items-center text-gray-700 hover:text-[#fb7299] transition-colors duration-200"
+              class="flex sm:flex-col items-center text-gray-700 dark:text-gray-300 hover:text-[#fb7299] transition-colors duration-200"
               :class="{ 'text-[#fb7299]': isBatchMode }"
             >
               <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" :stroke="isBatchMode ? '#fb7299' : 'currentColor'">
@@ -201,7 +239,7 @@
             <!-- 设置按钮 - 只在手机端显示 -->
             <button
               @click="$router.push('/settings')"
-              class="flex sm:hidden flex-col items-center text-gray-700 hover:text-[#fb7299] transition-colors duration-200"
+              class="flex sm:hidden flex-col items-center text-gray-700 dark:text-gray-300 hover:text-[#fb7299] transition-colors duration-200"
             >
               <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -241,9 +279,11 @@ import FilterDropdown from './FilterDropdown.vue'
 import { ref, watch } from 'vue'
 import { showNotify } from 'vant'
 import { usePrivacyStore } from '@/store/privacy.js'
+import { useDarkMode } from '@/store/darkMode.js'
 import 'vant/es/notify/style'
 
 const { isPrivacyMode, togglePrivacyMode } = usePrivacyStore()
+const { isDarkMode, toggleDarkMode } = useDarkMode()
 
 const props = defineProps({
   date: {
@@ -347,6 +387,10 @@ const handleUpdate = async () => {
     border-radius: 6px;
   }
 
+  .dark ::-webkit-scrollbar-track {
+    background: #1f2937;
+  }
+
   ::-webkit-scrollbar-thumb {
     background: #e3e5e7;
     border-radius: 6px;
@@ -354,17 +398,27 @@ const handleUpdate = async () => {
     transition: all 0.2s ease-in-out;
   }
 
+  .dark ::-webkit-scrollbar-thumb {
+    background: #4b5563;
+    border: 3px solid #1f2937;
+  }
+
   ::-webkit-scrollbar-thumb:hover {
     background: #fb7299;
     border: 3px solid #f6f7f8;
+  }
+
+  .dark ::-webkit-scrollbar-thumb:hover {
+    background: #fb7299;
+    border: 3px solid #1f2937;
   }
 
   ::-webkit-scrollbar-corner {
     background: #f6f7f8;
   }
 
-  /* 移除深色模式滚动条样式，始终使用浅色模式 */
+  .dark ::-webkit-scrollbar-corner {
+    background: #1f2937;
+  }
 }
-
-/* 如果需要添加特定样式可以在这里添加 */
 </style>

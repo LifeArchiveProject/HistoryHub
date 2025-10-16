@@ -1,6 +1,19 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* 深色模式全局样式 */
+@layer base {
+  /* 确保html和body支持深色模式 */
+  html {
+    transition: background-color 0.3s, color 0.3s;
+  }
+  
+  body {
+    @apply bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100;
+    transition: background-color 0.3s, color 0.3s;
+  }
+}
 :root:root {
   --van-primary-color: #ff6699; /* 修改Vant主颜色 */
 }

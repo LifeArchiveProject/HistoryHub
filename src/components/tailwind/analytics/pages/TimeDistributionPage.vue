@@ -36,6 +36,7 @@ import { ref, computed, onMounted } from 'vue'
 import gsap from 'gsap'
 import VChart from 'vue-echarts'
 import * as echarts from 'echarts/core'
+import { useDarkMode } from '@/store/darkMode.js'
 
 const props = defineProps({
   viewingData: {
@@ -46,6 +47,7 @@ const props = defineProps({
 
 const weeklyChartRef = ref(null)
 const seasonalChartRef = ref(null)
+const { isDarkMode } = useDarkMode()
 
 // 周度分布配置
 const weeklyOption = computed(() => {
@@ -57,9 +59,9 @@ const weeklyOption = computed(() => {
   return {
     tooltip: {
       trigger: 'axis',
-      backgroundColor: 'rgba(28, 28, 28, 0.9)',
+      backgroundColor: (isDarkMode && isDarkMode.value) ? 'rgba(28, 28, 28, 0.9)' : 'rgba(255, 255, 255, 0.95)',
       borderColor: '#fb7299',
-      textStyle: { color: '#fff' }
+      textStyle: { color: (isDarkMode && isDarkMode.value) ? '#ffffff' : '#111111' }
     },
     grid: {
       top: '15%',
@@ -71,15 +73,15 @@ const weeklyOption = computed(() => {
     xAxis: {
       type: 'category',
       data: weekdays,
-      axisLine: { lineStyle: { color: '#666' } },
-      axisLabel: { color: '#999' }
+      axisLine: { lineStyle: { color: (isDarkMode && isDarkMode.value) ? '#888888' : '#666' } },
+      axisLabel: { color: (isDarkMode && isDarkMode.value) ? '#bbbbbb' : '#999' }
     },
     yAxis: {
       type: 'value',
       name: '观看次数',
-      axisLine: { lineStyle: { color: '#666' } },
-      axisLabel: { color: '#999' },
-      splitLine: { lineStyle: { color: 'rgba(0, 0, 0, 0.1)' } }
+      axisLine: { lineStyle: { color: (isDarkMode && isDarkMode.value) ? '#888888' : '#666' } },
+      axisLabel: { color: (isDarkMode && isDarkMode.value) ? '#bbbbbb' : '#999' },
+      splitLine: { lineStyle: { color: (isDarkMode && isDarkMode.value) ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.1)' } }
     },
     series: [{
       data: data,
@@ -95,7 +97,7 @@ const weeklyOption = computed(() => {
       label: {
         show: true,
         position: 'top',
-        color: '#666',
+        color: (isDarkMode && isDarkMode.value) ? '#cccccc' : '#666',
         formatter: '{c}次'
       }
     }]
@@ -117,9 +119,9 @@ const seasonalOption = computed(() => {
     tooltip: {
       trigger: 'axis',
       axisPointer: { type: 'shadow' },
-      backgroundColor: 'rgba(28, 28, 28, 0.9)',
+      backgroundColor: (isDarkMode && isDarkMode.value) ? 'rgba(28, 28, 28, 0.9)' : 'rgba(255, 255, 255, 0.95)',
       borderColor: '#fb7299',
-      textStyle: { color: '#fff' },
+      textStyle: { color: (isDarkMode && isDarkMode.value) ? '#ffffff' : '#111111' },
       formatter: (params) => {
         const data = params[0]
         return `${data.name}<br/>
@@ -137,15 +139,15 @@ const seasonalOption = computed(() => {
     xAxis: {
       type: 'category',
       data: data.map(item => item.name),
-      axisLine: { lineStyle: { color: '#666' } },
-      axisLabel: { color: '#999' }
+      axisLine: { lineStyle: { color: (isDarkMode && isDarkMode.value) ? '#888888' : '#666' } },
+      axisLabel: { color: (isDarkMode && isDarkMode.value) ? '#bbbbbb' : '#999' }
     },
     yAxis: {
       type: 'value',
       name: '观看次数',
-      axisLine: { lineStyle: { color: '#666' } },
-      axisLabel: { color: '#999' },
-      splitLine: { lineStyle: { color: 'rgba(0, 0, 0, 0.1)' } }
+      axisLine: { lineStyle: { color: (isDarkMode && isDarkMode.value) ? '#888888' : '#666' } },
+      axisLabel: { color: (isDarkMode && isDarkMode.value) ? '#bbbbbb' : '#999' },
+      splitLine: { lineStyle: { color: (isDarkMode && isDarkMode.value) ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.1)' } }
     },
     series: [{
       data: data.map((item, index) => ({
@@ -162,7 +164,7 @@ const seasonalOption = computed(() => {
       label: {
         show: true,
         position: 'top',
-        color: '#666',
+        color: (isDarkMode && isDarkMode.value) ? '#cccccc' : '#666',
         formatter: '{c}次'
       }
     }]

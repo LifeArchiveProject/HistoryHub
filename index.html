@@ -4,10 +4,37 @@
     <!-- 必须要设置此 `meta` 标签才能使多端自适应 -->
     <meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1.0" />
     <!-- 这里嵌入了 SVG 图标 -->
-    <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+    <link id="favicon" rel="icon" type="image/svg+xml" href="/logo.svg" />
+    <link rel="icon" type="image/svg+xml" href="/logo.svg" media="(prefers-color-scheme: light)" />
+    <link rel="icon" type="image/png" href="/logoDark.png" media="(prefers-color-scheme: dark)" />
     <!--      此meta标签用于隐藏referer，不隐藏会导致b站知道请求来源，导致图片访问403-->
     <meta name="referrer" content="no-referrer" />
     <title>b站历史记录</title>
+    <script>
+      (function() {
+        var link = document.getElementById('favicon');
+        if (!link) {
+          link = document.createElement('link');
+          link.id = 'favicon';
+          link.rel = 'icon';
+          document.head.appendChild(link);
+        }
+        var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
+        function updateFavicon() {
+          var isDark = document.documentElement.classList.contains('dark') || (prefersDark && prefersDark.matches);
+          link.href = isDark ? '/logoDark.png' : '/logo.svg';
+          link.type = isDark ? 'image/png' : 'image/svg+xml';
+        }
+        updateFavicon();
+        if (prefersDark && prefersDark.addEventListener) {
+          prefersDark.addEventListener('change', updateFavicon);
+        } else if (prefersDark && prefersDark.addListener) {
+          prefersDark.addListener(updateFavicon);
+        }
+        var mo = new MutationObserver(updateFavicon);
+        mo.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+      })();
+    </script>
   </head>
   <body>
     <div id="app"></div>

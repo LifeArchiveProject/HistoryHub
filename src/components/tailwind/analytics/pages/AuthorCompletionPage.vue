@@ -56,6 +56,7 @@ import {
   RadarComponent
 } from 'echarts/components'
 import { use } from 'echarts/core'
+import { useDarkMode } from '@/store/darkMode.js'
 
 // 注册必要的组件
 use([
@@ -80,6 +81,7 @@ const props = defineProps({
 
 const favoriteChartRef = ref(null)
 const mostWatchedChartRef = ref(null)
+const { isDarkMode } = useDarkMode()
 
 // 获取最喜欢的UP主数据（使用most_valuable_authors）
 const sortedFavoriteAuthors = computed(() => {
@@ -114,9 +116,19 @@ const favoriteOption = computed(() => {
     authorMid: stats.author_mid
   }))
 
+  const isDark = !!(isDarkMode && isDarkMode.value)
+  const legendTextColor = isDark ? '#bbbbbb' : '#666'
+  const axisLabelColor = isDark ? '#bbbbbb' : '#999'
+  const axisLineColor = isDark ? '#444' : '#ddd'
+  const tooltipBg = isDark ? 'rgba(28, 28, 28, 0.9)' : 'rgba(255, 255, 255, 0.95)'
+  const tooltipText = isDark ? '#ffffff' : '#111111'
+
   return {
     tooltip: {
       trigger: 'item',
+      backgroundColor: tooltipBg,
+      borderColor: '#fb7299',
+      textStyle: { color: tooltipText },
       formatter: (params) => {
         const stats = sortedFavoriteAuthors.value.find(([author]) => author === params.name)?.[1]
         if (!stats) return ''
@@ -131,7 +143,7 @@ const favoriteOption = computed(() => {
     },
     legend: {
       data: data.map(item => item.name),
-      textStyle: { color: '#666', fontSize: 10 },
+      textStyle: { color: legendTextColor, fontSize: 10 },
       left: 'left',
       orient: 'vertical',
       top: 'middle',
@@ -151,19 +163,19 @@ const favoriteOption = computed(() => {
       ],
       name: {
         textStyle: {
-          color: '#999',
+          color: axisLabelColor,
           fontSize: 12,
           fontWeight: 'bold'
         }
       },
       axisLabel: {
-        color: '#666'
+        color: axisLabelColor
       },
       axisLine: {
-        lineStyle: { color: '#ddd' }
+        lineStyle: { color: axisLineColor }
       },
       splitLine: {
-        lineStyle: { color: '#ddd' }
+        lineStyle: { color: axisLineColor }
       }
     },
     series: [{
@@ -221,9 +233,18 @@ const mostWatchedOption = computed(() => {
     stats.author_mid
   ]))
 
+  const isDarkMW = !!(isDarkMode && isDarkMode.value)
+  const axisLabelColor = isDarkMW ? '#bbbbbb' : '#999'
+  const axisLineColor = isDarkMW ? '#888888' : '#666'
+  const splitLineColor = isDarkMW ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.1)'
+  const tooltipBg = isDarkMW ? 'rgba(28, 28, 28, 0.9)' : 'rgba(255, 255, 255, 0.95)'
+  const tooltipText = isDarkMW ? '#ffffff' : '#111111'
   return {
     tooltip: {
       trigger: 'item',
+      backgroundColor: tooltipBg,
+      borderColor: '#fb7299',
+      textStyle: { color: tooltipText },
       formatter: (params) => {
         return `${params.data[3]}<br/>
                 观看视频数：${params.data[0]}个<br/>
@@ -242,18 +263,18 @@ const mostWatchedOption = computed(() => {
       name: '观看视频数',
       nameLocation: 'middle',
       nameGap: 25,
-      axisLine: { lineStyle: { color: '#666' } },
-      axisLabel: { color: '#999' },
-      splitLine: { lineStyle: { color: 'rgba(0, 0, 0, 0.1)' } }
+      axisLine: { lineStyle: { color: axisLineColor } },
+      axisLabel: { color: axisLabelColor },
+      splitLine: { lineStyle: { color: splitLineColor } }
     },
     yAxis: {
       type: 'value',
       name: '平均完成率(%)',
       nameLocation: 'middle',
       nameGap: 35,
-      axisLine: { lineStyle: { color: '#666' } },
-      axisLabel: { color: '#999' },
-      splitLine: { lineStyle: { color: 'rgba(0, 0, 0, 0.1)' } }
+      axisLine: { lineStyle: { color: axisLineColor } },
+      axisLabel: { color: axisLabelColor },
+      splitLine: { lineStyle: { color: splitLineColor } }
     },
     series: [{
       type: 'scatter',

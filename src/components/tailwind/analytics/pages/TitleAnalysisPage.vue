@@ -6,7 +6,7 @@
         <h2 class="text-3xl font-bold bg-gradient-to-r from-[#fb7299] to-[#fc9b7a] bg-clip-text text-transparent">
           标题关键词分析
         </h2>
-        <div class="mt-4 text-gray-600 max-w-3xl mx-auto" v-if="titleAnalytics && titleAnalytics.insights">
+        <div class="mt-4 text-gray-600 dark:text-gray-300 max-w-3xl mx-auto" v-if="titleAnalytics && titleAnalytics.insights">
           <p class="mb-2" v-if="titleAnalytics.insights[0]" v-html="formatInsightText(titleAnalytics.insights[0])"></p>
           <p class="mb-2" v-if="titleAnalytics.insights[1]" v-html="formatInsightText(titleAnalytics.insights[1])"></p>
           <p v-if="titleAnalytics.insights[2]" v-html="formatInsightText(titleAnalytics.insights[2])"></p>
@@ -17,13 +17,13 @@
       <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
         <!-- 左侧：词云图 -->
         <div class="lg:col-span-2 bg-white/5 backdrop-blur-sm rounded-xl p-6">
-          <h3 class="text-xl font-semibold text-gray-600 mb-4">热门关键词</h3>
+          <h3 class="text-xl font-semibold text-gray-600 dark:text-gray-300 mb-4">热门关键词</h3>
           <div ref="wordCloudRef" class="w-full h-[300px]"></div>
         </div>
 
         <!-- 右侧：完成率对比图表 - 占更多空间 -->
         <div class="lg:col-span-3 bg-white/5 backdrop-blur-sm rounded-xl p-6">
-          <h3 class="text-xl font-semibold text-gray-600 mb-4">关键词完成率对比</h3>
+          <h3 class="text-xl font-semibold text-gray-600 dark:text-gray-300 mb-4">关键词完成率对比</h3>
           <div ref="completionChartRef" class="w-full h-[300px]"></div>
         </div>
       </div>
@@ -34,6 +34,7 @@
 <script setup>
 import { ref, onMounted, watch, computed, onUnmounted } from 'vue'
 import * as echarts from 'echarts/core'
+import { useDarkMode } from '@/store/darkMode.js'
 
 const props = defineProps({
   titleAnalytics: {
@@ -46,6 +47,7 @@ const wordCloudRef = ref(null)
 const completionChartRef = ref(null)
 let wordCloudChart = null
 let completionChart = null
+const { isDarkMode } = useDarkMode()
 
 // 处理完成率数据
 const highCompletionRates = computed(() => {
@@ -130,6 +132,12 @@ const initCompletionChart = () => {
 
   completionChart = echarts.init(completionChartRef.value)
 
+  const isDark = !!(isDarkMode && isDarkMode.value)
+  const axisLabelColor = isDark ? '#e5e7eb' : '#4B5563'
+  const splitLineColor = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.1)'
+  const tooltipBg = isDark ? 'rgba(28, 28, 28, 0.9)' : 'rgba(255, 255, 255, 0.95)'
+  const tooltipText = isDark ? '#ffffff' : '#111111'
+
   // 合并所有数据并按完成率排序
   const allData = Object.entries(props.titleAnalytics.keyword_analysis.completion_rates)
     .map(([word, data]) => ({
@@ -145,6 +153,9 @@ const initCompletionChart = () => {
       axisPointer: {
         type: 'shadow'
       },
+      backgroundColor: tooltipBg,
+      borderColor: '#fb7299',
+      textStyle: { color: tooltipText },
       formatter: function(params) {
         return `${params[0].name}: ${params[0].value}%`
       }
@@ -162,12 +173,12 @@ const initCompletionChart = () => {
         return Math.ceil(value.max * 1.1)
       },
       axisLabel: {
-        color: '#4B5563',
+        color: axisLabelColor,
         formatter: '{value}%'
       },
       splitLine: {
         lineStyle: {
-          color: 'rgba(255, 255, 255, 0.1)'
+          color: splitLineColor
         }
       }
     },
@@ -175,7 +186,7 @@ const initCompletionChart = () => {
       type: 'category',
       data: allData.map(item => item.word).reverse(),
       axisLabel: {
-        color: '#4B5563'
+        color: axisLabelColor
       }
     },
     series: [
@@ -192,7 +203,7 @@ const initCompletionChart = () => {
         label: {
           show: true,
           position: 'right',
-          color: '#4B5563',
+          color: axisLabelColor,
           formatter: '{c}%'
         }
       }
@@ -237,6 +248,12 @@ watch(() => props.titleAnalytics, () => {
     initCompletionChart()
   }
 }, { deep: true })
+
+// 深色模式切换时重绘图表
+watch(() => isDarkMode.value, () => {
+  initWordCloud()
+  initCompletionChart()
+})
 
 // 格式化洞察文字，为数字添加颜色
 const formatInsightText = (text) => {

@@ -10,11 +10,11 @@
     <template #title>
       <div class="flex items-center justify-between px-3">
         <span>任务执行历史</span>
-        <button 
+        <button
           @click="$emit('update:show', false)"
-          class="p-1 hover:bg-gray-100 rounded-lg transition-colors"
+          class="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
         >
-          <svg class="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
@@ -23,14 +23,14 @@
     <div class="p-3">
       <div class="flex items-center justify-between mb-3">
         <div class="flex items-center">
-          <div class="p-1.5 bg-[#fb7299]/10 rounded-lg mr-2">
+          <div class="p-1.5 bg-[#fb7299]/10 dark:bg-[#fb7299]/20 rounded-lg mr-2">
             <svg class="w-4 h-4 text-[#fb7299]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
           <div>
-            <h3 class="text-base font-medium text-gray-800">{{ taskName }}</h3>
-            <p class="text-xs text-gray-500">ID: {{ taskId }}</p>
+            <h3 class="text-base font-medium text-gray-800 dark:text-gray-100">{{ taskName }}</h3>
+            <p class="text-xs text-gray-500 dark:text-gray-400">ID: {{ taskId }}</p>
           </div>
         </div>
         <div>
@@ -49,33 +49,33 @@
       <div v-if="loading" class="flex justify-center items-center py-8">
         <van-loading type="spinner" color="#fb7299" />
       </div>
-      <div v-else-if="!history.length" class="text-center py-8 text-gray-500">
+      <div v-else-if="!history.length" class="text-center py-8 text-gray-500 dark:text-gray-400">
         暂无执行历史
       </div>
       <div v-else class="space-y-2">
-        <div v-for="record in history" :key="record.execution_id" class="bg-white rounded-lg p-3 border border-gray-200">
+        <div v-for="record in history" :key="record.execution_id" class="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
           <div class="flex items-center justify-between">
             <div class="flex items-center space-x-2">
               <span 
                 :class="{
-                  'bg-green-50 text-green-700 border-green-200': record.status === 'success',
-                  'bg-yellow-50 text-yellow-700 border-yellow-200': record.status === 'running',
-                  'bg-red-50 text-red-700 border-red-200': record.status === 'error'
-                }" 
+                  'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800/60': record.status === 'success',
+                  'bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-300 dark:border-yellow-800/60': record.status === 'running',
+                  'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800/60': record.status === 'error'
+                }"
                 class="px-1.5 py-0.5 text-xs font-medium rounded-md border"
               >
                 {{ statusLabel(record.status) }}
               </span>
-              <span class="text-sm text-gray-600">{{ record.start_time?.replace('T', ' ') }}</span>
+              <span class="text-sm text-gray-600 dark:text-gray-300">{{ record.start_time?.replace('T', ' ') }}</span>
             </div>
-            <div class="text-sm text-gray-500">
+            <div class="text-sm text-gray-500 dark:text-gray-400">
               耗时: {{ record.duration?.toFixed(2) || 0 }}秒
             </div>
           </div>
           <div v-if="record.error" class="mt-2">
             <button 
               @click="viewError(record)"
-              class="text-xs text-red-600 hover:text-red-800"
+              class="text-xs text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
             >
               查看错误详情
             </button>
@@ -107,19 +107,19 @@
       <template #title>
         <div class="flex items-center justify-between px-3">
           <span>错误详情</span>
-          <button 
+          <button
             @click="showErrorDialog = false"
-            class="p-1 hover:bg-gray-100 rounded-lg transition-colors"
+            class="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
           >
-            <svg class="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
       </template>
       <div v-if="selectedRecord" class="p-3">
-        <div class="bg-red-50 p-2 rounded-md">
-          <pre class="text-xs font-mono text-red-800 whitespace-pre-wrap overflow-x-auto">{{ selectedRecord.error }}</pre>
+        <div class="bg-red-50 dark:bg-red-900/30 p-2 rounded-md">
+          <pre class="text-xs font-mono text-red-800 dark:text-red-300 whitespace-pre-wrap overflow-x-auto">{{ selectedRecord.error }}</pre>
         </div>
       </div>
     </van-dialog>

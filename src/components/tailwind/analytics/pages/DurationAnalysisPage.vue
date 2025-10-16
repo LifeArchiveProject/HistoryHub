@@ -26,6 +26,7 @@ import { computed, onMounted, ref } from 'vue'
 import gsap from 'gsap'
 import VChart from 'vue-echarts'
 import * as echarts from 'echarts/core'
+import { useDarkMode } from '@/store/darkMode.js'
 
 const props = defineProps({
   viewingData: {
@@ -35,6 +36,7 @@ const props = defineProps({
 })
 
 const chartRef = ref(null)
+const { isDarkMode } = useDarkMode()
 
 const durationDistributionOption = computed(() => {
   if (!props.viewingData?.duration_correlation) return {}
@@ -66,13 +68,21 @@ const durationDistributionOption = computed(() => {
     }
   }
 
+  const isDark = !!(isDarkMode && isDarkMode.value)
+  const legendTextColor = isDark ? '#bbbbbb' : '#666'
+  const axisLabelColor = isDark ? '#bbbbbb' : '#999'
+  const axisLineColor = isDark ? '#888888' : '#666'
+  const splitLineColor = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.1)'
+  const tooltipBg = isDark ? 'rgba(28, 28, 28, 0.9)' : 'rgba(255, 255, 255, 0.95)'
+  const tooltipText = isDark ? '#ffffff' : '#111111'
+
   return {
     tooltip: {
       trigger: 'axis',
       axisPointer: { type: 'shadow' },
-      backgroundColor: 'rgba(28, 28, 28, 0.9)',
+      backgroundColor: tooltipBg,
       borderColor: '#fb7299',
-      textStyle: { color: '#fff' },
+      textStyle: { color: tooltipText },
       formatter: (params) => {
         const period = params[0].axisValue
         let result = `${period}<br/>`
@@ -86,7 +96,7 @@ const durationDistributionOption = computed(() => {
     legend: {
       data: types,
       top: 0,
-      textStyle: { color: '#666' },
+      textStyle: { color: legendTextColor },
       itemStyle: {
         borderWidth: 0
       }
@@ -101,15 +111,15 @@ const durationDistributionOption = computed(() => {
     xAxis: {
       type: 'category',
       data: periods,
-      axisLine: { lineStyle: { color: '#666' } },
-      axisLabel: { color: '#999' }
+      axisLine: { lineStyle: { color: axisLineColor } },
+      axisLabel: { color: axisLabelColor }
     },
     yAxis: {
       type: 'value',
       name: '视频数量',
-      axisLine: { lineStyle: { color: '#666' } },
-      axisLabel: { color: '#999' },
-      splitLine: { lineStyle: { color: 'rgba(0, 0, 0, 0.1)' } }
+      axisLine: { lineStyle: { color: axisLineColor } },
+      axisLabel: { color: axisLabelColor },
+      splitLine: { lineStyle: { color: splitLineColor } }
     },
     series: types.map(type => ({
       name: type,

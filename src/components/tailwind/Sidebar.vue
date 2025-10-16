@@ -3,13 +3,13 @@
   <div class="flex h-screen">
     <!-- 左侧导航栏 -->
     <div :class="[
-      'transition-all duration-300 ease-in-out bg-white/10 backdrop-blur-lg border-r border-gray-200/50 hidden sm:block',
+      'transition-all duration-300 ease-in-out bg-white/10 dark:bg-gray-800/10 backdrop-blur-lg border-r border-gray-200/50 dark:border-gray-700/50 hidden sm:block',
       isCollapsed ? 'w-10' : 'w-40'
     ]">
       <!-- 侧边栏内容 -->
       <div class="h-full flex flex-col">
         <!-- 顶部 Logo -->
-        <div class="p-1 border-b border-gray-200/50">
+        <div class="p-1 border-b border-gray-200/50 dark:border-gray-700/50">
           <router-link to="/" class="w-full flex justify-center items-center">
             <img v-if="isCollapsed" src="/logo.svg" class="w-full object-contain" alt="Logo" />
             <img v-else src="/logo.png" class="w-full object-contain" alt="Logo" />
@@ -22,9 +22,9 @@
           <button
             @click="changeContent('history')"
             :title="isCollapsed ? '历史记录' : ''"
-            class="w-full flex items-center py-1.5 text-gray-700 transition-all duration-300 ease-in-out text-sm"
+            class="w-full flex items-center py-1.5 text-gray-700 dark:text-gray-300 transition-all duration-300 ease-in-out text-sm"
             :class="[
-              { 'bg-[#fb7299]/10 text-[#fb7299]': currentContent === 'history' && !showRemarks },
+              { 'bg-[#fb7299]/10 text-[#fb7299] dark:bg-[#fb7299]/20': currentContent === 'history' && !showRemarks },
               { 'justify-center': isCollapsed },
               isCollapsed ? 'px-2' : 'px-3 rounded-lg'
             ]"
@@ -39,9 +39,9 @@
           <router-link
             to="/favorites"
             :title="isCollapsed ? '我的收藏' : ''"
-            class="flex items-center py-1.5 text-gray-700 transition-all duration-300 ease-in-out text-sm"
+            class="flex items-center py-1.5 text-gray-700 dark:text-gray-300 transition-all duration-300 ease-in-out text-sm"
             :class="[
-              { 'bg-[#fb7299]/10 text-[#fb7299]': currentContent === 'favorites' },
+              { 'bg-[#fb7299]/10 text-[#fb7299] dark:bg-[#fb7299]/20': currentContent === 'favorites' },
               { 'justify-center': isCollapsed },
               isCollapsed ? 'px-2' : 'px-3 rounded-lg'
             ]"
@@ -56,9 +56,9 @@
           <router-link
             to="/analytics"
             :title="isCollapsed ? '年度总结' : ''"
-            class="flex items-center py-1.5 text-gray-700 transition-all duration-300 ease-in-out text-sm"
+            class="flex items-center py-1.5 text-gray-700 dark:text-gray-300 transition-all duration-300 ease-in-out text-sm"
             :class="[
-              { 'bg-[#fb7299]/10 text-[#fb7299]': currentContent === 'analytics' },
+              { 'bg-[#fb7299]/10 text-[#fb7299] dark:bg-[#fb7299]/20': currentContent === 'analytics' },
               { 'justify-center': isCollapsed },
               isCollapsed ? 'px-2' : 'px-3 rounded-lg'
             ]"
@@ -73,9 +73,9 @@
           <router-link
             to="/media"
             :title="isCollapsed ? '媒体管理' : ''"
-            class="flex items-center py-1.5 text-gray-700 transition-all duration-300 ease-in-out text-sm"
+            class="flex items-center py-1.5 text-gray-700 dark:text-gray-300 transition-all duration-300 ease-in-out text-sm"
             :class="[
-              { 'bg-[#fb7299]/10 text-[#fb7299]': currentContent === 'media' },
+              { 'bg-[#fb7299]/10 text-[#fb7299] dark:bg-[#fb7299]/20': currentContent === 'media' },
               { 'justify-center': isCollapsed },
               isCollapsed ? 'px-2' : 'px-3 rounded-lg'
             ]"
@@ -90,9 +90,9 @@
           <router-link
             to="/bili-tools"
             :title="isCollapsed ? 'B站助手' : ''"
-            class="flex items-center py-1.5 text-gray-700 transition-all duration-300 ease-in-out text-sm"
+            class="flex items-center py-1.5 text-gray-700 dark:text-gray-300 transition-all duration-300 ease-in-out text-sm"
             :class="[
-              { 'bg-[#fb7299]/10 text-[#fb7299]': currentContent === 'bili-tools' },
+              { 'bg-[#fb7299]/10 text-[#fb7299] dark:bg-[#fb7299]/20': currentContent === 'bili-tools' },
               { 'justify-center': isCollapsed },
               isCollapsed ? 'px-2' : 'px-3 rounded-lg'
             ]"
@@ -107,9 +107,9 @@
           <router-link
             to="/scheduler"
             :title="isCollapsed ? '计划任务' : ''"
-            class="flex items-center py-1.5 text-gray-700 transition-all duration-300 ease-in-out text-sm"
+            class="flex items-center py-1.5 text-gray-700 dark:text-gray-300 transition-all duration-300 ease-in-out text-sm"
             :class="[
-              { 'bg-[#fb7299]/10 text-[#fb7299]': currentContent === 'scheduler' },
+              { 'bg-[#fb7299]/10 text-[#fb7299] dark:bg-[#fb7299]/20': currentContent === 'scheduler' },
               { 'justify-center': isCollapsed },
               isCollapsed ? 'px-2' : 'px-3 rounded-lg'
             ]"
@@ -124,9 +124,9 @@
           <button
             @click="changeContent('settings')"
             :title="isCollapsed ? '设置' : ''"
-            class="w-full flex items-center py-1.5 text-gray-700 transition-all duration-300 ease-in-out text-sm"
+            class="w-full flex items-center py-1.5 text-gray-700 dark:text-gray-300 transition-all duration-300 ease-in-out text-sm"
             :class="[
-              { 'bg-[#fb7299]/10 text-[#fb7299]': currentContent === 'settings' },
+              { 'bg-[#fb7299]/10 text-[#fb7299] dark:bg-[#fb7299]/20': currentContent === 'settings' },
               { 'justify-center': isCollapsed },
               isCollapsed ? 'px-2' : 'px-3 rounded-lg'
             ]"
@@ -141,7 +141,7 @@
           <!-- 登录状态显示 -->
           <div
             @click="handleLoginClick"
-            class="w-full flex items-center py-1.5 text-gray-700 transition-all duration-300 ease-in-out cursor-pointer hover:text-[#fb7299] text-sm"
+            class="w-full flex items-center py-1.5 text-gray-700 dark:text-gray-300 transition-all duration-300 ease-in-out cursor-pointer hover:text-[#fb7299] text-sm"
             :class="[
               { 'justify-center': isCollapsed },
               isCollapsed ? 'px-2' : 'px-3 rounded-lg'
@@ -195,11 +195,11 @@
         </nav>
 
         <!-- 底部设置区域 -->
-        <div class="p-3 border-t border-gray-200/50">
+        <div class="p-3 border-t border-gray-200/50 dark:border-gray-700/50">
           <!-- 服务器状态和数据完整性放在一个容器中，与SQLite版本信息保持一致的边距 -->
           <div v-if="!isCollapsed" class="mt-1 text-[11px] space-y-1 px-2">
             <!-- 服务器状态显示 -->
-            <div class="flex items-center text-gray-500">
+            <div class="flex items-center text-gray-500 dark:text-gray-400">
               <div class="mr-1">服务器状态:</div>
               <div class="flex items-center">
                 <span
@@ -213,7 +213,7 @@
             </div>
 
             <!-- 数据完整性状态 -->
-            <div class="flex items-center text-gray-500">
+            <div class="flex items-center text-gray-500 dark:text-gray-400">
               <div class="mr-1">数据完整性:</div>
               <div class="flex items-center">
                 <span
@@ -239,10 +239,10 @@
 
           <!-- SQLite版本显示 -->
           <div v-if="!isCollapsed" class="mt-3 text-xs space-y-1 px-2 text-[11px]">
-            <div class="text-gray-500">
+            <div class="text-gray-500 dark:text-gray-400">
               SQLite版本: {{ sqliteVersion?.sqlite_version || '加载中...' }}
             </div>
-            <div class="text-gray-500">
+            <div class="text-gray-500 dark:text-gray-400">
               数据库大小: {{ sqliteVersion?.database_file?.size_mb?.toFixed(2) || '0' }} MB
             </div>
           </div>
@@ -251,7 +251,7 @@
           <button
             @click="toggleCollapse"
             :title="isCollapsed ? '展开侧边栏' : '收起侧边栏'"
-            class="mt-3 w-full flex items-center justify-center px-2 py-1.5 text-gray-700 hover:text-[#fb7299] transition-colors duration-200 text-sm"
+            class="mt-3 w-full flex items-center justify-center px-2 py-1.5 text-gray-700 dark:text-gray-300 hover:text-[#fb7299] transition-colors duration-200 text-sm"
           >
             <svg
               class="w-5 h-5 flex-shrink-0 transform transition-transform duration-300"
@@ -269,7 +269,7 @@
     </div>
 
     <!-- 右侧内容区域 -->
-    <div class="flex-1 border-l border-gray-200/50 transition-all duration-300">
+    <div class="flex-1 border-l border-gray-200/50 dark:border-gray-700/50 transition-all duration-300">
       <slot></slot>
     </div>
   </div>
@@ -285,12 +285,15 @@
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { usePrivacyStore } from '@/store/privacy.js'
+import { useDarkMode } from '@/store/darkMode.js'
 import { getLoginStatus, logout, getSqliteVersion, checkServerHealth, checkDataIntegrity, getIntegrityCheckConfig } from '../../api/api'
 import { showNotify } from 'vant'
 import { showDialog } from 'vant'
 import 'vant/es/notify/style'
 import 'vant/es/dialog/style'
 import LoginDialog from './LoginDialog.vue'
+
+const { isDarkMode } = useDarkMode()
 
 const route = useRoute()
 const router = useRouter()
