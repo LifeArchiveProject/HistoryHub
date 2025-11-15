@@ -224,6 +224,23 @@
               <span class="sm:mt-1 text-xs hidden sm:block">{{ layout === 'list' ? '网格视图' : '列表视图' }}</span>
             </button>
 
+            <!-- 筛选按钮 -->
+            <button
+              @click="openFilterPanel"
+              class="flex sm:flex-col items-center text-gray-700 dark:text-gray-300 hover:text-[#fb7299] transition-colors duration-200"
+              :class="{ 'text-[#fb7299]': isFilterActive }"
+            >
+              <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
+                />
+              </svg>
+              <span class="sm:mt-1 text-xs hidden sm:block">{{ isFilterActive ? '筛选中' : '筛选' }}</span>
+            </button>
+
             <!-- 批量操作按钮 -->
             <button
               @click="$emit('toggle-batch-mode')"
@@ -252,6 +269,7 @@
         <!-- 筛选区域 -->
         <div class="mx-auto transition-all duration-300 ease-in-out" :class="{'max-w-4xl': layout === 'list', 'max-w-6xl': layout === 'grid'}">
           <FilterDropdown
+            ref="filterDropdownRef"
             :business="business"
             :businessLabel="businessLabel"
             :date="date"
@@ -276,7 +294,7 @@
 <script setup>
 import SearchBar from './SearchBar.vue'
 import FilterDropdown from './FilterDropdown.vue'
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
 import { showNotify } from 'vant'
 import { usePrivacyStore } from '@/store/privacy.js'
 import { useDarkMode } from '@/store/darkMode.js'
@@ -336,11 +354,22 @@ const emit = defineEmits([
 
 const isUpdating = ref(false)
 const syncDeleted = ref(localStorage.getItem('syncDeleted') === 'true')
+const filterDropdownRef = ref(null)
+
+const isFilterActive = computed(() => Boolean(props.date || props.category || props.business))
 
 // 监听 syncDeleted 的变化
 watch(() => localStorage.getItem('syncDeleted'), (newVal) => {
   syncDeleted.value = newVal === 'true'
 })
+
+const openFilterPanel = () => {
+  if (filterDropdownRef.value?.openFilterPopup) {
+    filterDropdownRef.value.openFilterPopup()
+  } else {
+    console.warn('Filter panel is not ready yet')
+  }
+}
 
 // 处理更新
 const handleUpdate = async () => {

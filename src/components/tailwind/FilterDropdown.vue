@@ -36,17 +36,6 @@
         <div class="text-xs text-gray-500 dark:text-gray-400">
           总视频数: <span class="text-[#FF6699] font-medium">{{ total }}</span>
         </div>
-
-        <!-- 筛选图标按钮 -->
-        <button
-          @click="showFilterPopup = true"
-          class="p-1 sm:p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
-        >
-          <svg class="w-4 h-4 sm:w-5 sm:h-5 text-gray-600 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-          </svg>
-        </button>
       </div>
     </div>
 
@@ -263,6 +252,15 @@ const emit = defineEmits([
 
 // 底部弹出筛选栏的显示状态
 const showFilterPopup = ref(false)
+
+// 供父组件控制的弹窗开关
+const openFilterPopup = () => {
+  showFilterPopup.value = true
+}
+
+const closeFilterPopup = () => {
+  showFilterPopup.value = false
+}
 
 // 日期选择相关
 const startDate = ref('')
@@ -514,6 +512,12 @@ const handlePageSizeBlur = (event) => {
 // 组件挂载时获取视频分类
 onMounted(() => {
   fetchVideoCategories()
+})
+
+// 暴露控制方法，便于导航栏触发筛选面板
+defineExpose({
+  openFilterPopup,
+  closeFilterPopup,
 })
 </script>
 
