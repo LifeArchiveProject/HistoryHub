@@ -1314,10 +1314,17 @@ async def fetch_history(output_dir: str = "history_by_date", skip_exists: bool =
                     video_details_result = await fetch_video_details_only(specific_videos=new_bvids)
                     result["video_details_result"] = video_details_result
                     
-                    if video_details_result["status"] == "success":
+                    if video_details_result.get("status") == "success":
                         print("成功获取新记录的视频详情")
-        else:
-                        print(f"获取新记录的视频详情时出错: {video_details_result['message']}")
+                    else:
+                        print(f"获取新记录的视频详情时出错: {video_details_result.get('message', '未知错误')}")
+                else:
+                    print("无新视频需要获取详情")
+                    result["video_details_result"] = {
+                        "status": "success",
+                        "message": "no new videos",
+                        "data": {}
+                    }
         
         return result
 
