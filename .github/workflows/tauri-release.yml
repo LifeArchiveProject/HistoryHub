@@ -22,18 +22,15 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - label: macos-arm64
+          - label: macos-universal
             platform: macos-latest
-            args: --target aarch64-apple-darwin
-          - label: macos-x64
-            platform: macos-latest
-            args: --target x86_64-apple-darwin
+            args: --target universal-apple-darwin --ci
           - label: linux-x64
             platform: ubuntu-24.04
-            args: ""
+            args: --ci
           - label: windows-x64
             platform: windows-latest
-            args: ""
+            args: --ci
 
     steps:
       - name: Checkout
@@ -68,7 +65,13 @@ jobs:
             librsvg2-dev \
             patchelf \
             libssl-dev \
-            pkg-config
+            pkg-config \
+            fakeroot \
+            libfuse2
+
+      - name: Install Windows dependencies
+        if: matrix.platform == 'windows-latest'
+        run: choco install nsis -y
 
       - name: Install frontend dependencies
         run: npm ci
