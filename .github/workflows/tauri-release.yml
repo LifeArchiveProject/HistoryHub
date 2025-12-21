@@ -83,6 +83,6 @@ jobs:
           releaseBody: "See the assets to download and install this version."
           releaseDraft: false
           prerelease: ${{ contains(github.event.inputs.tag || github.ref_name, '-') }}
-          tauriScript: "npm run tauri"
+          tauriScript: "npm run tauri --"
           args: ${{ matrix.args }}
           generateReleaseNotes: true
