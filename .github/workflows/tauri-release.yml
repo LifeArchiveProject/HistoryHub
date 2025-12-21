@@ -77,7 +77,7 @@ jobs:
         run: choco install nsis -y
 
       - name: Install frontend dependencies
-        run: npm ci --include=optional --no-fund --no-audit
+        run: npm install --include=optional --no-fund --no-audit
 
       - name: Build and upload release assets
         uses: tauri-apps/tauri-action@v0.6
