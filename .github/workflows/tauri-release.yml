@@ -22,12 +22,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - label: macos-arm64
+          - label: macos-universal
             platform: macos-latest
-            args: --target aarch64-apple-darwin
-          - label: macos-x64
-            platform: macos-latest
-            args: --target x86_64-apple-darwin
+            args: --target universal-apple-darwin
           - label: linux-x64
             platform: ubuntu-24.04
             args: ""
@@ -89,6 +86,6 @@ jobs:
           releaseBody: "See the assets to download and install this version."
           releaseDraft: false
           prerelease: ${{ contains(github.event.inputs.tag || github.ref_name, '-') }}
-          tauriScript: "npm run tauri --"
+          tauriScript: "npx tauri"
           args: ${{ matrix.args }}
           generateReleaseNotes: true
