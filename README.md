@@ -16,10 +16,17 @@
 
 ### 使用 Docker 安装
 
+#### 使用预构建镜像（GitHub Container Registry）
+
+```bash
+docker pull ghcr.io/lifearchiveproject/bili-history-frontend:latest
+docker run --name bili-history-frontend-web -p 5173:80 -d ghcr.io/lifearchiveproject/bili-history-frontend:latest
+```
+
 1. 安装[Docker](https://docs.docker.com/get-started/get-docker/).
-2. 构建镜像：`docker build -t bili-history-fetcher-web:dev .`
-3. 启动容器：`docker run --name bili-history-fetcher-web -p 5173:80 -d bili-history-fetcher-web:dev`
-4. 停止容器：`docker stop bili-history-fetcher-web`
+2. 构建镜像：`docker build -t bili-history-frontend-web:dev .`
+3. 启动容器：`docker run --name bili-history-frontend-web -p 5173:80 -d bili-history-frontend-web:dev`
+4. 停止容器：`docker stop bili-history-frontend-web`
 
 ### [通过 1Panel 部署](https://github.com/LifeArchiveProject/HistoryHub/discussions/65)
 由社区贡献者 [@QYG2297248353](https://github.com/QYG2297248353) 实现 ([#66](https://github.com/LifeArchiveProject/HistoryHub/pull/66))
@@ -106,6 +113,10 @@ npm run dev
 <img src="./public/DSSummary.png" alt="">
 
 ## 使用 Tauri 构建桌面应用
+
+### GitHub Actions 自动构建（多平台包体）
+
+推送 tag（例如 `v1.0.0`）后，会自动在 GitHub Releases 里生成 Windows/macOS/Linux 的安装包与产物。
 
 **环境准备**
 
