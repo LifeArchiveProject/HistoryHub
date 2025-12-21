@@ -38,6 +38,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref }}
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -76,11 +78,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tagName: ${{ inputs.tag || github.ref_name }}
-          releaseName: "BiliHistoryFrontend ${{ inputs.tag || github.ref_name }}"
+          tagName: ${{ github.event.inputs.tag || github.ref_name }}
+          releaseName: "BiliHistoryFrontend ${{ github.event.inputs.tag || github.ref_name }}"
           releaseBody: "See the assets to download and install this version."
           releaseDraft: false
-          prerelease: ${{ contains(inputs.tag || github.ref_name, '-') }}
+          prerelease: ${{ contains(github.event.inputs.tag || github.ref_name, '-') }}
           tauriScript: "npm run tauri"
           args: ${{ matrix.args }}
           generateReleaseNotes: true
