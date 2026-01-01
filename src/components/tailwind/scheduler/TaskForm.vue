@@ -93,6 +93,45 @@
           </div>
         </div>
 
+        <!-- 热门视频清理设置（仅清理接口显示） -->
+        <div v-if="isPopularCleanupEndpoint" class="bg-white dark:bg-gray-800 rounded-lg p-1.5 border border-gray-200 dark:border-gray-700">
+          <h4 class="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1 flex items-center">
+            <svg class="w-3 h-3 mr-1 text-[#fb7299]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm0 10c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6z" />
+            </svg>
+            热门视频清理
+          </h4>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+            <div class="md:col-span-2">
+              <label for="popularCleanupYear" class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-0.5">清理年份（可选）</label>
+              <select
+                id="popularCleanupYear"
+                v-model="popularCleanupYear"
+                class="block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-[#fb7299] focus:ring-[#fb7299] text-xs py-1 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed dark:bg-gray-700 dark:text-gray-100 disabled:dark:bg-gray-800 disabled:dark:text-gray-500"
+                :disabled="popularCleanupYearsLoading"
+              >
+                <option :value="null">全部年份（不传 year）</option>
+                <option
+                  v-for="year in popularCleanupYearOptions"
+                  :key="year"
+                  :value="year"
+                >
+                  {{ year }}
+                </option>
+              </select>
+              <div v-if="popularCleanupYearsLoading" class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                正在获取可用年份...
+              </div>
+              <div v-else-if="popularCleanupYearsMessage" class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                {{ popularCleanupYearsMessage }}
+              </div>
+              <div v-else-if="popularCleanupDefaultYear" class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                建议默认年份：{{ popularCleanupDefaultYear }}
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- 调度设置 -->
         <div class="bg-white dark:bg-gray-800 rounded-lg p-1.5 border border-gray-200 dark:border-gray-700">
           <h4 class="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1 flex items-center">
@@ -268,7 +307,8 @@ import {
   updateSchedulerTask,
   getSchedulerTaskDetail,
   getAvailableEndpoints,
-  addSubTask
+  addSubTask,
+  getPopularCleanupYears
 } from '../../../api/api'
 
 const props = defineProps({
@@ -320,6 +360,34 @@ const form = reactive({
 const paramsJson = ref('{}')
 const paramsError = ref('')
 
+const POPULAR_CLEANUP_ENDPOINT_PATH = '/bilibili/popular/cleanup'
+
+const parseEndpointUrlParts = (endpoint) => {
+  const raw = (endpoint || '').trim()
+  if (!raw) return { path: '', searchParams: new URLSearchParams() }
+
+  try {
+    const url = new URL(raw, 'http://placeholder')
+    return { path: url.pathname || '', searchParams: url.searchParams || new URLSearchParams() }
+  } catch {
+    const [pathPart, queryPart] = raw.split('?')
+    return { path: (pathPart || raw).trim(), searchParams: new URLSearchParams(queryPart || '') }
+  }
+}
+
+const normalizeEndpointPath = (path) => {
+  let normalized = (path || '').trim()
+  if (!normalized) return ''
+  if (!normalized.startsWith('/')) normalized = `/${normalized}`
+  normalized = normalized.replace(/\/+$/, '')
+  return normalized || '/'
+}
+
+const isPopularCleanupEndpointPath = (path) => {
+  const normalized = normalizeEndpointPath(path)
+  return normalized === POPULAR_CLEANUP_ENDPOINT_PATH || normalized.endsWith(POPULAR_CLEANUP_ENDPOINT_PATH)
+}
+
 // 可用的API端点
 const availableEndpoints = ref([])
 
@@ -330,6 +398,122 @@ const apiSearchQuery = ref('')
 const expandedTags = reactive({})
 const methodFilter = ref('ALL')
 const selectedEndpoint = ref('')
+
+const popularCleanupYears = ref([])
+const popularCleanupDefaultYear = ref(null)
+const popularCleanupYearsMessage = ref('')
+const popularCleanupYearsLoading = ref(false)
+const popularCleanupYearTouched = ref(false)
+const cachedPopularCleanupYear = ref(undefined)
+
+const popularCleanupEndpointParts = computed(() => parseEndpointUrlParts(form.endpoint))
+
+const isPopularCleanupEndpoint = computed(() => {
+  return isPopularCleanupEndpointPath(popularCleanupEndpointParts.value.path)
+})
+
+const popularCleanupYearFromEndpointQuery = computed(() => {
+  const year = popularCleanupEndpointParts.value.searchParams.get('year')
+  if (!year) return null
+  const normalized = Number.parseInt(year, 10)
+  return Number.isFinite(normalized) ? normalized : null
+})
+
+const popularCleanupYear = computed({
+  get: () => (Object.prototype.hasOwnProperty.call(form.params, 'year') ? form.params.year : null),
+  set: (year) => {
+    popularCleanupYearTouched.value = true
+    if (year === null || year === undefined || year === '') {
+      if (Object.prototype.hasOwnProperty.call(form.params, 'year')) {
+        delete form.params.year
+      }
+      return
+    }
+    form.params.year = year
+  }
+})
+
+const popularCleanupYearOptions = computed(() => {
+  const years = Array.isArray(popularCleanupYears.value) ? [...popularCleanupYears.value] : []
+  const currentYear = form.params?.year
+  const normalizedCurrentYear = typeof currentYear === 'string' ? Number.parseInt(currentYear, 10) : currentYear
+
+  if (Number.isFinite(normalizedCurrentYear) && !years.includes(normalizedCurrentYear)) {
+    years.push(normalizedCurrentYear)
+  }
+
+  return years
+    .filter((y) => Number.isFinite(y))
+    .sort((a, b) => b - a)
+})
+
+const applyPopularCleanupYearFromEndpointQuery = () => {
+  if (!isPopularCleanupEndpoint.value) return
+  const yearFromQuery = popularCleanupYearFromEndpointQuery.value
+  if (yearFromQuery === null || yearFromQuery === undefined) return
+  if (!Object.prototype.hasOwnProperty.call(form.params, 'year')) {
+    form.params.year = yearFromQuery
+  }
+}
+
+const normalizePopularCleanupYearParam = () => {
+  if (!form.params || typeof form.params !== 'object') return
+  if (!Object.prototype.hasOwnProperty.call(form.params, 'year')) return
+
+  const year = form.params.year
+  if (year === null || year === undefined || year === '') {
+    delete form.params.year
+    return
+  }
+
+  if (typeof year === 'string') {
+    const normalized = Number.parseInt(year, 10)
+    if (Number.isFinite(normalized)) {
+      form.params.year = normalized
+    } else {
+      delete form.params.year
+    }
+  }
+}
+
+const fetchPopularCleanupYears = async () => {
+  if (popularCleanupYearsLoading.value) return
+
+  popularCleanupYearsLoading.value = true
+  popularCleanupYearsMessage.value = ''
+  popularCleanupDefaultYear.value = null
+
+  try {
+    const response = await getPopularCleanupYears()
+    if (response.data && response.data.status === 'success') {
+      popularCleanupYears.value = Array.isArray(response.data.data) ? response.data.data : []
+      popularCleanupDefaultYear.value = response.data.default_year ?? null
+      popularCleanupYearsMessage.value = response.data.message || ''
+
+      // 新建任务：当用户尚未手动选择且未设置 year 时，自动使用后端建议默认年份
+      if (
+        isPopularCleanupEndpoint.value &&
+        !props.isEditing &&
+        !popularCleanupYearTouched.value &&
+        !Object.prototype.hasOwnProperty.call(form.params, 'year') &&
+        popularCleanupDefaultYear.value !== null &&
+        popularCleanupDefaultYear.value !== undefined
+      ) {
+        form.params.year = popularCleanupDefaultYear.value
+      }
+    } else {
+      popularCleanupYears.value = []
+      popularCleanupYearsMessage.value = response.data?.message || '获取年份列表失败'
+      popularCleanupDefaultYear.value = null
+    }
+  } catch (error) {
+    popularCleanupYears.value = []
+    popularCleanupYearsMessage.value = '获取年份列表出错: ' + (error.message || '未知错误')
+    popularCleanupDefaultYear.value = null
+  } finally {
+    popularCleanupYearsLoading.value = false
+  }
+}
 
 // 按tag对API进行分组
 const groupedEndpoints = computed(() => {
@@ -478,6 +662,8 @@ const resetForm = () => {
   selectedEndpoint.value = ''
   paramsJson.value = '{}'
   paramsError.value = ''
+  popularCleanupYearTouched.value = false
+  cachedPopularCleanupYear.value = undefined
   showApiSelector.value = false
   showDependencySelector.value = false
   apiSearchQuery.value = ''
@@ -592,6 +778,11 @@ const loadTaskDetail = async (taskId) => {
         form.endpoint = taskInfo.config.endpoint
         form.method = taskInfo.config.method
         form.params = taskInfo.config.params || {}
+        if (isPopularCleanupEndpointPath(taskInfo.config.endpoint)) {
+          popularCleanupYearTouched.value = true
+          applyPopularCleanupYearFromEndpointQuery()
+          normalizePopularCleanupYearParam()
+        }
         form.schedule_type = taskInfo.config.schedule_type
         form.schedule_time = taskInfo.config.schedule_time
         form.enabled = taskInfo.config.enabled
@@ -629,6 +820,37 @@ const loadTaskDetail = async (taskId) => {
     showNotify({ type: 'danger', message: '获取任务详情出错: ' + (error.message || '未知错误') })
   }
 }
+
+watch(
+  () => [props.show, isPopularCleanupEndpoint.value],
+  async ([show, isCleanup]) => {
+    if (!show || !isCleanup) return
+    applyPopularCleanupYearFromEndpointQuery()
+    normalizePopularCleanupYearParam()
+    await fetchPopularCleanupYears()
+  }
+)
+
+watch(isPopularCleanupEndpoint, (isCleanup, wasCleanup) => {
+  if (wasCleanup && !isCleanup) {
+    cachedPopularCleanupYear.value = popularCleanupYear.value
+    if (Object.prototype.hasOwnProperty.call(form.params, 'year')) {
+      delete form.params.year
+    }
+    return
+  }
+
+  if (!wasCleanup && isCleanup) {
+    normalizePopularCleanupYearParam()
+    if (
+      cachedPopularCleanupYear.value !== undefined &&
+      !Object.prototype.hasOwnProperty.call(form.params, 'year') &&
+      cachedPopularCleanupYear.value !== null
+    ) {
+      form.params.year = cachedPopularCleanupYear.value
+    }
+  }
+})
 
 // 获取可用的API端点
 const fetchAvailableEndpoints = async () => {

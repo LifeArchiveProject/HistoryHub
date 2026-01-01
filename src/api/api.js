@@ -591,6 +591,19 @@ export const batchDeleteBilibiliHistory = (items) => {
   })
 }
 
+// =============================
+// 热门视频数据清理（按年分库）
+// =============================
+
+/**
+ * 获取热门视频数据库可用年份（降序）
+ * GET /bilibili/popular/years
+ * @returns {Promise<any>}
+ */
+export const getPopularCleanupYears = () => {
+  return instance.get('/bilibili/popular/years')
+}
+
 // 数据库管理相关接口
 // 重置数据库
 export const resetDatabase = () => {
