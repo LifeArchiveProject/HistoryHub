@@ -64,33 +64,19 @@
    docker pull ghcr.io/lifearchiveproject/bili-history-fetcher:latest
    docker run -d -v ./config:/app/config -v ./output:/app/output -p 8899:8899 --name bilibili-api ghcr.io/lifearchiveproject/bili-history-fetcher:latest
    ```
-   ```bash
-   # NVIDIA GPU（CUDA 版）
-   docker pull ghcr.io/lifearchiveproject/bili-history-fetcher:cuda
-   docker run -d -v ./config:/app/config -v ./output:/app/output -p 8899:8899 --gpus all --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 --name bilibili-api ghcr.io/lifearchiveproject/bili-history-fetcher:cuda
-   ```
 
    提示：为统一镜像命名，后端镜像后续使用 `ghcr.io/lifearchiveproject/bili-history-fetcher`；如你当前拉取不到该镜像名，请先使用旧镜像名 `ghcr.io/lifearchiveproject/bilibili-history-fetcher`，并在后续更新为新镜像名（旧镜像名会继续同步推送一段时间以兼容历史脚本）。
 
    标签说明：
    - CPU：`latest` 或 `vX.Y.Z`
-   - CUDA：`cuda` 或 `vX.Y.Z-cuda`
    - 平台：目前仅提供 `linux/amd64`
 
 3. 从源码构建镜像（可选）：
-   ```bash
-   # 使用 NVIDIA 显卡
-   docker build -t bilibili-api:dev -f docker/Dockerfile.cuda .
-   ```
    ```bash
    # 使用 CPU
    docker build -t bilibili-api:dev -f docker/Dockerfile.cpu .
    ```
 4. 创建 Docker 容器（源码构建后的镜像）：
-   ```bash
-   # 使用 NVIDIA 显卡
-   docker run -d -v ./config:/app/config -v ./output:/app/output -p 8899:8899 --gpus all --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 --name bilibili-api bilibili-api:dev
-   ```
    ```bash
    # 使用 CPU
    docker run -d -v ./config:/app/config -v ./output:/app/output -p 8899:8899 --name bilibili-api bilibili-api:dev
@@ -102,7 +88,7 @@
 
 #### 使用 Docker Compose 部署
 
-本项目提供了 Docker Compose 配置，实现一键部署前后端服务。默认使用 CPU 基础版后端镜像；如需 CUDA 版后端，可叠加 `docker-compose.cuda.yml`。
+本项目提供了 Docker Compose 配置，实现一键部署前后端服务。
 
 1. 确保已安装 [Docker](https://docs.docker.com/get-started/get-docker/) 和 [Docker Compose](https://docs.docker.com/compose/install/)
 
@@ -115,23 +101,10 @@
       wget https://raw.githubusercontent.com/LifeArchiveProject/HistoryHub/master/docker-compose.yml
       ```
 
-   如需 CUDA 版后端，同时下载 `docker-compose.cuda.yml`：
-   - 直接从[这里](https://raw.githubusercontent.com/LifeArchiveProject/HistoryHub/master/docker-compose.cuda.yml)下载
-   - 或使用以下命令下载：
-     ```bash
-     curl -O https://raw.githubusercontent.com/LifeArchiveProject/HistoryHub/master/docker-compose.cuda.yml
-     # 或
-     wget https://raw.githubusercontent.com/LifeArchiveProject/HistoryHub/master/docker-compose.cuda.yml
-     ```
-
 3. 使用 Docker Compose 启动服务：
    ```bash
    # CPU 基础版
    docker-compose up -d
-   ```
-   ```bash
-   # NVIDIA GPU（CUDA 版）
-   docker-compose -f docker-compose.yml -f docker-compose.cuda.yml up -d
    ```
 
 4. 服务启动后访问：

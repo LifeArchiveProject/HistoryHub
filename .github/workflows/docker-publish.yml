@@ -27,10 +27,6 @@ jobs:
             dockerfile: docker/Dockerfile.cpu
             raw_tag: latest
             version_suffix: ""
-          - name: cuda
-            dockerfile: docker/Dockerfile.cuda
-            raw_tag: cuda
-            version_suffix: "-cuda"
 
     steps:
       - name: Checkout
