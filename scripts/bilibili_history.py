@@ -221,8 +221,6 @@ def save_video_details(video_data):
             is_upower_exclusive INTEGER,
             is_upower_play INTEGER,
             is_upower_preview INTEGER,
-            enable_vt INTEGER,
-            vt_display TEXT,
             is_upower_exclusive_with_qa INTEGER,
             no_cache INTEGER,
             
@@ -409,8 +407,6 @@ def save_video_details(video_data):
         video_info['is_upower_exclusive'] = 1 if video_data.get('is_upower_exclusive', False) else 0
         video_info['is_upower_play'] = 1 if video_data.get('is_upower_play', False) else 0
         video_info['is_upower_preview'] = 1 if video_data.get('is_upower_preview', False) else 0
-        video_info['enable_vt'] = video_data.get('enable_vt', 0)
-        video_info['vt_display'] = video_data.get('vt_display', '')
         video_info['is_upower_exclusive_with_qa'] = 1 if video_data.get('is_upower_exclusive_with_qa', False) else 0
         video_info['no_cache'] = 1 if video_data.get('no_cache', False) else 0
         

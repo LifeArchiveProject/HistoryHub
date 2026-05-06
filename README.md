@@ -39,7 +39,6 @@
 - [x] 获取收藏夹
   - [x] 批量收藏
   - [x] 一键下载收藏夹所有视频
-- [x] 获取视频被全站观看的总时长
 - [x] 最多找回14天内b站所有在屏幕上显示过的图片
 
 ## 后续开发计划
@@ -281,7 +280,6 @@ BilibiliHistoryAnalyzer.exe
 - [Yutto](https://yutto.nyakku.moe/) - 可爱的 B 站视频下载工具，本项目使用其进行视频下载功能
 - [ArtPlayer](https://github.com/zhw2590582/ArtPlayer) - 强大且灵活的 HTML5 视频播放器
 - [aicu.cc](https://www.aicu.cc/) - 第三方 B 站用户评论 API
-- [小黑盒用户 shengyI](https://www.xiaoheihe.cn/app/bbs/link/153880174) - 视频观看总时长功能思路提供者
 - 所有贡献者，特别感谢:
   - [@eli-yip](https://github.com/eli-yip) 对 Docker 部署的贡献
   - [@QYG2297248353](https://github.com/QYG2297248353) 对 1Panel 部署的贡献

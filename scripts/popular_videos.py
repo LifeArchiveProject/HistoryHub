@@ -166,7 +166,6 @@ def create_tables(conn):
         stat_his_rank INTEGER,
         stat_like INTEGER,
         stat_dislike INTEGER,
-        stat_vt INTEGER,
         stat_vv INTEGER,
         stat_fav_g INTEGER,
         stat_like_g INTEGER,
@@ -176,7 +175,6 @@ def create_tables(conn):
         rcmd_reason_corner_mark INTEGER,
 
         ogv_info TEXT,
-        enable_vt INTEGER,
         ai_rcmd TEXT,
         fetch_time INTEGER,
         UNIQUE(aid, bvid, fetch_time)
@@ -304,7 +302,6 @@ def insert_video_to_db(conn, video: Dict[str, Any], fetch_time: int, rank: int =
             stat.get('his_rank'),
             stat.get('like'),
             stat.get('dislike'),
-            stat.get('vt'),
             stat.get('vv'),
             stat.get('fav_g'),
             stat.get('like_g'),
@@ -313,7 +310,6 @@ def insert_video_to_db(conn, video: Dict[str, Any], fetch_time: int, rank: int =
             rcmd_reason.get('corner_mark'),
             # 其他字段
             json.dumps(video.get('ogv_info', {}), ensure_ascii=False) if video.get('ogv_info') else None,
-            video.get('enable_vt'),
             json.dumps(video.get('ai_rcmd', {}), ensure_ascii=False) if video.get('ai_rcmd') else None,
             fetch_time
         )
@@ -333,11 +329,11 @@ def insert_video_to_db(conn, video: Dict[str, Any], fetch_time: int, rank: int =
             rights_arc_pay, rights_pay_free_watch,
             stat_view, stat_danmaku, stat_reply, stat_favorite, stat_coin,
             stat_share, stat_now_rank, stat_his_rank, stat_like, stat_dislike,
-            stat_vt, stat_vv, stat_fav_g, stat_like_g,
+            stat_vv, stat_fav_g, stat_like_g,
             rcmd_reason_content, rcmd_reason_corner_mark,
-            ogv_info, enable_vt, ai_rcmd, fetch_time
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ''', values)
+            ogv_info, ai_rcmd, fetch_time
+        ) VALUES ({})
+        '''.format(', '.join(['?'] * len(values))), values)
 
         # 更新跟踪表
         update_tracking_info(conn, video, fetch_time, rank)

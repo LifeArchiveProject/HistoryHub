@@ -75,8 +75,6 @@ def init_db() -> None:
             is_upower_exclusive INTEGER DEFAULT 0,
             is_upower_play INTEGER DEFAULT 0,
             is_upower_preview INTEGER DEFAULT 0,
-            enable_vt INTEGER DEFAULT 0,
-            vt_display TEXT,
             is_upower_exclusive_with_qa INTEGER DEFAULT 0,
             no_cache INTEGER DEFAULT 0,
             is_season_display INTEGER DEFAULT 0,
@@ -98,7 +96,6 @@ def init_db() -> None:
             stat_his_rank INTEGER DEFAULT 0,
             stat_now_rank INTEGER DEFAULT 0,
             stat_evaluation TEXT,
-            stat_vt INTEGER DEFAULT 0,
             dimension_width INTEGER,
             dimension_height INTEGER,
             dimension_rotate INTEGER DEFAULT 0,
@@ -404,12 +401,12 @@ def save_video_detail_to_db(data: Dict[str, Any]) -> None:
         "bvid", "aid", "videos", "tid", "tid_v2", "tname", "tname_v2", "copyright", "pic", "title",
         "pubdate", "ctime", "desc", "desc_v2", "state", "duration", "mission_id", "dynamic", "cid",
         "season_id", "premiere", "teenage_mode", "is_chargeable_season", "is_story",
-        "is_upower_exclusive", "is_upower_play", "is_upower_preview", "enable_vt", "vt_display",
+        "is_upower_exclusive", "is_upower_play", "is_upower_preview",
         "is_upower_exclusive_with_qa", "no_cache", "is_season_display", "like_icon",
         "need_jump_bv", "disable_show_up_info", "is_story_play", "owner_mid", "owner_name",
         "owner_face", "stat_view", "stat_danmaku", "stat_reply", "stat_favorite", "stat_coin",
         "stat_share", "stat_like", "stat_dislike", "stat_his_rank", "stat_now_rank",
-        "stat_evaluation", "stat_vt", "dimension_width", "dimension_height", "dimension_rotate",
+        "stat_evaluation", "dimension_width", "dimension_height", "dimension_rotate",
         "rights_bp", "rights_elec", "rights_download", "rights_movie", "rights_pay", "rights_hd5",
         "rights_no_reprint", "rights_autoplay", "rights_ugc_pay", "rights_is_cooperation",
         "rights_ugc_pay_preview", "rights_no_background", "rights_clean_mode",
@@ -483,14 +480,14 @@ def save_video_detail_to_db(data: Dict[str, Any]) -> None:
                     desc = ?, desc_v2 = ?, state = ?, duration = ?, mission_id = ?,
                     dynamic = ?, cid = ?, season_id = ?, premiere = ?, teenage_mode = ?,
                     is_chargeable_season = ?, is_story = ?, is_upower_exclusive = ?,
-                    is_upower_play = ?, is_upower_preview = ?, enable_vt = ?,
-                    vt_display = ?, is_upower_exclusive_with_qa = ?, no_cache = ?,
+                    is_upower_play = ?, is_upower_preview = ?,
+                    is_upower_exclusive_with_qa = ?, no_cache = ?,
                     is_season_display = ?, like_icon = ?, need_jump_bv = ?,
                     disable_show_up_info = ?, is_story_play = ?,
                     owner_mid = ?, owner_name = ?, owner_face = ?,
                     stat_view = ?, stat_danmaku = ?, stat_reply = ?, stat_favorite = ?,
                     stat_coin = ?, stat_share = ?, stat_like = ?, stat_dislike = ?,
-                    stat_his_rank = ?, stat_now_rank = ?, stat_evaluation = ?, stat_vt = ?,
+                    stat_his_rank = ?, stat_now_rank = ?, stat_evaluation = ?,
                     dimension_width = ?, dimension_height = ?, dimension_rotate = ?,
                     rights_bp = ?, rights_elec = ?, rights_download = ?, rights_movie = ?,
                     rights_pay = ?, rights_hd5 = ?, rights_no_reprint = ?, rights_autoplay = ?,
@@ -527,8 +524,6 @@ def save_video_detail_to_db(data: Dict[str, Any]) -> None:
                     1 if view_data.get("is_upower_exclusive") else 0,
                     1 if view_data.get("is_upower_play") else 0,
                     1 if view_data.get("is_upower_preview") else 0,
-                    view_data.get("enable_vt", 0),
-                    view_data.get("vt_display", ""),
                     1 if view_data.get("is_upower_exclusive_with_qa") else 0,
                     1 if view_data.get("no_cache") else 0,
                     1 if view_data.get("is_season_display") else 0,
@@ -550,7 +545,6 @@ def save_video_detail_to_db(data: Dict[str, Any]) -> None:
                     stat.get("his_rank", 0),
                     stat.get("now_rank", 0),
                     stat.get("evaluation", ""),
-                    stat.get("vt", 0),
                     dimension.get("width"),
                     dimension.get("height"),
                     dimension.get("rotate", 0),
@@ -610,8 +604,6 @@ def save_video_detail_to_db(data: Dict[str, Any]) -> None:
                     1 if view_data.get("is_upower_exclusive") else 0,  # 25. is_upower_exclusive
                     1 if view_data.get("is_upower_play") else 0,  # 26. is_upower_play
                     1 if view_data.get("is_upower_preview") else 0,  # 27. is_upower_preview
-                    view_data.get("enable_vt", 0),             # 28. enable_vt
-                    view_data.get("vt_display", ""),           # 29. vt_display
                     1 if view_data.get("is_upower_exclusive_with_qa") else 0,  # 30. is_upower_exclusive_with_qa
                     1 if view_data.get("no_cache") else 0,     # 31. no_cache
                     1 if view_data.get("is_season_display") else 0,  # 32. is_season_display
@@ -633,7 +625,6 @@ def save_video_detail_to_db(data: Dict[str, Any]) -> None:
                     stat.get("his_rank", 0),                   # 48. stat_his_rank
                     stat.get("now_rank", 0),                   # 49. stat_now_rank
                     stat.get("evaluation", ""),                # 50. stat_evaluation
-                    stat.get("vt", 0),                         # 51. stat_vt
                     dimension.get("width"),                    # 52. dimension_width
                     dimension.get("height"),                   # 53. dimension_height
                     dimension.get("rotate", 0),                # 54. dimension_rotate
@@ -670,7 +661,7 @@ def save_video_detail_to_db(data: Dict[str, Any]) -> None:
                     ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,   /* 1-20 */
                     ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,   /* 21-40 */
                     ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,   /* 41-60 */
-                    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?             /* 61-77 */
+                    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?                     /* 61-74 */
                 )"""
                 question_marks_count = values_clause.count('?')
                 logger.info(f"VALUES子句中的问号数量: {question_marks_count}")
@@ -698,12 +689,12 @@ def save_video_detail_to_db(data: Dict[str, Any]) -> None:
                     bvid, aid, videos, tid, tid_v2, tname, tname_v2, copyright, pic, title,
                     pubdate, ctime, desc, desc_v2, state, duration, mission_id, dynamic, cid,
                     season_id, premiere, teenage_mode, is_chargeable_season, is_story,
-                    is_upower_exclusive, is_upower_play, is_upower_preview, enable_vt, vt_display,
+                    is_upower_exclusive, is_upower_play, is_upower_preview,
                     is_upower_exclusive_with_qa, no_cache, is_season_display, like_icon,
                     need_jump_bv, disable_show_up_info, is_story_play, owner_mid, owner_name,
                     owner_face, stat_view, stat_danmaku, stat_reply, stat_favorite, stat_coin,
                     stat_share, stat_like, stat_dislike, stat_his_rank, stat_now_rank,
-                    stat_evaluation, stat_vt, dimension_width, dimension_height, dimension_rotate,
+                    stat_evaluation, dimension_width, dimension_height, dimension_rotate,
                     rights_bp, rights_elec, rights_download, rights_movie, rights_pay, rights_hd5,
                     rights_no_reprint, rights_autoplay, rights_ugc_pay, rights_is_cooperation,
                     rights_ugc_pay_preview, rights_no_background, rights_clean_mode,
@@ -713,7 +704,7 @@ def save_video_detail_to_db(data: Dict[str, Any]) -> None:
                     ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,   /* 1-20 */
                     ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,   /* 21-40 */
                     ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,   /* 41-60 */
-                    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?             /* 61-77 */
+                    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?                     /* 61-74 */
                 )
                 """, insert_params)
 
