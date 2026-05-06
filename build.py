@@ -24,7 +24,7 @@ def build(build_type):
     """执行打包过程
     
     Args:
-        build_type: "full" (含fasterwhisper)
+        build_type: "full"
     """
     try:
         # 获取虚拟环境路径
@@ -325,18 +325,6 @@ def create_spec(source_spec, target_spec, venv_site_packages=None):
                     f"pathex=[r'{venv_site_packages}', "
                 )
         
-        # 添加av模块和faster-whisper相关模块到hiddenimports列表
-        content = content.replace(
-            "'email_validator',",
-            "'email_validator',\n        'av',\n        'ctranslate2',\n        'tokenizers',\n        'faster_whisper',\n        'faster_whisper.audio',\n        'faster_whisper.tokenizer',\n        'faster_whisper.transcribe',\n        'faster_whisper.utils',\n        'faster_whisper.vad',\n        'faster_whisper.feature_extractor',"
-        )
-        
-        # 添加faster_whisper及其资产到datas列表，同时添加av和ctranslate2模块目录
-        content = content.replace(
-            "(os.path.join(venv_site_packages, 'yutto'), 'yutto'),",
-            "(os.path.join(venv_site_packages, 'yutto'), 'yutto'),\n        (os.path.join(venv_site_packages, 'av'), 'av'),\n        (os.path.join(venv_site_packages, 'ctranslate2'), 'ctranslate2'),\n        (os.path.join(venv_site_packages, 'tokenizers'), 'tokenizers'),\n        (os.path.join(venv_site_packages, 'faster_whisper/assets'), 'faster_whisper/assets'),\n        (os.path.join(venv_site_packages, 'faster_whisper'), 'faster_whisper'),"
-        )
-        
         # 清空excludes列表，不排除任何模块
         if "excludes=[" in content:
             # 完全清空excludes列表
@@ -463,7 +451,7 @@ def run_pyinstaller(spec_file, python_exe=None):
 
 def print_usage():
     print("使用方法: python build.py")
-    print("  将打包应用程序（支持fasterwhisper的完整版本）")
+    print("  将打包应用程序")
 
 def cleanup_sensitive_config():
     """清理config.yaml文件中的敏感信息，返回临时文件路径"""
@@ -493,8 +481,7 @@ def cleanup_sensitive_config():
             "email.sender": "example@example.com",
             "email.receiver": "example@example.com",
             "server.ssl_certfile": "path/to/cert.pem",
-            "server.ssl_keyfile": "path/to/key.pem",
-            "deepseek.api_key": "你的API密钥"
+            "server.ssl_keyfile": "path/to/key.pem"
         }
         
         # 将一些独立的顶级字段也加入检查
