@@ -396,3 +396,4 @@ target
 src-tauri/gen
 src-tauri/target
 /CLAUDE.md
+.ace-tool/
