@@ -541,28 +541,6 @@ export const getLoginStatus = () => {
   return instance.get('/login/check')
 }
 
-// 获取视频摘要
-export const getVideoSummary = (bvid, cid, upMid, forceRefresh = false) => {
-  return instance.get('/summary/get_summary', {
-    params: {
-      bvid,
-      cid,
-      up_mid: upMid,
-      force_refresh: forceRefresh
-    }
-  })
-}
-
-// 获取摘要配置
-export const getSummaryConfig = () => {
-  return instance.get('/summary/config')
-}
-
-// 更新摘要配置
-export const updateSummaryConfig = (config) => {
-  return instance.post('/summary/config', config)
-}
-
 // 批量删除历史记录
 export const batchDeleteHistory = (items) => {
   return instance.delete('/delete/batch-delete', {
@@ -883,89 +861,6 @@ export const testEmailConfig = (testData) => {
       console.error('测试邮件API错误:', error)
       throw error
     })
-}
-
-// 音频转文字相关接口
-export const checkAudioToTextEnvironment = () => {
-  return instance.get('/audio_to_text/check_environment')
-}
-
-// 检查系统资源
-export const checkSystemResources = () => {
-  return instance.get('/audio_to_text/resource_check')
-}
-
-// 获取可用的 Whisper 模型列表
-export const getWhisperModels = () => {
-  return instance.get('/audio_to_text/models')
-}
-
-// 查找音频文件路径
-export const findAudioPath = (cid) => {
-  return instance.get('/audio_to_text/find_audio', {
-    params: { cid }
-  })
-}
-
-// 检查语音转文字文件是否存在
-export const checkSttFile = (cid) => {
-  return instance.get('/audio_to_text/check_stt_file', {
-    params: { cid }
-  })
-}
-
-// 转录音频文件
-export const transcribeAudio = (params) => {
-  return instance.post('/audio_to_text/transcribe', params)
-}
-
-// 根据CID生成视频摘要
-export const summarizeByCid = (cid) => {
-  return instance.post('/summary/summarize_by_cid', {
-    cid
-  })
-}
-
-// 检查本地摘要文件
-export const checkLocalSummary = (cid, includeContent = true) => {
-  return instance.get(`/summary/check_local_summary/${cid}`, {
-    params: {
-      include_content: includeContent
-    }
-  })
-}
-
-// 下载指定的Whisper模型
-export const downloadWhisperModel = (modelSize) => {
-  return instance.post('/audio_to_text/download_model', null, {
-    params: {
-      model_size: modelSize
-    }
-  })
-}
-
-// 删除指定的Whisper模型
-export const deleteWhisperModel = (modelSize) => {
-  return instance.delete('/audio_to_text/models', {
-    data: {
-      model_size: modelSize
-    }
-  })
-}
-
-// DeepSeek相关接口
-export const checkDeepSeekApiKey = () => {
-  return instance.get('/deepseek/check_api_key')
-}
-
-export const setDeepSeekApiKey = (apiKey) => {
-  return instance.post('/deepseek/set_api_key', {
-    api_key: apiKey
-  })
-}
-
-export const getDeepSeekBalance = () => {
-  return instance.get('/deepseek/balance')
 }
 
 // API安全相关接口已移除
@@ -1597,18 +1492,6 @@ export const getInvalidVideos = (params = {}) => {
  */
 export const stopVideoDetailsFetch = () => {
   return instance.post('/video_details/stop')
-}
-/**
- * 获取视频观看时长信息（合集视频）
- * @param {Object} params 参数对象
- * @param {string} params.bvid 视频的bvid
- * @param {boolean} [params.use_sessdata=true] 是否使用登录状态查询
- * @returns {Promise<object>} 包含视频合集观看时长信息的响应
- */
-export const getVideoSeasonInfo = (params) => {
-  return instance.get('/download/video_season_info', {
-    params
-  })
 }
 
 /**

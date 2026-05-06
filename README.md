@@ -102,15 +102,10 @@ npm run dev
 <img src="./public/SingleVideo.png" alt="">
 <img src="./public/MultipleVideos.png" alt="">
 
-**9. 视频观看总时长** 查询合集级观看总时长、平均时长与完播率，可按列查看统计
-<img src="./public/viewtime.png" alt="">
 
-**10. 动态下载** 输入用户MID下载B站动态内容，实时显示下载进度
+**9. 动态下载** 输入用户MID下载B站动态内容，实时显示下载进度
 <img src="./public/dynamic.png" alt="">
 
-**11. 本地摘要功能** 基于本地语音转文字结合 DeepSeek 生成视频摘要，支持模型管理、环境检测与结果缓存。
-<img src="./public/LocalSummary.png" alt="">
-<img src="./public/DSSummary.png" alt="">
 
 ## 使用 Tauri 构建桌面应用
 
@@ -157,11 +152,8 @@ npm run dev
 
 - [bilibili-API-collect](https://github.com/SocialSisterYi/bilibili-API-collect) - 没有它就没有这个项目
 - [Yutto](https://yutto.nyakku.moe/) - 可爱的 B 站视频下载工具
-- [FasterWhisper](https://github.com/SYSTRAN/faster-whisper) - 音频转文字
-- [DeepSeek](https://github.com/deepseek-ai/DeepSeek-R1) - DeepSeek AI API
 - [ArtPlayer](https://github.com/zhw2590582/ArtPlayer) - 强大且灵活的 HTML5 视频播放器
 - [aicu.cc](https://www.aicu.cc/) - 第三方 B 站用户评论 API
-- [小黑盒用户 shengyI](https://www.xiaoheihe.cn/app/bbs/link/153880174) - 视频观看总时长功能思路提供者
 - 所有贡献者，特别感谢:
   - [@eli-yip](https://github.com/eli-yip) 对 Docker 部署的贡献
   - [@QYG2297248353](https://github.com/QYG2297248353) 对 1Panel 部署的贡献
