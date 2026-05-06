@@ -68,8 +68,8 @@
     <!-- 视频记录列表 -->
     <div v-else class="overflow-hidden">
       <transition name="float" mode="out-in">
-        <!-- 网格布局（仅PC端） -->
-        <div v-if="layout === 'grid'"
+        <!-- 网格布局（最小屏幕自动回退到列表） -->
+        <div v-if="activeLayout === 'grid'"
              class="hidden sm:grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 px-4 mx-auto transition-all duration-300 ease-in-out transform-gpu"
              style="max-width: 1152px;" key="grid-layout">
           <template v-for="(record, index) in records" :key="`grid-${record.id}-${record.view_at}`">
@@ -179,15 +179,6 @@
                             d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                     </svg>
                   </div>
-                  <!-- 详情按钮 - 只对普通视频类型显示 -->
-                  <div v-if="record.business === 'archive'"
-                       class="flex items-center justify-center w-7 h-7 bg-[#7d7c75]/60 backdrop-blur-sm hover:bg-[#7d7c75]/80 rounded-md cursor-pointer transition-all duration-200"
-                       @click.stop="openVideoDetail(record)">
-                    <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
                   <!-- 删除按钮 -->
                   <div
                     class="flex items-center justify-center w-7 h-7 bg-[#7d7c75]/60 backdrop-blur-sm hover:bg-[#7d7c75]/80 rounded-md cursor-pointer transition-all duration-200"
@@ -219,13 +210,6 @@
                          :style="{ width: getProgressWidth(record.progress, record.duration) }">
                     </div>
                   </div>
-                </div>
-                <!-- 右上角的类型角标 -->
-                <div
-                  v-if="record.badge"
-                  class="absolute right-1 top-1 rounded bg-[#FF6699] px-1 py-0.5 text-[10px] text-white"
-                >
-                  {{ record.badge }}
                 </div>
               </div>
               <!-- 视频信息 -->
@@ -285,8 +269,8 @@
           </template>
         </div>
 
-        <!-- 列表布局（移动端始终显示，PC端在list模式下显示） -->
-        <div v-else :class="{'sm:hidden': layout === 'grid'}"
+        <!-- 列表布局 -->
+        <div v-else
              class="transition-all duration-300 ease-in-out transform-gpu" key="list-layout">
           <template v-for="(record, index) in records" :key="`list-${record.id}-${record.view_at}`">
             <!-- 日期分割线和视频数量 -->
@@ -427,17 +411,6 @@
     </div>
   </div>
 
-  <!-- 视频详情对话框 -->
-  <Teleport to="body">
-    <VideoDetailDialog
-      :modelValue="showDetailDialog"
-      @update:modelValue="showDetailDialog = $event"
-      :video="selectedRecord"
-      :remarkData="remarkData"
-      @remark-updated="handleRemarkUpdate"
-    />
-  </Teleport>
-
   <!-- 下载弹窗 -->
   <Teleport to="body">
     <DownloadDialog
@@ -506,6 +479,7 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
+import { useMediaQuery } from '@vueuse/core'
 import {
   getBiliHistory2024,
   getMainCategories,
@@ -525,7 +499,6 @@ import { showNotify, showDialog } from 'vant'
 import 'vant/es/dialog/style'
 import VideoRecord from './VideoRecord.vue'
 import { usePrivacyStore } from '@/store/privacy.js'
-import VideoDetailDialog from './VideoDetailDialog.vue'
 import LoginDialog from './LoginDialog.vue'
 import DownloadDialog from './DownloadDialog.vue'
 import FavoriteDialog from './FavoriteDialog.vue'
@@ -581,6 +554,9 @@ const props = defineProps({
   },
 })
 
+const isSmallScreen = useMediaQuery('(max-width: 639px)')
+const activeLayout = computed(() => (isSmallScreen.value ? 'list' : props.layout))
+
 const emit = defineEmits([
   'update:total-pages',
   'update:total',
@@ -615,7 +591,6 @@ const selectedRecords = ref(new Set())
 
 // 在data区域添加
 const selectedRecord = ref(null)
-const showDetailDialog = ref(false)
 const showDownloadDialog = ref(false)
 const showFavoriteDialog = ref(false)
 const favoriteVideoInfo = ref(null) // 用于存储收藏相关的视频信息
@@ -1490,12 +1465,6 @@ const handleRemarkUpdate = (data) => {
     remark: data.remark,
     remark_time: data.remark_time,
   }
-}
-
-// 添加打开详情对话框的方法
-const openVideoDetail = (record) => {
-  selectedRecord.value = record
-  showDetailDialog.value = true
 }
 
 // 处理网格视图下载按钮点击

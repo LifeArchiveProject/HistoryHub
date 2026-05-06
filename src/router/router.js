@@ -10,6 +10,7 @@ import Downloads from '../components/tailwind/page/Downloads.vue'
 import MediaManager from '../components/tailwind/page/MediaManager.vue'
 import Favorites from '../components/tailwind/page/Favorites.vue'
 import BiliTools from '../components/tailwind/page/BiliTools.vue'
+import VideoActions from '../components/tailwind/page/VideoActions.vue'
 
 const routes = [
   {
@@ -93,6 +94,11 @@ const routes = [
         path: 'bili-tools',
         name: 'BiliTools',
         component: BiliTools
+      },
+      {
+        path: 'record/:bvid/:viewAt',
+        name: 'VideoActions',
+        component: VideoActions
       }
     ]
   }

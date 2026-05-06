@@ -25,7 +25,7 @@
         <div class="relative h-28 w-full overflow-hidden rounded-lg">
           <!-- 删除按钮 -->
           <div v-if="!isBatchMode"
-               class="absolute right-0 top-0 z-20 hidden group-hover:flex flex-row items-center justify-end pt-1 pr-1">
+               class="absolute right-0 top-0 z-20 hidden flex-row items-center justify-end pt-1 pr-1 sm:group-hover:flex">
             <div class="flex items-center justify-end space-x-2">
               <!-- 下载按钮 - 只对视频类型显示 -->
               <div v-if="record.business === 'archive'"
@@ -51,15 +51,6 @@
                    title="删除记录">
                 <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-              </div>
-              <!-- 详情按钮 - 只对普通视频类型显示 -->
-              <div v-if="record.business === 'archive'"
-                   class="flex items-center justify-center w-7 h-7 bg-[#7d7c75]/60 backdrop-blur-sm hover:bg-[#7d7c75]/80 rounded-md cursor-pointer transition-all duration-200"
-                   @click.stop="showDetailDialog = true"
-                   title="查看详情">
-                <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
             </div>
@@ -112,13 +103,6 @@
             :class="{ 'blur-md': isPrivacyMode }"
             alt=""
           />
-          <!-- 右上角的类型角标 -->
-          <div
-            v-if="record.badge"
-            class="absolute right-1 top-1 rounded bg-[#FF6699] px-1 py-0.5 text-[10px] font-semibold text-white"
-          >
-            {{ record.badge }}
-          </div>
         </div>
         <!-- 文章类型：作者信息、观看设备、时间放在封面图片下方 -->
         <div class="mt-2 flex items-center justify-between text-sm text-[#99a2aa] lm:text-xs">
@@ -233,13 +217,6 @@
               />
             </div>
           </div>
-          <!-- 右上角的类型角标 -->
-          <div
-            v-if="record.badge"
-            class="absolute right-1 top-1 rounded bg-[#FF6699] px-1 py-0.5 text-[10px] font-semibold text-white"
-          >
-            {{ record.badge }}
-          </div>
           <!-- 右下角的时间进度角标和进度条，仅当不是文章时显示 -->
           <div
             v-if="
@@ -268,7 +245,7 @@
         <div class="ml-2 flex flex-1 flex-col justify-between lm:text-sm lg:font-semibold relative">
           <!-- 删除按钮 -->
           <div v-if="!isBatchMode"
-               class="absolute right-0 top-0 z-20 hidden group-hover:flex flex-row items-center justify-end pt-1 pr-1">
+               class="absolute right-0 top-0 z-20 hidden flex-row items-center justify-end pt-1 pr-1 sm:group-hover:flex">
             <div class="flex items-center justify-end space-x-2">
               <!-- 下载按钮 - 只对视频类型显示 -->
               <div v-if="record.business === 'archive'"
@@ -294,15 +271,6 @@
                    title="删除记录">
                 <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-              </div>
-              <!-- 详情按钮 - 只对普通视频类型显示 -->
-              <div v-if="record.business === 'archive'"
-                   class="flex items-center justify-center w-7 h-7 bg-[#7d7c75]/60 backdrop-blur-sm hover:bg-[#7d7c75]/80 rounded-md cursor-pointer transition-all duration-200"
-                   @click.stop="showDetailDialog = true"
-                   title="查看详情">
-                <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
             </div>
@@ -413,21 +381,13 @@
       />
     </Teleport>
 
-    <!-- 视频详情对话框 -->
-    <Teleport to="body">
-      <VideoDetailDialog
-        :modelValue="showDetailDialog"
-        @update:modelValue="showDetailDialog = $event"
-        :video="record"
-        :remarkData="remarkData"
-        @remark-updated="$emit('remark-updated', $event)"
-      />
-    </Teleport>
   </div>
 </template>
 
 <script setup>
 import { computed, ref, onMounted, watch } from 'vue'
+import { useRouter } from 'vue-router'
+import { useMediaQuery } from '@vueuse/core'
 import { usePrivacyStore } from '../../store/privacy'
 import { showDialog, showNotify } from 'vant'
 import { batchDeleteHistory, updateVideoRemark, deleteBilibiliHistory } from '../../api/api'
@@ -435,11 +395,13 @@ import 'vant/es/dialog/style'
 import 'vant/es/popup/style'
 import 'vant/es/field/style'
 import DownloadDialog from './DownloadDialog.vue'
-import VideoDetailDialog from './VideoDetailDialog.vue'
 import { openInBrowser } from '@/utils/openUrl.js'
 import { normalizeImageUrl } from '@/utils/imageUrl.js'
+import { saveHistoryRecord } from '@/utils/historyRecordStore.js'
 
 const { isPrivacyMode } = usePrivacyStore()
+const router = useRouter()
+const isSmallScreen = useMediaQuery('(max-width: 639px)')
 
 const props = defineProps({
   record: {
@@ -486,7 +448,6 @@ const emit = defineEmits([
 const remarkContent = ref('')
 const originalRemark = ref('') // 用于存储原始备注内容
 const remarkTime = ref(null)
-const showDetailDialog = ref(false)
 
 // 高亮显示匹配的文本
 const highlightText = (text) => {
@@ -527,9 +488,22 @@ const highlightedAuthorName = computed(() => {
 const handleClick = () => {
   if (props.isBatchMode) {
     emit('toggle-selection', props.record)
+  } else if (isSmallScreen.value) {
+    navigateToActionPage()
   } else {
     handleContentClick()
   }
+}
+
+const navigateToActionPage = () => {
+  saveHistoryRecord(props.record)
+  router.push({
+    name: 'VideoActions',
+    params: {
+      bvid: props.record.bvid,
+      viewAt: String(props.record.view_at),
+    },
+  })
 }
 
 // 处理内容点击事件
