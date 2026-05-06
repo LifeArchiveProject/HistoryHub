@@ -275,12 +275,10 @@
             :date="date"
             :category="category"
             :total="total"
-            :pageSize="pageSize"
             @update:business="$emit('update:business', $event)"
             @update:businessLabel="$emit('update:businessLabel', $event)"
             @update:date="$emit('update:date', $event)"
             @update:category="$emit('update:category', $event)"
-            @update:pageSize="$emit('update:pageSize', $event)"
             @click-date="$emit('click-date')"
             @click-category="$emit('click-category')"
             @refresh-data="$emit('refresh-data')"
@@ -331,10 +329,6 @@ const props = defineProps({
   business: {
     type: String,
     default: ''
-  },
-  pageSize: {
-    type: Number,
-    default: 30
   }
 })
 
@@ -347,7 +341,6 @@ const emit = defineEmits([
   'update:category',
   'update:business',
   'update:businessLabel',
-  'update:pageSize',
   'refresh-data',
   'toggle-batch-mode'
 ])

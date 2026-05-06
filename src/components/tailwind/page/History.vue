@@ -9,7 +9,6 @@
       v-model:category="category"
       v-model:business="business"
       v-model:businessLabel="businessLabel"
-      v-model:pageSize="pageSize"
       :total="total"
       @click-date="show = true"
       :layout="layout"
@@ -53,7 +52,13 @@
 
         <!-- 分页组件 -->
         <div v-if="currentContent === 'history' && !showRemarks && total > 0" class="mx-auto mb-5 mt-8 max-w-4xl">
-          <Pagination :current-page="page" :total-pages="totalPages" :use-routing="true" />
+          <Pagination
+            :current-page="page"
+            :total-pages="totalPages"
+            :page-size="pageSize"
+            :use-routing="true"
+            @update:page-size="pageSize = $event"
+          />
         </div>
       </div>
     </div>
