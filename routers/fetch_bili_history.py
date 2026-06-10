@@ -8,6 +8,12 @@ from scripts.bilibili_history import fetch_history, find_latest_local_history, f
     load_cookie, get_invalid_videos_from_db
 from scripts.import_sqlite import import_all_history_files
 from scripts.utils import load_config, setup_logger
+from .interaction_records import (
+    InteractionSyncRequest,
+    has_interaction_history_import_completed,
+    import_interactions_to_history_once,
+    sync_interactions as run_interaction_sync,
+)
 
 # 确保日志系统已初始化
 setup_logger()
@@ -39,14 +45,80 @@ def get_headers():
     return headers
 
 
+def sync_interactions_safely(enabled: bool = True, import_to_history: bool = True) -> dict:
+    """自动补充互动记录；失败时返回错误信息但不影响历史同步主流程。"""
+    if not enabled:
+        return {
+            "status": "skipped",
+            "message": "Interaction sync skipped",
+        }
+    if has_interaction_history_import_completed():
+        return {
+            "status": "skipped",
+            "message": "Interaction supplement already imported; skip one-time interaction sync.",
+            "data": {
+                "history_import": {
+                    "status": "skipped",
+                    "message": "Interaction history supplement already imported.",
+                    "already_imported": True,
+                }
+            },
+        }
+
+    try:
+        request = InteractionSyncRequest(
+            include_favorites=True,
+            include_likes=True,
+            include_coins=True,
+            max_favorite_pages=0,
+            favorite_page_size=20,
+        )
+        sync_result = run_interaction_sync(request)
+        sync_result.setdefault("data", {})
+        if import_to_history:
+            sync_result["data"]["history_import"] = import_interactions_to_history_once()
+        else:
+            sync_result["data"]["history_import"] = {
+                "status": "deferred",
+                "message": "Interaction history import will run after SQLite history import.",
+            }
+        return sync_result
+    except Exception as e:
+        logger.exception("自动同步互动记录失败")
+        return {
+            "status": "error",
+            "message": f"Interaction sync failed: {str(e)}",
+        }
+
+
 @router.get("/bili-history", summary="获取B站历史记录")
-async def get_bili_history(output_dir: Optional[str] = "history_by_date", skip_exists: bool = True, process_video_details: bool = False):
+async def get_bili_history(
+    output_dir: Optional[str] = "history_by_date",
+    skip_exists: bool = True,
+    process_video_details: bool = False,
+    sync_interactions: bool = True,
+):
     """获取B站历史记录"""
     try:
         result = await fetch_history(output_dir, skip_exists, process_video_details)
+        interaction_result = None
+        if result.get("status") != "success":
+            return {
+                "status": "error",
+                "message": result.get("message", "获取历史记录失败"),
+                "data": result,
+            }
+
+        if result.get("status") == "success":
+            interaction_result = sync_interactions_safely(sync_interactions, import_to_history=False)
+            result["interaction_sync_result"] = interaction_result
+
+        message = "历史记录获取成功"
+        if interaction_result and interaction_result.get("status") == "success":
+            message += "，互动记录同步完成"
         return {
             "status": "success",
-            "message": "历史记录获取成功",
+            "message": message,
             "data": result
         }
     except Exception as e:
@@ -57,7 +129,11 @@ async def get_bili_history(output_dir: Optional[str] = "history_by_date", skip_e
 
 
 @router.get("/bili-history-realtime", summary="实时获取B站历史记录", response_model=ResponseModel)
-async def get_bili_history_realtime(sync_deleted: bool = False, process_video_details: bool = False):
+async def get_bili_history_realtime(
+    sync_deleted: bool = False,
+    process_video_details: bool = False,
+    sync_interactions: bool = True,
+):
     """实时获取B站历史记录"""
     try:
         # 获取最新的本地历史记录时间戳
@@ -108,6 +184,10 @@ async def get_bili_history_realtime(sync_deleted: bool = False, process_video_de
                 "processed": True
             }
 
+        interaction_result = None
+        if history_result.get("status") == "success":
+            interaction_result = sync_interactions_safely(sync_interactions, import_to_history=True)
+
         # 返回综合结果
         if history_result.get("status") == "success" and (not process_video_details or video_details_result.get("status") == "success"):
             message = "实时更新成功"
@@ -121,12 +201,18 @@ async def get_bili_history_realtime(sync_deleted: bool = False, process_video_de
             if process_video_details:
                 message += "。视频详情已在历史记录获取过程中处理"
 
+            if interaction_result and interaction_result.get("status") == "success":
+                message += "，互动记录同步完成"
+            elif interaction_result and interaction_result.get("status") == "error":
+                message += "，互动记录同步失败但不影响历史记录"
+
             return {
                 "status": "success",
                 "message": message,
                 "data": {
                     "history": history_result,
-                    "video_details": video_details_result.get("data", {})
+                    "video_details": video_details_result.get("data", {}),
+                    "interaction_sync": interaction_result,
                 }
             }
         else:
@@ -142,7 +228,8 @@ async def get_bili_history_realtime(sync_deleted: bool = False, process_video_de
                 "message": " | ".join(error_message),
                 "data": {
                     "history": history_result,
-                    "video_details": video_details_result.get("data", {})
+                    "video_details": video_details_result.get("data", {}),
+                    "interaction_sync": interaction_result,
                 }
             }
 

@@ -2196,6 +2196,21 @@ def collect_annual_summary_data(cursor, table_name: str, target_year: int) -> Di
         
         duration_analysis = analyze_duration_analysis(cursor, table_name)
         summary_data["statistics"]["duration_analysis"] = duration_analysis
+
+        try:
+            from .interaction_records import build_interaction_insights, collect_interaction_summary
+
+            interaction_summary = collect_interaction_summary(target_year)
+            summary_data["statistics"]["interactions"] = interaction_summary
+            summary_data["insights"]["interactions"] = build_interaction_insights(interaction_summary)
+        except Exception as interaction_error:
+            print(f"收集互动记录统计时出错: {str(interaction_error)}")
+            summary_data["statistics"]["interactions"] = {
+                "year": target_year,
+                "totals": {"total_records": 0, "unique_videos": 0, "supplement_videos": 0},
+                "source_counts": {"favorite": 0, "like": 0, "coin": 0},
+                "error": str(interaction_error),
+            }
         
         summary_data["insights"]["monthly"] = generate_monthly_insights(monthly_stats)
         summary_data["insights"]["weekly"] = generate_weekly_insights(weekly_stats)

@@ -39,6 +39,9 @@
 - [x] 获取收藏夹
   - [x] 批量收藏
   - [x] 一键下载收藏夹所有视频
+- [x] 获取互动记录
+  - [x] 获取历史记录时自动同步收藏/点赞/投币记录
+  - [x] 将互动数据补充到年度总结分析
 - [x] 最多找回14天内b站所有在屏幕上显示过的图片
 
 ## 后续开发计划
@@ -150,6 +153,14 @@ python main.py
 
 完整 API 文档访问：`http://localhost:8899/docs`
 
+### 互动记录补充
+
+获取历史记录时会自动补充同步收藏、点赞、投币记录，用于缓解 B 站观看历史仅保留近三个月的问题，并将可用互动数据加入年度总结分析。补充记录会在 SQLite 历史记录导入完成后一次性写入主历史库，前端历史记录页可以看到，标记为“互动补充”，备注会注明来源是收藏、点赞或投币。
+
+计划任务调用现有的历史记录获取/导入链路，因此也会触发互动记录补充。系统会检测主历史库中是否已存在“互动补充”记录，并记录导入状态；一旦导入过，后续同步和计划任务都会跳过，不会重复写入。
+
+说明：收藏夹内容接口支持分页并返回 `fav_time`，系统会不限年份同步所有可访问收藏内容；投币 Web 接口会返回已返回记录的投币时间；点赞 Web 接口主要是最近点赞视频列表，当前未发现可靠的全量历史分页和点赞时间字段。B 站用户信息接口中的注册时间字段当前文档说明通常返回 `0`，因此无法可靠按账号注册时间作为全量起点。
+
 ## 数据迁移指南
 
 **核心结论：迁移时只需要拷贝整个 `output` 目录到新环境即可。**
@@ -176,7 +187,7 @@ python main.py
 - `bilibili_history.db`：主历史记录数据库。
 - `video_details.db`：视频详情数据库。
 - `image_downloads.db`：图片下载记录数据库。
-- `database/`：业务分库集合（如 `bilibili_comments.db`、`bilibili_dynamic.db`、`bilibili_favorites.db`、`bilibili_popular_2025.db`、`bilibili_video_details.db`、`scheduler.db`）。
+- `database/`：业务分库集合（如 `bilibili_comments.db`、`bilibili_dynamic.db`、`bilibili_favorites.db`、`bilibili_interactions.db`、`bilibili_popular_2025.db`、`bilibili_video_details.db`、`scheduler.db`）。
 - `history_by_date/YYYY/MM/DD.json`：按日期归档的观看历史快照。
 - `api_responses/`：原始 API 响应缓存（便于重放/排错）。
 - `analytics/` 与根目录下的 `daily_count_*.json`、`monthly_count_*.json`：统计汇总结果。

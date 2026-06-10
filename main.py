@@ -42,7 +42,8 @@ from routers import (
     popular_analytics,
     bilibili_history_delete,
     video_details,
-    dynamic
+    dynamic,
+    interaction_records
 )
 from scripts.scheduler_db_enhanced import EnhancedSchedulerDB
 from scripts.scheduler_manager import SchedulerManager
@@ -417,6 +418,7 @@ app.include_router(popular_analytics.router, prefix="/popular", tags=["热门视
 app.include_router(bilibili_history_delete.router, prefix="/bilibili/history", tags=["B站历史记录删除"])
 app.include_router(video_details.router, prefix="/video_details", tags=["视频详情"])
 app.include_router(dynamic.router, prefix="/dynamic", tags=["用户动态"])
+app.include_router(interaction_records.router, prefix="/interactions", tags=["互动记录"])
 
 # 挂载静态目录，提供 output 下资源的访问（/static/ 相对路径）
 try:
