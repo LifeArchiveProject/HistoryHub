@@ -1,5 +1,5 @@
-from typing import Optional
-from fastapi import APIRouter, Body, HTTPException
+from typing import Any, Optional
+from fastapi import APIRouter, Body, HTTPException, Request
 from pydantic import BaseModel, EmailStr
 import yaml
 import os
@@ -13,6 +13,11 @@ def get_config_path():
     """获取配置文件路径"""
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     return os.path.join(base_dir, 'config', 'config.yaml')
+
+def get_mcp_skill_path():
+    """获取MCP配套skill文件路径"""
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    return os.path.join(base_dir, 'skills', 'bilibili-history-mcp', 'SKILL.md')
 
 def update_yaml_field(content: str, field_path: list, new_value: Optional[str]) -> str:
     """
@@ -53,6 +58,127 @@ class TestEmailRequest(BaseModel):
     to_email: Optional[EmailStr] = None  # 可选，如果为空则使用配置中的接收者邮箱
     subject: str = "测试邮件"
     content: str = "这是一封测试邮件，用于验证邮箱配置是否有效。"
+
+class McpConfigUpdate(BaseModel):
+    """MCP配置更新模型"""
+    enabled: bool
+
+def normalize_mcp_path(path: Optional[str]) -> str:
+    """规范化MCP挂载路径"""
+    normalized = (path or "/mcp").strip()
+    if not normalized.startswith("/"):
+        normalized = f"/{normalized}"
+    if len(normalized) > 1:
+        normalized = normalized.rstrip("/")
+    return normalized or "/mcp"
+
+def build_server_url(request: Request, server_config: dict[str, Any]) -> str:
+    """优先使用当前请求来源生成客户端可访问地址。"""
+    request_origin = str(request.base_url).rstrip("/")
+    if request_origin:
+        return request_origin
+
+    scheme = "https" if server_config.get("ssl_enabled") else "http"
+    host = server_config.get("host") or "127.0.0.1"
+    if host in {"0.0.0.0", "::", "[::]"}:
+        host = "127.0.0.1"
+
+    port = int(server_config.get("port", 8899))
+    if ":" in host and not host.startswith("["):
+        host = f"[{host}]"
+    return f"{scheme}://{host}:{port}"
+
+def build_mcp_config_response(
+    config: dict[str, Any],
+    request: Request,
+    restart_required: bool = False
+) -> dict[str, Any]:
+    """构造前端设置页需要的MCP配置。"""
+    server_config = config.get("server", {}) or {}
+    mcp_config = server_config.get("mcp", {}) or {}
+    path = normalize_mcp_path(mcp_config.get("path", "/mcp"))
+    server_url = build_server_url(request, server_config)
+    mcp_url = f"{server_url}{path if path == '/' else path + '/'}"
+    token = os.environ.get("BHF_MCP_TOKEN") or mcp_config.get("token")
+    skill_content = ""
+    skill_path = get_mcp_skill_path()
+    if os.path.exists(skill_path):
+        with open(skill_path, 'r', encoding='utf-8') as f:
+            skill_content = f.read()
+
+    return {
+        "status": "success",
+        "enabled": bool(mcp_config.get("enabled", False)),
+        "path": path,
+        "auth_enabled": bool(mcp_config.get("auth_enabled", True)),
+        "token": token or "",
+        "token_configured": bool(token),
+        "max_page_size": int(mcp_config.get("max_page_size", 100)),
+        "server_url": server_url,
+        "mcp_url": mcp_url,
+        "skill_content": skill_content,
+        "restart_required": restart_required
+    }
+
+def get_line_indent(line: str) -> int:
+    """获取YAML行缩进宽度。"""
+    return len(line) - len(line.lstrip(" "))
+
+def is_yaml_key(line: str, key: str, indent: Optional[int] = None) -> bool:
+    """判断某行是否为指定缩进层级的YAML键。"""
+    stripped = line.strip()
+    if not stripped or stripped.startswith("#"):
+        return False
+    if indent is not None and get_line_indent(line) != indent:
+        return False
+    return bool(re.match(rf"^{re.escape(key)}\s*:", stripped))
+
+def find_block_end(lines: list[str], start_index: int, parent_indent: int) -> int:
+    """查找YAML块结束位置，返回可插入的行下标。"""
+    for index in range(start_index + 1, len(lines)):
+        stripped = lines[index].strip()
+        if stripped and get_line_indent(lines[index]) <= parent_indent:
+            return index
+    return len(lines)
+
+def update_mcp_enabled_field(content: str, enabled: bool) -> str:
+    """只更新server.mcp.enabled，尽量保持配置文件其他内容不变。"""
+    enabled_value = str(enabled).lower()
+    lines = content.split("\n")
+
+    server_index = next((i for i, line in enumerate(lines) if is_yaml_key(line, "server", 0)), None)
+    if server_index is None:
+        if lines and lines[-1].strip():
+            lines.append("")
+        lines.extend(["server:", "  mcp:", f"    enabled: {enabled_value}"])
+        return "\n".join(lines)
+
+    server_indent = get_line_indent(lines[server_index])
+    server_end = find_block_end(lines, server_index, server_indent)
+    mcp_indent = server_indent + 2
+    enabled_indent = mcp_indent + 2
+
+    mcp_index = next(
+        (i for i in range(server_index + 1, server_end) if is_yaml_key(lines[i], "mcp", mcp_indent)),
+        None
+    )
+    if mcp_index is None:
+        lines.insert(server_end, f"{' ' * mcp_indent}mcp:")
+        lines.insert(server_end + 1, f"{' ' * enabled_indent}enabled: {enabled_value}")
+        return "\n".join(lines)
+
+    mcp_end = find_block_end(lines, mcp_index, mcp_indent)
+    enabled_index = next(
+        (i for i in range(mcp_index + 1, mcp_end) if is_yaml_key(lines[i], "enabled", enabled_indent)),
+        None
+    )
+    if enabled_index is None:
+        lines.insert(mcp_index + 1, f"{' ' * enabled_indent}enabled: {enabled_value}")
+    else:
+        current_indent = lines[enabled_index][:get_line_indent(lines[enabled_index])]
+        lines[enabled_index] = f"{current_indent}enabled: {enabled_value}"
+
+    return "\n".join(lines)
 
 @router.get("/email-config", summary="获取邮件配置")
 async def get_email_config():
@@ -193,4 +319,49 @@ async def send_test_email(request: TestEmailRequest):
         raise HTTPException(
             status_code=500,
             detail=f"发送测试邮件失败: {str(e)}"
-        ) 
+        )
+
+@router.get("/mcp-config", summary="获取MCP配置")
+async def get_mcp_config(request: Request):
+    """获取当前MCP配置，供前端设置页生成连接提示词。"""
+    try:
+        config = load_config()
+        return build_mcp_config_response(config, request)
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"获取MCP配置失败: {str(e)}"
+        )
+
+@router.post("/mcp-config", summary="更新MCP开关配置")
+async def update_mcp_config(request_data: McpConfigUpdate, request: Request):
+    """
+    更新MCP启用状态。
+
+    MCP请求会实时读取配置，因此开关保存后立即生效。
+    """
+    try:
+        config_path = get_config_path()
+        with open(config_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+            config = yaml.safe_load(content) or {}
+
+        server_config = config.setdefault("server", {})
+        mcp_config = server_config.setdefault("mcp", {})
+        updated_content = update_mcp_enabled_field(content, request_data.enabled)
+        with open(config_path, 'w', encoding='utf-8') as f:
+            f.write(updated_content)
+
+        mcp_config["enabled"] = request_data.enabled
+        response = build_mcp_config_response(
+            config,
+            request,
+            restart_required=False
+        )
+        response["message"] = "MCP配置已更新"
+        return response
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"更新MCP配置失败: {str(e)}"
+        )
