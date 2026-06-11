@@ -518,3 +518,4 @@ Temporary Items
 /.vscode/
 /.idea/.gitignore
 /.claude/
+.ace-tool/
