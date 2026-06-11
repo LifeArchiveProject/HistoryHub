@@ -3,7 +3,7 @@ import os
 import sys
 import traceback
 import warnings
-from contextlib import asynccontextmanager
+from contextlib import AsyncExitStack, asynccontextmanager
 from datetime import datetime
 
 # 忽略jieba库中的无效转义序列警告
@@ -246,11 +246,33 @@ setup_logging()
 
 # 全局调度器实例
 scheduler_manager = None
+mcp_session_manager = None
+
+
+def setup_mcp_mount(app: FastAPI):
+    """挂载只读 MCP 服务，并由中间件按配置实时控制访问。"""
+    try:
+        from mcp_server import create_mcp_app, get_mcp_config
+
+        mcp_config = get_mcp_config()
+        mcp_app, session_manager = create_mcp_app(mcp_config)
+        app.mount(mcp_config["path"], mcp_app)
+        logger.info(
+            f"已挂载 MCP 服务: {mcp_config['path']}，当前状态: "
+            f"{'启用' if mcp_config['enabled'] else '禁用'}"
+        )
+        return session_manager
+    except ImportError as e:
+        logger.warning(f"MCP 服务依赖未安装，已跳过挂载: {e}")
+        return None
+    except Exception as e:
+        logger.warning(f"MCP 服务挂载失败，已跳过: {e}")
+        return None
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """应用生命周期管理"""
-    global scheduler_manager
+    global scheduler_manager, mcp_session_manager
 
     logger.info("正在启动应用...")
 
@@ -277,6 +299,9 @@ async def lifespan(app: FastAPI):
 
         # 加载配置并决定是否执行数据完整性校验
         current_config = load_config()
+        if mcp_session_manager:
+            logger.info("正在启动 MCP 会话管理器...")
+
         check_on_startup = current_config.get('server', {}).get('data_integrity', {}).get('check_on_startup', True)
         if check_on_startup:
             logger.info("正在执行启动时数据完整性校验...")
@@ -296,10 +321,15 @@ async def lifespan(app: FastAPI):
         else:
             logger.info("已跳过启动时数据完整性校验")
 
-        logger.success("=== 应用启动完成 ===")
-        logger.info(f"启动时间: {datetime.now().isoformat()}")
+        async with AsyncExitStack() as stack:
+            if mcp_session_manager:
+                await stack.enter_async_context(mcp_session_manager.run())
+                logger.info("MCP 会话管理器已启动")
 
-        yield
+            logger.success("=== 应用启动完成 ===")
+            logger.info(f"启动时间: {datetime.now().isoformat()}")
+
+            yield
 
         # 关闭时
         logger.info("\n=== 应用关闭阶段 ===")
@@ -366,9 +396,11 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="Bilibili History Analyzer",
     description="一个用于分析和导出Bilibili观看历史的API",
-    version="1.0.0",
+    version="1.7.0",
     lifespan=lifespan
 )
+
+mcp_session_manager = setup_mcp_mount(app)
 
 # 添加启动状态端点
 @app.get("/health")

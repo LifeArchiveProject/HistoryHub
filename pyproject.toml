@@ -1,6 +1,6 @@
 [project]
 name = "bilibilihistoryfetcher"
-version = "0.1.0"
+version = "1.7.0"
 description = "Bilibili History Fetcher"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -12,12 +12,13 @@ dependencies = [
   "jieba~=0.42.1",
   "jinja2~=3.1.5",
   "loguru>=0.7.2",
+  "mcp[cli]>=1.27.2",
   "numpy~=1.26.4",
   "openpyxl~=3.1.5",
   "pandas~=2.2.3",
   "pillow~=10.2.0",
   "psutil>=5.9.0",
-  "pydantic~=2.10.6",
+  "pydantic>=2.11,<3",
   "pyecharts~=2.0.8",
   "pyinstaller>=6.12.0",
   "pymysql~=1.1.1",

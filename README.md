@@ -153,6 +153,51 @@ python main.py
 
 完整 API 文档访问：`http://localhost:8899/docs`
 
+## MCP 局域网只读服务
+
+项目内置一个只读 MCP 服务，方便局域网内的其他 AI 客户端读取本地 B 站历史记录、统计分析、视频详情和任务状态。MCP 默认复用现有 FastAPI 服务，地址为：
+
+```text
+http://<服务所在机器IP>:8899/mcp/
+```
+
+配置位于 `config/config.yaml` 的 `server.mcp`：
+
+```yaml
+server:
+  mcp:
+    enabled: true
+    path: "/mcp"
+    auth_enabled: true
+    token: "替换为你的随机token"
+    max_page_size: 100
+```
+
+客户端需要携带请求头：
+
+```text
+Authorization: Bearer <token>
+```
+
+也可以通过环境变量 `BHF_MCP_TOKEN` 覆盖配置文件中的 token，适合不想把 token 写入配置文件的部署方式。
+
+MCP v1 只开放读取能力，包括项目状态、可用年份、历史记录分页查询、历史搜索、年度总结、观看行为分析、标题分析、互动记录、视频详情、计划任务状态和数据健康报告。同步、下载、删除、登录、重置数据库、配置修改等有副作用的能力不会通过 MCP 暴露。
+
+内置 Resources：
+- `bili://project/overview`：项目能力概览。
+- `bili://project/tool-guide`：MCP 工具使用指南。
+- `bili://project/data-status`：当前数据目录和可用年份状态。
+- `bili://project/privacy-policy`：隐私、脱敏和禁止操作说明。
+
+常用 Tools：
+- `get_project_status`、`list_available_years`
+- `query_history_records`、`search_history_records`、`get_history_by_cid`
+- `get_daily_count`、`get_annual_summary`、`get_viewing_analytics`、`get_title_analytics`
+- `get_interaction_summary`、`query_interaction_records`、`get_interaction_status`
+- `get_video_detail`、`search_video_details`、`get_video_detail_stats`
+- `get_scheduler_tasks`、`get_scheduler_history`
+- `get_data_integrity_report`、`get_sync_result`、`get_local_data_inventory`
+
 ### 互动记录补充
 
 获取历史记录时会自动补充同步收藏、点赞、投币记录，用于缓解 B 站观看历史仅保留近三个月的问题，并将可用互动数据加入年度总结分析。补充记录会在 SQLite 历史记录导入完成后一次性写入主历史库，前端历史记录页可以看到，标记为“互动补充”，备注会注明来源是收藏、点赞或投币。

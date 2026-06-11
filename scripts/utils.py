@@ -46,7 +46,7 @@ def setup_logger(log_level: str = "INFO") -> Dict:
     logger.remove()
 
     # 配置全局上下文信息
-    logger.configure(extra={"app_name": "BilibiliHistoryFetcher", "version": "1.0.0"})
+    logger.configure(extra={"app_name": "BilibiliHistoryFetcher", "version": "1.7.0"})
 
     # 添加控制台处理器（仅INFO级别以上，只显示消息，无时间戳等）
     logger.add(
