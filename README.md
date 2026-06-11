@@ -67,7 +67,9 @@
    docker run -d -v ./config:/app/config -v ./output:/app/output -p 8899:8899 --name bilibili-api ghcr.io/lifearchiveproject/bili-history-fetcher:latest
    ```
 
-   提示：为统一镜像命名，后端镜像后续使用 `ghcr.io/lifearchiveproject/bili-history-fetcher`；如你当前拉取不到该镜像名，请先使用旧镜像名 `ghcr.io/lifearchiveproject/bilibili-history-fetcher`，并在后续更新为新镜像名（旧镜像名会继续同步推送一段时间以兼容历史脚本）。
+   提示：仓库迁移到 `LifeArchiveProject` 后，后端镜像使用 `ghcr.io/lifearchiveproject/bili-history-fetcher`。`ghcr.io/woijfwefw/...` 属于历史个人账号命名空间，不再作为推荐安装来源。
+
+   如果拉取 `ghcr.io/lifearchiveproject/...` 提示 `denied` 或 `unauthorized`，请在 GitHub Packages 中将对应容器包的 visibility 调整为 Public。GHCR 新发布的容器包默认可能是 Private，公开后才能匿名拉取。
 
    标签说明：
    - CPU：`latest` 或 `vX.Y.Z`
@@ -95,12 +97,12 @@
 1. 确保已安装 [Docker](https://docs.docker.com/get-started/get-docker/) 和 [Docker Compose](https://docs.docker.com/compose/install/)
 
 2. 下载 `docker-compose.yml` 文件（CPU 基础版）：
-   - 直接从[这里](https://raw.githubusercontent.com/LifeArchiveProject/HistoryHub/master/docker-compose.yml)下载
+   - 直接从[这里](https://raw.githubusercontent.com/LifeArchiveProject/BilibiliHistoryFetcher/master/docker-compose.yml)下载
    - 或使用以下命令下载：
       ```bash
-      curl -O https://raw.githubusercontent.com/LifeArchiveProject/HistoryHub/master/docker-compose.yml
+      curl -O https://raw.githubusercontent.com/LifeArchiveProject/BilibiliHistoryFetcher/master/docker-compose.yml
       # 或
-      wget https://raw.githubusercontent.com/LifeArchiveProject/HistoryHub/master/docker-compose.yml
+      wget https://raw.githubusercontent.com/LifeArchiveProject/BilibiliHistoryFetcher/master/docker-compose.yml
       ```
 
 3. 使用 Docker Compose 启动服务：

@@ -12,8 +12,8 @@ permissions:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository_owner }}/bili-history-fetcher
-  LEGACY_IMAGE_NAME: ${{ github.repository_owner }}/bilibili-history-fetcher
+  IMAGE_NAME: lifearchiveproject/bili-history-fetcher
+  LEGACY_IMAGE_NAME: lifearchiveproject/bilibili-history-fetcher
 
 jobs:
   build-and-push:
