@@ -850,6 +850,31 @@ export const updateEmailConfig = (config) => {
     })
 }
 
+// MCP配置相关接口
+export const getMcpConfig = () => {
+  return instance.get('/config/mcp-config')
+    .then(response => {
+      console.log('MCP配置API响应成功:', response)
+      return response
+    })
+    .catch(error => {
+      console.error('MCP配置API错误:', error)
+      throw error
+    })
+}
+
+export const updateMcpConfig = (config) => {
+  return instance.post('/config/mcp-config', config)
+    .then(response => {
+      console.log('更新MCP配置API响应成功:', response)
+      return response
+    })
+    .catch(error => {
+      console.error('更新MCP配置API错误:', error)
+      throw error
+    })
+}
+
 // 测试邮件配置
 export const testEmailConfig = (testData) => {
   return instance.post('/config/test-email', testData)

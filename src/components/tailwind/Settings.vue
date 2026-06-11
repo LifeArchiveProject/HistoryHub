@@ -61,6 +61,124 @@
                 </div>
               </div>
 
+              <!-- MCP配置 -->
+              <div class="p-3 transition-colors duration-200 hover:bg-gray-50 dark:hover:bg-gray-700 md:p-4">
+                <div class="flex items-start justify-between gap-3">
+                  <div class="min-w-0 flex-1">
+                    <h3 class="text-[13px] font-medium text-gray-900 dark:text-gray-100 md:text-base">MCP局域网只读服务</h3>
+                    <p class="mt-0.5 text-[10px] text-gray-500 dark:text-gray-400 md:mt-0 md:text-sm">允许其他AI客户端通过MCP读取本地历史记录，开关保存后立即生效</p>
+                  </div>
+                  <label
+                    class="relative inline-flex shrink-0 items-center"
+                    :class="(isMcpConfigLoading || isMcpConfigSaving || !mcpConfigAvailable) ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'"
+                  >
+                    <input
+                      type="checkbox"
+                      v-model="mcpConfig.enabled"
+                      class="peer sr-only"
+                      :disabled="isMcpConfigLoading || isMcpConfigSaving || !mcpConfigAvailable"
+                      @change="handleMcpEnabledChange"
+                    >
+                    <div class="peer h-6 w-11 rounded-full bg-gray-200 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:translate-x-0 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-[#fb7299] peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:ring-4 peer-focus:ring-[#fb7299]/20 dark:bg-gray-600"></div>
+                  </label>
+                </div>
+
+                <div v-if="mcpConfigAvailable" class="mt-3 space-y-3">
+                  <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
+                    <div>
+                      <label class="mb-1 block text-[12px] font-medium text-gray-700 dark:text-gray-300 md:text-sm">MCP URL</label>
+                      <div class="flex gap-2">
+                        <input
+                          :value="mcpUrl"
+                          readonly
+                          type="text"
+                          class="block min-w-0 flex-1 rounded-md border-gray-300 bg-gray-50 text-[11px] shadow-sm focus:border-[#fb7299] focus:ring-[#fb7299] dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100 md:text-sm"
+                        />
+                        <button
+                          @click="copyText(mcpUrl, 'MCP URL')"
+                          class="inline-flex shrink-0 items-center justify-center rounded-lg bg-[#fb7299]/5 px-2.5 py-2 text-[11px] font-medium text-[#fb7299] hover:bg-[#fb7299]/10 dark:bg-[#fb7299]/10 dark:hover:bg-[#fb7299]/20 md:text-sm"
+                          title="复制MCP URL"
+                        >
+                          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label class="mb-1 block text-[12px] font-medium text-gray-700 dark:text-gray-300 md:text-sm">Bearer Token</label>
+                      <div class="flex gap-2">
+                        <input
+                          :value="mcpConfig.token"
+                          readonly
+                          type="password"
+                          class="block min-w-0 flex-1 rounded-md border-gray-300 bg-gray-50 text-[11px] shadow-sm focus:border-[#fb7299] focus:ring-[#fb7299] dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100 md:text-sm"
+                          placeholder="未配置Token"
+                        />
+                        <button
+                          @click="copyText(mcpConfig.token, 'Bearer Token')"
+                          :disabled="!mcpConfig.token"
+                          class="inline-flex shrink-0 items-center justify-center rounded-lg bg-[#fb7299]/5 px-2.5 py-2 text-[11px] font-medium text-[#fb7299] hover:bg-[#fb7299]/10 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-[#fb7299]/10 dark:hover:bg-[#fb7299]/20 md:text-sm"
+                          title="复制Bearer Token"
+                        >
+                          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div class="mb-1 flex items-center justify-between gap-2">
+                      <label class="block text-[12px] font-medium text-gray-700 dark:text-gray-300 md:text-sm">AI连接提示词</label>
+                      <button
+                        @click="copyText(mcpConnectionPrompt, 'AI连接提示词')"
+                        class="inline-flex shrink-0 items-center rounded-lg bg-[#fb7299]/5 px-2.5 py-1.5 text-[11px] font-medium text-[#fb7299] hover:bg-[#fb7299]/10 dark:bg-[#fb7299]/10 dark:hover:bg-[#fb7299]/20 md:text-sm"
+                      >
+                        <svg class="mr-1 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        </svg>
+                        复制提示词
+                      </button>
+                    </div>
+                    <textarea
+                      :value="mcpConnectionPrompt"
+                      readonly
+                      rows="9"
+                      class="block w-full resize-y rounded-md border-gray-300 bg-gray-50 text-[11px] leading-5 shadow-sm focus:border-[#fb7299] focus:ring-[#fb7299] dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100 md:text-sm"
+                    ></textarea>
+                  </div>
+
+                  <div>
+                    <div class="mb-1 flex items-center justify-between gap-2">
+                      <label class="block text-[12px] font-medium text-gray-700 dark:text-gray-300 md:text-sm">配套 Skill</label>
+                      <button
+                        @click="copyText(mcpConfig.skill_content, '配套 Skill')"
+                        :disabled="!mcpConfig.skill_content"
+                        class="inline-flex shrink-0 items-center rounded-lg bg-[#fb7299]/5 px-2.5 py-1.5 text-[11px] font-medium text-[#fb7299] hover:bg-[#fb7299]/10 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-[#fb7299]/10 dark:hover:bg-[#fb7299]/20 md:text-sm"
+                      >
+                        <svg class="mr-1 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        </svg>
+                        复制 Skill
+                      </button>
+                    </div>
+                    <textarea
+                      :value="mcpConfig.skill_content || '后端未找到配套 Skill 文件'"
+                      readonly
+                      rows="11"
+                      class="block w-full resize-y rounded-md border-gray-300 bg-gray-50 text-[11px] leading-5 shadow-sm focus:border-[#fb7299] focus:ring-[#fb7299] dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100 md:text-sm"
+                    ></textarea>
+                  </div>
+                </div>
+
+                <p v-else-if="!isMcpConfigLoading" class="mt-2 text-[10px] text-amber-600 dark:text-amber-300 md:text-sm">
+                  当前后端暂不支持MCP配置接口，请更新并重启后端后再使用。
+                </p>
+              </div>
+
               <!-- 图片源设置 -->
               <div class="p-3 transition-colors duration-200 hover:bg-gray-50 dark:hover:bg-gray-700 md:p-4">
                 <div class="flex items-center justify-between gap-3">
@@ -472,6 +590,8 @@ import {
   importSqliteData,
   getEmailConfig,
   updateEmailConfig,
+  getMcpConfig,
+  updateMcpConfig,
   testEmailConfig as testEmailApi,
   getIntegrityCheckConfig,
   updateIntegrityCheckConfig
@@ -532,6 +652,65 @@ const DEFAULT_EMAIL_CONFIG = {
   receiver: ''
 }
 const emailConfig = ref({ ...DEFAULT_EMAIL_CONFIG })
+
+const DEFAULT_MCP_CONFIG = {
+  enabled: false,
+  path: '/mcp',
+  auth_enabled: true,
+  token: '',
+  token_configured: false,
+  max_page_size: 100,
+  server_url: '',
+  mcp_url: '',
+  skill_content: '',
+  restart_required: false
+}
+const mcpConfig = ref({ ...DEFAULT_MCP_CONFIG })
+const mcpConfigAvailable = ref(false)
+const isMcpConfigLoading = ref(true)
+const isMcpConfigSaving = ref(false)
+
+const trimTrailingSlash = (value) => (value || '').trim().replace(/\/+$/, '')
+
+const normalizeMcpPath = (path) => {
+  let normalizedPath = (path || '/mcp').trim()
+  if (!normalizedPath.startsWith('/')) {
+    normalizedPath = `/${normalizedPath}`
+  }
+  if (normalizedPath.length > 1) {
+    normalizedPath = normalizedPath.replace(/\/+$/, '')
+  }
+  return normalizedPath || '/mcp'
+}
+
+const mcpUrl = computed(() => {
+  const baseUrl = trimTrailingSlash(serverUrl.value || mcpConfig.value.server_url || getCurrentBaseUrl())
+  const path = normalizeMcpPath(mcpConfig.value.path)
+  return path === '/' ? `${baseUrl}/` : `${baseUrl}${path}/`
+})
+
+const mcpConnectionPrompt = computed(() => {
+  const authLine = mcpConfig.value.auth_enabled
+    ? `Authorization: Bearer ${mcpConfig.value.token || '<token>'}`
+    : 'Authorization: not required'
+
+  return [
+    '请通过 MCP Streamable HTTP 连接我的 BilibiliHistoryFetcher 只读服务。',
+    '',
+    `MCP URL: ${mcpUrl.value}`,
+    authLine,
+    '',
+    '连接后请先读取以下 Resources：',
+    '- bili://project/overview',
+    '- bili://project/data-status',
+    '- bili://project/tool-guide',
+    '',
+    '使用规则：',
+    '- 这是只读 MCP，不要请求同步、下载、删除、登录、重置数据库或修改配置。',
+    '- 查询明细时必须分页，优先使用统计/摘要工具，再按需读取 records。',
+    '- 观看历史属于隐私数据，只在当前任务需要时读取。'
+  ].join('\n')
+})
 
 // 隐私模式
 const { isPrivacyMode, setPrivacyMode } = usePrivacyStore()
@@ -705,6 +884,11 @@ onMounted(async () => {
         console.log('开始初始化邮件配置')
         await initEmailConfig()
         console.log('邮件配置初始化完成')
+      })(),
+      (async () => {
+        console.log('开始初始化MCP配置')
+        await initMcpConfig()
+        console.log('MCP配置初始化完成')
       })(),
       (async () => {
         console.log('开始获取可用年份')
@@ -1018,6 +1202,107 @@ const initEmailConfig = async () => {
       message: '获取邮件配置失败，使用默认配置'
     })
     emailConfig.value = { ...DEFAULT_EMAIL_CONFIG }
+  }
+}
+
+// 初始化MCP配置
+const initMcpConfig = async () => {
+  isMcpConfigLoading.value = true
+  try {
+    const response = await getMcpConfig()
+    if (response.data && response.data.status === 'success') {
+      mcpConfig.value = {
+        ...DEFAULT_MCP_CONFIG,
+        ...response.data,
+        path: normalizeMcpPath(response.data.path)
+      }
+      mcpConfigAvailable.value = true
+    } else {
+      throw new Error(response.data?.message || '获取MCP配置失败')
+    }
+  } catch (error) {
+    console.error('获取MCP配置失败:', error)
+    mcpConfig.value = { ...DEFAULT_MCP_CONFIG }
+    mcpConfigAvailable.value = false
+  } finally {
+    isMcpConfigLoading.value = false
+  }
+}
+
+// 保存MCP开关配置
+const handleMcpEnabledChange = async () => {
+  if (isMcpConfigSaving.value) return
+
+  const nextEnabled = mcpConfig.value.enabled
+  isMcpConfigSaving.value = true
+
+  try {
+    const response = await updateMcpConfig({ enabled: nextEnabled })
+    if (response.data && response.data.status === 'success') {
+      mcpConfig.value = {
+        ...mcpConfig.value,
+        ...response.data,
+        path: normalizeMcpPath(response.data.path)
+      }
+      mcpConfigAvailable.value = true
+      showNotify({
+        type: response.data.restart_required ? 'warning' : 'success',
+        message: response.data.restart_required ? 'MCP配置已保存，重启后端后生效' : 'MCP配置已保存，已立即生效'
+      })
+    } else {
+      throw new Error(response.data?.message || '保存MCP配置失败')
+    }
+  } catch (error) {
+    console.error('保存MCP配置失败:', error)
+    mcpConfig.value.enabled = !nextEnabled
+    showNotify({
+      type: 'danger',
+      message: `保存MCP配置失败：${error.message || '未知错误'}`
+    })
+  } finally {
+    isMcpConfigSaving.value = false
+  }
+}
+
+const fallbackCopyText = (text) => {
+  const textarea = document.createElement('textarea')
+  textarea.value = text
+  textarea.setAttribute('readonly', '')
+  textarea.style.position = 'fixed'
+  textarea.style.left = '-9999px'
+  document.body.appendChild(textarea)
+  textarea.select()
+  const copied = document.execCommand('copy')
+  document.body.removeChild(textarea)
+  return copied
+}
+
+// 复制MCP连接信息
+const copyText = async (text, label = '内容') => {
+  if (!text) {
+    showNotify({
+      type: 'warning',
+      message: `${label}为空，无法复制`
+    })
+    return
+  }
+
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text)
+    } else if (!fallbackCopyText(text)) {
+      throw new Error('复制失败，请手动复制')
+    }
+    showNotify({
+      type: 'success',
+      message: `${label}已复制`
+    })
+  } catch (error) {
+    console.error('复制失败:', error)
+    showNotify({
+      type: 'danger',
+      message: error.message || '复制失败，请手动复制'
+    })
   }
 }
 
