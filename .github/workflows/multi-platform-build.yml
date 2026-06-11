@@ -2,6 +2,11 @@ name: 多平台构建
 
 on:
   workflow_dispatch:  # 允许手动触发
+    inputs:
+      tag:
+        description: '需要重建/发布的 Git tag，例如 v1.7.0'
+        required: false
+        type: string
   push:
     tags:
       - 'v*'  # 在推送标签时触发，标签格式如 v1.0.0
@@ -19,6 +24,8 @@ jobs:
     steps:
     - name: 检出代码
       uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.inputs.tag || github.ref }}
 
     - name: 设置Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5
@@ -231,12 +238,15 @@ jobs:
     name: 创建发布
     needs: build
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/')
+    if: startsWith(github.ref, 'refs/tags/') || (github.event_name == 'workflow_dispatch' && github.event.inputs.tag != '')
+    permissions:
+      contents: write
 
     steps:
     - name: 检出代码
       uses: actions/checkout@v4
       with:
+        ref: ${{ github.event.inputs.tag || github.ref }}
         fetch-depth: 0  # 获取完整历史记录
 
     - name: 下载所有构建产物
@@ -250,7 +260,7 @@ jobs:
       id: get_previous_tag
       run: |
         # 获取当前标签排序后的前一个标签
-        CURRENT_TAG="${{ github.ref_name }}"
+        CURRENT_TAG="${{ github.event.inputs.tag || github.ref_name }}"
         PREVIOUS_TAG=$(git tag --sort=-version:refname | grep -A 1 "^$CURRENT_TAG$" | tail -n 1)
         
         # 如果当前标签就是最早的标签，则使用初始提交
@@ -265,15 +275,16 @@ jobs:
     - name: 生成提交日志
       id: generate_changelog
       run: |
-        echo "正在生成从 ${{ steps.get_previous_tag.outputs.previous_tag }} 到 ${{ github.ref_name }} 的提交日志"
+        CURRENT_TAG="${{ github.event.inputs.tag || github.ref_name }}"
+        echo "正在生成从 ${{ steps.get_previous_tag.outputs.previous_tag }} 到 ${CURRENT_TAG} 的提交日志"
         
         # 使用不同的格式直接生成所需格式的提交日志
         {
-          echo "## ${{ github.ref_name }} 更新内容"
+          echo "## ${CURRENT_TAG} 更新内容"
           echo ""
           
           # 使用git log直接格式化输出，避免复杂的解析
-          git log "${{ steps.get_previous_tag.outputs.previous_tag }}..${{ github.ref_name }}" --pretty=format:"* %s in [\`%h\`](https://github.com/${{ github.repository }}/commit/%H)" --reverse
+          git log "${{ steps.get_previous_tag.outputs.previous_tag }}..${CURRENT_TAG}" --pretty=format:"* %s in [\`%h\`](https://github.com/${{ github.repository }}/commit/%H)" --reverse
           
         } > release_notes.md
         
@@ -289,11 +300,10 @@ jobs:
     - name: 创建GitHub发布
       uses: softprops/action-gh-release@v2
       with:
+        tag_name: ${{ github.event.inputs.tag || github.ref_name }}
         files: |
           ./BilibiliHistoryFetcher-windows-latest/BilibiliHistoryFetcher-windows.zip
           ./BilibiliHistoryFetcher-macos-latest/BilibiliHistoryFetcher-macos.zip
           ./BilibiliHistoryFetcher-ubuntu-latest/BilibiliHistoryFetcher-linux.zip
-        name: Release ${{ github.ref_name }}
+        name: Release ${{ github.event.inputs.tag || github.ref_name }}
         body: ${{ steps.generate_changelog.outputs.changelog }}
-      env:
-        GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
