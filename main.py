@@ -396,7 +396,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="Bilibili History Analyzer",
     description="一个用于分析和导出Bilibili观看历史的API",
-    version="1.7.0",
+    version="1.7.1",
     lifespan=lifespan
 )
 

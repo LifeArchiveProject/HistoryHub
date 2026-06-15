@@ -109,7 +109,8 @@ def get_headers(sessdata: Optional[str] = None) -> Dict[str, str]:
 
     cookies = []
     if sessdata:
-        cookies.append(f"SESSDATA={str(sessdata).strip('\"')}")
+        clean_sessdata = str(sessdata).strip('"')
+        cookies.append(f"SESSDATA={clean_sessdata}")
 
     for key in ("bili_jct", "DedeUserID", "DedeUserID__ckMd5"):
         value = current_config.get(key, "")
