@@ -31,7 +31,7 @@ def update_yaml_field(content: str, field_path: list, new_value: Optional[str]) 
     # 构建YAML路径的正则表达式
     indent = ' ' * (2 * (len(field_path) - 1))  # YAML标准缩进
     field = field_path[-1]
-    pattern = f"^{indent}{field}:.*$"
+    pattern = f"^{indent}{re.escape(field)}:.*$"
     
     # 处理多行内容
     lines = content.split('\n')
@@ -42,6 +42,36 @@ def update_yaml_field(content: str, field_path: list, new_value: Optional[str]) 
             else:
                 lines[i] = f"{indent}{field}: {new_value}"
             break
+    else:
+        # 如果字段不存在且传入了有效值，则插入到父级 YAML 节点末尾。
+        # 这用于为旧配置文件补充新增字段，例如 email.auth_username。
+        if new_value is None or new_value == "":
+            return content
+
+        new_line = f"{indent}{field}: {new_value}"
+
+        if len(field_path) == 1:
+            lines.append(new_line)
+        else:
+            parent_indent = ' ' * (2 * (len(field_path) - 2))
+            parent_field = field_path[-2]
+            parent_pattern = f"^{parent_indent}{re.escape(parent_field)}:.*$"
+
+            for parent_index, line in enumerate(lines):
+                if re.match(parent_pattern, line, re.MULTILINE):
+                    insert_index = parent_index + 1
+                    while insert_index < len(lines):
+                        current_line = lines[insert_index]
+                        if current_line.strip() == "":
+                            break
+                        current_indent = len(current_line) - len(current_line.lstrip(' '))
+                        if current_indent <= len(parent_indent):
+                            break
+                        insert_index += 1
+                    lines.insert(insert_index, new_line)
+                    break
+            else:
+                lines.append(new_line)
     
     return '\n'.join(lines)
 
@@ -50,6 +80,7 @@ class EmailConfig(BaseModel):
     smtp_server: Optional[str] = None
     smtp_port: Optional[int] = None
     sender: Optional[EmailStr] = None
+    auth_username: Optional[str] = None
     password: Optional[str] = None
     receiver: Optional[EmailStr] = None
 
@@ -190,6 +221,7 @@ async def get_email_config():
             "smtp_server": email_config.get('smtp_server'),
             "smtp_port": email_config.get('smtp_port'),
             "sender": email_config.get('sender'),
+            "auth_username": email_config.get('auth_username') or email_config.get('username'),
             "receiver": email_config.get('receiver'),
             "password": email_config.get('password')  # 返回明文密码
         }
@@ -201,9 +233,11 @@ async def get_email_config():
 
 @router.post("/email-config", summary="更新邮件配置")
 async def update_email_config(
+    request: Request,
     smtp_server: Optional[str] = Body(default=...),
     smtp_port: Optional[int] = Body(default=...),
     sender: Optional[str] = Body(default=...),  # 改为str类型以接受空字符串
+    auth_username: Optional[str] = Body(default=None),
     password: Optional[str] = Body(default=...),
     receiver: Optional[str] = Body(default=...)  # 改为str类型以接受空字符串
 ):
@@ -213,10 +247,13 @@ async def update_email_config(
     - **smtp_server**: SMTP服务器地址，可以为空
     - **smtp_port**: SMTP服务器端口，可以为空
     - **sender**: 发件人邮箱，可以为空
+    - **auth_username**: SMTP认证用户名，可选；为空则使用发件人邮箱
     - **password**: 邮箱授权码，可以为空
     - **receiver**: 收件人邮箱，可以为空
     """
     try:
+        request_body = await request.json()
+
         # 读取当前配置文件内容
         config_path = get_config_path()
         with open(config_path, 'r', encoding='utf-8') as f:
@@ -241,6 +278,11 @@ async def update_email_config(
             value = f'"{sender}"' if sender else None
             content = update_yaml_field(content, ['email', 'sender'], value)
             email_config['sender'] = sender
+
+        if 'auth_username' in request_body:
+            value = f'"{auth_username}"' if auth_username else None
+            content = update_yaml_field(content, ['email', 'auth_username'], value)
+            email_config['auth_username'] = auth_username
             
         if password is not ...:
             value = f'"{password}"' if password else None
@@ -263,6 +305,7 @@ async def update_email_config(
                 "smtp_server": email_config.get('smtp_server'),
                 "smtp_port": email_config.get('smtp_port'),
                 "sender": email_config.get('sender'),
+                "auth_username": email_config.get('auth_username') or email_config.get('username'),
                 "receiver": email_config.get('receiver'),
                 "password": email_config.get('password')  # 返回明文密码
             }

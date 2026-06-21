@@ -80,11 +80,13 @@ async def send_email(subject: str, content: Optional[str] = None, to_email: Opti
     logger.info(f"准备发送邮件: {subject}")
     try:
         config = load_config()
-        smtp_server = config.get('email', {}).get('smtp_server', 'smtp.qq.com')
-        smtp_port = config.get('email', {}).get('smtp_port', 587)
-        sender_email = config.get('email', {}).get('sender')
-        sender_password = config.get('email', {}).get('password')
-        receiver_email = to_email or config.get('email', {}).get('receiver')
+        email_config = config.get('email', {})
+        smtp_server = email_config.get('smtp_server', 'smtp.qq.com')
+        smtp_port = email_config.get('smtp_port', 587)
+        sender_email = email_config.get('sender')
+        auth_username = email_config.get('auth_username') or email_config.get('username') or sender_email
+        sender_password = email_config.get('password')
+        receiver_email = to_email or email_config.get('receiver')
 
         if not all([sender_email, sender_password, receiver_email]):
             logger.error("邮件配置不完整，请检查配置文件")
@@ -133,7 +135,7 @@ async def send_email(subject: str, content: Optional[str] = None, to_email: Opti
             # 智能认证：先尝试认证，失败则判断是否需要认证
             try:
                 # 直接尝试登录认证（适用于大部分标准SMTP服务器）
-                server.login(sender_email, sender_password)
+                server.login(auth_username, sender_password)
                 logger.info("身份认证成功")
                 
             except smtplib.SMTPNotSupportedError:

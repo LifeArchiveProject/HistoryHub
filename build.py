@@ -479,6 +479,7 @@ def cleanup_sensitive_config():
             "DedeUserID__ckMd5": "你的DedeUserID__ckMd5",
             "email.password": "你的邮箱授权码",
             "email.sender": "example@example.com",
+            "email.auth_username": "example@example.com",
             "email.receiver": "example@example.com",
             "server.ssl_certfile": "path/to/cert.pem",
             "server.ssl_keyfile": "path/to/key.pem"
