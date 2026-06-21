@@ -1,6 +1,6 @@
 {
   "name": "bilibilihistoryfrontend",
-  "version": "1.6.0",
+  "version": "1.6.1",
   "description": "获取Bili历史记录应用",
   "author": "46",
   "type": "module",

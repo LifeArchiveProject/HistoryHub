@@ -351,6 +351,18 @@
                       />
                     </div>
                     <div>
+                      <label class="block text-[12px] font-medium text-gray-700 dark:text-gray-300 md:text-sm mb-1">SMTP认证用户名（可选）</label>
+                      <input
+                        v-model="emailConfig.auth_username"
+                        type="text"
+                        class="block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 shadow-sm focus:border-[#fb7299] focus:ring-[#fb7299] text-[11px] md:text-sm"
+                        placeholder="为空则使用发件人邮箱"
+                      />
+                      <p class="mt-1 text-[10px] text-gray-500 dark:text-gray-400 md:text-xs">
+                        QQ邮箱通常留空；Resend等服务可填写独立认证用户名。
+                      </p>
+                    </div>
+                    <div>
                       <label class="block text-[12px] font-medium text-gray-700 dark:text-gray-300 md:text-sm mb-1">邮箱授权码</label>
                       <input
                         v-model="emailConfig.password"
@@ -648,6 +660,7 @@ const DEFAULT_EMAIL_CONFIG = {
   smtp_server: 'smtp.qq.com',
   smtp_port: 587,
   sender: '',
+  auth_username: '',
   password: '',
   receiver: ''
 }
