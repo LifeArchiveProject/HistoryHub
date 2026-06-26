@@ -850,6 +850,19 @@ export const updateEmailConfig = (config) => {
     })
 }
 
+// Apprise推送配置相关接口
+export const getAppriseConfig = () => {
+  return instance.get('/config/apprise-config')
+}
+
+export const updateAppriseConfig = (config) => {
+  return instance.post('/config/apprise-config', config)
+}
+
+export const testApprisePush = (testData) => {
+  return instance.post('/config/test-apprise', testData)
+}
+
 // MCP配置相关接口
 export const getMcpConfig = () => {
   return instance.get('/config/mcp-config')

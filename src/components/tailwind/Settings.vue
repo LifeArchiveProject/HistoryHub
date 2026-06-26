@@ -377,6 +377,13 @@
             </div>
           </section>
 
+          <!-- Apprise推送配置 -->
+          <section v-if="activeTab === 'basic'">
+            <div class="divide-y divide-gray-200 border-y border-gray-200 bg-white dark:divide-gray-700 dark:border-gray-700 dark:bg-gray-800 md:rounded-lg md:border md:border-x">
+              <ApriseSettings />
+            </div>
+          </section>
+
           <!-- 数据管理 -->
           <section v-if="activeTab === 'data'">
             <div class="divide-y divide-gray-200 border-y border-gray-200 bg-white dark:divide-gray-700 dark:border-gray-700 dark:bg-gray-800 md:rounded-lg md:border md:border-x">
@@ -608,6 +615,7 @@ import {
   getIntegrityCheckConfig,
   updateIntegrityCheckConfig
 } from '../../api/api'
+import ApriseSettings from './ApriseSettings.vue'
 import { setBaseUrl, getCurrentBaseUrl } from '../../api/api'
 import { usePrivacyStore } from '../../store/privacy'
 import { showDialog } from 'vant'
