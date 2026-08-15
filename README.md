@@ -358,4 +358,4 @@ BilibiliHistoryAnalyzer.exe
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=2977094657/BilibiliHistoryFetcher&type=Date)](https://star-history.com/#2977094657/BilibiliHistoryFetcher&Date)
+[![Star History Chart](https://star-history.dera.page/svg?repos=2977094657/BilibiliHistoryFetcher&type=Date)](https://star-history.dera.page/#2977094657/BilibiliHistoryFetcher&Date)
