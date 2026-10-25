@@ -1,5 +1,4 @@
 import os
-import sqlite3
 import sys
 from datetime import datetime
 from typing import Dict, Any
@@ -46,7 +45,7 @@ def setup_logger(log_level: str = "INFO") -> Dict:
     logger.remove()
 
     # 配置全局上下文信息
-    logger.configure(extra={"app_name": "BilibiliHistoryFetcher", "version": "1.7.0"})
+    logger.configure(extra={"app_name": "HistoryHub", "version": "1.7.2"})
 
     # 添加控制台处理器（仅INFO级别以上，只显示消息，无时间戳等）
     logger.add(
@@ -163,14 +162,6 @@ def load_config() -> Dict[str, Any]:
         with open(config_path, 'r', encoding='utf-8') as f:
             config = yaml.safe_load(f)
 
-        # 验证邮件配置
-        email_config = config.get('email', {})
-        required_fields = ['smtp_server', 'smtp_port', 'sender', 'password', 'receiver']
-        missing_fields = [field for field in required_fields if not email_config.get(field)]
-
-        if missing_fields:
-            raise ValueError(f"邮件配置缺少必要字段: {', '.join(missing_fields)}")
-
         return config
     except Exception as e:
         logger.error(f"加载配置文件失败: {str(e)}")
@@ -201,59 +192,3 @@ def get_output_path(*paths: str) -> str:
     os.makedirs(os.path.dirname(full_path), exist_ok=True)
 
     return full_path
-
-def get_database_path(*paths: str) -> str:
-    """
-    获取数据库文件路径
-    Args:
-        *paths: 路径片段
-    Returns:
-        完整的数据库路径
-    """
-    # 总是使用exe所在目录（或项目根目录）作为基础路径
-    base_path = get_base_path()
-
-    # 基础数据库目录
-    database_dir = os.path.join(base_path, 'output', 'database')
-
-    # 创建基础数据库目录
-    if not os.path.exists(database_dir):
-        os.makedirs(database_dir)
-
-    # 组合完整路径
-    full_path = os.path.join(database_dir, *paths)
-
-    # 确保父目录存在
-    parent_dir = os.path.dirname(full_path)
-    if parent_dir != database_dir:  # 避免重复创建database_dir
-        os.makedirs(parent_dir, exist_ok=True)
-
-    return full_path
-
-def get_logs_path() -> str:
-    """
-    获取当前日期的日志文件路径
-    
-    根据当前日期动态生成日志文件路径，与setup_logger函数中的动态路径格式保持一致
-    
-    Returns:
-        str: 当前日期对应的日志文件路径
-    """
-    current_time = datetime.now()
-    year = str(current_time.year)
-    month = f"{current_time.month:02d}"
-    day = f"{current_time.day:02d}"
-    
-    # 构建与setup_logger中动态路径格式一致的路径
-    log_path = f"output/logs/{year}/{month}/{day}/{day}.log"
-    
-    # 确保日志目录存在
-    log_dir = os.path.dirname(log_path)
-    os.makedirs(log_dir, exist_ok=True)
-    
-    return log_path
-
-def get_db():
-    """获取数据库连接"""
-    db_path = get_database_path('bilibili_history.db')
-    return sqlite3.connect(db_path)

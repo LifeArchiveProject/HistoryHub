@@ -72,18 +72,6 @@ def build(build_type):
             else:
                 print(f"{file}: {'存在' if exists else '不存在'}")
         
-        # 确保 yutto.exe 存在
-        if os.name == 'nt':  # Windows
-            yutto_exe = os.path.join('.venv', 'Scripts', 'yutto.exe')
-            if not os.path.exists(yutto_exe):
-                raise FileNotFoundError(f"找不到 yutto.exe: {yutto_exe}")
-            print(f"\n找到 yutto.exe: {yutto_exe}")
-        else:  # Linux/macOS
-            yutto_exe = os.path.join('.venv', 'bin', 'yutto')
-            if not os.path.exists(yutto_exe):
-                raise FileNotFoundError(f"找不到 yutto: {yutto_exe}")
-            print(f"\n找到 yutto: {yutto_exe}")
-        
         # 确定包管理工具 (uv或pip)
         use_uv = False
         uv_path = os.path.join('.venv', 'Scripts', 'uv.exe') if os.name == 'nt' else os.path.join('.venv', 'bin', 'uv')
@@ -112,33 +100,6 @@ def build(build_type):
                 subprocess.run([python_exe, '-m', 'pip', 'install', 'pyinstaller'])
             print("\n已安装 PyInstaller")
         
-        # 确保psutil版本一致 - 尝试安装与应用要求相同的版本
-        print("\n检查psutil版本...")
-        try:
-            # 检查代码中需要的psutil版本
-            with open('requirements.txt', 'r') as f:
-                requirements = f.read()
-            
-            # 查找psutil版本要求
-            psutil_req = None
-            for line in requirements.splitlines():
-                if line.strip().startswith('psutil'):
-                    psutil_req = line.strip()
-                    break
-            
-            if psutil_req:
-                print(f"应用需要的psutil版本: {psutil_req}")
-                # 根据包管理工具安装指定版本的psutil
-                if use_uv:
-                    subprocess.run([uv_path, 'pip', 'install', psutil_req, '--force'])
-                else:
-                    subprocess.run([python_exe, '-m', 'pip', 'install', psutil_req, '--force-reinstall'])
-                print(f"已安装psutil: {psutil_req}")
-            else:
-                print("在requirements.txt中未找到psutil版本要求")
-        except Exception as e:
-            print(f"检查/安装psutil过程中出错: {str(e)}")
-            
         # 确保 app.spec 存在
         if not os.path.exists('app.spec'):
             # 创建基本的spec文件
@@ -151,7 +112,6 @@ def build(build_type):
                 makespec_cmd = [
                     python_exe, '-m', 'PyInstaller',
                     '--name=HistoryHubBackend',
-                    '--add-binary', f"{yutto_exe}{path_sep}.",
                     '--add-data', f"config/*{path_sep}config", 
                     '--add-data', f"scripts{path_sep}scripts",
                     '--add-data', f"routers{path_sep}routers",
@@ -189,16 +149,11 @@ def build(build_type):
         # 创建临时配置目录
         os.makedirs(clean_config_dir)
         
-        # 1. 复制所有非敏感配置文件到临时目录
-        import glob
+        # 1. 复制历史记录功能使用的配置文件
         import shutil  # 确保在这里导入shutil
-        for config_file in glob.glob(os.path.join(original_config_dir, '*')):
-            file_name = os.path.basename(config_file)
-            # 跳过敏感文件和备份文件
-            if file_name.endswith('.bak') or file_name == 'config.yaml':
-                continue
-            if os.path.isfile(config_file):
-                shutil.copy2(config_file, os.path.join(clean_config_dir, file_name))
+        for file_name in ('categories.json', 'sql_statements_sqlite.py'):
+            config_file = os.path.join(original_config_dir, file_name)
+            shutil.copy2(config_file, os.path.join(clean_config_dir, file_name))
         
         # 2. 创建清理过敏感信息的配置文件
         clean_config_file = cleanup_sensitive_config()
@@ -235,16 +190,7 @@ def build(build_type):
                 print("\n打包失败！")
                 return False
             
-            # 复制 yutto.exe 到输出目录
             dist_dir = os.path.join('dist', 'HistoryHubBackend')
-            if os.path.exists(yutto_exe) and os.path.exists(dist_dir):
-                try:
-                    shutil.copy2(yutto_exe, dist_dir)
-                    print(f"\n已复制 yutto.exe 到 {dist_dir}")
-                except Exception as e:
-                    print(f"\n复制 yutto.exe 时出错: {e}")
-            else:
-                print(f"\n警告: 无法复制yutto.exe - 目标目录 {dist_dir} 不存在")
             
             # 复制配置文件到应用根目录
             if os.path.exists(dist_dir):
@@ -295,22 +241,6 @@ def create_spec(source_spec, target_spec, venv_site_packages=None):
             content = content.replace('routers;routers', 'routers:routers')
             content = content.replace('main.py;.', 'main.py:.')
             
-            # 处理yutto.exe的路径
-            content = content.replace('yutto.exe;.', 'yutto:.')
-            
-            # 特别针对yutto_exe路径进行处理，确保在非Windows平台上正确
-            if sys.platform.startswith('darwin'): # macOS
-                yutto_dir = os.path.join(os.getcwd(), '.venv', 'bin')
-                content = content.replace(
-                    "yutto_exe = os.path.join(os.getcwd(), '.venv', 'Scripts', 'yutto.exe')",
-                    f"yutto_exe = os.path.join(os.getcwd(), '.venv', 'bin', 'yutto')"
-                )
-            elif sys.platform.startswith('linux'):
-                yutto_dir = os.path.join(os.getcwd(), '.venv', 'bin')
-                content = content.replace(
-                    "yutto_exe = os.path.join(os.getcwd(), '.venv', 'Scripts', 'yutto.exe')",
-                    f"yutto_exe = os.path.join(os.getcwd(), '.venv', 'bin', 'yutto')"
-                )
         
         # 添加虚拟环境路径到pathex
         if venv_site_packages and os.path.exists(venv_site_packages):
@@ -454,96 +384,38 @@ def print_usage():
     print("  将打包应用程序")
 
 def cleanup_sensitive_config():
-    """清理config.yaml文件中的敏感信息，返回临时文件路径"""
+    """创建只含历史记录功能配置且不含凭据的临时文件。"""
     config_path = os.path.join('config', 'config.yaml')
     temp_config_path = os.path.join('config', 'config_temp.yaml')
-    
+
     if not os.path.exists(config_path):
         print(f"\n警告: 找不到配置文件 {config_path}")
         return None
-    
+
     try:
-        # 行处理方式 - 保留原始格式和注释
-        with open(config_path, 'r', encoding='utf-8') as f:
-            lines = f.readlines()
-        
-        # 先读取YAML获取结构信息，用于识别敏感字段
         with open(config_path, 'r', encoding='utf-8') as f:
             config = yaml.safe_load(f)
-        
-        # 敏感字段路径列表和对应的示例值
-        sensitive_fields = {
-            "SESSDATA": "你的SESSDATA",
-            "bili_jct": "你的bili_jct",
-            "DedeUserID": "你的DedeUserID",
-            "DedeUserID__ckMd5": "你的DedeUserID__ckMd5",
-            "email.password": "你的邮箱授权码",
-            "email.sender": "example@example.com",
-            "email.auth_username": "example@example.com",
-            "email.receiver": "example@example.com",
-            "server.ssl_certfile": "path/to/cert.pem",
-            "server.ssl_keyfile": "path/to/key.pem",
-            "browser_history.sync_token": ""
+
+        server = config.get('server', {})
+        clean_config = {
+            'SESSDATA': '',
+            'bili_jct': '',
+            'DedeUserID': '',
+            'DedeUserID__ckMd5': '',
+            'db_file': config['db_file'],
+            'browser_history': {'sync_token': ''},
+            'server': {
+                key: server[key]
+                for key in ('host', 'port', 'ssl_enabled')
+                if key in server
+            },
         }
-        
-        # 将一些独立的顶级字段也加入检查
-        for field in ['SESSDATA', 'bili_jct', 'DedeUserID', 'DedeUserID__ckMd5', 'email', 'ssl_certfile', 'ssl_keyfile', 'api_key']:
-            if field in config and not isinstance(config[field], dict) and field not in sensitive_fields:
-                sensitive_fields[field] = f"你的{field}"
-        
-        # 处理每一行，根据冒号和缩进识别敏感字段
-        new_lines = []
-        for line in lines:
-            # 跳过注释和空行
-            if line.strip().startswith('#') or not line.strip():
-                new_lines.append(line)
-                continue
-            
-            # 检查当前行是否包含敏感字段
-            matching_sensitive_field = None
-            
-            # 计算当前行的缩进级别
-            indent_level = len(line) - len(line.lstrip())
-            field_line = line.strip()
-            
-            # 如果行包含冒号，可能是一个字段定义
-            if ':' in field_line:
-                field_name = field_line.split(':', 1)[0].strip()
-                
-                # 构建完整路径来检查是否匹配敏感字段
-                for sensitive_path, example_value in sensitive_fields.items():
-                    # 检查是否是叶子节点或完整匹配
-                    path_parts = sensitive_path.split('.')
-                    if field_name == path_parts[-1]: 
-                        # 潜在匹配，保存找到的敏感字段
-                        matching_sensitive_field = sensitive_path
-                        break
-            
-            if matching_sensitive_field and ':' in line:
-                # 获取示例值
-                example_value = sensitive_fields.get(matching_sensitive_field, "示例值")
-                
-                # 保持原始缩进和键名，但将值替换为示例值
-                key_part = line.split(':', 1)[0] + ': '
-                remainder = line.split(':', 1)[1]
-                
-                # 如果值部分只包含简单值，则替换为示例值
-                if not remainder.strip().startswith('{') and not remainder.strip().startswith('['):
-                    new_line = key_part + f'"{example_value}"' + '\n'
-                    new_lines.append(new_line)
-                else:
-                    # 对于复杂结构，保持不变
-                    new_lines.append(line)
-            else:
-                new_lines.append(line)
-        
-        # 始终写入临时文件，无论是否修改
-        print("\n清理配置文件中的敏感信息...")
+        clean_config['server'].update(ssl_certfile='', ssl_keyfile='')
+
         with open(temp_config_path, 'w', encoding='utf-8') as f:
-            f.writelines(new_lines)
-        print("临时配置文件已创建，敏感信息已替换为示例值")
+            yaml.safe_dump(clean_config, f, allow_unicode=True, sort_keys=False)
+        print("临时配置文件已创建，认证信息已清空")
         return temp_config_path
-        
     except Exception as e:
         print(f"\n清理配置文件时出错: {e}")
         import traceback
@@ -600,8 +472,7 @@ def post_build_copy(dist_dir):
             f.write("配置文件说明\n")
             f.write("===========\n\n")
             f.write("所有配置文件位于 _internal/config 目录中\n")
-            f.write("- config.yaml: 主配置文件，包含B站认证、邮件、API等配置\n")
-            f.write("- scheduler_config.yaml: 计划任务配置文件\n")
+            f.write("- config.yaml: 主配置文件，包含B站认证、浏览器同步与服务配置\n")
         
         print(f"已创建配置说明文件: {readme_path}")
         return True
