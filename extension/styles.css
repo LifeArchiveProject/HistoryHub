@@ -1,0 +1,23 @@
+:root { color-scheme: light dark; font-family: system-ui, "Microsoft YaHei", sans-serif; color: #1f2937; background: #f3f5f8; }
+body { margin: 0; }
+main { box-sizing: border-box; max-width: 660px; margin: 48px auto; padding: 32px; border: 1px solid #dbe1e8; border-radius: 12px; background: #fff; }
+h1 { margin: 0 0 12px; font-size: 28px; }
+p { line-height: 1.7; }
+form { margin-top: 24px; }
+label { display: block; margin: 18px 0 8px; font-weight: 600; }
+input { box-sizing: border-box; width: 100%; padding: 11px 12px; font: inherit; color: inherit; border: 1px solid #aab4c2; border-radius: 6px; background: transparent; }
+input:focus { outline: 2px solid #2874dd; outline-offset: 1px; }
+.hint { color: #667085; font-size: 13px; }
+.actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
+button { padding: 10px 18px; font: inherit; border: 1px solid #2463bc; border-radius: 6px; color: #fff; background: #2463bc; cursor: pointer; }
+button.secondary { color: inherit; background: transparent; border-color: #aab4c2; }
+button:disabled { opacity: .55; cursor: default; }
+#status { margin-bottom: 0; }
+#notice { color: #bd3535; margin-bottom: 0; }
+@media (max-width: 660px) { main { margin: 16px; padding: 24px; } }
+@media (prefers-color-scheme: dark) {
+  :root { color: #e5e7eb; background: #151a22; }
+  main { background: #202733; border-color: #3e4858; }
+  .hint { color: #a8b3c4; }
+  #notice { color: #ff9999; }
+}

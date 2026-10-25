@@ -234,7 +234,7 @@ wheels = [
 ]
 
 [[package]]
-name = "bilibilihistoryfetcher"
+name = "historyhub"
 version = "1.7.2"
 source = { virtual = "." }
 dependencies = [

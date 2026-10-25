@@ -1,0 +1,11 @@
+{
+  "manifest_version": 3,
+  "name": "HistoryHub",
+  "version": "1.0.0",
+  "description": "将 Chrome 当前保留的浏览历史同步到自己的 HistoryHub 后端。",
+  "permissions": ["history", "storage", "alarms"],
+  "optional_host_permissions": ["http://*/*", "https://*/*"],
+  "background": { "service_worker": "background.js" },
+  "options_page": "options.html",
+  "action": { "default_title": "HistoryHub 同步设置" }
+}

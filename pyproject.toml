@@ -1,7 +1,7 @@
 [project]
-name = "bilibilihistoryfetcher"
+name = "historyhub"
 version = "1.7.2"
-description = "Bilibili History Fetcher"
+description = "HistoryHub personal browsing and viewing history"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
