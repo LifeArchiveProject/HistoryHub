@@ -1,6 +1,6 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
-  "productName": "BiliBili History Frontend",
+  "productName": "HistoryHub",
   "version": "1.6.1",
   "identifier": "com.ab46.history",
   "build": {
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "BiliBili History Frontend",
+        "title": "HistoryHub",
         "width": 1024,
         "height": 768,
         "resizable": true,

@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HistoryHub 同步设置</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main>
+    <h1>HistoryHub</h1>
+    <p>将 Chrome 浏览历史同步到自己的后端。首次开启会导入浏览器当前仍保留的 HTTP / HTTPS 访问，之后自动同步新增访问。</p>
+    <form id="settings-form" novalidate>
+      <label for="backend-url">后端地址</label>
+      <input id="backend-url" type="url" required placeholder="http://127.0.0.1:8899" spellcheck="false">
+      <label for="token">后端令牌</label>
+      <input id="token" type="password" required autocomplete="off" spellcheck="false">
+      <p class="hint">设置和同步进度只保存在此浏览器。保存时仅请求访问所填后端地址的权限。</p>
+      <div class="actions">
+        <button id="main-action" type="submit" disabled>正在读取设置…</button>
+        <button id="sync-now" type="button" class="secondary" disabled>立即同步</button>
+      </div>
+    </form>
+    <p id="status" role="status" aria-live="polite"></p>
+    <p id="notice" role="alert"></p>
+  </main>
+  <script src="options.js"></script>
+</body>
+</html>

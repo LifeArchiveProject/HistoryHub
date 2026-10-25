@@ -1,43 +1,45 @@
-<div align="center">
-  <img src="./public/logo.png" alt="Logo">
-</div>
+# HistoryHub 前端
 
-这是一个基于 Vue 3 开发的 B 站历史记录分析工具的前端项目，为用户提供丰富的 B 站观看历史数据分析功能。
+基于 Vue 3 的网页与 B 站历史记录管理界面，支持浏览器历史搜索、隐私显示、B 站观看历史分析与媒体管理。
 
-## 该项目需要配合 [BilibiliHistoryFetcher](https://github.com/2977094657/BilibiliHistoryFetcher) 后端项目一起使用
-
-## 零基础快速运行（Windows 免安装版，推荐）
-
-1. 下载 exe：后端 https://github.com/2977094657/BilibiliHistoryFetcher/releases/latest
-2. 下载 exe：前端 https://github.com/2977094657/BiliHistoryFrontend/releases/latest
-3. 两个都双击运行即可
+前端位于 [HistoryHub/frontend](https://github.com/LifeArchiveProject/HistoryHub/tree/master/frontend)，与同一仓库的 [HistoryHub 后端](https://github.com/LifeArchiveProject/HistoryHub) 配合使用。
 
 ## 快速开始
 
-### 使用 Docker 安装
+### 从源码启动前后端
 
-#### 使用预构建镜像（GitHub Container Registry）
+安装 [Docker](https://docs.docker.com/get-started/get-docker/)，然后克隆仓库：
 
 ```bash
-docker pull ghcr.io/lifearchiveproject/bili-history-frontend:latest
-docker run --name bili-history-frontend-web -p 5173:80 -d ghcr.io/lifearchiveproject/bili-history-frontend:latest
+git clone https://github.com/LifeArchiveProject/HistoryHub.git
+cd HistoryHub
 ```
 
-仓库迁移到 `LifeArchiveProject` 后，前端镜像使用 `ghcr.io/lifearchiveproject/bili-history-frontend`。`ghcr.io/2977094657/...` 属于历史个人账号命名空间，不再作为推荐安装来源。若拉取时提示 `denied` 或 `unauthorized`，请确认 GitHub Packages 中对应容器包已设为 Public。
+在仓库根目录的 `config/config.yaml` 中填写 `browser_history.sync_token`，然后构建并启动：
 
-1. 安装[Docker](https://docs.docker.com/get-started/get-docker/).
-2. 构建镜像：`docker build -t bili-history-frontend-web:dev .`
-3. 启动容器：`docker run --name bili-history-frontend-web -p 5173:80 -d bili-history-frontend-web:dev`
-4. 停止容器：`docker stop bili-history-frontend-web`
+```bash
+docker compose up -d --build
+```
 
-### [通过 1Panel 部署](https://github.com/2977094657/BilibiliHistoryFetcher/discussions/65)
-由社区贡献者 [@QYG2297248353](https://github.com/QYG2297248353) 实现 ([#66](https://github.com/2977094657/BilibiliHistoryFetcher/pull/66))
+打开 `http://localhost:5173`。默认后端地址为 `http://localhost:8899`，自托管时可在前端设置中修改。
+
+### 仅构建前端镜像
+
+在 `frontend/` 目录执行：
+
+```bash
+docker build -t historyhub-frontend:local .
+docker run --name historyhub-frontend-web -p 5173:80 -d historyhub-frontend:local
+```
+
+### [通过 1Panel 部署](https://github.com/LifeArchiveProject/HistoryHub/discussions/65)
+由社区贡献者 [@QYG2297248353](https://github.com/QYG2297248353) 实现 ([#66](https://github.com/LifeArchiveProject/HistoryHub/pull/66))
 ### 使用源码安装
 
 1. 克隆项目
 ```bash
-git clone https://github.com/2977094657/BiliHistoryFrontend.git
-cd BilibiliHistoryFrontend
+git clone https://github.com/LifeArchiveProject/HistoryHub.git
+cd HistoryHub/frontend
 ```
 
 2. 安装依赖
@@ -52,6 +54,17 @@ npm run dev
 ```
 
 ## 首次使用指南
+
+### 网页历史
+
+1. 在后端配置 `HISTORYHUB_SYNC_TOKEN`，或在 `config/config.yaml` 中配置 `browser_history.sync_token`。
+2. 将 Chrome 扩展连接到同一个本地或自托管后端，并填写相同密钥，详见[网页历史连接说明](https://github.com/LifeArchiveProject/HistoryHub#网页历史)。
+3. 打开侧边栏的“网页历史”，输入连接密钥并点击“保存并连接”。密钥只保存在当前浏览器，并仅随网页历史请求发送。
+4. 输入标题或网址进行搜索，滚动到底部加载下一页，每页 50 条；隐私模式会遮蔽标题、域名和访问时间。
+
+网页历史无需登录 B 站。服务器地址在设置页面统一配置。
+
+### B 站历史
 
 1. **登录账号**
   - 点击侧边栏的设置，然后配置你的服务器地址
@@ -138,7 +151,7 @@ npm run dev
    ```bash
    npm run tauri:build:exe
    ```
-   构建完成后，将在项目根目录生成 `BiliBili-History-Frontend.exe` 可执行文件。
+   构建完成后，将在 `frontend/` 目录生成 `HistoryHub.exe` 可执行文件。
 
 3. 清理构建文件
    ```bash
@@ -162,4 +175,4 @@ npm run dev
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=2977094657/BiliHistoryFrontend&type=Date)](https://star-history.com/#2977094657/BiliHistoryFrontend&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=LifeArchiveProject/HistoryHub&type=Date)](https://star-history.com/#LifeArchiveProject/HistoryHub&Date)
