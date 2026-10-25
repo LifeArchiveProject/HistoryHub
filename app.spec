@@ -1,5 +1,7 @@
 # -*- mode: python ; coding: utf-8 -*-
 
+import sys
+
 a = Analysis(
     ['app_launcher.py'],
     pathex=[],
@@ -34,6 +36,7 @@ exe = EXE(
     [],
     exclude_binaries=True,
     name='HistoryHubBackend',
+    icon='logo.ico' if sys.platform == 'win32' else None,
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
