@@ -40,7 +40,6 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install pyinstaller
-        pip install yutto
 
     - name: 创建logo文件
       run: |
@@ -57,7 +56,6 @@ jobs:
         python -m venv .venv
         .\.venv\Scripts\pip install -r requirements.txt
         .\.venv\Scripts\pip install pyinstaller
-        .\.venv\Scripts\pip install yutto
       shell: cmd
 
     - name: 创建虚拟环境 (Unix)
@@ -67,7 +65,6 @@ jobs:
         source .venv/bin/activate
         pip install -r requirements.txt
         pip install pyinstaller
-        pip install yutto
       shell: bash
 
     - name: 使用build.py构建应用 (Windows)

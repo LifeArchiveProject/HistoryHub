@@ -1,7 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from scripts.import_sqlite import import_all_history_files
-from .interaction_records import import_interactions_to_history_once
 
 router = APIRouter()
 
@@ -15,14 +14,10 @@ def import_history():
     result = import_all_history_files()
 
     if result["status"] == "success":
-        interaction_import = import_interactions_to_history_once()
         return {
             "status": "success",
             "message": result["message"],
-            "data": {
-                "history_import": result,
-                "interaction_history_import": interaction_import,
-            },
+            "data": result,
         }
     else:
         raise HTTPException(status_code=500, detail=result["message"])
