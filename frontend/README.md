@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="./public/logo.png" width="128" height="128" alt="HistoryHub Logo" />
+</p>
+
 # HistoryHub 前端
 
 基于 Vue 3 的 B站与网页历史记录界面，提供历史同步、搜索和原链接访问。列表使用后端分页，滚动加载后续记录。

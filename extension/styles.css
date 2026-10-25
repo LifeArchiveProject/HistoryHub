@@ -1,7 +1,7 @@
 :root { color-scheme: light dark; font-family: system-ui, "Microsoft YaHei", sans-serif; color: #1f2937; background: #f3f5f8; }
 body { margin: 0; }
 main { box-sizing: border-box; max-width: 660px; margin: 48px auto; padding: 32px; border: 1px solid #dbe1e8; border-radius: 12px; background: #fff; }
-h1 { margin: 0 0 12px; font-size: 28px; }
+h1 { display: flex; align-items: center; gap: 12px; margin: 0 0 12px; font-size: 28px; }
 p { line-height: 1.7; }
 form { margin-top: 24px; }
 label { display: block; margin: 18px 0 8px; font-weight: 600; }
