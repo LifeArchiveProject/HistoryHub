@@ -2,7 +2,7 @@
   <div class="flex h-[100dvh] flex-col bg-gray-50 dark:bg-gray-900 sm:flex-row">
     <aside class="shrink-0 border-b border-gray-200 bg-white px-4 py-3 dark:border-gray-700 dark:bg-gray-800 sm:w-48 sm:border-b-0 sm:border-r sm:py-6">
       <router-link to="/" class="flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-gray-100">
-        <img src="/logo.svg" alt="" class="h-7 w-7" />
+        <img src="/logo.png" alt="" class="h-7 w-7" />
         HistoryHub
       </router-link>
       <nav aria-label="主要导航" class="mt-3 flex gap-2 text-sm sm:mt-6 sm:flex-col">
