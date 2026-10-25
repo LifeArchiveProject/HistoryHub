@@ -9,7 +9,7 @@ from datetime import datetime
 # 忽略jieba库中的无效转义序列警告
 warnings.filterwarnings("ignore", category=SyntaxWarning, message="invalid escape sequence")
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from loguru import logger
@@ -46,6 +46,7 @@ from routers import (
     dynamic,
     interaction_records
 )
+from routers import browser_history
 from scripts.scheduler_db_enhanced import EnhancedSchedulerDB
 from scripts.scheduler_manager import SchedulerManager
 from scripts.utils import load_config, get_output_path
@@ -395,8 +396,8 @@ async def lifespan(app: FastAPI):
 
 # 创建 FastAPI 应用实例
 app = FastAPI(
-    title="Bilibili History Analyzer",
-    description="一个用于分析和导出Bilibili观看历史的API",
+    title="HistoryHub",
+    description="浏览器历史同步、检索与 B 站观看历史管理",
     version="1.7.2",
     lifespan=lifespan
 )
@@ -453,11 +454,23 @@ app.include_router(bilibili_history_delete.router, prefix="/bilibili/history", t
 app.include_router(video_details.router, prefix="/video_details", tags=["视频详情"])
 app.include_router(dynamic.router, prefix="/dynamic", tags=["用户动态"])
 app.include_router(interaction_records.router, prefix="/interactions", tags=["互动记录"])
+app.include_router(browser_history.router, prefix="/browser-history", tags=["浏览历史"])
+
+class HistoryHubStaticFiles(StaticFiles):
+    async def get_response(self, path, scope):
+        filename = path.replace("\\", "/").rsplit("/", 1)[-1].lower()
+        if filename in {
+            "browser_history.sqlite3" + suffix
+            for suffix in ("", "-wal", "-shm", "-journal")
+        }:
+            raise HTTPException(status_code=404)
+        return await super().get_response(path, scope)
+
 
 # 挂载静态目录，提供 output 下资源的访问（/static/ 相对路径）
 try:
     static_dir = os.path.dirname(get_output_path("__base__"))
-    app.mount("/static", StaticFiles(directory=static_dir), name="static")
+    app.mount("/static", HistoryHubStaticFiles(directory=static_dir), name="static")
     logger.info(f"已挂载静态目录: /static -> {static_dir}")
 except Exception as e:
     logger.warning(f"静态目录挂载失败（忽略）: {e}")

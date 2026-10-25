@@ -3,12 +3,12 @@
 </p>
 
 <div align="center">
-    <h1>BilibiliHistoryFetcher - 哔哩哔哩历史记录获取与分析工具</h1>
-    <img src="https://img.shields.io/github/v/tag/2977094657/BilibiliHistoryFetcher" />
-    <img src="https://gh-down-badges.linkof.link/2977094657/BilibiliHistoryFetcher" alt="Downloads" />
-    <img src="https://img.shields.io/github/stars/2977094657/BilibiliHistoryFetcher" />
-    <img src="https://img.shields.io/github/forks/2977094657/BilibiliHistoryFetcher" />
-    <img src="https://img.shields.io/github/license/2977094657/BilibiliHistoryFetcher" />
+    <h1>HistoryHub</h1>
+    <img src="https://img.shields.io/github/v/tag/LifeArchiveProject/HistoryHub" />
+    <img src="https://gh-down-badges.linkof.link/LifeArchiveProject/HistoryHub" alt="Downloads" />
+    <img src="https://img.shields.io/github/stars/LifeArchiveProject/HistoryHub" />
+    <img src="https://img.shields.io/github/forks/LifeArchiveProject/HistoryHub" />
+    <img src="https://img.shields.io/github/license/LifeArchiveProject/HistoryHub" />
     <img src="https://img.shields.io/badge/Python-3776AB?logo=Python&logoColor=white" />
     <img src="https://img.shields.io/badge/FastAPI-009688?logo=FastAPI&logoColor=white" />
     <img src="https://img.shields.io/badge/SQLite-003B57?logo=SQLite&logoColor=white" />
@@ -16,18 +16,64 @@
 </div>
 
 ## 介绍
-该项目用于获取、处理、分析和可视化哔哩哔哩用户的观看历史数据。它提供了完整的数据处理流程，从数据获取到可视化展示，并支持自动化运行和邮件通知。
+HistoryHub 将 Chrome 网页访问记录与 B 站观看历史保存在本地或自托管服务中，提供历史搜索、滚动浏览、观看分析和自动同步。浏览器记录包含网址、标题和访问时间；B 站功能包括观看历史、收藏、互动记录和媒体下载。
 
-## 零基础快速运行（Windows 免安装版，推荐）
+## 项目结构
 
-1. 下载 exe：后端 https://github.com/2977094657/BilibiliHistoryFetcher/releases/latest
-2. 下载 exe：前端 https://github.com/2977094657/BiliHistoryFrontend/releases/latest
-3. 两个都双击运行即可
+```text
+main.py / routers/ / scripts/   Python 后端
+frontend/                      Vue 网页与 Tauri 桌面端
+extension/                     Chrome 扩展
+config/                        服务配置
+output/                        本地数据
+```
 
-## 配套前端
-请前往此项目 [BiliHistoryFrontend](https://github.com/2977094657/BiliHistoryFrontend) 获取配套的前端界面
+## 本地运行
 
-## 主要功能
+```bash
+git clone https://github.com/LifeArchiveProject/HistoryHub.git
+cd HistoryHub
+uv sync
+uv run main.py
+```
+
+在另一个终端启动管理页面：
+
+```bash
+cd frontend
+npm ci
+npm run dev
+```
+
+访问 `http://localhost:5173`，在设置中连接后端 `http://127.0.0.1:8899`。
+
+## 网页历史
+
+1. 在服务端 `config/config.yaml` 设置一个自己生成的连接密钥，然后重启后端：
+
+   ```yaml
+   browser_history:
+     sync_token: "替换为你自己生成的随机密钥"
+   ```
+
+   也可通过服务进程的 `HISTORYHUB_SYNC_TOKEN` 环境变量提供密钥。环境变量优先；未设置密钥时网页历史接口关闭。
+
+2. 打开 Chrome 的 `chrome://extensions`，开启开发者模式，点击“加载已解压的扩展程序”，选择本仓库的 `extension/` 目录。
+3. 打开 HistoryHub 扩展设置，填写本地或自托管后端地址和同一连接密钥，授权访问该服务地址并开启同步。
+4. 在管理页面打开“网页历史”，输入同一连接密钥即可搜索和滚动查看记录；此页面无需登录 B 站。
+
+扩展会回填 Chrome 当前仍保留的 HTTP/HTTPS 访问记录，并继续同步新增访问。不同访问分别保存，重复同步不会增加重复记录。网页访问不代表视频播放完成或文章阅读完成，手机 App 内的历史不由浏览器接口提供。
+
+扩展目录可直接加载；商店安装需要单独发布 Chrome Web Store 版本。扩展仅向配置并授权的后端发送访问记录，不上传 Cookie。
+
+接口：
+
+- `POST /browser-history/sync`：接收扩展访问记录。
+- `GET /browser-history/records`：按关键词、域名和游标分页查询。
+- 两个接口均使用 `Authorization: Bearer <连接密钥>`。
+- 浏览器记录存储于 `output/browser_history.sqlite3`，B 站数据仍使用 `config.db_file` 指定的数据库。
+
+## B 站功能
 
 - [x] 获取历史记录
 - [x] 年度总结
@@ -66,16 +112,19 @@
 ## 快速开始
 
 #### 使用 Docker 安装
-由 [@eli-yip](https://github.com/eli-yip) 实现 ([#30](https://github.com/2977094657/BilibiliHistoryFetcher/pull/30))
+
+运行仓库当前代码时，在项目根目录执行 `docker compose up -d --build`，配置与数据分别挂载到 `config/` 和 `output/`。预构建镜像随版本标签发布，功能范围以该版本代码为准。
+
+由 [@eli-yip](https://github.com/eli-yip) 实现 ([#30](https://github.com/LifeArchiveProject/HistoryHub/pull/30))
 1. 安装 [Docker](https://docs.docker.com/get-started/get-docker/)
-2. 拉取预构建镜像（推荐）：
+2. 使用已发布的预构建镜像：
    ```bash
    # CPU 基础版
    docker pull ghcr.io/lifearchiveproject/bili-history-fetcher:latest
    docker run -d -v ./config:/app/config -v ./output:/app/output -p 8899:8899 --name bilibili-api ghcr.io/lifearchiveproject/bili-history-fetcher:latest
    ```
 
-   提示：仓库迁移到 `LifeArchiveProject` 后，后端镜像使用 `ghcr.io/lifearchiveproject/bili-history-fetcher`。`ghcr.io/2977094657/...` 属于历史个人账号命名空间，不再作为推荐安装来源。
+   后端镜像地址：`ghcr.io/lifearchiveproject/bili-history-fetcher`。
 
    如果拉取 `ghcr.io/lifearchiveproject/...` 提示 `denied` 或 `unauthorized`，请在 GitHub Packages 中将对应容器包的 visibility 调整为 Public。GHCR 新发布的容器包默认可能是 Private，公开后才能匿名拉取。
 
@@ -104,19 +153,19 @@
 
 1. 确保已安装 [Docker](https://docs.docker.com/get-started/get-docker/) 和 [Docker Compose](https://docs.docker.com/compose/install/)
 
-2. 下载 `docker-compose.yml` 文件（CPU 基础版）：
-   - 直接从[这里](https://raw.githubusercontent.com/LifeArchiveProject/BilibiliHistoryFetcher/master/docker-compose.yml)下载
+2. 获取本仓库源码及 `config/`、`frontend/` 目录。Compose 文件位于仓库根目录：
+   - 直接从[这里](https://raw.githubusercontent.com/LifeArchiveProject/HistoryHub/master/docker-compose.yml)下载
    - 或使用以下命令下载：
       ```bash
-      curl -O https://raw.githubusercontent.com/LifeArchiveProject/BilibiliHistoryFetcher/master/docker-compose.yml
+      curl -O https://raw.githubusercontent.com/LifeArchiveProject/HistoryHub/master/docker-compose.yml
       # 或
-      wget https://raw.githubusercontent.com/LifeArchiveProject/BilibiliHistoryFetcher/master/docker-compose.yml
+      wget https://raw.githubusercontent.com/LifeArchiveProject/HistoryHub/master/docker-compose.yml
       ```
 
 3. 使用 Docker Compose 启动服务：
    ```bash
    # CPU 基础版
-   docker-compose up -d
+   docker compose up -d --build
    ```
 
 4. 服务启动后访问：
@@ -124,11 +173,11 @@
    - 后端API：http://localhost:8899
    - API文档：http://localhost:8899/docs
 
-#### [通过 1Panel 部署](https://github.com/2977094657/BilibiliHistoryFetcher/discussions/65)
-由社区贡献者 [@QYG2297248353](https://github.com/QYG2297248353) 实现 ([#66](https://github.com/2977094657/BilibiliHistoryFetcher/pull/66))
+#### [通过 1Panel 部署](https://github.com/LifeArchiveProject/HistoryHub/discussions/65)
+由社区贡献者 [@QYG2297248353](https://github.com/QYG2297248353) 实现 ([#66](https://github.com/LifeArchiveProject/HistoryHub/pull/66))
 
 #### 使用 uv 安装
-由社区贡献者 [@eli-yip](https://github.com/eli-yip) 实现 ([#30](https://github.com/2977094657/BilibiliHistoryFetcher/pull/30))
+由社区贡献者 [@eli-yip](https://github.com/eli-yip) 实现 ([#30](https://github.com/LifeArchiveProject/HistoryHub/pull/30))
 
 1. 安装 [uv](https://docs.astral.sh/uv/getting-started/installation/)
 2. 在项目根目录运行：
@@ -245,7 +294,8 @@ MCP v1 只开放读取能力，包括项目状态、可用年份、历史记录�
 
 `output` 目录包含所有持久化数据与可再生成数据，迁移只需拷贝此目录：
 
-- `bilibili_history.db`：主历史记录数据库。
+- `bilibili_history.db`：B 站历史记录数据库。
+- `browser_history.sqlite3`：浏览器访问记录数据库。
 - `video_details.db`：视频详情数据库。
 - `image_downloads.db`：图片下载记录数据库。
 - `database/`：业务分库集合（如 `bilibili_comments.db`、`bilibili_dynamic.db`、`bilibili_favorites.db`、`bilibili_interactions.db`、`bilibili_popular_2025.db`、`bilibili_video_details.db`、`scheduler.db`）。
@@ -285,7 +335,7 @@ python build.py
 
 **打包完成后**
 
-- 输出目录：`dist/BilibiliHistoryAnalyzer/`
+- 输出目录：`dist/HistoryHubBackend/`
 
 **敏感信息处理**
 
@@ -306,7 +356,7 @@ python build.py
 
 ```
 # Windows系统
-BilibiliHistoryAnalyzer.exe
+HistoryHubBackend.exe
 ```
 
 ## 缓存图片找回（近 14 天）
@@ -325,7 +375,7 @@ BilibiliHistoryAnalyzer.exe
 - 长按 `cache` 文件夹，选择“压缩”，生成一个 zip 压缩包
 
 电脑端操作：
-- 下载可执行文件 `BiliImagePipeline.exe`（Windows）：https://github.com/2977094657/BilibiliHistoryFetcher/releases/download/v1.6.5/BiliImagePipeline.exe
+- 下载可执行文件 `BiliImagePipeline.exe`（Windows）：https://github.com/LifeArchiveProject/HistoryHub/releases/download/v1.6.5/BiliImagePipeline.exe
 - 将手机导出的 `cache` 压缩包放到可执行文件所在目录（与 `.exe` 同级）
 - 运行可执行文件，等待自动处理
 - 处理完成后，在 `cache/ImagePipeLine/v2.ols100.1/by_date` 查看图片
@@ -358,4 +408,4 @@ BilibiliHistoryAnalyzer.exe
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=2977094657/BilibiliHistoryFetcher&type=Date)](https://star-history.com/#2977094657/BilibiliHistoryFetcher&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=LifeArchiveProject/HistoryHub&type=Date)](https://star-history.com/#LifeArchiveProject/HistoryHub&Date)

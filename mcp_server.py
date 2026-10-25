@@ -149,7 +149,7 @@ def create_mcp_app(config: Optional[dict[str, Any]] = None) -> tuple[Callable, A
 
     mcp_config = config or get_mcp_config()
     mcp = FastMCP(
-        "BilibiliHistoryFetcher",
+        "HistoryHub",
         instructions=(
             "Read-only MCP server for local Bilibili history data. "
             "Use paginated tools for records and do not request write operations."
@@ -177,13 +177,13 @@ def _register_resources(mcp: Any) -> None:
     @mcp.resource(
         "bili://project/overview",
         name="project_overview",
-        description="BilibiliHistoryFetcher project capability overview.",
+        description="HistoryHub project capability overview.",
         mime_type="application/json",
     )
     async def project_overview() -> str:
         return _json_text(
             {
-                "name": "BilibiliHistoryFetcher",
+                "name": "HistoryHub",
                 "summary": "Bilibili history fetching, storage, analysis and visualization backend.",
                 "mcp_policy": "Read-only by default. Full history records are readable through paginated tools.",
                 "primary_data": [
@@ -280,7 +280,7 @@ def _register_prompts(mcp: Any) -> None:
     @mcp.prompt(name="data_health_check", description="Check local data health.")
     def data_health_check() -> str:
         return (
-            "Check local BilibiliHistoryFetcher data health. "
+            "Check local HistoryHub data health. "
             "Read bili://project/data-status, then call get_data_integrity_report, "
             "get_sync_result, and get_scheduler_tasks."
         )
@@ -678,7 +678,7 @@ async def _build_project_status() -> dict[str, Any]:
     return {
         "status": "success",
         "project": {
-            "name": "BilibiliHistoryFetcher",
+            "name": "HistoryHub",
             "base_path": get_base_path(),
             "output_path": str(Path(get_base_path()) / "output"),
         },

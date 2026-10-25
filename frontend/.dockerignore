@@ -1,0 +1,8 @@
+.git
+.gitignore
+node_modules
+Dockerfile
+.dockerignore
+dist
+.cache
+src-tauri

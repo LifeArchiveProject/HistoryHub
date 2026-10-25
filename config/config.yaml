@@ -10,6 +10,10 @@ output_folder: "output"
 # SQLite数据库文件名
 db_file: "bilibili_history.db"
 
+# Chrome 扩展与网页历史页面使用同一连接密钥，也可设置 HISTORYHUB_SYNC_TOKEN 环境变量。
+browser_history:
+  sync_token: ""
+
 # 导入日志文件名，用于记录上次导入的位置
 log_file: "last_import_log.json"
 
