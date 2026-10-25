@@ -7,7 +7,7 @@ import time
 from datetime import datetime
 
 from config.sql_statements_sqlite import CREATE_TABLE_DEFAULT, CREATE_INDEXES, INSERT_DATA
-from scripts.utils import load_config, get_base_path, get_output_path
+from scripts.utils import get_config_path, get_output_path, load_config
 
 config = load_config()
 
@@ -15,16 +15,10 @@ config = load_config()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-IS_SCRIPT_RUN = True
-
-def get_base_path():
-    return os.path.dirname(os.path.dirname(os.path.abspath(__file__))) if IS_SCRIPT_RUN else os.getcwd()
-
 # 定义读取分类信息的函数
 def load_categories(config_path=None):
     if config_path is None:
-        base_path = get_base_path()
-        config_path = os.path.join(base_path, 'config', 'categories.json')
+        config_path = get_config_path('categories.json')
     """从 categories.json 文件中加载分类信息"""
     try:
         with open(config_path, 'r', encoding='utf-8') as f:
@@ -73,11 +67,6 @@ class SnowflakeIDGenerator:
             return id
 
 id_generator = SnowflakeIDGenerator(machine_id=1, datacenter_id=1)
-
-def get_years():
-    current_year = datetime.now().year
-    previous_year = current_year - 1
-    return current_year, previous_year
 
 def create_connection(db_file):
     """创建数据库连接"""
@@ -128,23 +117,9 @@ def batch_insert_data(conn, table_name, data_batch):
     except sqlite3.Error as e:
         logger.error(f"插入数据时发生错误: {e}")
         conn.rollback()
-        return 0
+        raise
 
-def get_last_import_time():
-    """获取上次导入时间"""
-    try:
-        last_import_file = os.path.join(get_output_path(), 'last_import.json')
-        if os.path.exists(last_import_file):
-            with open(last_import_file, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-                return data.get('last_import_time', 0)
-        logger.info("未找到last_import.json文件，将导入所有数据")
-        return 0
-    except Exception as e:
-        logger.error(f"读取上次导入时间失败: {e}")
-        return 0
-
-def import_data_from_json(conn, table_name, file_path, last_import_time=0, batch_size=1000, sync_deleted=False):
+def import_data_from_json(conn, table_name, file_path, last_import_time=0, batch_size=1000):
     """从JSON文件导入数据"""
     try:
         # 尝试不同的编码方式读取
@@ -164,12 +139,12 @@ def import_data_from_json(conn, table_name, file_path, last_import_time=0, batch
         total_inserted = 0
         # 按年份分组数据
         data_by_year = {}
-        has_new_records = False
 
         # 获取现有记录的bvid和view_at组合
         cursor = conn.cursor()
         existing_records = set()
-        for year in range(datetime.now().year - 1, datetime.now().year + 1):
+        years = {datetime.fromtimestamp(item['view_at']).year for item in data if item.get('view_at')}
+        for year in years:
             table = f"bilibili_history_{year}"
             if table_exists(conn, table):
                 cursor.execute(f"SELECT bvid, view_at FROM {table}")
@@ -177,19 +152,8 @@ def import_data_from_json(conn, table_name, file_path, last_import_time=0, batch
 
         # 获取已删除的记录
         deleted_records = set()
-        if not sync_deleted:
-            # 确保删除记录表存在
-            cursor.execute("""
-                CREATE TABLE IF NOT EXISTS deleted_history (
-                    id INTEGER PRIMARY KEY,
-                    bvid TEXT NOT NULL,
-                    view_at INTEGER NOT NULL,
-                    delete_time INTEGER NOT NULL,
-                    UNIQUE(bvid, view_at)
-                )
-            """)
-
-            # 获取已删除的记录
+        if table_exists(conn, 'deleted_history'):
+            # 保留已有记录的删除标记，导入时不恢复这些记录。
             cursor.execute("SELECT bvid, view_at FROM deleted_history")
             deleted_records = set((bvid, view_at) for bvid, view_at in cursor.fetchall())
             logger.info(f"已加载 {len(deleted_records)} 条已删除的记录")
@@ -214,11 +178,10 @@ def import_data_from_json(conn, table_name, file_path, last_import_time=0, batch
                 continue
 
             # 如果不同步已删除的记录，则跳过已删除的记录
-            if not sync_deleted and (bvid, view_at) in deleted_records:
+            if (bvid, view_at) in deleted_records:
                 logger.debug(f"跳过已删除的记录: {item.get('title')} - {datetime.fromtimestamp(view_at)}")
                 continue
 
-            has_new_records = True
             year = datetime.fromtimestamp(view_at).year
             if year not in data_by_year:
                 data_by_year[year] = []
@@ -301,7 +264,7 @@ def import_data_from_json(conn, table_name, file_path, last_import_time=0, batch
 
     except sqlite3.Error as e:
         logger.error(f"导入数据时发生错误: {e}")
-        return 0
+        raise
 
 def save_last_import_record(file_path, timestamp):
     """保存最后导入记录"""
@@ -324,7 +287,7 @@ def get_last_import_record():
             return json.load(f)
     return None
 
-def import_all_history_files(sync_deleted=False):
+def import_all_history_files(incremental=True):
     """导入所有历史记录文件"""
     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     logger.info(f"========== 运行时间: {current_time} ==========")
@@ -344,7 +307,7 @@ def import_all_history_files(sync_deleted=False):
         return {"status": "error", "message": message}
 
     # 获取最后导入记录
-    last_record = get_last_import_record()
+    last_record = get_last_import_record() if incremental else None
     last_import_time = last_record['last_import_time'] if last_record else 0
 
     if last_record:
@@ -409,7 +372,7 @@ def import_all_history_files(sync_deleted=False):
                 logger.error(f"读取文件 {day_path} 时出错: {e}")
                 continue
 
-            inserted_count = import_data_from_json(conn, "bilibili_history", day_path, last_import_time, sync_deleted=sync_deleted)
+            inserted_count = import_data_from_json(conn, "bilibili_history", day_path, last_import_time)
             if inserted_count > 0:
                 total_files += 1
                 total_records += inserted_count

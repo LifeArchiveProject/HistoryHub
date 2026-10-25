@@ -37,17 +37,6 @@ CREATE TABLE IF NOT EXISTS {table} (
 );
 """
 
-# 删除记录表创建语句
-CREATE_TABLE_DELETED_HISTORY = """
-CREATE TABLE IF NOT EXISTS deleted_history (
-    id INTEGER PRIMARY KEY,
-    bvid TEXT NOT NULL,
-    view_at INTEGER NOT NULL,
-    delete_time INTEGER NOT NULL,
-    UNIQUE(bvid, view_at)
-);
-"""
-
 CREATE_INDEXES = [
     "CREATE INDEX IF NOT EXISTS idx_{table}_author_mid ON {table} (author_mid);",
     "CREATE INDEX IF NOT EXISTS idx_{table}_view_at ON {table} (view_at);",

@@ -51,5 +51,5 @@ export async function openInBrowser(url) {
   }
 
   // 回退到window.open
-  window.open(url, '_blank')
+  window.open(url, '_blank', 'noopener,noreferrer')
 }
