@@ -119,6 +119,8 @@ def build(build_type):
                     '--paths', venv_site_packages,
                     'app_launcher.py'
                 ]
+                if os.name == 'nt':
+                    makespec_cmd.insert(-1, '--icon=logo.ico')
                 print(f"\n运行命令: {' '.join(makespec_cmd)}")
                 
                 result = subprocess.run(makespec_cmd, capture_output=True, text=True)

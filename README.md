@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="./logo.png" width="160" height="160" alt="HistoryHub Logo" />
+</p>
+
 # HistoryHub
 
 个人历史记录中心。获取 B 站观看历史，通过 Chrome 扩展同步网页访问记录，在本地或自托管服务中保存、搜索和查看。
