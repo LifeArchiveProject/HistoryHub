@@ -1,0 +1,6 @@
+{
+  "bundle": {
+    "targets": ["nsis"]
+  }
+}
+
