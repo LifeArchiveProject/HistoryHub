@@ -73,6 +73,13 @@ export const updateInstanceBaseUrl = (newBaseUrl) => {
   instance.defaults.baseURL = newBaseUrl
 }
 
+export const getBrowserHistoryRecords = ({ token, cursor = null, query = '' }) => {
+  return instance.get('/browser-history/records', {
+    headers: { Authorization: `Bearer ${token}` },
+    params: { cursor, size: 50, query },
+  })
+}
+
 // 历史记录相关接口
 export const getBiliHistory2024 = (page, size, sortOrder, tagName, mainCategory, dateRange, useLocalImages = false, business = '') => {
   return instance.get(`/history/all`, {

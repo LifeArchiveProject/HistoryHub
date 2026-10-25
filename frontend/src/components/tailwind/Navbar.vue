@@ -4,6 +4,7 @@
       <div class="mx-auto transition-all duration-300 ease-in-out" :class="{'max-w-4xl': layout === 'list', 'max-w-6xl': layout === 'grid'}">
         <!-- 导航栏主要内容 -->
         <div class="flex items-center justify-between px-2 py-2">
+          <router-link to="/browser-history" class="mr-3 text-xs text-[#fb7299] sm:hidden">网页历史</router-link>
           <!-- 左侧图标 -->
           <div class="flex items-center space-x-6">
             <!-- 实时更新按钮 -->

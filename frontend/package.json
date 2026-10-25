@@ -1,7 +1,7 @@
 {
-  "name": "bilibilihistoryfrontend",
+  "name": "historyhub-frontend",
   "version": "1.6.1",
-  "description": "获取Bili历史记录应用",
+  "description": "HistoryHub 网页与 B 站历史记录管理前端",
   "author": "46",
   "type": "module",
   "scripts": {
@@ -12,7 +12,7 @@
     "tauri:dev": "tauri dev",
     "tauri:build": "tauri build",
     "tauri:build:windows": "tauri build --target x86_64-pc-windows-msvc",
-    "tauri:build:exe": "npm run tauri:build:windows && powershell -c \"Copy-Item ./src-tauri/target/x86_64-pc-windows-msvc/release/bilibili-history-frontend.exe ./BiliBili-History-Frontend.exe -Force\"",
+    "tauri:build:exe": "npm run tauri:build:windows && powershell -c \"Copy-Item ./src-tauri/target/x86_64-pc-windows-msvc/release/bilibili-history-frontend.exe ./HistoryHub.exe -Force\"",
     "tauri:clean": "powershell -c \"if (Test-Path ./src-tauri/target) { Remove-Item -Recurse -Force ./src-tauri/target }\""
   },
   "dependencies": {

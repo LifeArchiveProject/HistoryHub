@@ -150,7 +150,7 @@ def build(build_type):
                 
                 makespec_cmd = [
                     python_exe, '-m', 'PyInstaller',
-                    '--name=BilibiliHistoryAnalyzer',
+                    '--name=HistoryHubBackend',
                     '--add-binary', f"{yutto_exe}{path_sep}.",
                     '--add-data', f"config/*{path_sep}config", 
                     '--add-data', f"scripts{path_sep}scripts",
@@ -236,7 +236,7 @@ def build(build_type):
                 return False
             
             # 复制 yutto.exe 到输出目录
-            dist_dir = os.path.join('dist', 'BilibiliHistoryAnalyzer')
+            dist_dir = os.path.join('dist', 'HistoryHubBackend')
             if os.path.exists(yutto_exe) and os.path.exists(dist_dir):
                 try:
                     shutil.copy2(yutto_exe, dist_dir)
@@ -482,7 +482,8 @@ def cleanup_sensitive_config():
             "email.auth_username": "example@example.com",
             "email.receiver": "example@example.com",
             "server.ssl_certfile": "path/to/cert.pem",
-            "server.ssl_keyfile": "path/to/key.pem"
+            "server.ssl_keyfile": "path/to/key.pem",
+            "browser_history.sync_token": ""
         }
         
         # 将一些独立的顶级字段也加入检查
@@ -581,7 +582,7 @@ def post_build_copy(dist_dir):
     """构建后处理，确认_internal/config目录存在
     
     Args:
-        dist_dir: 构建输出目录的路径，如 dist/BilibiliHistoryAnalyzer_Full
+        dist_dir: 构建输出目录的路径，如 dist/HistoryHubBackend_Full
     """
     try:
         # 检查_internal/config目录是否存在

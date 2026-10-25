@@ -4,6 +4,9 @@ services:
   # 后端服务
   backend:
     image: ghcr.io/lifearchiveproject/bili-history-fetcher:latest
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.cpu
     container_name: bilibili-history-backend
     restart: unless-stopped
     volumes:
@@ -18,6 +21,9 @@ services:
   # 前端服务
   frontend:
     image: ghcr.io/lifearchiveproject/bili-history-frontend:latest
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
     container_name: bili-history-frontend-web
     restart: unless-stopped
     ports:

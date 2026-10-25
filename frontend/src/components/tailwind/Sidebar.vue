@@ -11,17 +11,32 @@
         <!-- 顶部 Logo -->
         <div class="p-1 border-b border-gray-200/50 dark:border-gray-700/50">
           <router-link to="/" class="w-full flex justify-center items-center">
-            <img v-if="isCollapsed" src="/logo.svg" class="w-full object-contain" alt="Logo" />
-            <img v-else src="/logo.png" class="w-full object-contain" alt="Logo" />
+            <span class="py-2 font-bold text-[#fb7299]" :class="isCollapsed ? 'text-lg' : 'text-xl'">{{ isCollapsed ? 'H' : 'HistoryHub' }}</span>
           </router-link>
         </div>
 
         <!-- 导航菜单 -->
         <nav class="flex-1 overflow-y-auto py-4 space-y-2" :class="{ 'px-4': !isCollapsed }">
+          <router-link
+            to="/browser-history"
+            :title="isCollapsed ? '网页历史' : ''"
+            class="flex items-center py-1.5 text-gray-700 dark:text-gray-300 transition-all duration-300 ease-in-out text-sm"
+            :class="[
+              { 'bg-[#fb7299]/10 text-[#fb7299] dark:bg-[#fb7299]/20': currentContent === 'browser-history' },
+              { 'justify-center': isCollapsed },
+              isCollapsed ? 'px-2' : 'px-3 rounded-lg'
+            ]"
+          >
+            <svg class="w-5 h-5 flex-shrink-0" :class="{ 'mr-3': !isCollapsed }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0zM3 12h18M12 3a16 16 0 010 18 16 16 0 010-18z" />
+            </svg>
+            <span v-show="!isCollapsed" class="truncate">网页历史</span>
+          </router-link>
+
           <!-- 历史记录 -->
           <button
             @click="changeContent('history')"
-            :title="isCollapsed ? '历史记录' : ''"
+            :title="isCollapsed ? 'B站历史' : ''"
             class="w-full flex items-center py-1.5 text-gray-700 dark:text-gray-300 transition-all duration-300 ease-in-out text-sm"
             :class="[
               { 'bg-[#fb7299]/10 text-[#fb7299] dark:bg-[#fb7299]/20': currentContent === 'history' && !showRemarks },
@@ -32,7 +47,7 @@
             <svg class="w-5 h-5 flex-shrink-0" :class="{ 'mr-3': !isCollapsed }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <span v-show="!isCollapsed" class="truncate">历史记录</span>
+            <span v-show="!isCollapsed" class="truncate">B站历史</span>
           </button>
 
           <!-- 我的收藏 -->
@@ -302,6 +317,7 @@ const currentRoute = computed(() => route.path)
 // 根据当前路由路径计算当前内容
 const currentContent = computed(() => {
   const path = route.path
+  if (path.startsWith('/browser-history')) return 'browser-history'
   if (path.startsWith('/search')) return 'search'
   if (path.startsWith('/analytics')) return 'analytics'
   if (path.startsWith('/settings')) return 'settings'

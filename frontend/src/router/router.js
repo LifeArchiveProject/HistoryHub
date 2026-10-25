@@ -1,5 +1,6 @@
 import { createRouter, createWebHashHistory, createWebHistory } from 'vue-router'
 import History from '../components/tailwind/page/History.vue'
+import BrowserHistory from '../components/tailwind/page/BrowserHistory.vue'
 import Search from '../components/tailwind/page/Search.vue'
 import AnimatedAnalytics from '../components/tailwind/page/AnimatedAnalytics.vue'
 import Settings from '../components/tailwind/Settings.vue'
@@ -20,6 +21,11 @@ const routes = [
       {
         path: '',
         component: History,
+      },
+      {
+        path: 'browser-history',
+        name: 'BrowserHistory',
+        component: BrowserHistory,
       },
       {
         path: 'page/:pageNumber',
