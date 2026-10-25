@@ -3,13 +3,10 @@
     <div class="mx-auto max-w-4xl px-4 py-5 sm:px-6">
       <header class="mb-5 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p class="text-sm font-semibold text-[#fb7299] sm:hidden">HistoryHub</p>
           <h1 class="text-xl font-bold text-gray-900 dark:text-gray-100">网页历史</h1>
           <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">查看浏览器同步的访问记录，无需 B 站登录。</p>
         </div>
         <div class="flex items-center gap-4 text-sm">
-          <router-link to="/" class="text-[#fb7299] sm:hidden">B站历史</router-link>
-          <router-link to="/settings" class="text-gray-600 hover:text-[#fb7299] dark:text-gray-300">设置</router-link>
           <button type="button" class="text-gray-600 hover:text-[#fb7299] dark:text-gray-300" @click="togglePrivacyMode">
             {{ isPrivacyMode ? '关闭隐私' : '隐私模式' }}
           </button>
@@ -51,6 +48,7 @@
             rel="noopener noreferrer"
             class="break-words font-medium text-gray-900 hover:text-[#fb7299] dark:text-gray-100"
             :class="{ 'blur-sm': isPrivacyMode }"
+            @click.prevent="openRecord(record)"
           >{{ isPrivacyMode ? '******' : (record.title || record.url) }}</a>
           <div class="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500 dark:text-gray-400" :class="{ 'blur-sm': isPrivacyMode }">
             <span>{{ isPrivacyMode ? '******' : record.domain }}</span>
@@ -78,6 +76,7 @@
 import { onMounted, onUnmounted, ref, watch } from 'vue'
 import { getBrowserHistoryRecords, getCurrentBaseUrl } from '../../../api/api'
 import { usePrivacyStore } from '../../../store/privacy'
+import { openInBrowser } from '../../../utils/openUrl'
 
 const TOKEN_KEY = 'historyhub_sync_token'
 let backendUrl = getCurrentBaseUrl()
@@ -94,6 +93,10 @@ const { isPrivacyMode, togglePrivacyMode } = usePrivacyStore()
 let latestRequest = 0
 
 const formatTime = (timestamp) => new Date(timestamp).toLocaleString()
+
+const openRecord = (record) => {
+  if (!isPrivacyMode.value) openInBrowser(record.url)
+}
 
 const loadRecords = async (reset = false) => {
   if (!connectionToken.value || (!reset && (loading.value || !nextCursor.value))) return

@@ -1,241 +1,142 @@
 <template>
-  <!-- 主要内容区域 -->
-  <div>
-    <!-- 导航栏 -->
-    <Navbar
-      v-if="currentContent === 'history' && !showRemarks"
-      @refresh-data="refreshData"
-      v-model:date="date"
-      v-model:category="category"
-      v-model:business="business"
-      v-model:businessLabel="businessLabel"
-      :total="total"
-      @click-date="show = true"
-      :layout="layout"
-      @change-layout="layout = $event"
-      :is-batch-mode="isBatchMode"
-      :show-remarks="showRemarks"
-      @toggle-batch-mode="isBatchMode = !isBatchMode"
-      @toggle-remarks="showRemarks = !showRemarks"
-    />
+  <div ref="scrollContainer" class="h-full overflow-y-auto" @scroll.passive="handleScroll">
+    <div class="mx-auto max-w-4xl px-4 py-5 sm:px-6">
+      <header class="mb-5 flex flex-wrap items-center justify-between gap-3">
+        <h1 class="text-xl font-bold text-gray-900 dark:text-gray-100">B站历史</h1>
+        <button type="button" :disabled="syncing" class="rounded-lg bg-[#fb7299] px-4 py-2 text-sm font-medium text-white hover:bg-[#fb7299]/90 disabled:opacity-60" @click="syncHistory">
+          {{ syncing ? '同步中…' : '同步历史' }}
+        </button>
+      </header>
 
-    <!-- 内容区域 -->
-    <div>
-      <div class="mx-auto max-w-7xl sm:px-2 lg:px-8">
-        <div class="">
-          <!-- 历史记录内容 -->
-          <HistoryContent
-            v-if="currentContent === 'history' && !showRemarks"
-            ref="historyContentRef"
-            :selected-year="selectedYear"
-            :page="page"
-            :pageSize="pageSize"
-            @update:total-pages="totalPages = $event"
-            @update:total="total = $event"
-            @update:date="date = $event"
-            @update:category="category = $event"
-            v-model:show="show"
-            v-model:showBottom="showBottom"
-            :layout="layout"
-            :date="date"
-            :category="category"
-            :business="business"
-            :is-batch-mode="isBatchMode"
-          />
+      <p v-if="syncMessage" class="mb-4 text-sm" :class="syncFailed ? 'text-red-600 dark:text-red-400' : 'text-gray-600 dark:text-gray-300'" role="status">{{ syncMessage }}</p>
 
-          <!-- 备注列表内容 -->
-          <Remarks v-else-if="showRemarks" />
+      <label for="bili-history-search" class="sr-only">搜索 B站历史</label>
+      <input
+        id="bili-history-search"
+        v-model="query"
+        type="search"
+        placeholder="搜索标题、作者或分区"
+        class="mb-4 w-full rounded-lg border-gray-300 bg-white text-sm text-gray-900 focus:border-[#fb7299] focus:ring-[#fb7299] dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"
+      />
 
-          <!-- 设置内容 -->
-          <Settings v-else-if="currentContent === 'settings'" />
-        </div>
+      <ul v-if="records.length" class="divide-y divide-gray-200 rounded-lg border border-gray-200 bg-white dark:divide-gray-700 dark:border-gray-700 dark:bg-gray-800">
+        <li v-for="record in records" :key="`${record.id}-${record.view_at}`" class="px-4 py-4">
+          <a
+            v-if="record.original_url"
+            :href="isPrivacyMode ? undefined : record.original_url"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="break-words font-medium text-gray-900 hover:text-[#fb7299] dark:text-gray-100"
+            :class="{ 'blur-sm': isPrivacyMode }"
+            @click.prevent="openRecord(record)"
+          >{{ isPrivacyMode ? '******' : record.title }}</a>
+          <span v-else class="break-words font-medium" :class="{ 'blur-sm': isPrivacyMode }">{{ isPrivacyMode ? '******' : record.title }}</span>
+          <div class="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500 dark:text-gray-400" :class="{ 'blur-sm': isPrivacyMode }">
+            <span v-if="record.author_name">{{ isPrivacyMode ? '******' : record.author_name }}</span>
+            <time>{{ isPrivacyMode ? '******' : formatTime(record.view_at) }}</time>
+          </div>
+        </li>
+      </ul>
 
-        <!-- 分页组件 -->
-        <div v-if="currentContent === 'history' && !showRemarks && total > 0" class="mx-auto mb-5 mt-8 max-w-4xl">
-          <Pagination
-            :current-page="page"
-            :total-pages="totalPages"
-            :page-size="pageSize"
-            :use-routing="true"
-            @update:page-size="pageSize = $event"
-          />
-        </div>
+      <div class="py-6 text-center text-sm text-gray-500 dark:text-gray-400" role="status" aria-live="polite">
+        <p v-if="loading">正在加载…</p>
+        <template v-else-if="errorMessage">
+          <p>{{ errorMessage }}</p>
+          <button type="button" class="mt-2 text-[#fb7299] hover:underline" @click="loadRecords(!records.length)">重试</button>
+        </template>
+        <p v-else-if="!records.length">{{ query.trim() ? '暂无匹配的历史记录。' : '暂无历史记录，请在设置中登录 B站后同步。' }}</p>
+        <button v-else-if="hasMore" type="button" class="text-[#fb7299] hover:underline" @click="loadRecords()">向下滚动或点击加载更多</button>
+        <p v-else>已显示全部匹配记录。</p>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, watch, onUnmounted } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import Navbar from '../Navbar.vue'
-import HistoryContent from '../HistoryContent.vue'
-import Pagination from '../Pagination.vue'
-import Settings from '../Settings.vue'
-import Remarks from './Remarks.vue'
+import { computed, onMounted, ref, watch } from 'vue'
+import { getBiliHistoryRecords, getLoginStatus, searchBiliHistoryRecords, syncBiliHistory } from '../../../api/api'
+import { usePrivacyStore } from '../../../store/privacy'
+import { openInBrowser } from '../../../utils/openUrl'
 
-// 定义 props
-const props = defineProps({
-  defaultShowRemarks: {
-    type: Boolean,
-    default: false
-  }
-})
-
-// 当前显示的内容
-const currentContent = ref('history')
-
-// 路由对象
-const router = useRouter()
-const route = useRoute()
-
-// 状态
-const page = ref(parseInt(route.params.pageNumber) || 1)
-const totalPages = ref(1)
-const selectedYear = ref(new Date().getFullYear())
-const show = ref(false)
-const showBottom = ref(false)
-const date = ref('')
+const query = ref('')
+const records = ref([])
+const page = ref(0)
 const total = ref(0)
-const category = ref('')
-const layout = ref(localStorage.getItem('defaultLayout') || 'grid')
-const isBatchMode = ref(false)
-const showRemarks = ref(props.defaultShowRemarks)
-const business = ref('')
-const businessLabel = ref('')
-const pageSize = ref(parseInt(localStorage.getItem('pageSize')) || 30)
+const loading = ref(false)
+const errorMessage = ref('')
+const scrollContainer = ref(null)
+const syncing = ref(false)
+const syncMessage = ref('')
+const syncFailed = ref(false)
+const { isPrivacyMode } = usePrivacyStore()
+const hasMore = computed(() => records.value.length < total.value)
+let latestRequest = 0
 
-// 组件引用
-const historyContentRef = ref(null)
+const formatTime = (timestamp) => new Date(timestamp * 1000).toLocaleString()
 
-// 刷新数据方法
-const refreshData = async () => {
-  console.log('History - refreshData 被调用')
-  console.log('当前日期:', date.value)
-  console.log('当前分区:', category.value)
-  console.log('当前业务类型:', business.value)
+const openRecord = (record) => {
+  if (!isPrivacyMode.value) openInBrowser(record.original_url)
+}
+
+const loadRecords = async (reset = false) => {
+  if (!reset && (loading.value || !hasMore.value)) return
+  const request = ++latestRequest
+  if (reset) {
+    records.value = []
+    page.value = 0
+    total.value = 0
+    scrollContainer.value?.scrollTo({ top: 0 })
+  }
+  loading.value = true
+  errorMessage.value = ''
+
   try {
-    if (historyContentRef.value && typeof historyContentRef.value.refreshData === 'function') {
-      await historyContentRef.value.refreshData()
-    } else if (historyContentRef.value && typeof historyContentRef.value.fetchHistoryByDateRange === 'function') {
-      await historyContentRef.value.fetchHistoryByDateRange()
-    } else {
-      console.error('刷新数据失败: HistoryContent 组件的 refreshData 方法不可用')
-    }
+    const nextPage = page.value + 1
+    const search = query.value.trim()
+    const response = search
+      ? await searchBiliHistoryRecords(search, nextPage)
+      : await getBiliHistoryRecords(nextPage)
+    if (request !== latestRequest) return
+    if (response.data.status !== 'success') throw new Error(response.data.message || '无法加载历史记录。')
+    const data = response.data.data
+    records.value = reset ? data.records : [...records.value, ...data.records]
+    page.value = data.current
+    total.value = data.total
   } catch (error) {
-    console.error('刷新数据失败:', error)
+    if (request === latestRequest) {
+      errorMessage.value = error.response?.data?.detail || error.message || '无法加载历史记录，请检查后端连接。'
+    }
+  } finally {
+    if (request === latestRequest) loading.value = false
   }
 }
 
-// 监听 date 和 category 的变化
-watch([date, category], ([newDate, newCategory], [oldDate, oldCategory]) => {
-  console.log('History - date/category 变化:', {
-    date: { old: oldDate, new: newDate },
-    category: { old: oldCategory, new: newCategory }
-  })
-})
-
-// 监听路由变化
-watch(
-  () => route.path,
-  (path) => {
-    if (path === '/settings') {
-      currentContent.value = 'settings'
-      showRemarks.value = false
-    } else if (path === '/remarks') {
-      currentContent.value = 'history'
-      showRemarks.value = true
-    } else if (path === '/' || path.startsWith('/page/')) {
-      currentContent.value = 'history'
-      showRemarks.value = false
+const syncHistory = async () => {
+  syncing.value = true
+  syncMessage.value = ''
+  syncFailed.value = false
+  try {
+    const login = await getLoginStatus()
+    if (login.data.code !== 0 || !login.data.data?.isLogin) {
+      throw new Error('请先在设置中登录 B站，再同步历史记录。')
     }
-  },
-  { immediate: true }
-)
-
-// 组件挂载时设置初始状态
-onMounted(() => {
-  // 设置初始的备注显示状态
-  if (props.defaultShowRemarks || route.path === '/remarks') {
-    showRemarks.value = true
-  }
-
-  // 确保路由参数是单个字符串并进行类型转换
-  const pageParam = Array.isArray(route.params.pageNumber)
-    ? route.params.pageNumber[0]
-    : route.params.pageNumber
-  page.value = parseInt(pageParam) || 1
-
-  if (page.value !== 1 && !route.path.startsWith('/remarks')) {
-    router.push(`/page/${page.value}`)
-  }
-  
-  // 监听布局设置变更事件
-  window.addEventListener('layout-setting-changed', handleLayoutSettingChanged)
-})
-
-// 组件卸载时清理事件监听器
-onUnmounted(() => {
-  window.removeEventListener('layout-setting-changed', handleLayoutSettingChanged)
-})
-
-// 处理布局设置变更事件 - 从设置页面接收
-const handleLayoutSettingChanged = (event) => {
-  if (event.detail && typeof event.detail.layout === 'string') {
-    layout.value = event.detail.layout
+    const response = await syncBiliHistory()
+    if (response.data.status !== 'success') throw new Error(response.data.message || '同步失败。')
+    syncMessage.value = response.data.message || '同步完成。'
+    await loadRecords(true)
+  } catch (error) {
+    syncFailed.value = true
+    syncMessage.value = error.response?.data?.detail || error.message || '同步失败，请检查后端连接。'
+  } finally {
+    syncing.value = false
   }
 }
 
-// 监听布局变化，同步到localStorage并触发全局事件
-watch(layout, (newLayout) => {
-  // 保存到localStorage
-  localStorage.setItem('defaultLayout', newLayout)
-  
-  // 触发全局事件通知设置页面
-  try {
-    const event = new CustomEvent('layout-changed', { 
-      detail: { layout: newLayout } 
-    })
-    window.dispatchEvent(event)
-  } catch (error) {
-    console.error('触发布局变更事件失败:', error)
-  }
-})
+const handleScroll = (event) => {
+  const { scrollTop, clientHeight, scrollHeight } = event.currentTarget
+  if (scrollTop + clientHeight >= scrollHeight - 80 && !errorMessage.value) loadRecords()
+}
 
-// 修改路由参数监听部分
-watch(
-  [() => route.params.pageNumber, () => route.path],
-  ([newPage, path], [oldPage, oldPath]) => {
-    if (newPage === oldPage && path === oldPath) return
-
-    if (path === '/') {
-      if (page.value !== 1) {
-        page.value = 1
-      }
-    } else if (newPage) {
-      // 确保 newPage 是单个字符串
-      const pageStr = Array.isArray(newPage) ? newPage[0] : newPage
-      const pageNum = parseInt(pageStr)
-      if (page.value !== pageNum) {
-        page.value = pageNum
-      }
-    }
-  },
-  { immediate: true }
-)
+watch(query, () => loadRecords(true))
+onMounted(() => loadRecords(true))
 </script>
-
-<style scoped>
-@keyframes bounce-x {
-  0%, 100% {
-    transform: translateX(0);
-  }
-  50% {
-    transform: translateX(4px);
-  }
-}
-
-.animate-bounce-x {
-  animation: bounce-x 1.5s infinite;
-}
-</style>
